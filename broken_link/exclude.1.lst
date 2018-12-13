@@ -1,0 +1,28 @@
+#!cat
+# OEIS broken link maintenance
+# @(#) $Id$
+# 2018-12-13, Georg Fischer
+# Tab separated list of counts and URLs which are assumed to be stable, 
+# and which are not checked
+#----------------------------
+3848	http://wolframscience.com/
+1990	http://atlas.wolfram.com/
+1205	http://www.tanyakhovanova.com/RecursiveSequences/RecursiveSequences.html
+#  948	http://somos.crg4.com/multiq.html
+852	http://www.convertit.com/Go/ConvertIt/Reference/AMS55.ASP
+742	http://www.iza-structure.org/databases
+574	http://www.lacim.uqam.ca/%7Eplouffe/articles/MasterThesis.pdf
+559	http://www.lacim.uqam.ca/%7Eplouffe/articles/FonctionsGeneratrices.pdf
+508	http://stdkmd.com/nrr/prime/primedifficulty.txt
+489	http://stdkmd.com/nrr
+441	http://neilsloane.com/doc/tooth.pdf
+417	http://neilsloane.com/doc/ac96cs
+397	http://wims.unice.fr/~wims/en_tool~number~contfrac.en.html
+381	http://www.pmfbl.org/janjic
+346	http://cis.csuohio.edu/~somos/multiq.pdf
+# 335	http://jonathanwellons.com/shared-digits
+270	http://neilsloane.com/doc/Me220.pdf
+255	https://cs.uwaterloo.ca/journals/JIS/VOL10/Kimberling/kimberling26.html
+250	http://mathforum.org/kb/message.jspa?messageID=5785989&amp;tstart=0
+241	http://www.cs.uwaterloo.ca/journals/JIS/index.html
+235	http://wstein.org/Tables

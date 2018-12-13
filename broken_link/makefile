@@ -1,18 +1,83 @@
-#!/bin/make
+#!make
 
 # makefile for OEIS URL checking
+# @(#) $Id$
+# 2018-12-13: https://github.com/gfis/OEIS-mat/blob/master/broken_link/makefile
 # 2018-12-11: use bigout1 with 389420 %H lines and A-numbers
 # 2018-10-16: revived
-# 2009-01-07, Georg Fischer, punctum(at)punctum.com
-# The database files were formerly named like
-#	http://www.research.att.com/~njas/sequences/eisBTfry00000.txt
+# 2009-01-07, Georg Fischer
 #----------------------------------------
-LIM=99999
-DBAT=java -jar ../../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
+LIM=16
+DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=bigout1
 #-------------------------
-all: clean nonlocal nocommon tilde
+all: 
+	# please make targets explicitely: table, brol, url1 ...
+	grep -E "^[a-z]" makefile
+table: brol url1
+old: clean nonlocal nocommon tilde
 	# do not call make without a target
+#-------------------------
+# database
+brol: brol_prep brol_table
+#---
+brol_prep: raw_thin brol_tsv brol_thin
+raw_thin:
+	grep -v "#" exclude.1.lst | cut -f2 > x.tmp
+	grep -vEf x.tmp $(BASE) > $@.tmp
+	wc -l $@.tmp
+brol_tsv:
+	perl brol_prepare.pl -r raw_thin.tmp > $@.tmp
+	head -4 $@.tmp
+	wc -l $@.tmp
+brol_thin: 
+	grep -v "#" exclude.2.lst | cut -f2 \
+	| sed -e "s/^\(.*\)$$/	\1	/" | tee exclude.tmp
+	# | paste -s --delimiters="|"  | tee exclude.tmp
+	grep -iE "	(file://|oeis.org)	" brol_tsv.tmp | wc -l
+	grep -ivE "	(file://|oeis.org)	" brol_tsv.tmp\
+	| grep -vif exclude.tmp > $@.tmp
+	wc -l $@.tmp
+#---
+brol_table: brol_create brol_load brol_stat
+brol_create:
+	perl brol_prepare.pl -c brol | tee brol.create.sql
+	$(DBAT) -f                         brol.create.sql
+brol_load:
+	$(DBAT) -m csv -s "\t" -r brol < brol_thin.tmp
+	$(DBAT) -n brol
+brol_stat:
+	$(DBAT) -n brol
+	$(DBAT) "select protocol, count(protocol) from brol group by protocol"
+	$(DBAT) "select protocol, port, count(*) from brol group by protocol, port"
+	$(DBAT) "select count(distinct host) from brol"
+	$(DBAT) "select count(distinct protocol, host, path, filename) from brol"
+#---
+url1: url1_create url1_load url1_stat
+url1_create:
+	perl brol_prepare.pl -c url1 | tee url1.create.sql
+	$(DBAT) -f                         url1.create.sql
+url1_load:
+	$(DBAT) -f url1.load.sql
+	$(DBAT) -n url1
+url1_stat:
+	$(DBAT) -x -32 -m csv "SELECT noccur, protocol || host || port || path || filename \
+	FROM url1 ORDER BY noccur DESC" | tee $@.tmp
+#---
+trivial:
+	$(DBAT) "select * from brol where host = 'http'"
+ip-address:
+	$(DBAT) -x "select count(host), host from brol where host < 'A' \
+	and host not like '%c%' and host not like '%e%' and host not like '%h%' \
+	group by host" | tee $@.1.tmp
+	cut -f 2 $@.1.tmp > $@.2.tmp
+	make ip-address.4 2>&1 | tee $@.3.tmp
+ip-address.4:
+	cat ip-address.2.tmp | xargs -l ping -c1 -w2 
+wrong:
+	$(DBAT) "select * from brol where host = '10.1007'"
+help:
+	$(DBAT) -h
 #-----------
 clean:
 	rm -f *.tmp
@@ -69,27 +134,6 @@ hosts4:
 	grep -B1 -E "62.138.23[89].45" hosts3.log | grep "Name:" \
 	| cut -b 10- | sed -e "s/$$/	Unknown domain/" | tee $@.2.log
 	wc $@.*.log
-#-------------------------
-# database
-brol: brol_prep brol_create brol_load
-brol_prep: brol_tsv brol_thin
-brol_tsv:
-	perl brol_prepare.pl -i $(BASE) > $@.tmp
-	wc -l $@.tmp
-brol_thin:
-	grep -viE "	(oeis://|dx.doi.org|doi.org|oeis.org|en.wikipedia.org|mathworld.wolfram.com|arXiv.org|web.archive.org|lacim.uqam.ca|emis.de)	" \
-		brol_tsv.tmp  > $@.tmp
-	wc -l $@.tmp
-brol_create:
-	perl brol_prepare.pl -c > brol.create.sql
-	$(DBAT) -f                brol.create.sql
-brol_load:
-	$(DBAT) -m csv -s "\t" -r brol < brol_thin.tmp
-	$(DBAT) -n brol
-brol_stat:
-	$(DBAT) "select distinct protocol from brol"
-help:
-	$(DBAT) -h
 #-------------------------
 # old targets
 check: down geturls spider eval

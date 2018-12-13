@@ -1,0 +1,19 @@
+#!cat
+# OEIS broken link maintenance
+# @(#) $Id$
+# 2018-12-13, Georg Fischer
+# Tab separated list of counts and hosts (domains) which are assumed to be stable, 
+# and which are not checked
+#----------------------------
+0	arXiv.org
+0	doi.org
+0	dx.doi.org
+0	ecs.inria.fr
+0	emis.de
+0	en.wikipedia.org
+0	file://
+0	lacim.uqam.ca
+0	mathworld.wolfram.com
+0	oeis.org
+0	oeis.org
+0	web.archive.org
