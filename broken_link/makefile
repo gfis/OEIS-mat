@@ -64,6 +64,12 @@ url1_stat:
 	$(DBAT) -x -32 -m csv "SELECT noccur, protocol || host || port || path || filename \
 	FROM url1 ORDER BY noccur DESC" | tee $@.tmp
 #---
+special:
+	$(DBAT) -v -f $@.update.sql
+#---
+
+#---
+
 trivial:
 	$(DBAT) "select * from brol where host = 'http'"
 ip-address:
