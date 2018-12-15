@@ -4,6 +4,7 @@
 A collection of small projects around the non-mathematical aspects of Neil Sloane's [On-Line Encyclopedia of Integer Sequences® (OEIS®)](https://oeis.org/), among them:
 * [broken link detection and repair](https://oeis.org/w/index.php?title=User:Georg_Fischer/Broken_link_maintenance)
 * [coincidence (duplicates) search](https://oeis.org/wiki/User:Georg_Fischer/Coincidences)
+* EIC-Expo - Math and Musik exhibition in Heidelberg, Germany, May 2019
 
 The projects attempt an automatic analysis of various fields in the OEIS sequence data by using open source tools, mainly:
 * Perl scripts and makefiles
