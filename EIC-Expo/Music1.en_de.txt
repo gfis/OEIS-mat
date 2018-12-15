@@ -9,17 +9,17 @@
 # Music: the standard midi file (the default), unless suggested otherwise.
 #-------------------------------------------------------------------------
 
-A000010
+A000010 bpm=40, veloff=20, doff=1, voice=103
 Title: [https://en.wikipedia.org/wiki/Euler%27s_totient_function Euler's totient function]
 Titel: [https://de.wikipedia.org/wiki/Eulersche_Phi-Funktion Eulersche Phi-Funktion]
 Terms; 1, 1, 2, 2, 4, 2, 6, 4, 6, 4, 10, 4, 12, 6, 8, 8, 16, 6, 18, 8, 12, 10, 22, 8, ...
 Comment: Number of numbers <= n and relatively prime to n.
-Kommentar:  Sie gibt für jede natürliche Zahl <em>n</em> an, wie viele zu <em>n</em> teilerfremde natürliche Zahlen es gibt, die nicht größer als <em>n</em> sind
+Kommentar:  Sie gibt f&uuml;r jede nat&uuml;rliche Zahl <em>n</em> an, wie viele zu <em>n</em> teilerfremde nat&uuml;rliche Zahlen es gibt, die nicht gr&ouml;&szlig;er als <em>n</em> sind
 Music: Two midi files, the standard one, and one using Rate=40, Release Velocity=20, Duration offset=1, Instrument = 103 (FX7)
 
-A000120
+A000120 bpm=150
 Title: Write <em>n</em> in base 2, count 1's.
-Titel: Anzahl der Einsen in der binären Darstellung von <em>n</em>.
+Titel: Anzahl der Einsen in der bin&auml;ren Darstellung von <em>n</em>.
 Terms; 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, ...
 Comment: Fractal. Basic sequence in communication and computers.
 Kommentar: Fraktal. Grundlegende Sequenz in der Kommunikations- und Computertechnik.
@@ -30,7 +30,7 @@ Title: Differences between primes
 Titel: Differenzen zwischen Primzahlen
 Terms: 1, 2, 2, 4, 2, 4, 2, 4, 6, 2, 6, 4, 2, 4, 6, 6, 2, 6, 4, 2, 6, 4, 6, 8, 4, 2, ...
 Comment: The primes themselves grow too rapidly, but their difference sound great.
-Kommentar: Die Primzahlen selbst wachsen zu schnell, aber ihre Differenzen hören sich gut an.
+Kommentar: Die Primzahlen selbst wachsen zu schnell, aber ihre Differenzen h&ouml;ren sich gut an.
 
 A003602
 Title: Kimberling's paraphrases
@@ -40,16 +40,16 @@ Comment: If n = (2k-1)*2^m then a(n) = k.
 Kommentar: <em>a(n) = k</em> wenn <em>n</em> die Form (2k-1)*2<sup>m</sup> hat.
 
 A004718
-Title: The Danish composer [https://en.wikipedia.org/wiki/Per_N%C3%B8rg%C3%A5rd#Music Per Nørgård's] "infinity sequence" 
-Titel: [https://de.wikipedia.org/wiki/Unendlichkeitsreihe Unendlichkeitsreihe] des dänischen Komponisten [https://de.wikipedia.org/wiki/Per_N%C3%B8rg%C3%A5rd Per Nørgård]
+Title: The Danish composer [https://en.wikipedia.org/wiki/Per_N%C3%B8rg%C3%A5rd#Music Per N&oslash;rg&aring;rd's] "infinity sequence" 
+Titel: [https://de.wikipedia.org/wiki/Unendlichkeitsreihe Unendlichkeitsreihe] des d&auml;nischen Komponisten [https://de.wikipedia.org/wiki/Per_N%C3%B8rg%C3%A5rd Per N&oslash;rg&aring;rd]
 Terms; 0, 1, -1, 2, 1, 0, -2, 3, -1, 2, 0, 1, 2, -1, -3, 4, 1, 0, -2, 3, 0, 1, -1, 2, ...
 Comment: a(2n) = -a(n), a(2n+1) = a(n) + 1 starting with a(0) = 0. 
 Kommentar: <em>a(2n) = -a(n), a(2n+1) = a(n) + 1</em>, beginnend mit <em>a(0) = 0</em>.
 # I have 3 links to his music, but they are all broken. Will try to fix.
 
-A005132
-Title: [https://en.wikipedia.org/wiki/Sequence#Defining_a_sequence_by_recursion Recamán's sequence]
-Titel: Rekursive Definition am Beispiel der Sequenz von Recamán 
+A005132 voice=103
+Title: [https://en.wikipedia.org/wiki/Sequence#Defining_a_sequence_by_recursion Recam&aacute;n's sequence]
+Titel: Rekursive Definition am Beispiel der Sequenz von Recam&aacute;n 
 Terms: 0, 1, 3, 6, 2, 7, 13, 20, 12, 21, 11, 22, 10, 23, 9, 24, 8, 25, 43, 62, 42, 63, ...
 Comment: Start with 0, then subtract or add 1, 2, 3, .... You first try to subtract, but you can only do that if it gives a positive number that is not already in the sequence, otherwise you must add.
 Kommentar: Man beginnt mit 0 und addiert dann 1, 2, 3, .... Zuerst versucht man zu subtrahieren, aber nur, wenn sich eine positive Zahl ergibt, die noch nicht in der Sequenz ist, ansonsten addiert man.
@@ -60,21 +60,21 @@ Title: [https://en.wikipedia.org/w/index.php?title=Hofstadter%27s_Q-sequence Hof
 Titel: [https://de.wikipedia.org/wiki/Hofstadter-Folge Hofstadter-Folge]
 Terms: 1, 1, 2, 3, 3, 4, 5, 5, 6, 6, 6, 8, 8, 8, 10, 9, 10, 11, 11, 12, 12, 12, 12, ...
 Comment: <em>a(n) = a(n-a(n-1)) + a(n-a(n-2))</em> starting with 1, 1.  One of the great mysteries.
-Kommentar: <em>a(n) = a(n-a(n-1)) + a(n-a(n-2))</em>, beginnend mit 1, 1. Eines der großen Rätsel.
+Kommentar: <em>a(n) = a(n-a(n-1)) + a(n-a(n-2))</em>, beginnend mit 1, 1. Eines der gro&szlig;en R&auml;tsel.
 
 A006577
 Title: Steps to reach 1 in 3x+1 problem
 Titel: Im 3x+1-Problem die Anzahl der Schritte bis 1 erreicht wird.
 Terms: 0, 1, 7, 2, 5, 8, 16, 3, 19, 6, 14, 9, 9, 17, 17, 4, 12, 20, 20, 7, 7, 15, 15, ...
 Comment: If even, divide by 2; if odd, multiply by 3 and add 1. Does it always reach 1? No one knows!
-Kommentar: Gerade Zahlen werden durch 2 dividiert, ungerade mit 3 mutlipliziert und um 1 erhöht. Erreicht diese Folge immer? Bis heute ungelöst.
+Kommentar: Gerade Zahlen werden durch 2 dividiert, ungerade mit 3 mutlipliziert und um 1 erh&ouml;ht. Erreicht diese Folge immer? Bis heute ungel&ouml;st.
 
 A007318
 Title: Pascal's triangle
 Titel: Pascalsches Dreieck
 Terms: 1, 1, 1, 1, 2, 1, 1, 3, 3, 1, 1, 4, 6, 4, 1, 1, 5, 10, 10, 5, 1, 1, 6, 15, 20, ...
 Comment: Make a triangle, rows have 1 at each end, other entries are sum of 2 terms about it.
-Kommentar: In den Reihen in einem Dreieck steht an beiden Enden eine 1, die anderen Plätze werden mit der Summe der beiden Zahlen über dem Platz besetzt.
+Kommentar: In den Reihen in einem Dreieck steht an beiden Enden eine 1, die anderen Pl&auml;tze werden mit der Summe der beiden Zahlen &uuml;ber dem Platz besetzt.
 
 A025480
 Title: A simple fractal
@@ -85,31 +85,31 @@ Kommentar: <em>a(2n) = n, a(2n+1) = a(n)</em>
 
 A056239
 Title: Used by Danish composer Aage Rasmussen.
-Titel: Von dem dänischen Komponisten Aage Rasmussen benutzt.
+Titel: Von dem d&auml;nischen Komponisten Aage Rasmussen benutzt.
 Terms: 0, 1, 2, 2, 3, 3, 4, 3, 4, 4, 5, 4, 6, 5, 5, 4, 7, 5, 8, 5, 6, 6, 9, 5, 6, 7, ...
 Comment: If <em>n = Product_{k >= 1} (p_k)^(c_k)</em> where <em>p_k</em> is <em>k</em>-th prime then <em>a(n) = Sum_{k >= 1} k*c_k</em>. 
 Kommentar: Mit <em>n = Product_{k >= 1} (p_k)^(c_k)</em>, wobei <em>p_k</em> die <em>k</em>-te Primzahl ist, ist <em>a(n) = Sum_{k >= 1} k*c_k</em>. 
 # I will try to find out where Rasmussen used it.
 
 A123456
-Title: Ludwig van Beethoven, Bagatelle No. 25, "Für Elise".
-Titel: Ludwig van Beethoven, Bagatelle No. 25, "Für Elise".
+Title: Ludwig van Beethoven, Bagatelle No. 25, "F&uuml;r Elise".
+Titel: Ludwig van Beethoven, Bagatelle No. 25, "F&uuml;r Elise".
 Terms: -20, 56, 55, 56, 55, 56, 51, 54, 52, 49, 32, 37, 40, 44, 49, 51, 32, 36, 44, ...
 Comment: A transcription to demonstrate the OEIS "listen" button.
-Kommentar: Diese Transkription zeigt die Funktion des "listen"-Buttons in der OEIS-Weboberfläche.
+Kommentar: Diese Transkription zeigt die Funktion des "listen"-Buttons in der OEIS-Weboberfl&auml;che.
 
 A220952
 Title: Donald Knuth's twisted enumeration of the natural numbers.
-Titel: Donald Knuths verschränkte Aufzählung der natürlichen Zahlen.
+Titel: Donald Knuths verschr&auml;nkte Aufz&auml;hlung der nat&uuml;rlichen Zahlen.
 Terms: 0, 1, 2, 3, 4, 9, 14, 19, 18, 17, 16, 11, 12, 13, 8, 7, 6, 5, 10, 15, 20, 21, ...
 Comment: The definition is too complicated to give here. But the graph is the most amazing of all 300000 sequences in the OEIS. It also sounds great. 
 
-A258200
+A258200 bpm=60, poff=40
 Title: Related to what happens when you repeatedly take the tangent and round down to an integer.
-Titel: Im Zusammenhang mit einer Folge, bei der wiederholt der Tangens und eine Rundung auf die nächst-niedrigere ganze Zahl angewendet wird.
+Titel: Im Zusammenhang mit einer Folge, bei der wiederholt der Tangens und eine Rundung auf die n&auml;chst-niedrigere ganze Zahl angewendet wird.
 Terms: 3, 19, 3, 19, 3, 19, 3, 19, 3, 13, 6, 3, 7, 6, 6, 3, 7, 6, 6, 3, 13, 6, 3, 3, ...
 Comment: If you start with n, and repeatedly take floor(tangent(x)), then it is conjectured that you always reach either 0 or 1. This is the differences between the numbers that reach 1.
-Kommentar: Es wird vermutet, dass sich schließlich immer entweder 0 oder 1 ergibt. Die Folge hier ist die Differenz der Zahlen, bei denen sich 1 ergibt.
+Kommentar: Es wird vermutet, dass sich schlie&szlig;lich immer entweder 0 oder 1 ergibt. Die Folge hier ist die Differenz der Zahlen, bei denen sich 1 ergibt.
 Music: Two midi files, the standard one, and one using a somewhat slower tempo, 60 for example and somewhat higher pitch offset.
 
 A276204
@@ -124,7 +124,7 @@ Title: Avoids all arithmetic progressions
 Titel: Vermeidet alle arithmetische Folgen
 Terms: 0, 0, 1, 0, 0, 2, 4, 1, 1, 0, 0, 5, 0, 0, 3, 7, 2, 3, 2, 4, 1, 1, 12, 1, 5, 1, ...
 Comment: Like the previous sequence, but must avoid more things. Can you hear how much wilder this one is?
-Kommentar: Wie die vorherige Sequenz, aber es ist noch weniger erlaubt. Hören sie, wie viel unregelmäßiger das klingt?
+Kommentar: Wie die vorherige Sequenz, aber es ist noch weniger erlaubt. H&ouml;ren sie, wie viel unregelm&auml;&szlig;iger das klingt?
 
 A279125
 Title: You can have a repeated term, a(i)=a(j), but only if i AND j is zero. 
@@ -143,14 +143,14 @@ Kommentar: Der Graph ist genauso seltsam.
 
 A318921
 Title: Dirge for Claude L.
-Titel: Trauerlied für Claude L.
+Titel: Trauerlied f&uuml;r Claude L.
 Terms: 0, 0, 0, 1, 0, 0, 1, 3, 0, 0, 0, 1, 2, 1, 3, 7, 0, 0, 0, 1, 0, 0, 1, 3, 4, 2, 
 Comment: In binary expansion of n, delete one symbol from each run. 
-Kommentar: In der Binärdarstellung von <em>n</em> wird eine Ziffer in jeder Folge von gleichen Ziffern gelöscht.
+Kommentar: In der Bin&auml;rdarstellung von <em>n</em> wird eine Ziffer in jeder Folge von gleichen Ziffern gel&ouml;scht.
 
 A999999
 Title: To be defined
 Titel: Noch nicht festgelegt
 Terms: 1, 2, 3
 Comment: This would be the twentieth sequence.
-Kommentar: Das wäre die Zwanzigste Sequenz.
+Kommentar: Das w&auml;re die Zwanzigste Sequenz.

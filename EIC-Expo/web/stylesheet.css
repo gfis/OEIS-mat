@@ -1,0 +1,21 @@
+/*  stylesheet.css
+    for OEIS at Music and Math exhibition, Heidelberg 2019
+    @(#) $Id$
+    2018-12-14, Georg Fischer: copied from ../coincidences/simseq.pl
+*/
+body,table,p,td,th
+        { font-family: Verdana,Arial,sans-serif; }
+table   { border-collapse: collapse; }
+td      { padding-right: 4px; }
+tr,td,th{ text-align: left; vertical-align:top; }
+.bor    { border-left  : 2px solid gray    ;
+          border-top   : 2px solid gray    ;
+          border-bottom: 2px solid gray    ;
+          border-right : 2px solid gray    ;                                 }
+.refp   { background-color: lightgreen;    } /* refers to the partner */
+.warn   { background-color: yellow;        } /* no reference to the partner and newer */
+.comt   { background-color: peachpuff;     } /* lightpink; #fff0f0; a lightred like in history, for conclusion */
+.err    { background-color: red; color: white; } /* for errors */
+.narrow { font-size    : smaller;  }
+.prefor { font-family  : monospace; white-space: pre;
+          font-size    : large; font-weight: bold; }
