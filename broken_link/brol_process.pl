@@ -105,6 +105,7 @@ CREATE  TABLE            $tabname
     , noccur     INT
     , status     VARCHAR(32)
     , access     TIMESTAMP
+    , replurl    VARCHAR(512)
     , PRIMARY KEY(protocol, host, port, path, filename)
     );
 COMMIT;
@@ -120,6 +121,7 @@ GFis
 	# $ua->agent("Mozilla/8.0"); # pretend we are very capable browser
     $ua->agent("Chrome/70.0.3538.110");
     $ua->timeout(4);
+    # $ua->max_redirect(0);
     open(UPD, ">", "update.tmp") || die "cannot write update.tmp\n";
     print "--brol_process.pl -g started:   " . &iso_time(time()) . "\n";
     print UPD "--brol_process.pl -g started: " . &iso_time(time()) . "\n";
@@ -139,19 +141,27 @@ GFis
         $last_mod = &iso_time($last_mod);
         $access   = &iso_time(time());
         $status   = $response->code();
+        $replurl = "";
+		if ($response->redirects) {  # are there any redirects?
+    		my @redirs = $response->redirects;
+    		$replurl   = $redirs[-1]->header('Location'); # last array element: final location
+		}
         print join("\t", $noccur, "*status"
             , $status
             , ($response->content_length() or -1)
             , $last_mod
             , $url
+            , $replurl
             ) . "\n";
+            $path     =~ s{\-\-}{\-\'\|\|\'\-}g;
+            $filename =~ s{\-\-}{\-\'\|\|\'\-}g;
         print UPD <<"GFis";
-UPDATE url1 SET status=\'$status\', access=\'$access\' WHERE protocol=\'$protocol\' AND host=\'$host\' AND port=\'$port\' AND path=\'$path\' AND filename=\'$filename\';
+UPDATE url1 SET status=\'$status\', access=\'$access\', replurl=\'$replurl\' WHERE protocol=\'$protocol\' AND host=\'$host\' AND port=\'$port\' AND path=\'$path\' AND filename=\'$filename\';
 GFis
-        if ($count % 8 == 7) {
+        $count ++;
+        if ($count % 2 == 0) {
             print UPD "COMMIT;\n";
         }
-        $count ++;
     } # while <>
     print "--brol_process.pl -g stopped:   " . &iso_time(time()) . "\n";
     print UPD "COMMIT;\n";

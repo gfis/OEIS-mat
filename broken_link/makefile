@@ -69,8 +69,11 @@ url1_stat:
 special:
 	$(DBAT) -v -f $@.update.sql
 #---
-fetch: fetch1 fetch2 fetch3
+fetch: fetch_stat2 \
+	fetch1 fetch2 fetch3 \
+	fetch_stat2
 fetch1:
+	echo $(NAME)
 	$(DBAT) -$(MF) -x "SELECT noccur, protocol, host, port, path, filename, status FROM url1 \
 	WHERE status = 'unknown' \
 	ORDER BY noccur DESC, filename" \
@@ -78,13 +81,31 @@ fetch1:
 fetch2:
 	perl brol_process.pl -g urls.tmp 
 fetch3:
+	cp update.tmp update.`date +%Y-%m-%d_%H.%M.%S`.tmp
 	$(DBAT) -f update.tmp
-fetch_stat:
+fetch_stat1:
 	$(DBAT) "SELECT noccur, status, access, protocol || host || port || path || filename FROM url1 WHERE status <> 'unknown' ORDER BY noccur DESC;"
-fetch_repair:
-	$(DBAT) 
+fetch_stat2:
+	$(DBAT) "SELECT count(*) FROM url1 WHERE status = 'unknown';"
+fetch_stat4:
+	$(DBAT) "SELECT noccur, status, access, host FROM url1 \
+	WHERE status NOT IN ('unknown', 'special', '403', '200') \
+	AND status NOT LIKE '3%' \
+	ORDER BY noccur DESC;"
+fetch_all:
+	find ../coincidence/store -type f | head -555 > $@.1.tmp
+	cat $@.1.tmp | xargs -l make fetch MF=25 NAME=
 #---
-
+repair1:
+	$(DBAT) -v "UPDATE url1 SET status = '200', access='2018-12-13 18:36:16' WHERE status like 'repaired Mathar';"
+repair2:
+	$(DBAT) -v "UPDATE url1 SET status = SUBSTR(status, 1, 3) WHERE status NOT IN ('unknown', 'special') and LENGTH(status) > 3;"
+repair3:
+	$(DBAT) -v "UPDATE url1 SET status = 'exclude'  WHERE status IN ('unknown') and host = 'www.jstor.org';"
+repair4:
+	# 2	http://	http		://mathworld.wolfram.com/	UnitaryPerfectNumber.html
+	$(DBAT) -v "UPDATE url1 SET status = 'special'  WHERE path like '://mathworld%';"
+#-------
 trivial:
 	$(DBAT) "select * from brol where host = 'http'"
 ip-address:
