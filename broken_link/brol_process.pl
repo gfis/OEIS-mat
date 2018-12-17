@@ -1,18 +1,22 @@
 #!perl
 
-# Prepare .tsv file to be loaded in table 'brol'
+# Operations on SQL table 'brol'
+# 2018-12-17: fetch URLs with LWP
 # 2018-12-12: Georg Fischer - for OEIS
 #
 # Usage:
 #   perl brol_prepare.pl [-c name] [-i]
 #       -c generate CREATE SQL for name
-#       -r generate tsv file for table input
+#       -r generate tsv file for table loading
 #------------------------------------
 use strict;
-my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $TIMESTAMP = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
-        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-
+use warnings;
+use LWP;
+# use LWP::Simple;
+use LWP::UserAgent;
+use LWP::RobotUA;
+use HTTP::Request::Common;
+my $TIMESTAMP = &iso_time(time());
 my $debug      = 0;
 my $action     = "r";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
@@ -22,6 +26,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $action    =   "c";
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
+    } elsif ($opt  =~ m{g}) {
+        $action    =   "g";
     } elsif ($opt  =~ m{r}) {
         $action    =   "r";
     } else {
@@ -35,11 +41,12 @@ my  ( $linetype
     , $prefix
     , $protocol
     , $host
+    , $noccur
     , $port
     , $path
     , $filename
     , $status
-    , $accessed
+    , $access
     , $replurl
     );
 my  @fields = qw(
@@ -57,9 +64,10 @@ my  @fields = qw(
       replurl    VARCHAR(512)
     );
 my $letters = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-my $linetype = "%H";
+$linetype = "%H";
 my $tabname;
 if (0) {
+#-------------------------------------------------------------
 } elsif ($action eq "c") { # print CREATE SQL
     $tabname = shift(@ARGV);
     if (0) {
@@ -104,6 +112,52 @@ GFis
     } else {
         die "wrong tabname \"$tabname\"\n";
     }
+#-------------------------------------------------------------
+} elsif ($action eq "g") { # get HTTP status codes for splitted URLs on input liens
+    # my $ua = LWP::UserAgent->new;
+    my $ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
+    $ua->delay(1/60);
+	# $ua->agent("Mozilla/8.0"); # pretend we are very capable browser
+    $ua->agent("Chrome/70.0.3538.110");
+    $ua->timeout(4);
+    open(UPD, ">", "update.tmp") || die "cannot write update.tmp\n";
+    print "--brol_process.pl -g started:   " . &iso_time(time()) . "\n";
+    print UPD "--brol_process.pl -g started: " . &iso_time(time()) . "\n";
+    my $count = 0;
+    while (<>) {
+        s{\r?\n}{}; # chompr
+        my $line = $_;
+        ($noccur, $protocol, $host, $port, $path, $filename, $status) = split(/\t/, $line);
+        my $url = join("", ($protocol, $host, $port, $path, $filename));
+        # print "--\"$url\"\n";
+        # my $response = $ua->get($url); 
+        my $response = $ua->request(GET "$url");
+        my $last_mod = $response->last_modified();
+        if (! defined($last_mod)) {
+            $last_mod = 0;
+        }
+        $last_mod = &iso_time($last_mod);
+        $access   = &iso_time(time());
+        $status   = $response->code();
+        print join("\t", $noccur, "*status"
+            , $status
+            , ($response->content_length() or -1)
+            , $last_mod
+            , $url
+            ) . "\n";
+        print UPD <<"GFis";
+UPDATE url1 SET status=\'$status\', access=\'$access\' WHERE protocol=\'$protocol\' AND host=\'$host\' AND port=\'$port\' AND path=\'$path\' AND filename=\'$filename\';
+GFis
+        if ($count % 8 == 7) {
+            print UPD "COMMIT;\n";
+        }
+        $count ++;
+    } # while <>
+    print "--brol_process.pl -g stopped:   " . &iso_time(time()) . "\n";
+    print UPD "COMMIT;\n";
+    print UPD "--brol_process.pl -g stopped: " . &iso_time(time()) . "\n";
+    close(UPD);
+#-------------------------------------------------------------
 } elsif ($action eq "r") { # print tsv lines
     my $nseqno = "";
     my $hrowno = 1;
@@ -163,10 +217,17 @@ GFis
                 ) . "\n";
         } # while external link href="http://..." found
     } # while <>
-
+#-------------------------------------------------------------
 } else {
     die "invalid action \"$action\"\n";
 }
+#----
+sub iso_time {
+    my ($unix_time) = @_;
+    my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
+    return sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
+        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+} # iso_time
 __DATA__
 %H A000001 H.-U. Besche and Ivan Panchenko, <a href="/A000001/b000001.txt">Table of n, a(n) for n = 0..2047</a> [Terms 1 through 2015 copied from Small Groups Library mentioned below. Terms 2016 - 2047 added by Ivan Panchenko, Aug 29 2009. 0 prepended by _Ray Chandler_, Sep 16 2015.]
 %H A000001 H. A. Bender, <a href="http://www.jstor.org/stable/1967981">A determination of the groups of order p^5</a>, Ann. of Math. (2) 29, pp. 61-72 (1927).

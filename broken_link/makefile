@@ -2,12 +2,14 @@
 
 # makefile for OEIS URL checking
 # @(#) $Id$
+# 2018-12-17: brol_process -g = get status codes for URLs
 # 2018-12-13: https://github.com/gfis/OEIS-mat/blob/master/broken_link/makefile
 # 2018-12-11: use bigout1 with 389420 %H lines and A-numbers
 # 2018-10-16: revived
 # 2009-01-07, Georg Fischer
 #----------------------------------------
 LIM=16
+MF=64
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=bigout1
 #-------------------------
@@ -27,7 +29,7 @@ raw_thin:
 	grep -vEf x.tmp $(BASE) > $@.tmp
 	wc -l $@.tmp
 brol_tsv:
-	perl brol_prepare.pl -r raw_thin.tmp > $@.tmp
+	perl brol_process -r raw_thin.tmp > $@.tmp
 	head -4 $@.tmp
 	wc -l $@.tmp
 brol_thin: 
@@ -39,14 +41,14 @@ brol_thin:
 	| grep -vif exclude.tmp > $@.tmp
 	wc -l $@.tmp
 #---
-brol_table: brol_create brol_load brol_stat
+brol_table: brol_create brol_load brol_statatistic
 brol_create:
-	perl brol_prepare.pl -c brol | tee brol.create.sql
+	perl brol_process -c brol | tee brol.create.sql
 	$(DBAT) -f                         brol.create.sql
 brol_load:
 	$(DBAT) -m csv -s "\t" -r brol < brol_thin.tmp
 	$(DBAT) -n brol
-brol_stat:
+brol_statistic:
 	$(DBAT) -n brol
 	$(DBAT) "select protocol, count(protocol) from brol group by protocol"
 	$(DBAT) "select protocol, port, count(*) from brol group by protocol, port"
@@ -55,7 +57,7 @@ brol_stat:
 #---
 url1: url1_create url1_load url1_stat
 url1_create:
-	perl brol_prepare.pl -c url1 | tee url1.create.sql
+	perl brol_process -c url1 | tee url1.create.sql
 	$(DBAT) -f                         url1.create.sql
 url1_load:
 	$(DBAT) -f url1.load.sql
@@ -67,7 +69,20 @@ url1_stat:
 special:
 	$(DBAT) -v -f $@.update.sql
 #---
-
+fetch: fetch1 fetch2 fetch3
+fetch1:
+	$(DBAT) -$(MF) -x "SELECT noccur, protocol, host, port, path, filename, status FROM url1 \
+	WHERE status = 'unknown' \
+	ORDER BY noccur DESC, filename" \
+	> urls.tmp
+fetch2:
+	perl brol_process.pl -g urls.tmp 
+fetch3:
+	$(DBAT) -f update.tmp
+fetch_stat:
+	$(DBAT) "SELECT noccur, status, access, protocol || host || port || path || filename FROM url1 WHERE status <> 'unknown' ORDER BY noccur DESC;"
+fetch_repair:
+	$(DBAT) 
 #---
 
 trivial:
