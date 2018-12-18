@@ -106,6 +106,7 @@ CREATE  TABLE            $tabname
     , status     VARCHAR(32)
     , access     TIMESTAMP
     , replurl    VARCHAR(512)
+    , aseqno     VARCHAR(8)   -- minimal A-number with this URL
     , PRIMARY KEY(protocol, host, port, path, filename)
     );
 COMMIT;
@@ -118,7 +119,7 @@ GFis
     # my $ua = LWP::UserAgent->new;
     my $ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
     $ua->delay(1/60);
-	# $ua->agent("Mozilla/8.0"); # pretend we are very capable browser
+    # $ua->agent("Mozilla/8.0"); # pretend we are very capable browser
     $ua->agent("Chrome/70.0.3538.110");
     $ua->timeout(4);
     # $ua->max_redirect(0);
@@ -129,7 +130,7 @@ GFis
     while (<>) {
         s{\r?\n}{}; # chompr
         my $line = $_;
-        ($noccur, $protocol, $host, $port, $path, $filename, $status) = split(/\t/, $line);
+        ($noccur, $protocol, $host, $port, $path, $filename, $status, $aseqno) = split(/\t/, $line);
         my $url = join("", ($protocol, $host, $port, $path, $filename));
         # print "--\"$url\"\n";
         # my $response = $ua->get($url); 
@@ -142,19 +143,25 @@ GFis
         $access   = &iso_time(time());
         $status   = $response->code();
         $replurl = "";
-		if ($response->redirects) {  # are there any redirects?
-    		my @redirs = $response->redirects;
-    		$replurl   = $redirs[-1]->header('Location'); # last array element: final location
-		}
+        if ($response->redirects) {  # are there any redirects?
+            my @redirs = $response->redirects;
+            $replurl   = $redirs[-1]->header('Location'); # last array element: final location
+        }
+        if (length($replurl) > 200) {
+            $replurl = "";
+        }
+		$replurl  =~ s{\'}{\%27}g;
+        $path     =~ s{\-\-}{\-\'\|\|\'\-}g;
+        $filename =~ s{\-\-}{\-\'\|\|\'\-}g;
+        $replurl  =~ s{\-\-}{\-\'\|\|\'\-}g;
         print join("\t", $noccur, "*status"
             , $status
+            , $aseqno
             , ($response->content_length() or -1)
             , $last_mod
             , $url
             , $replurl
             ) . "\n";
-            $path     =~ s{\-\-}{\-\'\|\|\'\-}g;
-            $filename =~ s{\-\-}{\-\'\|\|\'\-}g;
         print UPD <<"GFis";
 UPDATE url1 SET status=\'$status\', access=\'$access\', replurl=\'$replurl\' WHERE protocol=\'$protocol\' AND host=\'$host\' AND port=\'$port\' AND path=\'$path\' AND filename=\'$filename\';
 GFis

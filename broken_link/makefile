@@ -55,13 +55,15 @@ brol_statistic:
 	$(DBAT) "select count(distinct host) from brol"
 	$(DBAT) "select count(distinct protocol, host, path, filename) from brol"
 #---
-url1: url1_create url1_load url1_stat
+url1: url1_create url1_load url1_aseqno url1_stat
 url1_create:
 	perl brol_process -c url1 | tee url1.create.sql
-	$(DBAT) -f                         url1.create.sql
+	$(DBAT) -f                      url1.create.sql
 url1_load:
 	$(DBAT) -f url1.load.sql
 	$(DBAT) -n url1
+url1_aseqno:
+	$(DBAT) -v -f url1.update_aseqno.sql
 url1_stat:
 	$(DBAT) -x -32 -m csv "SELECT noccur, protocol || host || port || path || filename \
 	FROM url1 ORDER BY noccur DESC" | tee $@.tmp
@@ -74,9 +76,9 @@ fetch: fetch_stat2 \
 	fetch_stat2
 fetch1:
 	echo $(NAME)
-	$(DBAT) -$(MF) -x "SELECT noccur, protocol, host, port, path, filename, status FROM url1 \
+	$(DBAT) -$(MF) -x "SELECT noccur, protocol, host, port, path, filename, status, COALESCE(aseqno, '??')  FROM url1 \
 	WHERE status = 'unknown' \
-	ORDER BY noccur DESC, filename" \
+	ORDER BY noccur DESC, COALESCE(aseqno, '??') , filename" \
 	> urls.tmp
 fetch2:
 	perl brol_process.pl -g urls.tmp 
@@ -92,9 +94,21 @@ fetch_stat4:
 	WHERE status NOT IN ('unknown', 'special', '403', '200') \
 	AND status NOT LIKE '3%' \
 	ORDER BY noccur DESC;"
+t-online:
+	$(DBAT) "SELECT noccur, COALESCE(aseqno, 'Annnnnn'), status, host || path || filename FROM url1 \
+	WHERE status NOT IN ('unknown', 'special') \
+	  AND replurl like '%navigationshilfe1%' \
+	ORDER BY noccur DESC;"
 fetch_all:
-	find ../coincidence/store -type f | head -555 > $@.1.tmp
+	find ../coincidence/store -type f | head -336 > $@.1.tmp
 	cat $@.1.tmp | xargs -l make fetch MF=25 NAME=
+dump:
+	$(DBAT) -33333 url1 > url1.dump.tmp
+	zip url1.`date +%Y-%m-%d_%H.%M`.dump.zip url1.dump.tmp
+	ls -al *.dump.*
+crossref:
+	$(DBAT) -x -f crossref.sql | tee $@.tmp
+	perl brol_process.pl -h $@.tmp > $@.html
 #---
 repair1:
 	$(DBAT) -v "UPDATE url1 SET status = '200', access='2018-12-13 18:36:16' WHERE status like 'repaired Mathar';"
