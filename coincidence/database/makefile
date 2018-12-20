@@ -66,9 +66,9 @@ index:
 	perl simseq.pl -a index < regen.`date +%Y-%m-%d`.log > index.html
 #------------
 deploy: 
-	scp *.html gfis@punctum.com:/var/www/html/teherba.org/fasces/oeis/database
+	scp *.html *.css gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
 deplin:
-	scp index.html gfis@punctum.com:/var/www/html/teherba.org/fasces/oeis/database
+	scp index.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
 #------------
 # delete sequences modified by me
 # (1) place new reply emails "Re  changes to A067482 - ..." into ../temp

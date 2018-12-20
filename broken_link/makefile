@@ -2,6 +2,7 @@
 
 # makefile for OEIS URL checking
 # @(#) $Id$
+# 2018-12-20: FETCH_COND
 # 2018-12-17: brol_process -g = get status codes for URLs
 # 2018-12-13: https://github.com/gfis/OEIS-mat/blob/master/broken_link/makefile
 # 2018-12-11: use bigout1 with 389420 %H lines and A-numbers
@@ -12,6 +13,8 @@ LIM=16
 MF=64
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=bigout1
+FETCH_COND=status >= '350' AND STATUS <> '447' AND access < '2018-12-20 00:00:00'
+#                  unknown     navigationshilfe   
 #-------------------------
 all: 
 	# please make targets explicitely: table, brol, url1 ...
@@ -40,6 +43,15 @@ brol_thin:
 	grep -ivE "	(file://|oeis.org)	" brol_tsv.tmp\
 	| grep -vif exclude.tmp > $@.tmp
 	wc -l $@.tmp
+#----
+# test for spaces in URLs
+brol_tsp:
+	perl brol_process.pl -tsp $(BASE) 
+url1_tsp:
+	$(DBAT) -x -f test.urlspace.sql
+changed_man:
+	perl changed.man.pl | tee $@.sql
+	$(DBAT) -v -f  $@.sql
 #---
 brol_table: brol_create brol_load brol_statatistic
 brol_create:
@@ -70,38 +82,54 @@ url1_stat:
 #---
 special:
 	$(DBAT) -v -f $@.update.sql
-#---
-fetch: fetch_stat2 \
+#------------------------------
+status:
+	$(DBAT) -n url1
+	$(DBAT) "select status, count(status) from url1 group by status order by status" \
+	> status.tmp
+	cp -v status.tmp status.`date +%Y-%m-%d_%H.%M.%S`.tmp
+	diff -y --width=40 status.2018-12-19.log status.tmp
+fetch: fetch_stat \
 	fetch1 fetch2 fetch3 \
-	fetch_stat2
+	fetch_stat
 fetch1:
 	echo $(NAME)
-	$(DBAT) -$(MF) -x "SELECT noccur, protocol, host, port, path, filename, status, COALESCE(aseqno, '??')  FROM url1 \
-	WHERE status = 'unknown' \
-	ORDER BY noccur DESC, COALESCE(aseqno, '??') , filename" \
-	> urls.tmp
+	$(DBAT) -$(MF) -x "SELECT noccur, protocol, host, port, path, filename, status, COALESCE(aseqno, 'Annnnnn')  FROM url1 \
+	WHERE $(FETCH_COND) \
+	ORDER BY MID(UUID(), 6, 3)" \
+	| tee urls.tmp
+	# MID(UUID(), 6, 3)
 fetch2:
-	perl brol_process.pl -g urls.tmp 
+	perl brol_process.pl -gu urls.tmp 
 fetch3:
 	cp update.tmp update.`date +%Y-%m-%d_%H.%M.%S`.tmp
 	$(DBAT) -f update.tmp
-fetch_stat1:
-	$(DBAT) "SELECT noccur, status, access, protocol || host || port || path || filename FROM url1 WHERE status <> 'unknown' ORDER BY noccur DESC;"
-fetch_stat2:
-	$(DBAT) "SELECT count(*) FROM url1 WHERE status = 'unknown';"
-fetch_stat4:
-	$(DBAT) "SELECT noccur, status, access, host FROM url1 \
-	WHERE status NOT IN ('unknown', 'special', '403', '200') \
-	AND status NOT LIKE '3%' \
-	ORDER BY noccur DESC;"
-t-online:
+fetch_stat:
+	$(DBAT) "SELECT count(*) FROM url1 WHERE $(FETCH_COND)"
+fetch_all:
+	find ../coincidence/store -type f | head -24 > $@.1.tmp
+	cat $@.1.tmp | xargs -l make fetch MF=25 NAME=
+#-----------------------
+t-online-old:
 	$(DBAT) "SELECT noccur, COALESCE(aseqno, 'Annnnnn'), status, host || path || filename FROM url1 \
 	WHERE status NOT IN ('unknown', 'special') \
 	  AND replurl like '%navigationshilfe1%' \
 	ORDER BY noccur DESC;"
-fetch_all:
-	find ../coincidence/store -type f | head -336 > $@.1.tmp
-	cat $@.1.tmp | xargs -l make fetch MF=25 NAME=
+navigat: navigat1 navigat2
+navigat1:
+	$(DBAT) "SELECT noccur, aseqno, status, host, replurl FROM url1 \
+	WHERE replurl LIKE '%navigationshilfe%' \
+	  AND status <> '447' \
+	ORDER BY host"
+navigat2:
+	$(DBAT) -v "UPDATE url1 SET status ='447' WHERE replurl LIKE '%navigationshilfe%'"
+navigat3:
+	$(DBAT) "SELECT noccur, aseqno, status, host, replurl FROM url1 \
+	WHERE (replurl LIKE '%error%' \
+	  OR replurl LIKE '%found%'\
+	  OR replurl LIKE '%404%'\
+	) AND status <> '447' \
+	  	ORDER BY host"
 dump:
 	$(DBAT) -33333 url1 > url1.dump.tmp
 	zip url1.`date +%Y-%m-%d_%H.%M`.dump.zip url1.dump.tmp
@@ -134,6 +162,41 @@ wrong:
 	$(DBAT) "select * from brol where host = '10.1007'"
 help:
 	$(DBAT) -h
+#-------------------------
+# problems:
+prob1: matbwn1 matbwn2
+matbwn1:
+	$(DBAT) "SELECT aseqno, status\
+	, protocol || host || port || path || filename \
+	FROM url1 \
+	WHERE host='matwbn.icm.edu.pl' AND status >= '300' \
+	ORDER BY aseqno;"
+	# 78 rows
+matbwn2:
+	$(DBAT) -v "UPDATE url1 SET status='343' \
+	WHERE host='matwbn.icm.edu.pl' \
+	  AND path LIKE '/ksiazki%' \
+	  AND status >= '300'"
+prob2:
+	$(DBAT) -v "UPDATE url1 SET status='342' \
+	WHERE host='somos.crg4.com'"
+	# 18 URLs, but in more than 1000 seqs.
+prob3:
+	$(DBAT) -v "UPDATE url1 SET status='344' \
+	WHERE host='trottermath.net'"
+	# 7 rows
+prob4:
+	$(DBAT) -v "UPDATE url1 SET status='240' \
+	WHERE host='www.jstor.org'"
+	# 7 rows
+prob5:
+	$(DBAT) -v "SELECT count(*) FROM url1 \
+	WHERE path LIKE '/~cos/%'"
+	$(DBAT) -v "UPDATE url1 SET status='345' \
+	WHERE path LIKE '/~cos/%'"
+prob6:
+	$(DBAT) -v "UPDATE url1 SET status='240' \
+	WHERE host='primes.utm.edu'"
 #-----------
 clean:
 	rm -f *.tmp

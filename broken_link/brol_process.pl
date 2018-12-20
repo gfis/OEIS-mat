@@ -1,13 +1,19 @@
 #!perl
 
 # Operations on SQL table 'brol'
+# 2018-12-20: refetch
+# 2018-12-19: -x
 # 2018-12-17: fetch URLs with LWP
 # 2018-12-12: Georg Fischer - for OEIS
 #
 # Usage:
-#   perl brol_prepare.pl [-c name] [-i]
-#       -c generate CREATE SQL for name
-#       -r generate tsv file for table loading
+#   perl brol_prepare.pl (-c name|-g|-r|-x) [inputfile] > outputfile
+#       -c    generate CREATE SQL for name
+#       -g    get HTTP status codes for splitted URLs on input lines, and generate UPDATEs
+#       -gu   same as -g, but behave as normal user (not as robot)
+#       -r    generate *.tsv file for table loading
+#       -tsp  test URLs for spaces
+#       -x    generate HTM table from crossref.tmp, for manual corrections
 #------------------------------------
 use strict;
 use warnings;
@@ -26,10 +32,14 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $action    =   "c";
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{g}) {
-        $action    =   "g";
+    } elsif ($opt  =~ m{g}) { # or -gu
+        $action    =  $opt;
     } elsif ($opt  =~ m{r}) {
         $action    =   "r";
+    } elsif ($opt  =~ m{tsp}) {
+        $action    =   "tsp";
+    } elsif ($opt  =~ m{x}) {
+        $action    =   "x";
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -115,14 +125,17 @@ GFis
         die "wrong tabname \"$tabname\"\n";
     }
 #-------------------------------------------------------------
-} elsif ($action eq "g") { # get HTTP status codes for splitted URLs on input liens
-    # my $ua = LWP::UserAgent->new;
-    my $ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
-    $ua->delay(1/60);
-    # $ua->agent("Mozilla/8.0"); # pretend we are very capable browser
-    $ua->agent("Chrome/70.0.3538.110");
-    $ua->timeout(4);
-    # $ua->max_redirect(0);
+} elsif ($action =~ m{g}) { # get HTTP status codes for splitted URLs on input lines, and generate UPDATEs
+	my $ua;
+	if ($action =~ m{gu}) {
+	    $ua = LWP::UserAgent->new;
+	    # $ua->agent("Mozilla/8.0"); # pretend we are a capable browser
+    	$ua->agent("Chrome/70.0.3538.110");
+	} else { # robot
+    	$ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
+    	$ua->delay(2/60);
+    }
+    $ua->timeout(6);
     open(UPD, ">", "update.tmp") || die "cannot write update.tmp\n";
     print "--brol_process.pl -g started:   " . &iso_time(time()) . "\n";
     print UPD "--brol_process.pl -g started: " . &iso_time(time()) . "\n";
@@ -133,7 +146,7 @@ GFis
         ($noccur, $protocol, $host, $port, $path, $filename, $status, $aseqno) = split(/\t/, $line);
         my $url = join("", ($protocol, $host, $port, $path, $filename));
         # print "--\"$url\"\n";
-        # my $response = $ua->get($url); 
+        # my $response = $ua->get($url);
         my $response = $ua->request(GET "$url");
         my $last_mod = $response->last_modified();
         if (! defined($last_mod)) {
@@ -150,7 +163,7 @@ GFis
         if (length($replurl) > 200) {
             $replurl = "";
         }
-		$replurl  =~ s{\'}{\%27}g;
+        $replurl  =~ s{\'}{\%27}g;
         $path     =~ s{\-\-}{\-\'\|\|\'\-}g;
         $filename =~ s{\-\-}{\-\'\|\|\'\-}g;
         $replurl  =~ s{\-\-}{\-\'\|\|\'\-}g;
@@ -162,9 +175,10 @@ GFis
             , $url
             , $replurl
             ) . "\n";
-        print UPD <<"GFis";
-UPDATE url1 SET status=\'$status\', access=\'$access\', replurl=\'$replurl\' WHERE protocol=\'$protocol\' AND host=\'$host\' AND port=\'$port\' AND path=\'$path\' AND filename=\'$filename\';
-GFis
+        print UPD "UPDATE url1 SET status=\'$status\', access=\'$access\', replurl=\'$replurl\'"
+            . " WHERE protocol=\'$protocol\' AND host=\'$host\'"
+            . " AND port=\'$port\' AND path=\'$path\' AND filename=\'$filename\';"
+            . "\n";
         $count ++;
         if ($count % 2 == 0) {
             print UPD "COMMIT;\n";
@@ -232,6 +246,39 @@ GFis
                 , $replurl
                 )
                 ) . "\n";
+        } # while external link href="http://..." found
+    } # while <>
+#-------------------------------------------------------------
+} elsif ($action eq "tsp") { # test URLs for spaces
+    my $nseqno = "";
+    my $hrowno = 1;
+    my $hcolno = 0;
+    $status = "unknown";
+    while (<>) {
+        next if ! m{^\%H};
+        s{\r?\n}{}; # chompr
+        my $line = $_;
+        $line =~ m{^$linetype\s*(A\d{6})\s*([\w\s\.\-]*)};
+        $aseqno = $1;
+        $prefix = $2;
+        if ($aseqno ne $nseqno) {
+            $nseqno =  $aseqno;
+            $hrowno = 1;
+        } else {
+            $hrowno ++;
+        }
+        $hcolno = 0;
+        while (($line =~ s{\<a\s+href\=\"([^\"]+)\"}{}i) > 0) { # external link found
+            $hcolno ++;
+            my $url = $1;
+            $url =~ s{ +\Z}{};
+            if ($url =~ m{ }) {
+                print join("\t",
+                    ( $aseqno
+                    , "\"$url\""
+                    )
+                    ) . "\n";
+            }
         } # while external link href="http://..." found
     } # while <>
 #-------------------------------------------------------------
