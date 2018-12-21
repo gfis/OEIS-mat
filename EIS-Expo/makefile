@@ -21,10 +21,10 @@ new:
 #------------
 zip:
 	rm -rf *.bak
-	zip -r ../EIC-Expo.zip *
-	cp ../EIC-Expo.zip ../EIC-Expo.`date +%Y-%m-%d_%H.%M.%S`.zip
+	zip -r ../EIS-Expo.zip *
+	cp ../EIS-Expo.zip ../EIS-Expo.`date +%Y-%m-%d_%H.%M.%S`.zip
 deploy: 
-	scp ../EIC-Expo.zip web/stylesheet.css web/*.html \
+	scp ../EIS-Expo.zip web/stylesheet.css web/*.html \
 	web/img/hear.jpg \
 	Music1.en_de.txt \
-	gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/EIC-Expo
+	gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/EIS-Expo
