@@ -25,6 +25,7 @@ use HTTP::Request::Common;
 my $TIMESTAMP = &iso_time(time());
 my $debug      = 0;
 my $action     = "r";
+my $wait       = 2;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -38,6 +39,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $action    =   "r";
     } elsif ($opt  =~ m{tsp}) {
         $action    =   "tsp";
+    } elsif ($opt  =~ m{w}) {
+        $wait      =  shift(@ARGV);
     } elsif ($opt  =~ m{x}) {
         $action    =   "x";
     } else {
@@ -133,7 +136,7 @@ GFis
     	$ua->agent("Chrome/70.0.3538.110");
 	} else { # robot
     	$ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
-    	$ua->delay(2/60);
+    	$ua->delay($wait/60);
     }
     $ua->timeout(6);
     open(UPD, ">", "update.tmp") || die "cannot write update.tmp\n";
@@ -141,6 +144,9 @@ GFis
     print UPD "--brol_process.pl -g started: " . &iso_time(time()) . "\n";
     my $count = 0;
     while (<>) {
+		if ($action =~ m{gu}) {
+	    	sleep($wait);
+	    }
         s{\r?\n}{}; # chompr
         my $line = $_;
         ($noccur, $protocol, $host, $port, $path, $filename, $status, $aseqno) = split(/\t/, $line);

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    @(#) $Id
+    2018-12-30: Georg Fischer
+-->
+<dbat encoding="UTF-8"
+    conn="worddb"
+    lang="en"
+    xmlns   ="http://www.teherba.org/2007/dbat"
+    xmlns:ht="http://www.w3.org/1999/xhtml"
+    target="_blank" 
+    title="OEIS-mat.broken_link.prefix"
+    >
+    <comment lang="de">Search prefix</comment>
+
+    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.prefix">Broken links:</ht:a>
+        Search prefix
+    </ht:h3>
+    <ht:form method="get">
+        <ht:input label="Prefix" name="prefix" maxsize="128" size="64" init="Fischer" /><ht:br />   
+        <ht:input type="submit" value="Search" />
+    </ht:form>
+
+    <select aggregate="aseqno" with=", ">
+        <col label="A-number" name="aseqno" link="OEIS-mat.broken_link.aseqno&amp;aseqno=">aseqno</col>
+        <col pseudo="style">CASE 
+            WHEN status &lt;= '240' THEN 'grn'
+            WHEN status &lt;= '399' THEN 'yel'
+            ELSE                         'red' END
+        </col>
+        <col label="Status"  >status</col>
+        <col label="Prefix"   link="OEIS-mat.broken_link.prefix&amp;prefix=" >prefix</col>
+        <col label="Link"     link="url&amp;url="    >
+            protocol || host || port || path || filename
+        </col>
+        <from> brol
+        </from>
+        <where> prefix like '%<parm name="prefix" init="Fischer" />%'
+        </where>
+        <order by="5, status DESC" />
+    </select>
+    <trailer/>
+</dbat>

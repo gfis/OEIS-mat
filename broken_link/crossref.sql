@@ -13,6 +13,6 @@ SELECT 'brol'
 FROM url1 a, url1 b 
 WHERE a.filename = b.filename 
   AND a.status  <> b.status
-  AND a.status   = '200' and b.status <> 'unknown'
+  AND a.status   = '200' and b.status >= '400'
   AND LENGTH(a.filename) > 10
 ORDER BY a.noccur DESC, a.filename;

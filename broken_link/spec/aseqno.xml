@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    @(#) $Id
+    2018-12-30: Georg Fischer
+-->
+<dbat encoding="UTF-8"
+    conn="worddb"
+    lang="en"
+    xmlns   ="http://www.teherba.org/2007/dbat"
+    xmlns:ht="http://www.w3.org/1999/xhtml"
+    target="_blank" 
+    javascript="../../javascript.js"
+    title="OEIS-mat.broken_link.prefix"
+    >
+    <comment lang="de">Search prefix</comment>
+
+    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.prefix">Broken links:</ht:a>
+        Search A-number
+    </ht:h3>
+    <ht:form method="get">
+        <ht:input label="A-number" name="aseqno" maxsize="7" size="7" init="A322469" /> 
+        &#xa0;   
+        <ht:input type="submit" value="Search" />
+    </ht:form>
+
+    <ht:h3>
+        <select distinct="yes" headers="no">
+            <col href="https://oeis.org/edit?&amp;seq=&amp;dummy=" style="bold">
+                aseqno || '=' || 'Edit  ' || aseqno
+            </col>
+            <col href="https://oeis.org/search?&amp;q=&amp;dummy=">
+                'id:' || aseqno || '=' || aseqno
+            </col>
+            <from>url1
+            </from>
+            <where>aseqno = '<parm name="aseqno" init="A322469" />'
+            </where>
+        </select>
+    </ht:h3>
+    <select>
+        <col pseudo="style">CASE 
+            WHEN status &lt;= '240' THEN 'grn'
+            WHEN status &lt;= '399' THEN 'yel'
+            ELSE                         'red' END
+        </col>
+        <col label="Status"  >status</col>
+        <col label="Prefix"   link="OEIS-mat.broken_link.prefix&amp;prefix=" >prefix</col>
+        <col label="Filename">filename</col>
+        <!--
+            href="&amp;protocol*&amp;host*&amp;port*&amp;path*&amp;filename*">
+        -->
+        <col label="Link" sep="*" wrap="javascript">
+            'generalLink*' || protocol || host || port || path || filename
+        </col>
+        <from> brol
+        </from>
+        <where>aseqno = '<parm name="aseqno" />'
+        </where>
+        <order by="4, status DESC" />
+    </select>
+    <trailer/>
+</dbat>

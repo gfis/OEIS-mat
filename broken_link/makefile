@@ -13,8 +13,10 @@ LIM=16
 MF=64
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=bigout1
-FETCH_COND=status >= '350' AND STATUS <> '447' AND access < '2018-12-20 00:00:00'
-#                  unknown     navigationshilfe   
+WAIT=2
+# FETCH_COND=status >= '350' AND STATUS <> '447' AND access < '2018-12-20 00:00:00'
+#                  unknown     navigationshilfe  
+FETCH_COND=host='matwbn.icm.edu.pl' AND access < '2018-12-21 00:00:00'
 #-------------------------
 all: 
 	# please make targets explicitely: table, brol, url1 ...
@@ -89,6 +91,9 @@ status:
 	> status.tmp
 	cp -v status.tmp status.`date +%Y-%m-%d_%H.%M.%S`.tmp
 	diff -y --width=40 status.2018-12-19.log status.tmp
+tld:
+	$(DBAT) -x "select REGEXP_SUBSTR(host, '[a-zA-Z0-9]+$$') from url1" \
+	| sort | uniq -c | tee $@.tmp
 fetch: fetch_stat \
 	fetch1 fetch2 fetch3 \
 	fetch_stat
@@ -100,7 +105,7 @@ fetch1:
 	| tee urls.tmp
 	# MID(UUID(), 6, 3)
 fetch2:
-	perl brol_process.pl -gu urls.tmp 
+	perl brol_process.pl -g -w $(WAIT) urls.tmp 
 fetch3:
 	cp update.tmp update.`date +%Y-%m-%d_%H.%M.%S`.tmp
 	$(DBAT) -f update.tmp
@@ -131,13 +136,24 @@ navigat3:
 	) AND status <> '447' \
 	  	ORDER BY host"
 dump:
-	$(DBAT) -33333 url1 > url1.dump.tmp
+	$(DBAT) -999999 url1 > url1.dump.tmp
 	zip url1.`date +%Y-%m-%d_%H.%M`.dump.zip url1.dump.tmp
+	$(DBAT) -999999 brol > brol.dump.tmp
+	zip brol.`date +%Y-%m-%d_%H.%M`.dump.zip brol.dump.tmp
 	ls -al *.dump.*
 crossref:
 	$(DBAT) -x -f crossref.sql | tee $@.tmp
 	perl brol_process.pl -h $@.tmp > $@.html
 #---
+update_brol:
+	$(DBAT) "UPDATE brol a SET a.status = (SELECT b.status FROM url1 b \
+	WHERE a.protocol = b.protocol  \
+	  AND a.host     = b.host      \
+	  AND a.port     = b.port      \
+	  AND a.path     = b.path      \
+	  AND a.filename = b.filename  \
+	  );"
+#-----------------------
 repair1:
 	$(DBAT) -v "UPDATE url1 SET status = '200', access='2018-12-13 18:36:16' WHERE status like 'repaired Mathar';"
 repair2:
