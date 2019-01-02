@@ -66,7 +66,7 @@ index:
 	perl simseq.pl -a index < regen.`date +%Y-%m-%d`.log > index.html
 #------------
 deploy: 
-	scp *.html *.css gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
+	scp *.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
 deplin:
 	scp index.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
 #------------

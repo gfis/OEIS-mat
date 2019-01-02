@@ -1,6 +1,8 @@
 #!perl
 
 # Operations on SQL table 'brol'
+# @(#) $Id$
+# 2019-01-02: $content
 # 2018-12-20: refetch
 # 2018-12-19: -x
 # 2018-12-17: fetch URLs with LWP
@@ -18,10 +20,10 @@
 use strict;
 use warnings;
 use LWP;
-# use LWP::Simple;
 use LWP::UserAgent;
 use LWP::RobotUA;
 use HTTP::Request::Common;
+
 my $TIMESTAMP = &iso_time(time());
 my $debug      = 0;
 my $action     = "r";
@@ -47,7 +49,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
-
+#----------------
 my  ( $linetype
     , $aseqno
     , $key2
@@ -58,6 +60,7 @@ my  ( $linetype
     , $port
     , $path
     , $filename
+    , $content
     , $status
     , $access
     , $replurl
@@ -72,6 +75,7 @@ my  @fields = qw(
       port       VARCHAR(8)
       path       VARCHAR(512)
       filename   VARCHAR(512)
+      content    VARCHAR(512)
       status     VARCHAR(32)
       access     TIMESTAMP
       replurl    VARCHAR(512)
@@ -129,14 +133,14 @@ GFis
     }
 #-------------------------------------------------------------
 } elsif ($action =~ m{g}) { # get HTTP status codes for splitted URLs on input lines, and generate UPDATEs
-	my $ua;
-	if ($action =~ m{gu}) {
-	    $ua = LWP::UserAgent->new;
-	    # $ua->agent("Mozilla/8.0"); # pretend we are a capable browser
-    	$ua->agent("Chrome/70.0.3538.110");
-	} else { # robot
-    	$ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
-    	$ua->delay($wait/60);
+    my $ua;
+    if ($action =~ m{gu}) {
+        $ua = LWP::UserAgent->new;
+        # $ua->agent("Mozilla/8.0"); # pretend we are a capable browser
+        $ua->agent("Chrome/70.0.3538.110");
+    } else { # robot
+        $ua = LWP::RobotUA->new('pu-robot/0.1', 'punctum@punctum.com');
+        $ua->delay($wait/60);
     }
     $ua->timeout(6);
     open(UPD, ">", "update.tmp") || die "cannot write update.tmp\n";
@@ -144,9 +148,9 @@ GFis
     print UPD "--brol_process.pl -g started: " . &iso_time(time()) . "\n";
     my $count = 0;
     while (<>) {
-		if ($action =~ m{gu}) {
-	    	sleep($wait);
-	    }
+        if ($action =~ m{gu}) {
+            sleep($wait);
+        }
         s{\r?\n}{}; # chompr
         my $line = $_;
         ($noccur, $protocol, $host, $port, $path, $filename, $status, $aseqno) = split(/\t/, $line);
@@ -214,26 +218,30 @@ GFis
             $hrowno ++;
         }
         $hcolno = 0;
-        while (($line =~ s{\<a\s+href\=\"([^\"]+)\"}{}i) > 0) { # external link found
+        while (($line =~ s{\<a\s+href\=\"([^\"]+)\"[^\>]*\>([^\<]+)}{}i) > 0) { # external link found
             $hcolno ++;
-            my $url = $1;
+            my $url  = $1;
+            $content = $2;
+            $port    = "";
             if (0) {
             } elsif ($url =~ m{^(\w+\:\/\/)([^\/\:]+)(\:\d+)?(.*)}) {
                 $protocol = $1;
-                $host   = $2;
-                $port     = $3;
+                $host     = $2;
+                $port     = $3 || "";
                 $path     = $4;
             } elsif ($url =~ m{^\/(.*)}) {
                 $protocol = "file://";
                 $host   = "";
-                $port     = "";
                 $path     = "/$1";
             } else {
                 print STDERR "not matched: $url\n";
             }
             my @parts = split(/\//, $path);
-            $filename = @parts[scalar(@parts) - 1];
-            pop(@parts);
+            if (scalar(@parts) > 0) {
+            	$filename = pop(@parts);
+            } else {
+            	$filename = "";
+            }
             $path     = join("/", @parts) . "/";
             $status   = "";
             $replurl  = "";
@@ -247,6 +255,7 @@ GFis
                 , $port
                 , $path
                 , $filename
+                , $content
                 , $status
                 , $TIMESTAMP
                 , $replurl

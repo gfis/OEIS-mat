@@ -14,7 +14,7 @@
     >
     <comment lang="de">Search prefix</comment>
 
-    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.prefix">Broken links:</ht:a>
+    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.index">Broken links:</ht:a>
         Search A-number
     </ht:h3>
     <ht:form method="get">

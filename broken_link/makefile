@@ -3,7 +3,7 @@
 # makefile for OEIS URL checking
 # @(#) $Id$
 # 2018-12-20: FETCH_COND
-# 2018-12-17: brol_process -g = get status codes for URLs
+# 2018-12-17: brol_process.pl -g = get status codes for URLs
 # 2018-12-13: https://github.com/gfis/OEIS-mat/blob/master/broken_link/makefile
 # 2018-12-11: use bigout1 with 389420 %H lines and A-numbers
 # 2018-10-16: revived
@@ -34,7 +34,7 @@ raw_thin:
 	grep -vEf x.tmp $(BASE) > $@.tmp
 	wc -l $@.tmp
 brol_tsv:
-	perl brol_process -r raw_thin.tmp > $@.tmp
+	perl brol_process.pl -r raw_thin.tmp > $@.tmp
 	head -4 $@.tmp
 	wc -l $@.tmp
 brol_thin: 
@@ -55,9 +55,9 @@ changed_man:
 	perl changed.man.pl | tee $@.sql
 	$(DBAT) -v -f  $@.sql
 #---
-brol_table: brol_create brol_load brol_statatistic
+brol_table: brol_create brol_load brol_statistic
 brol_create:
-	perl brol_process -c brol | tee brol.create.sql
+	perl brol_process.pl -c brol | tee brol.create.sql
 	$(DBAT) -f                         brol.create.sql
 brol_load:
 	$(DBAT) -m csv -s "\t" -r brol < brol_thin.tmp
@@ -69,9 +69,26 @@ brol_statistic:
 	$(DBAT) "select count(distinct host) from brol"
 	$(DBAT) "select count(distinct protocol, host, path, filename) from brol"
 #---
+brol_update:
+	$(DBAT) "UPDATE brol a SET \
+	  a.status = (SELECT b.status FROM url1 b \
+	  WHERE a.protocol = b.protocol  \
+	  AND a.host     = b.host      \
+	  AND a.port     = b.port      \
+	  AND a.path     = b.path      \
+	  AND a.filename = b.filename  \
+	  ),\
+	  a.access = (SELECT b.access FROM url1 b \
+	  WHERE a.protocol = b.protocol  \
+	  AND a.host     = b.host      \
+	  AND a.port     = b.port      \
+	  AND a.path     = b.path      \
+	  AND a.filename = b.filename  \
+	  );"
+#---
 url1: url1_create url1_load url1_aseqno url1_stat
 url1_create:
-	perl brol_process -c url1 | tee url1.create.sql
+	perl brol_process.pl -c url1 | tee url1.create.sql
 	$(DBAT) -f                      url1.create.sql
 url1_load:
 	$(DBAT) -f url1.load.sql
@@ -144,15 +161,6 @@ dump:
 crossref:
 	$(DBAT) -x -f crossref.sql | tee $@.tmp
 	perl brol_process.pl -h $@.tmp > $@.html
-#---
-update_brol:
-	$(DBAT) "UPDATE brol a SET a.status = (SELECT b.status FROM url1 b \
-	WHERE a.protocol = b.protocol  \
-	  AND a.host     = b.host      \
-	  AND a.port     = b.port      \
-	  AND a.path     = b.path      \
-	  AND a.filename = b.filename  \
-	  );"
 #-----------------------
 repair1:
 	$(DBAT) -v "UPDATE url1 SET status = '200', access='2018-12-13 18:36:16' WHERE status like 'repaired Mathar';"

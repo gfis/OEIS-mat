@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
     @(#) $Id
-    2018-12-30: Georg Fischer
+    2018-12-31: Georg Fischer
 -->
 <dbat encoding="UTF-8"
     conn="worddb"
@@ -10,36 +10,41 @@
     xmlns:ht="http://www.w3.org/1999/xhtml"
     target="_blank" 
     javascript="../../javascript.js"
-    title="OEIS-mat.broken_link.prefix"
+    title="OEIS-mat.broken_link.host"
     >
-    <comment lang="de">Search prefix</comment>
+    <comment lang="de">Search host</comment>
 
     <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.index">Broken links:</ht:a>
-        Search prefix
+        Search host
     </ht:h3>
     <ht:form method="get">
-        <ht:input label="Prefix" name="prefix" maxsize="128" size="64" init="Fischer" /><ht:br />   
+        <ht:input label="Host" name="host" maxsize="128" size="64" init="gutenberg" /><ht:br />   
         <ht:input type="submit" value="Search" />
     </ht:form>
 
-    <select aggregate="aseqno" with=" ">
-        <col label="A-number" name="aseqno" href="https://oeis.org/edit?&amp;seq=">aseqno</col>
+    <select>
+        <col label="Occurs">COUNT(filename)</col>
         <col pseudo="style">CASE 
             WHEN status &lt;= '240' THEN 'grn'
             WHEN status &lt;= '399' THEN 'yel'
             ELSE                         'red' END
         </col>
         <col label="Status"  >status</col>
-        <col label="Prefix"   link="OEIS-mat.broken_link.prefix&amp;prefix="    >prefix  </col>
         <col label="Filename" link="OEIS-mat.broken_link.filename&amp;filename=">filename</col>
         <col label="Link" sep="*" wrap="javascript">
             'generalLink*' || protocol || host || port || path || filename
         </col>
+        <col label="Redireted to" sep="*" wrap="javascript">
+            'generalLink*' || replurl
+        </col>
+        <col label="Access">access</col>
         <from> brol
         </from>
-        <where> UPPER(prefix) like UPPER('%<parm name="prefix" init="Fischer" />%')
+        <where> UPPER(host) LIKE UPPER('%<parm name="host" />%')
+        	GROUP BY filename
         </where>
-        <order by="filename, status DESC" />
+        <order by="1 DESC, filename, status DESC" />
+        <counter desc="File,s" />
     </select>
     <trailer/>
 </dbat>
