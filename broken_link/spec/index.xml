@@ -2,7 +2,7 @@
 <!--
     @(#) $Id: index.xml 785 2011-08-24 17:27:45Z gfis $
     2018-12-29: Georg Fischer
--->    
+-->
 <dbat encoding="UTF-8"
     conn="worddb"
     lang="en"
@@ -11,20 +11,20 @@
     title="index"
     >
     <comment lang="en">All broken link queries</comment>
-    
+
     <!--
     <ht:img src="spec/logo.jpg" align="right" alt="Logo" />
     -->
-    <ht:h2>All <ht:a href="servlet?spec=OEIS-Mat.broken_link.index">broken link</ht:a> queries</ht:h2>
+    <ht:h2>All  <ht:a href="servlet?spec=broken_link.index">broken link</ht:a> queries</ht:h2>
     <ht:p>-&gt; <ht:a href="servlet?spec=index">Dbat</ht:a></ht:p>
-    
+
     <select>
         <col label="Query" href="servlet?&amp;spec=">subdir || '.' || name</col>
         <col label="Description">'<ht:strong>' || title || '</ht:strong> &amp;mdash; ' || comment</col>
         <col label="Parameters with defaults">params</col>
         <from>spec_index
         </from>
-        <where>subdir = 'OEIS-mat/broken_link'
+        <where>subdir = 'broken_link'
           AND  lang   = 'en'
         </where>
         <order by="name" />

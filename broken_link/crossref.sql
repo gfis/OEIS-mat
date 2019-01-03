@@ -1,18 +1,19 @@
 -- @(#) $Id$
--- Select same filename and different status
--- 2018-12-18, Georg Fischer
+-- Select same content and different status
+-- 2019-01-02, Georg Fischer
 SELECT 'brol'
-	 , a.noccur, a.status, COALESCE(a.aseqno, 'Annnnnn'), a.replurl
+	 , a.status, COALESCE(a.aseqno, 'Annnnnn'), a.replurl
 	 , a.protocol || a.host || a.port || a.path || a.filename
 --	 , '<br />'
 --	 , '<br />'
-	 , b.noccur, b.status, COALESCE(b.aseqno, 'Bnnnnnn'), b.replurl
+	 , b.status, COALESCE(b.aseqno, 'Bnnnnnn'), b.replurl
 	 , b.protocol || b.port || b.host || b.path || b.filename
 --	 , '<br />'
 --	 , '<br />'
-FROM url1 a, url1 b 
-WHERE a.filename = b.filename 
+FROM brol a, brol b 
+WHERE a.content = b.content 
   AND a.status  <> b.status
-  AND a.status   = '200' and b.status >= '400'
-  AND LENGTH(a.filename) > 10
-ORDER BY a.noccur DESC, a.filename;
+  AND a.status  = '200' and b.status >= '400'
+  AND LENGTH(a.content) > 10
+  AND a.content like '%rimes%'
+ORDER BY a.content, a.status DESC;

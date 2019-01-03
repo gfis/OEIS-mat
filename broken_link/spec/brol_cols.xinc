@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Dbat include file for columns of 'brol' table
+    @(#) $Id$
+    2019-01-03, Georg Fischer
+-->
+        <col label="Content" name="content" link="broken_link.content&amp;content=">content</col>
+        <col label="Prefix"  name="prefix"  link="broken_link.prefix&amp;prefix="  >prefix </col>
+        <col label="A"                      link="broken_link.aseqno&amp;aseqno=&amp;dummy=">
+            aseqno || '=A'
+            </col>
+        <col label="E" sep="*" wrap="javascript">
+            'url*https://oeis.org/edit?&amp;seq=' || aseqno || '*E' 
+        </col>
+        <col label="A-num." sep="*" wrap="javascript">
+            'url*https://oeis.org/'               || aseqno || '*' || aseqno
+        </col>
+        <col pseudo="style">CASE
+            WHEN status &lt;= '240' THEN 'grn'
+            WHEN status &lt;= '399' THEN 'yel'
+            ELSE                         'red' END
+        </col>
+        <col label="Status"  >status </col>
+        <col label="Filename" link="broken_link.filename&amp;filename=">filename</col>
+        <col label="Link" sep="*" wrap="javascript">
+            'url*' || link
+        </col>
+        <col label="Redirect" sep="*" wrap="javascript">
+            'url*' || replurl
+        </col>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Dbat include file for search button and following links
+    @(#) $Id$
+    2019-01-03, Georg Fischer
+-->
+        <ht:input type="submit" value="Search" />
+        -&gt; <ht:a href="servlet?spec=broken_link.aseqno"   >aseqno   </ht:a>
+        -&gt; <ht:a href="servlet?spec=broken_link.content"  >content  </ht:a>
+        -&gt; <ht:a href="servlet?spec=broken_link.filename" >filename </ht:a>
+        -&gt; <ht:a href="servlet?spec=broken_link.good_bad" >good_bad </ht:a>
+        -&gt; <ht:a href="servlet?spec=broken_link.host"     >host     </ht:a>
+        -&gt; <ht:a href="servlet?spec=broken_link.prefix"   >prefix   </ht:a>

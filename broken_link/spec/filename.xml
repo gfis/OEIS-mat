@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dbat [
+<!ENTITY brol_cols   SYSTEM   "brol_cols.xinc"  >
+<!ENTITY brol_select SYSTEM   "brol_select.xinc"  >
+<!ENTITY search_tail SYSTEM   "search_tail.xinc">
+]>
 <!--
     @(#) $Id
     2018-12-31: Georg Fischer
@@ -9,37 +14,29 @@
     xmlns   ="http://www.teherba.org/2007/dbat"
     xmlns:ht="http://www.w3.org/1999/xhtml"
     target="_blank" 
-    javascript="../../javascript.js"
-    title="OEIS-mat.broken_link.filename"
+    javascript="../javascript.js"
+    title="filename"
     >
     <comment lang="de">Search filename</comment>
 
-    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.index">Broken links:</ht:a>
-        Search filename
+    <ht:h3><ht:a href="servlet?spec=broken_link.index">Broken links</ht:a> -
+        Search filename <ht:em><parm name="filename" init="abstract" /></ht:em>
     </ht:h3>
     <ht:form method="get">
-        <ht:input label="Filename" name="filename" maxsize="512" size="64" init="abstract.html" /><ht:br />   
-        <ht:input type="submit" value="Search" />
+        <ht:input label="Filename" name="filename" maxsize="512" size="64" />
+        <ht:br />   
+        &search_tail;
     </ht:form>
 
     <select aggregate="aseqno" with=", ">
-        <col label="A-number" name="aseqno" link="OEIS-mat.broken_link.aseqno&amp;aseqno=">aseqno</col>
-        <col pseudo="style">CASE 
-            WHEN status &lt;= '240' THEN 'grn'
-            WHEN status &lt;= '399' THEN 'yel'
-            ELSE                         'red' END
-        </col>
-        <col label="Status"  >status</col>
-        <col label="Prefix"   link="OEIS-mat.broken_link.prefix&amp;prefix="    >prefix  </col>
-        <col label="Filename" link="OEIS-mat.broken_link.filename&amp;filename=">filename</col>
-        <col label="Link" sep="*" wrap="javascript">
-            'generalLink*' || protocol || host || port || path || filename
-        </col>
-        <from> brol
+    	&brol_cols;
+        <from> 
+(
+    &brol_select;
+    WHERE  filename LIKE '%<parm name="filename" />%'
+) AS sub1
         </from>
-        <where> filename = '<parm name="filename" />'
-        </where>
-        <order by="status DESC, aseqno" />
+        <order by="aseqno, status DESC" />
     </select>
     <trailer/>
 </dbat>

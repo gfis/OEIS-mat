@@ -51,6 +51,8 @@ brol_tsp:
 	perl brol_process.pl -tsp $(BASE) 
 url1_tsp:
 	$(DBAT) -x -f test.urlspace.sql
+#----------------------------------
+changed: changed_man brol_update
 changed_man:
 	perl changed.man.pl | tee $@.sql
 	$(DBAT) -v -f  $@.sql
@@ -71,19 +73,26 @@ brol_statistic:
 #---
 brol_update:
 	$(DBAT) "UPDATE brol a SET \
-	  a.status = (SELECT b.status FROM url1 b \
+	  a.status = (SELECT b.status   FROM url1 b \
 	  WHERE a.protocol = b.protocol  \
-	  AND a.host     = b.host      \
-	  AND a.port     = b.port      \
-	  AND a.path     = b.path      \
-	  AND a.filename = b.filename  \
+	    AND a.host     = b.host      \
+	    AND a.port     = b.port      \
+	    AND a.path     = b.path      \
+	    AND a.filename = b.filename  \
 	  ),\
-	  a.access = (SELECT b.access FROM url1 b \
+	  a.access = (SELECT b.access   FROM url1 b \
 	  WHERE a.protocol = b.protocol  \
-	  AND a.host     = b.host      \
-	  AND a.port     = b.port      \
-	  AND a.path     = b.path      \
-	  AND a.filename = b.filename  \
+	    AND a.host     = b.host      \
+	    AND a.port     = b.port      \
+	    AND a.path     = b.path      \
+	    AND a.filename = b.filename  \
+	  ),\
+	  a.replurl = (SELECT b.replurl FROM url1 b \
+	  WHERE a.protocol = b.protocol  \
+	    AND a.host     = b.host      \
+	    AND a.port     = b.port      \
+	    AND a.path     = b.path      \
+	    AND a.filename = b.filename  \
 	  );"
 #---
 url1: url1_create url1_load url1_aseqno url1_stat
@@ -171,6 +180,22 @@ repair3:
 repair4:
 	# 2	http://	http		://mathworld.wolfram.com/	UnitaryPerfectNumber.html
 	$(DBAT) -v "UPDATE url1 SET status = 'special'  WHERE path like '://mathworld%';"
+repair5:
+	$(DBAT) -v "UPDATE url1 SET status = '241', ACCESS='2019-01-02 15:51:00' \
+	WHERE protocol || host || path || filename = \
+	'http://www2.math.kyushu-u.ac.jp/~mkaneko/papers/atkin.pdf'"
+repair6:
+	$(DBAT) -v "UPDATE url1 SET status = '241', ACCESS='2019-01-02 18:43:00' \
+	WHERE protocol || host || path || filename = \
+	'https://www-apr.lip6.fr/sem-comb-slides/IHP-bostan.pdf'"
+repair7:
+	$(DBAT) -v "UPDATE url1 SET status = '241', ACCESS='2019-01-03 10:05:00' \
+	WHERE protocol || host || path || filename LIKE \
+	'http://www.utm.edu/research/primes%'"
+repair8:
+	$(DBAT) -v "UPDATE url1 SET status = '241', ACCESS='2019-01-03 14:05:00' \
+	WHERE protocol || host || path || filename = \
+	'http://www.insa.nic.in/writereaddata/UpLoadedFiles/IJPAM/20005a66_964.pdf'"
 #-------
 trivial:
 	$(DBAT) "select * from brol where host = 'http'"

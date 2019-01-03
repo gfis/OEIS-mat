@@ -6,7 +6,7 @@
 ]>
 <!--
     @(#) $Id
-    2018-12-30: Georg Fischer
+    2019-01-03: Georg Fischer
 -->
 <dbat encoding="UTF-8"
     conn="worddb"
@@ -15,27 +15,28 @@
     xmlns:ht="http://www.w3.org/1999/xhtml"
     target="_blank" 
     javascript="../javascript.js"
-    title="prefix"
+    title="content"
     >
-    <comment lang="de">Search prefix</comment>
+    <comment lang="de">Search content</comment>
 
     <ht:h3><ht:a href="servlet?spec=broken_link.index">Broken links</ht:a> -
-        Search prefix <ht:em>%<parm name="prefix" init="Robert" />%</ht:em>
+        Search content <ht:em><parm name="content" init="Pythagoras" /></ht:em>
     </ht:h3>
     <ht:form method="get">
-        <ht:input label="Prefix" name="prefix" maxsize="128" size="64" /> 
+        <ht:input label="Content" name="content" maxsize="512" size="64" />
         <ht:br />   
         &search_tail;
     </ht:form>
 
-    <select>
-        &brol_cols;
+    <select aggregate="aseqno" with=", ">
+    	&brol_cols;
         <from> 
 (
     &brol_select;
-    WHERE UPPER(prefix) LIKE UPPER('%<parm name="prefix" />%')
+    WHERE  content LIKE '%<parm name="content" />%'
 ) AS sub1
         </from>
-        <order by="prefix, status DESC" />
+        <order by="aseqno, status DESC" />
     </select>
+    <trailer/>
 </dbat>

@@ -1,44 +1,68 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dbat [
+<!ENTITY brol_cols   SYSTEM   "brol_cols.xinc"  >
+<!ENTITY brol_select SYSTEM   "brol_select.xinc"  >
+<!ENTITY search_tail SYSTEM   "search_tail.xinc">
+]>
 <!--
     @(#) $Id
-    2018-12-29: Georg Fischer
+    List the bad and good status codes for a specific prefix letter
+    2019-01-02: Georg Fischer
 -->
 <dbat encoding="UTF-8"
     conn="worddb"
     lang="en"
     xmlns   ="http://www.teherba.org/2007/dbat"
     xmlns:ht="http://www.w3.org/1999/xhtml"
-    title="salden"
+    target="_blank"
+    javascript="../javascript.js"
+    title="good_bad"
     >
     <comment lang="de">Good and bad status</comment>
 
-    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.index">Broken links:</ht:a>
-        Good and bad status
+    <ht:h3><ht:a href="servlet?spec=broken_link.index">Broken links</ht:a> -
+        Good and bad status for prefix <ht:em><parm name="prefix" init="A" /></ht:em>
     </ht:h3>
 
-    <select>
-        <col label="Datum"  style="width: 120px" link="fibu.journal&amp;search_buchtag=" name="dt">dt</col>
-        <col label="Haben"  style="width:  60px" link="fibu.kontenblatt&amp;fibukto="    >kto   </col>
-        <col label="Soll  " style="width:  60px" link="fibu.kontenblatt&amp;fibukto="    >ggkto </col>
-        <col label="Betrag" style="width:  90px" align="right"                           >bt    </col>
-        <col label="Text"                                             >vwz   </col>
-        <col pseudo="style">class</col>
-        <from>
-<!--
-SELECT 'brol'
-	 , a.noccur, a.status, COALESCE(a.aseqno, 'Annnnnn'), a.replurl
-	 , a.protocol || a.host || a.port || a.path || a.filename
-	 , b.noccur, b.status, COALESCE(b.aseqno, 'Bnnnnnn'), b.replurl
-	 , b.protocol || b.port || b.host || b.path || b.filename
-FROM url1 a, url1 b 
-WHERE a.filename = b.filename 
-  AND a.status  <> b.status
-  AND a.status   = '200' and b.status >= '400'
-  AND LENGTH(a.filename) > 10
-ORDER BY a.noccur DESC, a.filename;
--->        	
+    <ht:form method="get">
+        <ht:input label="Prefix"  name="prefix"  maxsize="128" size="64"         /><ht:br />
+        <ht:input label="Content" name="content" maxsize="128" size="64" init="" /><ht:br />
+        &search_tail;
+    </ht:form>
+    
+    <select group="content">
+        <!--
+         aggregate="aseqno" with="&lt;br /&gt;">
+        -->
+        &brol_cols;
+        <from> <!-- from good_bad.sql -->
+(
+  (
+    &brol_select;
+    WHERE a.status       &lt;  '400' 
+      AND a.content like '%<parm name="content" />%'
+      AND a.prefix  like '<parm name="prefix"  />%'
+      AND EXISTS (
+        SELECT b.status FROM brol b 
+          WHERE b.status &gt;= '400'
+            AND b.content = a.content
+            AND b.prefix  like '<parm name="prefix"  />%'
+      ) 
+  ) UNION (
+	&brol_select;
+    WHERE a.status       &gt;= '400' 
+      AND a.content like '%<parm name="content" />%'
+      AND a.prefix  like '<parm name="prefix"  />%'
+      AND EXISTS (
+        SELECT b.status FROM brol b 
+          WHERE b.status &lt;  '400'
+            AND b.content = a.content
+            AND b.prefix  like '<parm name="prefix"  />%'
+      ) 
+  )
+) AS sub1
         </from>
-        <order by="dt,kto,ggkto" />
+        <order by="content, status DESC, aseqno" />
     </select>
-    <trailer select="none" />
+    <trailer />
 </dbat>

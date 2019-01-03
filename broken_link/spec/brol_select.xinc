@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Dbat include file for SELECT FROM brol
+    @(#) $Id$
+    2019-01-03, Georg Fischer
+-->
+    SELECT a.status, COALESCE(a.aseqno, 'Annnnnn') AS aseqno, a.replurl
+         , a.protocol || a.host || a.port || a.path || a.filename AS link
+         , a.content, a.prefix, a.filename, a.host
+    FROM brol a

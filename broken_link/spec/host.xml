@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dbat [
+<!ENTITY brol_cols   SYSTEM   "brol_cols.xinc"  >
+<!ENTITY brol_select SYSTEM   "brol_select.xinc"  >
+<!ENTITY search_tail SYSTEM   "search_tail.xinc">
+]>
 <!--
     @(#) $Id
-    2018-12-31: Georg Fischer
+    2018-12-30: Georg Fischer
 -->
 <dbat encoding="UTF-8"
     conn="worddb"
@@ -9,42 +14,28 @@
     xmlns   ="http://www.teherba.org/2007/dbat"
     xmlns:ht="http://www.w3.org/1999/xhtml"
     target="_blank" 
-    javascript="../../javascript.js"
-    title="OEIS-mat.broken_link.host"
+    javascript="../javascript.js"
+    title="host"
     >
     <comment lang="de">Search host</comment>
 
-    <ht:h3><ht:a href="servlet?spec=OEIS-mat.broken_link.index">Broken links:</ht:a>
-        Search host
+    <ht:h3><ht:a href="servlet?spec=broken_link.index">Broken links</ht:a> -
+        Search host <ht:em><parm name="host" init="%.ch" />%</ht:em>
     </ht:h3>
     <ht:form method="get">
-        <ht:input label="Host" name="host" maxsize="128" size="64" init="gutenberg" /><ht:br />   
-        <ht:input type="submit" value="Search" />
+        <ht:input label="Host" name="host" maxsize="128" size="64" /> 
+        <ht:br />   
+        &search_tail;
     </ht:form>
 
     <select>
-        <col label="Occurs">COUNT(filename)</col>
-        <col pseudo="style">CASE 
-            WHEN status &lt;= '240' THEN 'grn'
-            WHEN status &lt;= '399' THEN 'yel'
-            ELSE                         'red' END
-        </col>
-        <col label="Status"  >status</col>
-        <col label="Filename" link="OEIS-mat.broken_link.filename&amp;filename=">filename</col>
-        <col label="Link" sep="*" wrap="javascript">
-            'generalLink*' || protocol || host || port || path || filename
-        </col>
-        <col label="Redireted to" sep="*" wrap="javascript">
-            'generalLink*' || replurl
-        </col>
-        <col label="Access">access</col>
-        <from> brol
+        &brol_cols;
+        <from> 
+(
+    &brol_select;
+    WHERE  UPPER(host) LIKE UPPER('%<parm name="host" />%')
+) AS sub1
         </from>
-        <where> UPPER(host) LIKE UPPER('%<parm name="host" />%')
-        	GROUP BY filename
-        </where>
-        <order by="1 DESC, filename, status DESC" />
-        <counter desc="File,s" />
+        <order by="host, status DESC" />
     </select>
-    <trailer/>
 </dbat>
