@@ -41,6 +41,7 @@ __DATA__
 # Artificial status codes:
 # 240 = trusted sites
 # 241 = manual check had no problem
+# 245 = proposed normally
 # 247 = emailed
 # 248 = changed by other OEIS-Editor
 # 249 = changed/approved by GFis
@@ -264,11 +265,37 @@ __DATA__
 # A102537	249	750317016.html?FMT
 # A054589	249	publication.html
 # A069942	249	40-1-3.pdf Joseph L. Pe
-A253057	249	base.pdf
-A253058	249	base.pdf
-A074664	249	soda05_suffixarray.pdf
-A074664	249	hadamard.pdf
-A113871	249	hadamard.pdf
-A099168	404	s46eisenko.html
-A094867	404	CA_history.pdf
+# A253057	249	base.pdf
+# A253058	249	base.pdf
+# A074664	249	soda05_suffixarray.pdf
+# A074664	249	hadamard.pdf
+# A113871	249	hadamard.pdf
+# A099168	249	s46eisenko.html
+# A094867	249	CA_history.pdf
+# A133028	249	*	http://www.polrimos.com/http://www.polprimos.com
+# A000296	249	JohnsonThesis.pdf
+#------------------2018-01-04
+# A160535	245	?IDDOC	Watson, G. N., <a href="http://www.digizeitschriften.de/dms/resolveppn/?PID=GDZPPN002174499">Ramanujans Vermutung ueber Zerfaellungsanzahlen.</a> J. Reine Angew. Math. (Crelle), 179 (1938), 97-128.
+# A002300	249	?IDDOC	Same change was reviewed and approved in A160535.
+# A160458	249	?IDDOC	
+# A160459	249	?IDDOC	
+# A160460	249	?IDDOC	
+# A160461	249	?IDDOC	
+# A160462	249	?IDDOC	
+# A160463	249	?IDDOC	
+# A160506	249	?IDDOC	
+# A160521	249	?IDDOC	
+# A160524	249	?IDDOC	
+# A160534	249	?IDDOC	
+A208356	249	show_file.php?soubor_id=920360
+A003043	249	znps_mat_stos_04_2014_str_005-016.pdf
+A180026	249	znps_mat_stos_04_2014_str_005-016.pdf
+A001443	249	starter.pdf
+A006204	249	starter.pdf
+# A003111	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
+A006204	245	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
+# A071607	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
+# A071608	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
+# 
+A071706	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
 

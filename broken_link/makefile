@@ -52,6 +52,9 @@ brol_tsp:
 url1_tsp:
 	$(DBAT) -x -f test.urlspace.sql
 #----------------------------------
+js:
+	grep -vE "(http|ftp)" $(BASE) | grep ".html" | cut -b 11- | sort | uniq -c | tee html.tmp 
+#----------------------------------
 changed: changed_man brol_update
 changed_man:
 	perl changed.man.pl | tee $@.sql

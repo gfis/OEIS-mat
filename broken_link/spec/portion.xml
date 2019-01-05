@@ -15,28 +15,21 @@
     xmlns:ht="http://www.w3.org/1999/xhtml"
     target="_blank" 
     javascript="../javascript.js"
-    title="content"
+    title="portion"
     >
-    <comment lang="de">Search content</comment>
+    <comment lang="de">Select work portion</comment>
 
     <ht:h3><ht:a href="servlet?spec=broken_link.index">Broken links</ht:a> -
-        Search content <ht:em>%<parm name="content" init="Pythagoras" />%</ht:em>
+        Select work portion
     </ht:h3>
-    <ht:form method="get">
-        <ht:input label="Content" name="content" maxsize="512" size="64" />
-        <ht:br />   
-        &search_tail;
-    </ht:form>
 
-    <select aggregate="aseqno" with=", ">
-    	&brol_cols;
-        <from> 
-(
-    &brol_select;
-    WHERE  content LIKE '%<parm name="content" />%'
-) AS sub1
+    <select distinct="yes">
+		<col label="#"      align="right" >count(*)            </col>
+    	<col label="Prefix" align="center" link="broken_link.good_bad&amp;prefix=">substr(prefix, 1, 1)</col>
+        <from> brol
+        	GROUP BY substr(prefix, 1, 1)
         </from>
-        <order by="aseqno, status DESC" />
+        <order by="2" />
     </select>
     <trailer/>
 </dbat>
