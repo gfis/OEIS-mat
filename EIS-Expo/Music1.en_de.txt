@@ -98,6 +98,11 @@ Terms: -20, 56, 55, 56, 55, 56, 51, 54, 52, 49, 32, 37, 40, 44, 49, 51, 32, 36, 
 Comment: A transcription to demonstrate the OEIS "listen" button.
 Kommentar: Diese Transkription zeigt die Funktion des "listen"-Buttons in der OEIS-Weboberfl&auml;che.
 
+A117153
+Title: Floretions: a quaternion-generated sequence.
+Titel: Floretions: eine Sequenz, die mit Quaternionen generiert wird.
+Terms: 3, -3, 9, -12, -15, 0, 33, -42, -36, 30, 15, -54, -6, 63, -63, -15, 54, -36, ...
+
 A220952
 Title: Donald Knuth's twisted enumeration of the natural numbers.
 Titel: Donald Knuths verschr&auml;nkte Aufz&auml;hlung der nat&uuml;rlichen Zahlen.
@@ -147,10 +152,3 @@ Titel: Trauerlied f&uuml;r Claude L.
 Terms: 0, 0, 0, 1, 0, 0, 1, 3, 0, 0, 0, 1, 2, 1, 3, 7, 0, 0, 0, 1, 0, 0, 1, 3, 4, 2, 
 Comment: In binary expansion of n, delete one symbol from each run. 
 Kommentar: In der Bin&auml;rdarstellung von <em>n</em> wird eine Ziffer in jeder Folge von gleichen Ziffern gel&ouml;scht.
-
-A999999
-Title: To be defined
-Titel: Noch nicht festgelegt
-Terms: 1, 2, 3
-Comment: This would be the twentieth sequence.
-Kommentar: Das w&auml;re die Zwanzigste Sequenz.

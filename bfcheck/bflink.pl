@@ -12,28 +12,76 @@
 #---------------------------------
 use strict;
 use integer;
-my ($aseqno, $author, $var, $sname, $range, $imin, $between, $imax, $comment1, $comment2);
+my ($aseqno, $author, $rest, $var, $sname, $range, $imin, $between, $imax, $comment1, $comment2);
 my $count = 0;
-while (<DATA>) {
+while (<>) {
     s/\s+\Z//; # chompr
     my $line = $_;
-    if ($line =~ m{\A\%H A(\d+) ([^\<]*)\<a href\=\"\/A\1\/b\1\.txt\"\>Table\s+of\s+([a-z])\,\s*(\w+)\s*\(\3\)\s+for\s*(\3\s*\=\s*\-?\d+[\.\,\s]+\-?\d+|the\s+first\s+\d+\s+\w+)([^\<]*)\<\/a\>\s*(.*)}) {
-        (             $aseqno,  $author,                                            $var,       $sname,                $range,                                                  $comment1,        $comment2) 
-            = (       $1,       $2,                                                 $3,         $4,                    $5,                                                      $6,               $7       );
-        if (0) {
-        } elsif ($range =~ m{\w+\s*\=\s*(\-?\d+)([\.\,\s]+)(\-?\d+)}) {
-            (                           $imin,  $between,  $imax)
-                = (                     $1,     $2,        $3);
-        } elsif ($range =~ m{the\s+first\s+(\d+)}) {
-            (            $imin, $between,  $imax)
-                = (      "1",   "first",   $1);
-        }
+    if ($line =~ m{\A\%H A(\d+) ([^\<]*)\<a href\=\"\/A\1\/b\1\.txt\"\>\s*(.*)}) {
+        (             $aseqno,  $author,                                  $rest) 
+            = (       $1,       $2,                                       $3);
         $author =~ s{\,\s*\Z}{}; # remove trailing 
-        print join("\t", ("b$aseqno.txt", $imin, $imax, $author, $var, $sname, $between, $comment1, $comment2)) . "\n"; 
+        $var = "";
+        $sname = "";
+        $between = "";
+        if (0) {
+        } elsif ($rest =~ m{Table\s+of\s+([a-z])\,\s*(\w+)\s*\(\1\)\s*(\,\s*|for\s*)?\1\s*\=\s*(\-?\d+)\s*(\-|to|[\:\.\,]+)\s*(\-?\d+)}i) {
+            (                            $var,       $sname,                                   $imin,     $between,           $imax)
+                = (                      $1,         $2,                                       $4,        $5,                 $6);
+                $sname .= "($var)";
+#        } elsif ($rest =~ m{Table\s+of\s+(the\s+)?(first\s+)?(\d+)\s+rows}i) {
+#            (                                                $imax)
+#                = (                                          $3);
+#            $imin = 1;
+#            $sname = "first";
+        } elsif ($rest =~ m{first\s*(\d+)\s*term}i) {
+            (                       $imax)
+                = (                 $3);
+            $imin = 1;
+            $sname = "first";
+        } elsif (($rest =~ m{flatten}i) or ($author =~ m{Alois|Luschny})) {
+            if (0) {
+            } elsif ($rest =~ m{(\-?\d+)\s*(\-|[\:\.\,]+)\s*(\-?\d+)}) { # range found
+                (               $imin,     $between,        $imax)
+                    = (         $1,        $2,              $3);
+                if (0) {
+                } elsif ($rest =~ m{(row|antidiag)}i) {
+                    $sname = lc($1);
+                    my $len = $imax - $imin + 1;
+                    $imin = 1;
+                    $imax = $len / 2 * ($len + 1);
+                } else {
+                    $sname = "";
+                }
+            } elsif ($rest =~ m{first\s*(\-?\d+)}i) { 
+                (                       $imax)
+                    = (                 $1);
+                if (0) {
+                } elsif ($rest =~ m{(row|adiag)}i) {
+                    $sname = lc($1);
+                  	$imin = 1;
+                    my $len = $imax - $imin + 1;
+                    $imax = $len / 2 * ($len + 1);
+                } elsif ($rest =~ m{\d\s+term}i) {
+                    $sname = "term";
+                  	$imin = 1;
+                } else {
+                    $sname = "";
+                }
+            } else {
+                $imin = 0;
+                $imax = -1;
+                $sname = "unspec";
+            } # no range found  
+            # flatten
+        } else {
+            print STDERR "# uncommon: $line\n";
+        }
+        print join("\t", ("b$aseqno.txt", $imin, $imax, $sname, $between, $author)) . "\n"; 
         $count ++;
-    } elsif ($line =~ m{"\"\/A\d+\/b\d+\.txt\"\>}) {
-        print STDERR "# strange: $line\n";
-	} else { # other link, ignore
+    } elsif ($line =~ m{\"\/A\d+\/b\d+\.txt\"\>}) {
+        print STDERR "# foreign: $line\n";
+    } else { # other link, ignore
     }
 } # while <>
 print STDERR sprintf("# $count b-file parameters written\n", $count);
