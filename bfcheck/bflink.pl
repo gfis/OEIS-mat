@@ -4,11 +4,8 @@
 # @(#) $Id$
 # 2019-01-06, Georg Fischer
 #
-# Remove files which start with the following line
-# # A300005 (b-file synthesized from sequence entry)
-#
 # usage:
-#   perl rm_synthesized.pl filename
+#   perl bflink.pl ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
 #---------------------------------
 use strict;
 use integer;
