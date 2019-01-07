@@ -214,6 +214,9 @@ wrong:
 	$(DBAT) "select * from brol where host = '10.1007'"
 help:
 	$(DBAT) -h
+#---------------------------
+#bflink:
+	grep $(BASE) > bflink.tmp
 #-------------------------
 # problems:
 prob1: matbwn1 matbwn2

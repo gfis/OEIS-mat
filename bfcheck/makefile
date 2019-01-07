@@ -2,17 +2,12 @@
 
 # OEIS-mat: b-file check
 # @(#) $Id$
+# 2019-01-07: split tgz
 # 2019-01-05: Georg Fischer, copied from ../coincidence/database
 #---------------------------------
-H=4
-MIN=0
-MAX=10000
-MINLEN=8
-S=8
-P=3
-N=1
-D=0
 BASE=b000001-b321800.tar
+BASEZ=$(BASE).gz
+SLEEP=8
 
 all: 
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -33,12 +28,14 @@ u3:
 	make $(TARGET) D1=3 D2=0
 	make $(TARGET) D1=3 D2=5
 #----
+split: unpack pack count
 unpack:
 	make bfall TARGET=unpack1
 unpack1:
 	mkdir      	b$(D1)$(D2)
-	grep -vE  "^b$(D1)\[$(D2)" exclude_all.pat | tee exclude.tmp
-	tar -C     	b$(D1)$(D2) --exclude-from=exclude.tmp -xvf $(BASE)
+	grep -vE  "^b$(D1)\[$(D2)" exclude_all.pat > exclude.tmp
+	tar -C     	b$(D1)$(D2) --exclude-from=exclude.tmp -xzf $(BASEZ)
+	# tar -C     	b$(D1)$(D2) --exclude-from=exclude.tmp -xf $(BASE)
 #----
 untgz:
 	make bfall TARGET=untgz1
@@ -54,6 +51,25 @@ count:
 	make bfall 	TARGET=count1
 count1:
 	ls -1		b$(D1)$(D2)	| wc -l
+#--------
+count_all:
+	find b00 b05 b10 b15 b20 b25 b30 b35 -type f | wc
+count_synth:
+	rm -f $@.log
+	make bfall 	TARGET=count_synth1
+	cat $@.log
+count_synth1:
+	head -qn 1 b$(D1)$(D2)/* | grep "(b-file synthesized from sequence entry)" \
+		| wc -l | tee $@.tmp
+	sed -e "s/^/b$(D1)$(D2)\t/" $@.tmp >> count_synth.log
+#--------
+list_synth:
+	rm -f $@.lst
+	make bfall 	TARGET=list_synth1
+	wc -l $@.lst
+list_synth1:
+	head -qn 1 b$(D1)$(D2)/* | grep -H "(b-file synthesized from sequence entry)" \
+		| cut -d" " -f 3 >> list_synth.lst
 #----
 clean:
 	rm -f clean.log
@@ -61,86 +77,47 @@ clean:
 	cat clean.log
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
-#============================================================
-# old targets copied from ../coincidence/database
-new: prepare newseq archlist regen
-
-#----
-# get base data files 'names' and 'stripped' and 
-# preprocess/sort the latter
-prepare: prep1 prep2 prep3 prep4
-prep1:
-	wget https://oeis.org/stripped.gz
-	rm -f stripped
-	gzip -d stripped.gz
-prep2:
-	wget https://oeis.org/names.gz
-	rm -f names
-	gzip -d names.gz
-prep3:
-	perl simseq.pl -a prep -h $(H) -l $(MINLEN) < stripped | sort > stripsort.tmp
-prep4:
-	perl simseq.pl -a name         < names           > namurl.tmp
-#----
-# regenerate lists for all sequences
-regen: regen1 index deploy
-regen1:
-	make regen4 2>&1 | tee regen.`date +%Y-%m-%d`.log
-regen4:	A000 A100 A200 A300
-A000:	A00 A05 
-A100:	A10 A15
-A200:	A20 A25
-A300:	A30 A35
-A00:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 000000 -max 049999 -n $(N) -d $(D)  < stripsort.tmp 
-A05:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 050000 -max 099999 -n $(N) -d $(D)  < stripsort.tmp 
-A10:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 100000 -max 149999 -n $(N) -d $(D)  < stripsort.tmp 
-A15:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 150000 -max 199999 -n $(N) -d $(D)  < stripsort.tmp 
-A20:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 200000 -max 249999 -n $(N) -d $(D)  < stripsort.tmp 
-A25:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 250000 -max 299999 -n $(N) -d $(D)  < stripsort.tmp 
-A30:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 300000 -max 349999 -n $(N) -d $(D)  < stripsort.tmp 
-A35:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 350000 -max 399999 -n $(N) -d $(D)  < stripsort.tmp 
-#------------
-index:
-	grep warnings                         regen.`date +%Y-%m-%d`.log
-	perl simseq.pl -a index < regen.`date +%Y-%m-%d`.log > index.html
-#------------
-deploy: 
-	scp *.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
-deplin:
-	scp index.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/coincidence/database
-#------------
-# delete sequences modified by me
-# (1) place new reply emails "Re  changes to A067482 - ..." into ../temp
-# (2) make my_mails
-newseq: news1 news2
-news1:
-	ls -1 ../temp/*.eml | cut -d" " -f 5 | sort | uniq | tee newseq.`date +%Y-%m-%d`.lst
-	wc -l newseq*.lst
+#-----------------
+bflink:
+	perl bflink.pl ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
+	cat bflink_strange.txt
+	wc -l bflink*.txt
+#------------------
+delseq: delseq1 delseq2
+delseq1:
+	wget https://oeis.org/wiki/Deleted_sequences      -O delseq.2018.tmp
+	sleep $(SLEEP)
+	wget https://oeis.org/wiki/Deleted_sequences/2017 -O delseq.2017.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2016 -O delseq.2016.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2015 -O delseq.2015.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2014 -O delseq.2014.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2013 -O delseq.2013.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2012 -O delseq.2012.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2011 -O delseq.2011.tmp
+	sleep $(SLEEP)                                                  
+	wget https://oeis.org/wiki/Deleted_sequences/2010 -O delseq.2010.tmp
+	sleep $(SLEEP)
+delseq2:
+	rm -f delseq.tsv.txt
+	find . -iname "delseq.*.tmp" | sort -r | xargs -l perl bfdelseq.pl >> delseq.tsv.txt
+	wc -l delseq.tsv.txt
+very_diff: 
+	sed -e "s/^b/A/" -e "s/.txt//" Pedersen.very-different.234.txt > $@.tmp 
+	grep -f $@.tmp delseq.tsv.txt | sort > delseq.$@.txt
+	perl tsv_html.pl delseq.$@.txt > delseq.$@.html
+#-----------------
+deploy:
+	scp delseq.tsv.txt delseq.very_diff.txt delseq.very_diff.html index.html \
+		gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/bfcheck/
+#=================
+# old targets
 news2:
 	cat newseq.`date +%Y-%m-%d`.lst | xargs -l -i{} rm -vf ../store/{}.text
-	mv ../temp/*.eml ../archive || :
-#----
-allseq: archlist alls1 alls2
-archlist:
-	ls -1 ../archive/*.eml | cut -d" " -f 5 | sort | uniq > archlist.tmp
-	wc -l archlist.tmp
-	sed -e "s/A/b/" archlist.tmp > brchlist.tmp
-	wc -l brchlist.tmp
-alls1:
 	cat archlist.tmp | xargs -l -i{} rm -vf ../store/{}.text
-alls2:
-	cat brchlist.tmp | xargs -l -i{} rm -vf ../bfiles/{}.txt
-#------------
-# old targets
-TEST=282876
-test:
-	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min $(TEST) -max $(TEST) -n 0 -d 1 < stripsort.tmp 
 #------------

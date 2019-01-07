@@ -33,7 +33,15 @@ foreach my $filename(glob("$dir/*")) {
         print "cannot read \"$filename\"\n";
     }
 } # foreach
-print STDERR "# $dir: $count_rm files removed, $count_ok kept\n";
+print STDERR sprintf("# $dir: %6d synthesized b-files removed, %6d user bfiles kept\n"
+    , $count_rm, $count_ok);
 __DATA__
-# keep b30/b321358.txt
-# 11178 files removed, 6805 kept
+# b00:  27002 ssynthesized b-files removed,  22997 user b-files kept
+# b05:  32878 ssynthesized b-files removed,  17122 user b-files kept
+# b10:  35195 ssynthesized b-files removed,  14805 user b-files kept
+# b15:  29153 ssynthesized b-files removed,  20847 user b-files kept
+# b20:  19586 ssynthesized b-files removed,  30414 user b-files kept
+# b25:  17085 ssynthesized b-files removed,  32915 user b-files kept
+# b30:  11220 ssynthesized b-files removed,   6763 user b-files kept
+# b35:      0 ssynthesized b-files removed,      0 user b-files kept
+
