@@ -39,6 +39,12 @@ unpack1:
 	mkdir      	b$(D1)$(D2)
 	grep -vE  "^b$(D1)\[$(D2)" exclude_all.pat | tee exclude.tmp
 	tar -C     	b$(D1)$(D2) --exclude-from=exclude.tmp -xvf $(BASE)
+#----
+untgz:
+	make bfall TARGET=untgz1
+untgz1:
+	tar -xzf     	b$(D1)$(D2).tgz
+#----
 pack:
 	make bfall 	TARGET=pack1
 pack1:
@@ -51,7 +57,8 @@ count1:
 #----
 clean:
 	rm -f clean.log
-	make u0 u1 u2 TARGET=clean1
+	make u0 u1 u2 u3 TARGET=clean1
+	cat clean.log
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
 #============================================================

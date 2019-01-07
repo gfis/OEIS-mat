@@ -33,7 +33,7 @@ foreach my $filename(glob("$dir/*")) {
         print "cannot read \"$filename\"\n";
     }
 } # foreach
-print STDERR "# $count_rm files removed, $count_ok kept\n";
+print STDERR "# $dir: $count_rm files removed, $count_ok kept\n";
 __DATA__
 # keep b30/b321358.txt
 # 11178 files removed, 6805 kept
