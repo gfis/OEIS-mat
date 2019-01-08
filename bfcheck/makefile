@@ -32,31 +32,31 @@ split: unpack pack count
 unpack:
 	make bfall TARGET=unpack1
 unpack1:
-	mkdir      	b$(D1)$(D2)
+	mkdir       b$(D1)$(D2)
 	grep -vE  "^b$(D1)\[$(D2)" exclude_all.pat > exclude.tmp
-	tar -C     	b$(D1)$(D2) --exclude-from=exclude.tmp -xzf $(BASEZ)
-	# tar -C     	b$(D1)$(D2) --exclude-from=exclude.tmp -xf $(BASE)
+	tar -C      b$(D1)$(D2) --exclude-from=exclude.tmp -xzf $(BASEZ)
+	# tar -C    b$(D1)$(D2) --exclude-from=exclude.tmp -xf $(BASE)
 #----
 untgz:
 	make bfall TARGET=untgz1
 untgz1:
-	tar -xzf     	b$(D1)$(D2).tgz
+	tar -xzf    b$(D1)$(D2).tgz
 #----
 pack:
-	make bfall 	TARGET=pack1
+	make bfall  TARGET=pack1
 pack1:
-	tar -czf   	b$(D1)$(D2).tgz b$(D1)$(D2)
+	tar -czf    b$(D1)$(D2).tgz b$(D1)$(D2)
 #--------
 count:
-	make bfall 	TARGET=count1
+	make bfall  TARGET=count1
 count1:
-	ls -1		b$(D1)$(D2)	| wc -l
+	ls -1       b$(D1)$(D2) | wc -l
 #--------
 count_all:
 	find b00 b05 b10 b15 b20 b25 b30 b35 -type f | wc
 count_synth:
 	rm -f $@.log
-	make bfall 	TARGET=count_synth1
+	make bfall  TARGET=count_synth1
 	cat $@.log
 count_synth1:
 	head -qn 1 b$(D1)$(D2)/* | grep "(b-file synthesized from sequence entry)" \
@@ -65,11 +65,18 @@ count_synth1:
 #--------
 list_synth:
 	rm -f $@.lst
-	make bfall 	TARGET=list_synth1
+	make bfall  TARGET=list_synth1
 	wc -l $@.lst
 list_synth1:
 	head -qn 1 b$(D1)$(D2)/* | grep -H "(b-file synthesized from sequence entry)" \
 		| cut -d" " -f 3 >> list_synth.lst
+#----
+pretend_synth:
+	cut -b2-7 list_synth.lst > $@.1.tmp
+	cut -b2-7 bflink.txt     > $@.2.tmp
+	sort $@.1.tmp $@.2.tmp | uniq -c | grep "   2" \
+	| cut -b 9- | sed -e "s/^/A/" -e "s/$$/\tpretends \"b-file synthesized from sequence entry\"/" \
+	| perl tsv_html.pl | tee $@.html
 #----
 clean:
 	rm -f clean.log

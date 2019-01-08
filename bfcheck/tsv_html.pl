@@ -30,6 +30,7 @@ my $count = 0;
 while (<>) {
     s/\s+\Z//; # chompr
     my $line = $_;
+    $count ++;
     my @fields = split(/\t/, $line);
     if (0) {
     } elsif ($mode =~ m{delseq}) {
