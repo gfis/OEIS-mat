@@ -9,12 +9,13 @@
 # 2018-12-12: Georg Fischer - for OEIS
 #
 # Usage:
-#   perl brol_prepare.pl (-c name|-g|-r|-x) [inputfile] > outputfile
+#   perl brol_prepare.pl (-c name|-g|-r|-x) [-w s] [inputfile] > outputfile
 #       -c    generate CREATE SQL for name
 #       -g    get HTTP status codes for splitted URLs on input lines, and generate UPDATEs
 #       -gu   same as -g, but behave as normal user (not as robot)
 #       -r    generate *.tsv file for table loading
 #       -tsp  test URLs for spaces
+#       -w    wait time in seconds
 #       -x    generate HTM table from crossref.tmp, for manual corrections
 #------------------------------------
 use strict;
@@ -27,7 +28,7 @@ use HTTP::Request::Common;
 my $TIMESTAMP = &iso_time(time());
 my $debug      = 0;
 my $action     = "r";
-my $wait       = 2;
+my $wait       = 2; # wait time in seconds
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {

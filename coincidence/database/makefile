@@ -92,6 +92,24 @@ alls1:
 alls2:
 	cat brchlist.tmp | xargs -l -i{} rm -vf ../bfiles/{}.txt
 #------------
+# fetch sequences for neil_lists/bextra.txt
+bextra:
+	grep ">" ../../bfcheck/neil_lists/bextra.txt | cut -b 3- \
+	> $@,tmp
+	wc -l $@.tmp
+	perl simseq.pl -a wget < $@.tmp
+bextra_h:
+	cat bextra.tmp | xargs -l -i{} grep -iHE "^%H " ../store/{}.text
+bextra_k:
+	cat bextra.tmp | xargs -l -i{} grep -iHE "^%K " ../store/{}.text
+#----
+# fetch b-files for neil_lists/bextra.txt
+bextrb:
+	grep ">" ../../bfcheck/neil_lists/bextra.txt | cut -b 3- \
+	| sed -e "s/A/b/" > $@.tmp
+	wc -l $@.tmp
+	perl simseq.pl -a wget < $@.tmp
+#------------
 # old targets
 TEST=282876
 test:
