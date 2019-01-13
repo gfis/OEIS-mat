@@ -84,11 +84,11 @@ CREATE  TABLE            $tabname
     );
 COMMIT;
 GFis
-		# bextra
+        # bextra
 
     } elsif ($tabname eq "delseq") {
-# A167515	(Gerasimov) rifo A161164, duplicate. - R. J. Mathar, Dec 15 2010
-# A160770	(Robin) rifo A178145, erroneous version. - R. J. Mathar, Dec 15 2010
+# A167515   (Gerasimov) rifo A161164, duplicate. - R. J. Mathar, Dec 15 2010
+# A160770   (Robin) rifo A178145, erroneous version. - R. J. Mathar, Dec 15 2010
         print <<"GFis";
 -- Table for OEIS b-file checking
 -- @(#) \$Id\$
@@ -101,7 +101,7 @@ CREATE  TABLE            $tabname
     );
 COMMIT;
 GFis
-		# delseq
+        # delseq
 
     } elsif ($tabname eq "keywords") {
 # %K A000001 nonn,core,nice,hard
@@ -118,7 +118,7 @@ CREATE  TABLE            $tabname
     );
 COMMIT;
 GFis
-		# keywords
+        # keywords
 
     } elsif ($tabname eq "offset") {
 # %O A000001 0,5
@@ -136,7 +136,7 @@ CREATE  TABLE            $tabname
     );
 COMMIT;
 GFis
-		# offset
+        # offset
 
     } else {
         die "wrong tabname \"$tabname\"\n";

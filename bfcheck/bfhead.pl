@@ -45,7 +45,7 @@ sub get_head {
         # print "# length of $src_file: " . length($buffer) . "\n";
         close(FIL);
         my @terms = 
-        	grep { m{\S} } # keep non-empty lines only
+            grep { m{\S} } # keep non-empty lines only
                 map { 
                     s{\#.*}{};      # remove comments
                     s{\A\s+}{};     # remove leading whitespace
@@ -58,14 +58,14 @@ sub get_head {
         $result = "%b $aseqno ";
         my $ind = 0;
         while ($ind < scalar(@terms) and length($result) < $width) {
-        	$result .= ",$terms[$ind]";
-        	$ind ++;
+            $result .= ",$terms[$ind]";
+            $ind ++;
         } # while $ind
         $ind = scalar(@terms) - $ind;
         if ($ind > 0) {
-        	$result .= " + $ind more in b-file";
+            $result .= " + $ind more in b-file";
         } else {
-        	$result .= " end of b-file";
+            $result .= " end of b-file";
         }
     }
     return $result;
