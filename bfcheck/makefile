@@ -86,10 +86,16 @@ clean:
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
 #-----------------
-bflink:
-	perl bflink.pl ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
+bfli: bflink bflink_load
+bflink: 
+	perl bflink.pl -x ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
 	cat bflink_strange.txt
 	wc -l bflink*.txt
+bflink_load:
+	perl bflink.pl -c >       bflink.create.sql
+	$(DBAT) -f                bflink.create.sql
+	$(DBAT) -m csv -s "\t" -r bflink < bflink.txt
+	$(DBAT) -n                bflink
 #------------------
 get_delseq: get_delseq1 get_delseq2
 get_delseq1:
@@ -264,7 +270,12 @@ strip_len:
 	perl linelen.pl ../coincidence/database/stripped | sort -rn | uniq -c \
 	| tee $@.tmp
 linelen_sum:
-	sed -e "s/^ *//" linelen.*.tmp | cut -d" " -f1 | sort -rn | uniq -c > $@.tmp
+	sed -e "s/ b[0-9][0-9]\// /" linelen.*.tmp | grep -v total | sort -rn | head -60 > $@.tmp
+linelen_h:
+	sed -e "s/^ *//" linelen_sum.tmp | cut -d" " -f2 \
+	| sed -e "s/b/A/" -e "s/.txt//" > $@.1.tmp
+	grep -f $@.1.tmp bflink.txt      | tee $@.2.tmp
+#-------------------------------
 #%K A000001 nonn,core,nice,hard
 #%K A000002 nonn,core,easy,nice
 #12345
