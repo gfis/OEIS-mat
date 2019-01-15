@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dbat [
+<!ENTITY bflink_cols SYSTEM   "bflink_cols.xinc"  >
+]>
+<!--
+    @(#) $Id
+    2019-01-15: Georg Fischer
+-->
+<dbat encoding="UTF-8"
+    conn="worddb"
+    lang="en"
+    xmlns   ="http://www.teherba.org/2007/dbat"
+    xmlns:ht="http://www.w3.org/1999/xhtml"
+    target="_blank" 
+    javascript="../javascript.js"
+    title="maxllen"
+    >
+    <comment lang="de">Search maximum line lengths</comment>
+
+    <ht:h2><ht:a href="http://oeis.org">OEIS</ht:a>
+        <ht:a href="https://oeis.org/wiki/User:Georg_Fischer/B-file_check">b-file checking</ht:a> 
+    </ht:h2>
+<!--
+    <ht:form method="get">
+        <ht:input label="Limit: first " name="limit" maxsize="8" size="8" /> rows
+    </ht:form>
+-->
+    <ht:p>"b" opens the b-file, "E" opens the sequence in edit mode
+    <ht:br />Questions, suggestions: email 
+        <ht:a href="https://oeis.org/wiki/User:Georg_Fischer">Georg Fischer</ht:a>
+    </ht:p>
+<!--
+
+    <ht:h4>Huge offsets</ht:h4>
+    <select limit="16">
+        <col label="b" sep="*" wrap="javascript">
+            'url*https://oeis.org/' || a.aseqno || '/b' || SUBSTR(a.aseqno, 2) || '.txt'    
+            || '*b' 
+            </col>
+        <col label="E" sep="*" wrap="javascript">
+            'url*https://oeis.org/edit?&amp;seq=' || a.aseqno 
+            || '*E' 
+            </col>
+        <col label="A-num." sep="*" wrap="javascript">
+            'url*https://oeis.org/' || a.aseqno 
+            || '*' || a.aseqno
+            </col>
+        <col label="nmin"     align="right">a.imin     </col>
+        <col label="nmax"     align="right">a.imax     </col>
+        <col label="Range"                 >a.sname    </col>
+        <col label="maxllen"  align="right">a.maxllen  </col>
+        <col label="Size kb"  align="right">a.ksize    </col>
+        <col label="Status"                >a.status   </col>
+        <col label="b-file Author"         >substr(a.buthor, 1, 24)</col>
+        <col label="Keywords"> COALESCE(k.words, '')</col>
+        <col label="Offset"  > COALESCE(s.offset1 , '') || ',' || COALESCE(s.offset2 , '') AS offset</col>
+        <from> bflink   a  
+        	 , keywords k
+        	 , offset   s
+        WHERE  a.aseqno = k.aseqno
+          AND  a.aseqno = s.aseqno
+        </from>
+        <order by="s.offset1 DESC, a.aseqno" />
+    </select>
+-->
+
+    <ht:h4>Maximum length of lines</ht:h4>
+    <select limit="256">
+    <!--
+        &bflink_cols;
+    -->
+        <col label="b" sep="*" wrap="javascript">
+            'url*https://oeis.org/' || a.aseqno || '/b' || SUBSTR(a.aseqno, 2) || '.txt'    
+            || '*b' 
+            </col>
+        <col label="E" sep="*" wrap="javascript">
+            'url*https://oeis.org/edit?&amp;seq=' || a.aseqno 
+            || '*E' 
+            </col>
+        <col label="A-num." sep="*" wrap="javascript">
+            'url*https://oeis.org/' || a.aseqno 
+            || '*' || a.aseqno
+            </col>
+        <col label="nmin"     align="right">a.imin     </col>
+        <col label="nmax"     align="right">a.imax     </col>
+        <col label="Range"                 >a.sname    </col>
+        <col pseudo="style">CASE 
+        	WHEN a.maxllen &gt;= 4096 THEN 'yel' 
+        	ELSE '' END
+        </col>
+        <col label="maxllen"  align="right">a.maxllen  </col>
+        <col label="Filesize" align="right">a.fsize    </col>
+        <col label="Status"                >a.status   </col>
+        <col label="b-file Author"         >substr(a.buthor, 1, 24)</col>
+        <col label="Keywords"> COALESCE(k.words, '-')</col>
+        <col label="Offset"  > COALESCE(s.offset1 , '') || ',' || COALESCE(s.offset2 , '') AS offset</col>
+        <from> bflink   a  
+        	 , keywords k
+        	 , offset   s
+        WHERE  a.aseqno = k.aseqno
+          AND  a.aseqno = s.aseqno
+        </from>
+        <order by="a.maxllen DESC, a.aseqno" />
+        <counter desc="sequence,s" />
+    </select>
+    <trailer select="out,time,dbat" />
+</dbat>

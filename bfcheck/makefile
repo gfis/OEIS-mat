@@ -85,17 +85,6 @@ clean:
 	cat clean.log
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
-#-----------------
-bfli: bflink bflink_load
-bflink: 
-	perl bflink.pl -x ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
-	cat bflink_strange.txt
-	wc -l bflink*.txt
-bflink_load:
-	perl bflink.pl -c >       bflink.create.sql
-	$(DBAT) -f                bflink.create.sql
-	$(DBAT) -m csv -s "\t" -r bflink < bflink.txt
-	$(DBAT) -n                bflink
 #------------------
 get_delseq: get_delseq1 get_delseq2
 get_delseq1:
@@ -127,7 +116,9 @@ very_diff:
 	perl tsv_html.pl delseq.$@.txt > delseq.$@.html
 #-----------------
 deploy:
-	scp delseq.tsv.txt delseq.very_diff.txt delseq.very_diff.html index.html \
+	# scp delseq.tsv.txt delseq.very_diff.txt delseq.very_diff.html index.html \
+	#	gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/bfcheck/
+	scp maxllen.html \
 		gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/bfcheck/
 #=================
 # database table creation
@@ -259,32 +250,64 @@ gf8: # no terms, b-file only; new allocated
 	grep -E "^%8" bextra_combine.txt | cut -d" " -f 2 > $@.txt
 bextra_codes:
 	cut -b 1-2 bextra_combine.txt | sort | uniq -c | tee $@.txt
+#-----------------
+bflink: bflink_prep bflink_load \
+	maxllen_update \
+	fsizes_update  \
+	#
+bflink_prep: 
+	perl bflink.pl -x ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
+	cat bflink_strange.txt
+	wc -l bflink*.txt
+bflink_load:
+	perl bflink.pl -c >       bflink.create.sql
+	$(DBAT) -f                bflink.create.sql
+	$(DBAT) -m csv -s "\t" -r bflink < bflink.txt
+	$(DBAT) -4                bflink
+	$(DBAT) -n                bflink
 #-----------------------------------
-# line lengths
-linelen:
-	make bfall TARGET=linelen1
-linelen1:
-	wc -L b$(D1)$(D2)/* | sort -nr > linelen.b$(D1)$(D2).tmp
-	head -8 linelen.b$(D1)$(D2).tmp
-strip_len:
-	perl linelen.pl ../coincidence/database/stripped | sort -rn | uniq -c \
-	| tee $@.tmp
-linelen_sum:
-	sed -e "s/ b[0-9][0-9]\// /" linelen.*.tmp | grep -v total | sort -rn | head -60 > $@.tmp
-linelen_h:
-	sed -e "s/^ *//" linelen_sum.tmp | cut -d" " -f2 \
+# maximum line length
+# wc -L with uppercase "ell" yields maximum of lengths of lines
+maxllen_new: maxllen_all maxllen_update
+maxllen:
+	make bfall TARGET=maxllen1
+maxllen1:
+	wc -L b$(D1)$(D2)/* | sort -nr \
+	| grep -v "total" \
+	> maxllen.b$(D1)$(D2).tmp
+	head -8 maxllen.b$(D1)$(D2).tmp
+#      9867 total
+#      9867 b00/b048707.txt
+#      9863 b00/b000133.txt
+# 123456789012345           
+maxllen_all: 
+	sed -e "s/ b[0-9][0-9]\// /" maxllen.*.tmp \
+	| grep -v "total" \
+	| sort -rn \
+	> $@.tmp
+maxllen_h:
+	sed -e "s/^ *//" maxllen_all.tmp | cut -d" " -f2 \
 	| sed -e "s/b/A/" -e "s/.txt//" > $@.1.tmp
 	grep -f $@.1.tmp bflink.txt      | tee $@.2.tmp
+maxllen_update:
+	gawk -e '{print "A" substr($$2,2,6) " " $$1}'  maxllen_all.tmp  > $@.1.tmp
+	perl bfdata.pl -c temp > temp.create.sql
+	$(DBAT) -f temp.create.sql
+	$(DBAT) -m csv -s " " -r temp < $@.1.tmp
+	$(DBAT) -4 temp
+	$(DBAT) -n temp
+	$(DBAT) -v "UPDATE bflink b SET b.maxllen = \
+	    COALESCE((SELECT t.temp FROM temp t WHERE b.aseqno = t.aseqno), -1)"
 #-------------------------------
-#%K A000001 nonn,core,nice,hard
-#%K A000002 nonn,core,easy,nice
-#12345
-keywords: 
-	cat ./neil_lists/keywordlist.txt | cut -b 4- > $@.tmp
-	wc  -l $@.tmp
+# %K A000001 nonn,core,nice,hard
+# %K A000002 nonn,core,easy,nice
+# 12345
+keywords:
+	cat ./neil_lists/keywordlist.txt | cut -b 4- \
+	| sed -e "s/ /\t/" -e "s/\,/ /g" > $@.tmp
 	perl bfdata.pl -c $@ > $@.create.sql
 	$(DBAT) -f $@.create.sql
-	$(DBAT) -m csv -s " " -r $@ < $@.tmp
+	$(DBAT) -m csv -s "\t" -r $@ < $@.tmp
 	$(DBAT) -4 $@
 	$(DBAT) -n $@
 bextra_dead:
@@ -293,18 +316,54 @@ bextra_dead:
 		  AND k.words LIKE '%dead%' \
 		ORDER BY 1" | tee $@.tmp
 #----
-#%O A000001 0,5
-#%O A000002 1,2
-#12345
+# %O A000001 0,5
+# %O A000002 1,2
+# 12345
 offset: 
-	cat ./neil_lists/offsetlist.txt | cut -b 4- \
+	cat ./neil_lists/offsetlist.txt \
+	| sed -re "s/(A[0-9]+) (\-?[0-9]+)$$/\1 \2\,1/" \
+	| cut -b 4- \
 	| sed -e "s/\,/ /" > $@.tmp
+	# sed fixes the missing second part problem
 	wc -l $@.tmp
 	perl bfdata.pl -c $@ > $@.create.sql
 	$(DBAT) -f $@.create.sql
 	$(DBAT) -m csv -s " " -r $@ < $@.tmp
 	$(DBAT) -4 $@
 	$(DBAT) -n $@
+no_offset_2:
+	grep -v "," neil_lists/offsetlist.txt \
+	| sort > $@.txt
+	# sed fixes the missing second part problem
+	wc -l $@.txt
+#----------------------
+analyze:
+	rm -f $@.tmp
+	make bfall  TARGET=analyze1
+	head -4 $@.tmp
+	wc   -l $@.tmp
+analyze1:
+	find b$(D1)$(D2) -type f | xargs -l -ißß \
+	perl bfanalyze.pl ßß >> analyze.tmp
+#----
+# total 1215010                                            
+# -rw-r--r--+ 1 User Kein    46244 Feb 22  2018 b300000.txt
+# -rw-r--r--+ 1 User Kein      581 Feb 25  2018 b300003.txt
+# 1           2 3    4       5     6   7   8    9 
+fsizes: fsizes.1 fsizes_update
+fsizes.1: 
+	ls -l b??/ | grep -vE "^total " \
+	| gawk  -e '{print "A" substr($$9,2,6) " " $$5}' \
+	| grep -vE "^A *$$" > $@.tmp
+	head    -4 $@.tmp
+	wc      -l $@.tmp
+fsizes_update:
+	$(DBAT) -f temp.create.sql
+	$(DBAT) -m csv -s " " -r temp < fsizes.1.tmp
+	$(DBAT) -4 temp
+	$(DBAT) -n temp
+	$(DBAT) -v "UPDATE bflink b SET b.fsize = \
+	    COALESCE((SELECT t.temp FROM temp t WHERE b.aseqno = t.aseqno), -1)"
 #=================
 # old targets
 news2:

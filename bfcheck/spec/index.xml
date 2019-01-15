@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    @(#) $Id: index.xml 785 2011-08-24 17:27:45Z gfis $
+    2018-12-29: Georg Fischer
+-->
+<dbat encoding="UTF-8"
+    conn="worddb"
+    lang="en"
+    xmlns   ="http://www.teherba.org/2007/dbat"
+    xmlns:ht="http://www.w3.org/1999/xhtml"
+    title="index"
+    >
+    <comment lang="en">Queries for b-file checking</comment>
+
+    <!--
+    <ht:img src="spec/logo.jpg" align="right" alt="Logo" />
+    -->
+    <ht:h2>All  <ht:a href="servlet?spec=bfcheck.index">b-file checking</ht:a> queries</ht:h2>
+    <ht:p>-&gt; <ht:a href="servlet?spec=index">Dbat</ht:a></ht:p>
+
+    <select>
+        <col label="Query" href="servlet?&amp;spec=">subdir || '.' || name</col>
+        <col label="Description">'<ht:strong>' || title || '</ht:strong> &amp;mdash; ' || comment</col>
+        <col label="Parameters with defaults">params</col>
+        <from>spec_index
+        </from>
+        <where>subdir = 'bfcheck'
+          AND  lang   = 'en'
+        </where>
+        <order by="name" />
+        <counter desc="query,queries" />
+    </select>
+
+</dbat>

@@ -1,6 +1,6 @@
 #!perl
 
-# List length of lines
+# List maximum length of lines
 # @(#) $Id$
 # 2019-01-12, Georg Fischer
 #

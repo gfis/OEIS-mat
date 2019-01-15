@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Dbat include file for columns of 'bflink' table
+    @(#) $Id$
+    2019-01-16, Georg Fischer
+-->
+    <!--
+        <col label="H" link="broken_link.aseqno&amp;aseqno=&amp;dummy=">
+            a.aseqno || '=H'
+            </col>
+    -->
+        <col label="b" sep="*" wrap="javascript">
+            'url*https://oeis.org/' || a.aseqno || '/b' || SUBSTR(a.aseqno, 2) || '.txt'    
+            || '*b' 
+            </col>
+        <col label="E" sep="*" wrap="javascript">
+            'url*https://oeis.org/edit?&amp;seq=' || a.aseqno 
+            || '*E' 
+            </col>
+        <col label="A-num." sep="*" wrap="javascript">
+            'url*https://oeis.org/' || a.aseqno 
+            || '*' || a.aseqno
+            </col>
+        <col label="nmin"     align="right">a.imin     </col>
+        <col label="nmax"     align="right">a.imax     </col>
+    <!--
+        <col label="Seq."                  >a.sname    </col>
+    -->
+        <col label="Range"                 >a.sname    </col>
+        <col label="maxllen"  align="right">a.maxllen  </col>
+        <col label="Size kb"  align="right">a.ksize    </col>
+        <col label="Status"                >a.status   </col>
+        <col label="b-file Author"         >substr(a.buthor, 1, 24)</col>

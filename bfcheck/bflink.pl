@@ -7,7 +7,7 @@
 #
 # usage:
 #   perl bflink.pl -x ../broken_link/bigout1 > bflink.txt 2> bflink_strange.txt
-#       extract range information and author
+#       extract range information and buthor
 #   perl bflink.pl -c > bflink.create.sql
 #       CREATE SQL
 #---------------------------------
@@ -18,7 +18,7 @@ use warnings;
 my $TIMESTAMP = &iso_time(time());
 my $debug      = 0;
 
-my ($aseqno, $author, $rest, $var, $sname, $imin, $irange, $imax, $maxllen, $status);
+my ($aseqno, $buthor, $rest, $var, $sname, $imin, $irange, $imax, $maxllen, $fsize, $status);
 my $count = 0;
 my $action = shift(@ARGV);
 my $tabname = "bflink";
@@ -31,31 +31,37 @@ if (0) {
 DROP    TABLE  IF EXISTS $tabname;
 CREATE  TABLE            $tabname
     ( aseqno  VARCHAR(10)
-    , imin    VARCHAR(16)          
-    , imax    VARCHAR(16)  
+    , imin    BIGINT          
+    , imax    BIGINT  
     , sname   VARCHAR(16)
-    , irange  VARCHAR(32)
-    , author  VARCHAR(128)
+    , irange  VARCHAR(64)
+    , buthor  VARCHAR(128)
     , maxllen INT
+    , fsize   INT
     , status  VARCHAR(32)
     , PRIMARY KEY(aseqno)
     );
 COMMIT;
 GFis
 } elsif ($action =~ m{x}) {
-	$maxllen = 0;
-	$status  = "unkn";
+    $maxllen = 0;
+    $status  = "href";
     while (<>) {
         s/\s+\Z//; # chompr
         my $line = $_;
+        $count ++;
         if ($line =~ m{\A\%H A(\d+) ([^\<]*)\<a href\=\"\/A\1\/b\1\.txt\"\>\s*(.*)}) {
-            (             $aseqno,  $author,                                  $rest) 
+            (             $aseqno,  $buthor,                                  $rest) 
                 = (       $1,       $2,                                       $3);
-            $aseqno = "A$aseqno";
-            $author =~ s{\,\s*\Z}{}; # remove trailing 
-            $var = "";
-            $sname = "";
-            $irange = "";
+            $aseqno  = "A$aseqno";
+            $buthor  =~ s{\,\s*\Z}{}; # remove trailing comma
+            $var     = "?";
+            $sname   = "?";
+            $irange  = "?";
+            $fsize   = -1;
+            $maxllen = -1;
+            $imin    = 1;
+            $imax    = -1;
             if (0) {
             } elsif ($rest =~ m{Table\s+(of|for|)\s*([a-z])\,\s*(\w+)\s*\(\2\)\s*(\,\s*|for\s*)?\2\s*\=\s*(\-?\d+)\s*(\-|to|[\:\.\,]+)\s*(\-?\d+)}i) {
                 (                                   $var,       $sname,                                   $imin,     $irange,           $imax)
@@ -66,10 +72,10 @@ GFis
                     = (                 $3);
                 $imin = 1;
                 $sname = "first";
-            } elsif (($rest =~ m{flatten}i) or ($author =~ m{Alois|Luschny})) {
+            } elsif (($rest =~ m{flatten}i) or ($buthor =~ m{Alois|Luschny})) {
                 if (0) {
                 } elsif ($rest =~ m{(\-?\d+)\s*(\-|[\:\.\,]+)\s*(\-?\d+)}) { # range found
-                    (               $imin,     $irange,        $imax)
+                    (               $imin,     $irange,         $imax)
                         = (         $1,        $2,              $3);
                     if (0) {
                     } elsif ($rest =~ m{(row|antidiag)}i) {
@@ -96,24 +102,29 @@ GFis
                         $sname = "";
                     }
                 } else {
-                    $imin = 0;
-                    $imax = -1;
                     $sname = "unspec";
                 } # no range found  
                 # flatten
             } else {
+                $rest =~ s/Table\s+of//;
+                $irange = substr($rest, 0, 32);
                 print STDERR "# uncommon: $line\n";
             }
+            if ($imin eq '') {
+            	$imin = 1;
+            }
+            if ($imax eq '') {
+            	$imax = -1;
+            }
             print join("\t"
-                , ($aseqno, $imin, $imax, $sname, $irange, $author, $maxllen, $status)
+                , ($aseqno, $imin, $imax, $sname, $irange, $buthor, $maxllen, $fsize, $status)
                 ) . "\n"; 
-            $count ++;
         } elsif ($line =~ m{\"\/A\d+\/b\d+\.txt\"\>}) {
             print STDERR "# foreign: $line\n";
         } else { # other link, ignore
         }
     } # while <>
-    print STDERR sprintf("# $count b-file parameters written\n", $count);
+    print STDERR sprintf("# %d b-file parameters written\n", $count);
 } else {
     die "invalid action \"$action\"\n";
 }
