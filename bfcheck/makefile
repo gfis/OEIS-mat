@@ -36,7 +36,6 @@ unpack1:
 	mkdir       b$(D1)$(D2)
 	grep -vE  "^b$(D1)\[$(D2)" exclude_all.pat > exclude.tmp
 	tar -C      b$(D1)$(D2) --exclude-from=exclude.tmp -xzf $(BASEZ)
-	# tar -C    b$(D1)$(D2) --exclude-from=exclude.tmp -xf $(BASE)
 #----
 untgz:
 	make bfall TARGET=untgz1
@@ -85,6 +84,23 @@ clean:
 	cat clean.log
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
+#------------------
+refresh: refresh1 refresh2
+refresh1:
+	rm -rf temp 
+	mkdir  temp
+	rm -f                                                $@.wget.tmp
+	cut -b2-7 refresh.tmp \
+	| xargs -l -i{} echo https://oeis.org/A{}/b{}.txt >> $@.wget.tmp
+	cd temp ; wget -w $(SLEEP) -i                     ../$@.wget.tmp
+	ls -al temp
+refresh2:
+	rm -f  refresh.tgz
+	cd temp ; tar -czvf ../refresh.tgz b*.txt
+	ls -al refresh.tgz
+	cp -v  refresh.tgz refresh.`date +%Y-%m-%d_%H.%M`.tgz
+refresh_unpack:
+	make -i --silent unpack BASEZ=refresh.tgz
 #------------------
 get_delseq: get_delseq1 get_delseq2
 get_delseq1:
@@ -338,13 +354,18 @@ no_offset_2:
 	wc -l $@.txt
 #----------------------
 analyze:
-	rm -f $@.tmp
-	make bfall  TARGET=analyze1
+	make --silent bfall TARGET=analyze1
+	cat analyze.b*.tmp > $@.tmp
 	head -4 $@.tmp
 	wc   -l $@.tmp
 analyze1:
-	find b$(D1)$(D2) -type f | xargs -l -ißß \
-	perl bfanalyze.pl ßß >> analyze.tmp
+	rm -f analyze.b$(D1)$(D2).tmp
+	find b$(D1)$(D2) -type f | sort | xargs -l -ißß \
+	perl bfanalyze.pl ßß >> analyze.b$(D1)$(D2).tmp
+eval:
+	grep n analyze.2019-01-17.t* | grep -v "sign" | cut -b1-64 \
+	| tee $@.tmp
+	wc -l $@.tmp
 #----
 # total 1215010                                            
 # -rw-r--r--+ 1 User Kein    46244 Feb 22  2018 b300000.txt

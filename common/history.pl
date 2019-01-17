@@ -95,7 +95,7 @@ if (0) {
     }
     $ua->timeout(6);
     my $count  = 0;
-    my $prefix = "https://oeis.org/search?q=keyword:$keyword\&sort=created"; # initial page with block count
+    my $prefix = "https://oeis.org/search?q=keyword:$keyword\&sort=modified"; # initial page with block count
     my $url    = $prefix;
     my $status = "000";
     print STDERR "sleep $wait s\n"; sleep $wait;
@@ -112,7 +112,7 @@ if (0) {
     my $last_block = 0;
     while ($iline < scalar(@lines)) {
         # print "$lines[$iline]\n";
-        #    ...       <a href="/search?q=keyword%3anew&start=490&sort=created">50</a>
+        #    ...       <a href="/search?q=keyword%3anew&start=490&sort=modified">50</a>
         if ($lines[$iline] =~ m{\A\s*\.\.\.\s*\<a\s+href\=\"\/search\?q\=keyword\%3a$keyword\&start\=(\d+)\&}) {
             $last_block = $1;
             $iline = scalar(@lines); # break loop

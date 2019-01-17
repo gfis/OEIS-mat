@@ -35,36 +35,49 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 } # while ARGV
 #----------------------------------------------
 if (1) {
-	my $filename = shift(@ARGV);
-	my $buffer;
+    my $filename = shift(@ARGV);
+    my $buffer;
     open(FIL, "<", $filename) or die "cannot read $filename\n";
     read(FIL, $buffer, 100000000); # 100 MB
     close(FIL);
-    my @indexes = grep { m{\S} } # keep non-empty lines only
-            map {
-                s{\#.*} {};  # remove comments
-                s{\A\s+}{};  # remove leading whitespace
-            #   s{\s+\Z}{};  # trailing whitespace
-                s{\s.*} {};  # remove term
-                $_
-            } split(/\n/, $buffer);
+    my $mess = "";
+    my $line;
+    my @indexes = 
+        grep { m{\S} # keep non-empty lines only
+        } map { $line = $_;
+            $line =~ s{\A\s*(\#.*)?}{}; # remove leading whitespace and comments
+            if ($line =~ m{\A\-?\d+\s+(\-?)\d{1,}\s*\Z}) { # loose format "index term" ?
+                if (length($1) > 0 and ($mess !~ m{ sign})) {
+                    $mess .= " sign";
+                }
+            } elsif (length($line) > 0) { # non-empty line
+                if ($mess !~ m{ ndig}) { # not exactly 2 numbers
+                    $mess .= " ndig\@$line";
+                }
+            }
+            $line =~ s{\s.*}{};  # remove term
+            $line
+        } split(/\n/, $buffer);
     $imin = shift(@indexes);
     my $ind = 0;
     my $krun = $imin;
-    my $error = "ok";
     while ($ind < scalar(@indexes)) {
-    	$krun ++;
-    	if ($indexes[$ind] != $krun) { 
-    		$error = "nok\@$indexes[$ind]";
-    		$krun  = $indexes[$ind];
-    	}
-    	$ind ++;
+        $krun ++;
+        if ($indexes[$ind] != $krun) {
+            $mess .= " ninc\@$indexes[$ind]";
+            $krun  = $indexes[$ind];
+        }
+        $ind ++;
     } # while $ind
-    $imax = pop(@indexes);
     $filename =~ m{b(\d{6})\.txt};
     my $aseqno = "A$1";
-    print join(" ", 
-    	($aseqno, $imin, $imax, $error)
-    	) . "\n";
+    if (length($mess) > 0 and ($mess =~ m{ n(dig|inc)})) {
+        print STDERR "$aseqno\t$mess\n";
+    }
+    $mess = substr($mess, 1); # remove 1st space
+    $imax  = pop(@indexes);
+    print join("\t",
+        ($aseqno, $imin, $imax, $mess)
+        ) . "\n";
 }
 __DATA__

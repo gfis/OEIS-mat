@@ -5,14 +5,18 @@
 # 2019-01-17: Georg Fischer
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
-SLEEP=16
+SLEEP=32
 
 all: 
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 #--------
-kw_new:
-
+new:
+	perl history.pl -g $@ -w $(SLEEP)
+	ls -al `date +%Y-%m-%d`
+changed:
+	perl history.pl -g $@ -w $(SLEEP)
+	ls -al `date +%Y-%m-%d`
 #--------------------------------
 fsizes_update:
 	$(DBAT) -f temp.create.sql

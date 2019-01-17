@@ -5,18 +5,22 @@
 # 2019-01-12, Georg Fischer
 #
 # usage:
-#   perl bfhead.pl [-d d] [-w width] b-file.txt > output
-#       -d debug level
-#       -w length line with terms
+#   perl bfhead.pl [-d level] [-w width] b-file.txt > output
+#       -d debug
+#       -w width of line with terms
+#       -b with leading "%b "
 #---------------------------------
 use strict;
 use integer;
 # get options
 my $width = 260;
 my $debug  = 0; # 0 (none), 1 (some), 2 (more)
+my $bpercent = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
+    } elsif ($opt =~ m{\-b}) {
+        $bpercent  = shift(@ARGV);
     } elsif ($opt =~ m{\-d}) {
         $debug  = shift(@ARGV);
     } elsif ($opt =~ m{\-w}) {
@@ -55,7 +59,10 @@ sub get_head {
                     $_
                 } split(/\n/, $buffer);
          
-        $result = "%b $aseqno ";
+        $result = "$aseqno ";
+        if ($bpercent > 0) {
+        	$result = "%b $result";
+        }
         my $ind = 0;
         while ($ind < scalar(@terms) and length($result) < $width) {
             $result .= ",$terms[$ind]";
