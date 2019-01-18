@@ -296,6 +296,13 @@ A006204	249	starter.pdf
 A006204	245	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
 # A071607	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
 # A071608	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
-# 
 A071706	249	cm	Jieh Hsiang, Yuhpyng Shieh, Yaochiang Chen, <a href="https://www.researchgate.net/publication/2568740_The_Cyclic_Complete_Mappings_Counting_Problems">Cyclic complete mappings counting problems</a>, National Taiwan University, Taipei, April 2003
-
+#-----------------2019-01-18
+A007013	249	MMPstats.txt	http://manana.garlic.com/~wedgingt/MMPstats.txt	Will Edgington
+A016027	249	primeM.txt	http://manana.garlic.com/~wedgingt/primeM.txt	
+A112927	249	factoredM.txt	http://manana.garlic.com/~wedgingt/factoredM.txt	
+A001220	249	mersenne.html	http://www.garlic.com/~wedgingt/mersenne.html	
+A001348	249	mersenne.html	http://www.garlic.com/~wedgingt/mersenne.html	
+A186283	249	mersenne.html	http://www.garlic.com/~wedgingt/mersenne.html	
+A215799	249	mersenne.html	http://www.garlic.com/~wedgingt/mersenne.html	
+A250203	249	factoredM.txt	http://www.garlic.com/~wedgingt/factoredM.txt

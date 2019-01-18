@@ -1,14 +1,15 @@
-#!make
+#!/bin/make
 
 # OEIS-mat: b-file check
 # @(#) $Id$
+# 2019-01-18: analyze, refresh
 # 2019-01-07: split tgz
 # 2019-01-05: Georg Fischer, copied from ../coincidence/database
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=b000001-b321800.tar
 BASEZ=$(BASE).gz
-SLEEP=8
+SLEEP=24
 
 all: 
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -85,20 +86,21 @@ clean:
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
 #------------------
-refresh: refresh1 refresh2
+refresh: refresh1 refresh2 refresh_unpack
 refresh1:
 	rm -rf temp 
 	mkdir  temp
-	rm -f                                                $@.wget.tmp
-	cut -b2-7 refresh.tmp \
+	rm -f  $@.wget.tmp
+	cut -b2-7 refresh.man \
 	| xargs -l -i{} echo https://oeis.org/A{}/b{}.txt >> $@.wget.tmp
 	cd temp ; wget -w $(SLEEP) -i                     ../$@.wget.tmp
-	ls -al temp
+	cp refresh.man          $@.`date +%Y-%m-%d_%H.%M`.lst
+	ls -al temp | tee >>    $@.`date +%Y-%m-%d_%H.%M`.lst
 refresh2:
 	rm -f  refresh.tgz
 	cd temp ; tar -czvf ../refresh.tgz b*.txt
 	ls -al refresh.tgz
-	cp -v  refresh.tgz refresh.`date +%Y-%m-%d_%H.%M`.tgz
+	cp -v  refresh.tgz refresh.`date +%Y-%m-%d.%H_%M`.tgz
 refresh_unpack:
 	make -i --silent unpack BASEZ=refresh.tgz
 #------------------
@@ -355,17 +357,18 @@ no_offset_2:
 #----------------------
 analyze:
 	make --silent bfall TARGET=analyze1
-	cat analyze.b*.tmp > $@.tmp
-	head -4 $@.tmp
-	wc   -l $@.tmp
+	cat analyze.b*.tmp > $@.txt
+	head -4 $@.txt
+	wc   -l $@.txt
+	make --silent analyze2
 analyze1:
 	rm -f analyze.b$(D1)$(D2).tmp
-	find b$(D1)$(D2) -type f | sort | xargs -l -ißß \
-	perl bfanalyze.pl ßß >> analyze.b$(D1)$(D2).tmp
-eval:
-	grep n analyze.2019-01-17.t* | grep -v "sign" | cut -b1-64 \
-	| tee $@.tmp
-	wc -l $@.tmp
+	find b$(D1)$(D2) -type f | sort | xargs -l -i{} \
+	perl bfanalyze.pl {} >> analyze.b$(D1)$(D2).tmp
+analyze2:
+	grep " n" analyze.txt | grep -v "sign" | cut -b1-64 \
+	| tee $@.`date +%Y-%m-%d`.txt
+	wc -l $@.*.txt
 #----
 # total 1215010                                            
 # -rw-r--r--+ 1 User Kein    46244 Feb 22  2018 b300000.txt

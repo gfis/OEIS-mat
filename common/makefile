@@ -18,6 +18,9 @@ changed:
 	perl history.pl -g $@ -w $(SLEEP)
 	ls -al `date +%Y-%m-%d`
 #--------------------------------
+pack:
+	tar -czvf `date +%Y-%m-%d`.tgz `date +%Y-%m-%d`/*.t*
+#--------------------------------
 fsizes_update:
 	$(DBAT) -f temp.create.sql
 	$(DBAT) -m csv -s " " -r temp < fsizes.1.tmp
