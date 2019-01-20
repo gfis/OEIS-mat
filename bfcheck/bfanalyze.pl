@@ -6,22 +6,23 @@
 # 2019-01-15, Georg Fischer
 #
 # usage:
-#   perl bfcheck.pl [-l lead] [-w seconds] [-d level] > output
+#   perl bfanalyze.pl [-l lead] [-d level] > output
+#       -l lead		print so many initial terms (default 8)
+#		-d level	debug level none(0), some(1), more(2)
 #---------------------------------
 use strict;
 use integer;
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
-        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+my $timestamp = sprintf ("%04d-%02d-%02dT%02d_%02d"
+        , $year + 1900, $mon + 1, $mday, $hour, $min);
 my $commandline = join(" ", @ARGV);
 
 # get options
-my $action = "gen"; # not used
-my $debug  = 0; # 0 (none), 1 (some), 2 (more)
-my $imin   = 0;
+my $action =  "gen"; # not used
+my $debug  =  0; # 0 (none), 1 (some), 2 (more)
+my $imin   =  0;
 my $imax   = -1; # unknown
-my $lead   = 8;
-my $sleep  = 8; # sleep 8 s before all wget requests
+my $lead   =  8; # so many initial terms are printed
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -31,8 +32,6 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $debug  = shift(@ARGV);
     } elsif ($opt =~ m{\-l}) {
         $lead  = shift(@ARGV);
-    } elsif ($opt =~ m{\-w}) {
-        $sleep  = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }

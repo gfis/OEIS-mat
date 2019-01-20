@@ -39,11 +39,7 @@ prep4:
 regen: regen1 index deploy
 regen1:
 	make regen4 2>&1 | tee regen.`date +%Y-%m-%d`.log
-regen4:	A000 A100 A200 A300
-A000:	A00 A05 
-A100:	A10 A15
-A200:	A20 A25
-A300:	A30 A35
+regen4:	A00 A05 A10 A15	A20 A25	A30 A35
 A00:
 	perl simseq.pl -p $(P) -h $(H) -l $(MINLEN) -min 000000 -max 049999 -n $(N) -d $(D)  < stripsort.tmp 
 A05:

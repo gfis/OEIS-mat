@@ -50,15 +50,15 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
 my $commandline = join(" ", @ARGV);
 
 # get options
-my $action = "gen"; # "prep"rocess for sort, "gen"erate HTML lists
-my $debug  = 0; # 0 (none), 1 (some), 2 (more)
-my $higher = 4; # minimum sequence value where comparision starts
-my $minlen = 8; # minimum length for both sequences
-my $minseq = 0;
-my $maxseq = 999999; # all
-my $readnu = 1; # = 1 (0) do (not) read file namurl.tmp
-my $pow10  = 2; # there must be values >= 10**p in both sequences to be compared
-my $sleep  = 8; # sleep 8 s before all wget requests
+my $action =  "gen"; # "prep"rocess for sort, "gen"erate HTML lists
+my $debug  =  0; # 0 (none), 1 (some), 2 (more)
+my $higher =  4; # minimum sequence value where comparision starts
+my $minlen =  8; # minimum length for both sequences
+my $minseq =  0;
+my $maxseq =  999999; # all
+my $readnu =  1; # = 1 (0) do (not) read file namurl.tmp
+my $pow10  =  2; # there must be values >= 10**p in both sequences to be compared
+my $sleep  = 16; # sleep 16 s before all wget requests
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {

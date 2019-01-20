@@ -5,8 +5,8 @@
 # 2019-01-12, Georg Fischer; copied from ../broken_link/brol_process.pl
 #
 # Usage:
-#   perl bfdata.pl (-c name|-g|-r|-x) [inputfile] > outputfile
-#       -c    generate CREATE SQL for name
+#   perl bfdata.pl (-c tabname|-r) [inputfile] > outputfile
+#       -c    generate CREATE SQL for tabname
 #       -r    generate *.tsv file for table loading
 #------------------------------------
 use strict;
@@ -15,7 +15,6 @@ use warnings;
 my $TIMESTAMP = &iso_time(time());
 my $debug      = 0;
 my $action     = "r";
-my $wait       = 2;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -25,10 +24,6 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $debug     = shift(@ARGV);
     } elsif ($opt  =~ m{r}) {
         $action    =   "r";
-    } elsif ($opt  =~ m{w}) {
-        $wait      =  shift(@ARGV);
-    } elsif ($opt  =~ m{x}) {
-        $action    =   "x";
     } else {
         die "invalid option \"$opt\"\n";
     }

@@ -9,7 +9,7 @@
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=b000001-b321800.tar
 BASEZ=$(BASE).gz
-SLEEP=24
+SLEEP=16
 
 all: 
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -39,7 +39,7 @@ unpack1:
 	tar -C      b$(D1)$(D2) --exclude-from=exclude.tmp -xzf $(BASEZ)
 #----
 untgz:
-	make bfall TARGET=untgz1
+	make bfall  TARGET=untgz1
 untgz1:
 	tar -xzf    b$(D1)$(D2).tgz
 #----
@@ -94,13 +94,13 @@ refresh1:
 	cut -b2-7 refresh.man \
 	| xargs -l -i{} echo https://oeis.org/A{}/b{}.txt >> $@.wget.tmp
 	cd temp ; wget -w $(SLEEP) -i                     ../$@.wget.tmp
-	cp refresh.man          $@.`date +%Y-%m-%d_%H.%M`.lst
-	ls -al temp | tee >>    $@.`date +%Y-%m-%d_%H.%M`.lst
+	cp refresh.man          $@.`date +%Y-%m-%dT%H_%M`.lst
+	ls -al temp | tee >>    $@.`date +%Y-%m-%dT%H_%M`.lst
 refresh2:
 	rm -f  refresh.tgz
 	cd temp ; tar -czvf ../refresh.tgz b*.txt
 	ls -al refresh.tgz
-	cp -v  refresh.tgz refresh.`date +%Y-%m-%d.%H_%M`.tgz
+	cp -v  refresh.tgz refresh.`date +%Y-%m-%dT%H_%M`.tgz
 refresh_unpack:
 	make -i --silent unpack BASEZ=refresh.tgz
 #------------------
@@ -367,8 +367,37 @@ analyze1:
 	perl bfanalyze.pl {} >> analyze.b$(D1)$(D2).tmp
 analyze2:
 	grep " n" analyze.txt | grep -v "sign" | cut -b1-64 \
-	| tee $@.`date +%Y-%m-%d`.txt
+	| tee $@.`date +%Y-%m-%dT%H_%M`.txt
 	wc -l $@.*.txt
+#----
+first:
+	perl bfstrip.pl analyze.txt | tee $@.tmp
+first_diff:
+	cut -b1-7 first.tmp                          | sort > $@.1.tmp
+	cut -b18-24 neil_lists/missing-few-terms.txt | sort > $@.2.tmp
+	diff -wy --width=24 $@.1.tmp $@.2.tmp | tee $@.3.txt
+firch:
+	cut -b1-7 refresh.man  > $@.1.tmp
+	cut -b1-7 first_diff.3.txt | grep -E "[0-9]" | sort > $@.2.tmp
+	grep -vf $@.1.tmp $@.2.tmp | tee $@.3.tmp
+first_terms:
+	perl tsv_html.pl -m strip first.tmp > $@.html
+deploy_first:
+	scp first_terms.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/bfcheck
+buthors:
+	sed -e "s/^A\([0-9]*\)\.*/b\1.txt/" first.tmp | cut -b1-11 > $@.b.tmp
+	grep -f $@.b.tmp ../broken_link/bigout1 | tee $@.2.tmp
+first_down:
+	rm -rf temp
+	mkdir temp
+	perl aseq_wget.pl -n 15 first.tmp > wget.tmp
+	wget -w 16 -i wget.tmp -O - >> temp/down.tmp 
+first_int:
+	grep -E "^%(A|H|O|K)" down.tmp | grep -vE "https?\:" \
+	| grep -vEi "Index|transform" | sort -k1.4,1.11 | tee $@.txt
+f1_corr:
+	grep -E "corrected" first_int.txt | cut -b4-10 | tee $@.1.tmp
+	grep -f $@.1.tmp first.tmp | tee $@.2.tmp
 #----
 # total 1215010                                            
 # -rw-r--r--+ 1 User Kein    46244 Feb 22  2018 b300000.txt
