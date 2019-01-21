@@ -382,6 +382,8 @@ firch:
 	grep -vf $@.1.tmp $@.2.tmp | tee $@.3.tmp
 first_terms:
 	perl tsv_html.pl -m strip first.tmp > $@.html
+first_terms3:
+	perl tsv_html.pl -m strip www_teo/grep3.tmp > $@.html
 deploy_first:
 	scp first_terms.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/bfcheck
 buthors:
@@ -398,6 +400,13 @@ first_int:
 f1_corr:
 	grep -E "corrected" first_int.txt | cut -b4-10 | tee $@.1.tmp
 	grep -f $@.1.tmp first.tmp | tee $@.2.tmp
+#-------------------
+check_gf9:
+	rm -f $@.ls.txt
+	sed -e "s/^A/b/" -e "s/$$/.txt/" gf9.txt | tee check_gf9.tmp
+	make  bfall TARGET=check1_gf9
+check1_gf9:
+	find b$(D1)$(D2) -type f -ls | grep -f check_gf9.tmp | tee >> check_gf9.ls.txt
 #----
 # total 1215010                                            
 # -rw-r--r--+ 1 User Kein    46244 Feb 22  2018 b300000.txt
