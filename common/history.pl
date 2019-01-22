@@ -1,15 +1,15 @@
 #!perl
 
-# Get the OEIS history for keywords "new" or "changed"
+# Get the OEIS history for keywords "new", "changed" or "recycled"
 # @(#) $Id$
 # 2019-01-17: Georg Fischer, copied from ../broken_link/brol_process.pl
 #
 # Usage:
 #   perl history.pl (-c name|-g (new|changed)|-r) [-w s] [outputdir]
 #       -c    generate CREATE SQL for name
-#       -g    get blocks of 10 sequences
+#       -g kw get blocks of 10 sequences, for keyword kw (deefault "new")
 #       -r    generate *.tsv file for table loading
-#       -w    wait time in seconds, default 16
+#       -w    wait time in seconds (default 16)
 #------------------------------------
 use strict;
 use warnings;
@@ -22,6 +22,7 @@ my $TIMESTAMP  = &iso_time(time());
 my $debug      = 0;
 my $action     = "g";
 my $keyword    = "new";
+my $blocksize  = 10; # fixed by OEIS server
 my $wait       = 16; # wait time in seconds
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
@@ -139,7 +140,7 @@ if (0) {
         print OUT "%z $TIMESTAMP\n $page\n";
         close(OUT);
         # $last_block = 0; # for test
-        $last_block -= 10;
+        $last_block -= $blocksize;
     } # while last_block
     print STDERR "fetched OEIS history \"$keyword\"\n";
 #-------------------------------------------------------------

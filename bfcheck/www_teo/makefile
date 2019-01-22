@@ -1,6 +1,6 @@
 #!make
 
-# OEIS-mat: b-file check on teherba.org
+# OEIS-mat/bfcheck/www_teo -> teherba.org
 # @(#) $Id$
 # 2019-01-17: Georg Fischer
 #---------------------------------
