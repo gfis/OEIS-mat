@@ -402,7 +402,7 @@ buthors:
 first_down:
 	rm -rf temp
 	mkdir temp
-	perl aseq_wget.pl -t text -n 8 first.tmp > wget.tmp
+	perl ../common/aseq_wget.pl -t text -n 8 first.tmp > wget.tmp
 	wget -w $(SLEEP) -i wget.tmp -O - >> temp/down.tmp 
 first_int:
 	grep -E "^%(A|H|O|K)" down.tmp | grep -vE "https?\:" \

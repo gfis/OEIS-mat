@@ -114,37 +114,38 @@ check_terms:
 	$(DBAT) -x "SELECT a.aseqno, a.keyword, b.message, a.terms, b.terms \
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno AND a.terms <> b.terms \
+	      AND b.message NOT LIKE '%synth%' \
 	    ORDER BY 1" | tee $@.tmp
 	wc -l $@.tmp
-#	      AND a.keyword LIKE '%notexist%' \
 #----
-b1:
+bulk:
 	rm -rf temp
 	mkdir  temp
-	mkdir  temp/json
-	mkdir  temp/bfile
-bulk:
-	make bulk_prep MAXNUM=65536 LIST=check_terms.tmp TYPE=bfile
-	make bulk_wget TYPE=bfile
-	make bulk_tar  TYPE=bfile
-bulk_prep:
-	wc -l $(LIST)
-	perl ../bfcheck/aseq_wget.pl -t $(TYPE) -m $(MAXNUM) $(LIST) > wget.tmp
-bulk_wget:
-	cat wget.tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM="{}"
+	make   bulk_type TYPE=json  
+	make   bulk_type TYPE=bfile 
+	make   bulk_tar
+#--
+bulk_type:
+	mkdir  temp/$(TYPE)
+	wc -l  $(LIST)
+	perl   aseq_wget.pl -t $(TYPE) -n 8 $(LIST) > wget.$(TYPE).tmp
+	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
+bulk_json1:
+	echo   wget -O $@.tmp "$(PARM)" 
+	wget   -O $@.tmp "$(PARM)" 
+	perl   split_json.pl -d $(D) -o temp/json $@.tmp
+	sleep  $(SLEEP)
+bulk_bfile1:
+	echo   wget "$(PARM)"
+	wget   $(PARM)
+	sleep  10
+#--
 bulk_tar:
-	ls -l temp | wc -l
+	ls -lR temp | wc -l
 	wc -l $(LIST)
 	cp -v $(LIST) temp
 	tar -cjf  bulk.tar.bz2 temp
-	cp -v	  bulk.tar.bz2 bulk.`date +%Y-%m-%d`.tar.bz2
-bulk_bfile1:
-	wget $(PARM)
-	sleep 10
-bulk_json1:
-	wget $(PARM) -O $@.tmp
-	perl split_json.pl -d $(D)  $@.tmp
-	sleep $(SLEEP)
+	cp -v	  bulk.tar.bz2 bulk.`date +%Y-%m-%d.%H-%M`.tar.bz2
 #--
 bulk_split:
 	perl split_json.pl -d $(D) bulk_json.tmp

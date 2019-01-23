@@ -6,9 +6,9 @@
 #
 # usage:
 #   perl aseq_wget.pl [-n numseq] [-t (bfile|text|json)] [-m maxnum] infile > outfile
-#		-n number of sequences to be fetched per wget command (default8, 1 for bf)
-#		-m maximum number of sequences to be fetched
-#		-t bfile or fmt=text|json
+#       -n number of sequences to be fetched per wget command (default8, 1 for bf)
+#       -m maximum number of sequences to be fetched
+#       -t bfile or fmt=text|json
 #---------------------------------
 use strict;
 use integer;
@@ -38,7 +38,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 } # while ARGV
 my $outdir = "./temp/$type";
 if ($type =~ m{bfile}) {
-	$numseq = 1;
+    $numseq = 1;
 }
 $maxnum /= $numseq;
 #----
@@ -47,31 +47,32 @@ my $count_id  = 0;
 my $count_cmd = 0;
 my $aseqno;
 while (<>) {
-	my $line = $_;
-	if ($count_cmd <= $maxnum) {
-    	$line =~ m{\A(A\d+)};
-    	$aseqno = $1;
-    	$buffer .= "|id:$aseqno";
-    	$count_id ++;
-    	if ($count_id % $numseq == 0) {
-    	    &print_buffer();
-    	}
-	}
+    my $line = $_;
+    if ($count_cmd <= $maxnum) {
+        $line =~ m{\A(A\d+)};
+        $aseqno = $1;
+        $buffer .= "|id:$aseqno";
+        $count_id ++;
+        if ($count_id % $numseq == 0) {
+            &print_buffer();
+        }
+    }
 } # while <>
 if (length($buffer) > 0) {
-	&print_buffer();
+    &print_buffer();
 }
 #----
 sub print_buffer {
-	$count_cmd ++;
-	if ($count_cmd <= $maxnum) {
-		if ($type =~ m{bfile}) {
-			$buffer =~ s{\|id:(A(\d+))}{b$2.txt};
-	    	print "--directory-prefix=$outdir https://oeis.org/$1/$buffer\n";
-		} else { # json|text
-	    	print "https://oeis.org/search?q=" . substr($buffer, 1) . "\&fmt=$type"; # -O is set outside
-	    }
-	}
+    $count_cmd ++;
+    if ($count_cmd <= $maxnum) {
+        if ($type =~ m{bfile}) {
+            $buffer =~ s{\|id:(A(\d+))}{b$2.txt};
+            print "--directory-prefix=$outdir https://oeis.org/$1/$buffer\n";
+        } else { # json|text
+            print "https://oeis.org/search?q="
+                . substr($buffer, 1) . "\&fmt=$type\n"; # -O is set outside
+        }
+    }
     $buffer = "";
 }
 #----

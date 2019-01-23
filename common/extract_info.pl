@@ -197,7 +197,8 @@ GFis
 sub extract_from_json { # read JSON of 1  sequence
     my ($filename) = @_;
     &read_file($filename); # sets $access, $buffer
-    my $aseqno   = "Annnnnn";
+    $filename =~ m{(A\d{6})\.json}i; # extract seqno
+    my $aseqno   = $1;
     my $offset1  = 1;
     my $offset2  = 1;
     my $terms    = "";
