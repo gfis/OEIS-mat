@@ -86,23 +86,33 @@ clean:
 clean1:
 	perl rm_synthesized.pl b$(D1)$(D2) 2>> clean.log
 #------------------
-refresh: refresh1 refresh2 refresh_unpack
-refresh1:
+refresh: refresh_get
+refresh_get:
 	rm -rf temp 
 	mkdir  temp
-	rm -f  $@.wget.tmp
+	cp     refresh.man temp/refresh.`date +%Y-%m-%dT%H_%M`.lst
+	mkdir  temp/bfile
+	mkdir  temp/json
 	cut -b2-7 refresh.man \
-	| xargs -l -i{} echo https://oeis.org/A{}/b{}.txt >> $@.wget.tmp
-	cd temp ; wget -w $(SLEEP) -i                     ../$@.wget.tmp
-	cp refresh.man          $@.`date +%Y-%m-%dT%H_%M`.lst
-	ls -al temp | tee >>    $@.`date +%Y-%m-%dT%H_%M`.lst
-refresh2:
-	rm -f  refresh.tgz
-	cd temp ; tar -czvf ../refresh.tgz b*.txt
-	ls -al refresh.tgz
-	cp -v  refresh.tgz refresh.`date +%Y-%m-%dT%H_%M`.tgz
+	| xargs -l -i{} make --silent refresh_bf SEQNO={}
+	cut -b2-7 refresh.man \
+	| xargs -l -i{} make --silent refresh_as SEQNO={}
+	tar -cjvf refresh.tar.bz2 temp
+	cp -v     refresh.tar.bz2 refresh.`date +%Y-%m-%d`.tar.bz2 
+	find  temp/bfile | wc -l
+	find  temp/json  | wc -l
+refresh_bf:
+	sleep $(SLEEP)
+	wget -O temp/bfile/$(SEQNO).txt "https://oeis.org/A$(SEQNO)/b$(SEQNO).txt"
+refresh_as:
+	sleep $(SLEEP)
+	wget -O temp/json/$(SEQNO).json "https://oeis.org/search?q=id:A$(SEQNO)&fmt=json"
+#-------
 refresh_unpack:
-	make -i --silent unpack BASEZ=refresh.tgz
+	rm -rf temp 
+	tar -xjvf refresh.tar.bz2
+	echo "cp -v temp/bfile/* unbf"  
+	echo "cp -v temp/json/*  unjs"  
 #------------------
 get_delseq: get_delseq1 get_delseq2
 get_delseq1:
@@ -392,8 +402,8 @@ buthors:
 first_down:
 	rm -rf temp
 	mkdir temp
-	perl aseq_wget.pl -n 15 first.tmp > wget.tmp
-	wget -w 16 -i wget.tmp -O - >> temp/down.tmp 
+	perl aseq_wget.pl -t text -n 8 first.tmp > wget.tmp
+	wget -w $(SLEEP) -i wget.tmp -O - >> temp/down.tmp 
 first_int:
 	grep -E "^%(A|H|O|K)" down.tmp | grep -vE "https?\:" \
 	| grep -vEi "Index|transform" | sort -k1.4,1.11 | tee $@.txt

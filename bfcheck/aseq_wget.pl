@@ -5,7 +5,10 @@
 # 2019-01-19, Georg Fischer
 #
 # usage:
-#   perl aseq_wget.pl -n nseq -m (text|json) infile > outfile
+#   perl aseq_wget.pl [-n numseq] [-t (bfile|text|json)] [-m maxnum] infile > outfile
+#		-n number of sequences to be fetched per wget command (default8, 1 for bf)
+#		-m maximum number of sequences to be fetched
+#		-t bfile or fmt=text|json
 #---------------------------------
 use strict;
 use integer;
@@ -15,38 +18,60 @@ my $TIMESTAMP = &iso_time(time());
 # get options
 my $action = "comp";
 my $debug  = 0; # 0 (none), 1 (some), 2 (more)
-my $nseq   = 15;
-my $mode   = "text";
+my $numseq = 8;
+my $maxnum = 65536;
+my $type   = "json";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
-    } elsif ($opt =~ m{\-m}) {
-        $mode   = shift(@ARGV);
-    } elsif ($opt =~ m{\-n}) {
-        $nseq   = shift(@ARGV);
     } elsif ($opt =~ m{\-d}) {
         $debug  = shift(@ARGV);
+    } elsif ($opt =~ m{\-m}) {
+        $maxnum   = shift(@ARGV);
+    } elsif ($opt =~ m{\-n}) {
+        $numseq   = shift(@ARGV);
+    } elsif ($opt =~ m{\-t}) {
+        $type     = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while ARGV
+my $outdir = "./temp/$type";
+if ($type =~ m{bfile}) {
+	$numseq = 1;
+}
+$maxnum /= $numseq;
 #----
-my $url_prefix = "https://oeis.org/search?q="; # https://oeis.org/search?q=id:A062882|id:A064680&fmt=text
 my $buffer = "";
-my $count = 0;
+my $count_id  = 0;
+my $count_cmd = 0;
+my $aseqno;
 while (<>) {
-    m{\A(A\d+)};
-    my $aseqno = $1;
-    $buffer .= "|id:$aseqno";
-    $count ++;
-    if ($count % $nseq == 0) {
-        &print_buffer();
-    }
+	my $line = $_;
+	if ($count_cmd <= $maxnum) {
+    	$line =~ m{\A(A\d+)};
+    	$aseqno = $1;
+    	$buffer .= "|id:$aseqno";
+    	$count_id ++;
+    	if ($count_id % $numseq == 0) {
+    	    &print_buffer();
+    	}
+	}
 } # while <>
-&print_buffer();
+if (length($buffer) > 0) {
+	&print_buffer();
+}
 #----
 sub print_buffer {
-    print "$url_prefix" . substr($buffer, 1) . "\&fmt=$mode\n";
+	$count_cmd ++;
+	if ($count_cmd <= $maxnum) {
+		if ($type =~ m{bfile}) {
+			$buffer =~ s{\|id:(A(\d+))}{b$2.txt};
+	    	print "--directory-prefix=$outdir https://oeis.org/$1/$buffer\n";
+		} else { # json|text
+	    	print "https://oeis.org/search?q=" . substr($buffer, 1) . "\&fmt=$type"; # -O is set outside
+	    }
+	}
     $buffer = "";
 }
 #----
