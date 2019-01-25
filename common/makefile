@@ -15,6 +15,13 @@ all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 #--------
+seq: # parameter: $(LIST)
+	$(DBAT) -f seq.create.sql
+	cut -b1-7 $(LIST) | $(DBAT) -m csv -r seq
+	$(DBAT) -n seq
+delseq: seq # parameters: $(TAB) $(LIST)
+	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
+#--------
 update_history: new changed
 new:
 	perl history.pl -g $@ -w $(SLEEP)
@@ -61,11 +68,13 @@ bfinfo_load:
 	| $(DBAT) -m csv -s "\t" -r bfinfo
 	$(DBAT) -4 bfinfo
 	$(DBAT) -n bfinfo
-bfsynth:
-	rm -f $@.1.tmp
-	find unbf -type f | xargs -l grep -iH "file synthesized from" >> $@.1.tmp
-	cut -f2 $@.1.tmp > $@.tmp
-	wc -l $@.tmp
+bfinfo_update:
+	perl extract_info.pl -br temp/bfile > $@.txt
+	wc -l $@.txt
+	make delseq TAB=bfinfo LIST=$@.txt
+	cat $@.txt | $(DBAT) -m csv -s "\t" -r bfinfo
+	$(DBAT) -4 bfinfo
+	$(DBAT) -n bfinfo
 #--------------------------------
 asinfo: asinfo_extract
 asinfo_extract:
@@ -77,6 +86,13 @@ asinfo_load:
 	$(DBAT) -f asinfo.create.sql
 	cut -b1-256 asinfo.txt \
 	| $(DBAT) -m csv -s "\t" -r asinfo
+	$(DBAT) -4 asinfo
+	$(DBAT) -n asinfo
+asinfo_update:
+	perl extract_info.pl -jr temp/json > $@.txt
+	wc -l $@.txt
+	make delseq TAB=asinfo LIST=$@.txt
+	cat $@.txt | $(DBAT) -m csv -s "\t" -r asinfo
 	$(DBAT) -4 asinfo
 	$(DBAT) -n asinfo
 #------------------
@@ -111,13 +127,25 @@ refresh_unpack:
 	echo "cp -v temp/json/*  unjs"
 #--------------------------------
 check_terms:
-	$(DBAT) -x "SELECT a.aseqno, a.keyword, b.message, a.terms, b.terms \
+	$(DBAT) -x "SELECT a.aseqno, a.terms, b.terms \
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno AND a.terms <> b.terms \
 	      AND b.message NOT LIKE '%synth%' \
 	    ORDER BY 1" | tee $@.tmp
 	wc -l $@.tmp
-#----
+#--------------------------------
+check_offset:
+	$(DBAT) -m html "SELECT a.aseqno, a.offset1, b.bfimin, a.keyword, b.message \
+	    FROM asinfo a, bfinfo b \
+	    WHERE a.aseqno = b.aseqno AND a.offset1 <> b.bfimin \
+	    ORDER BY 1" | tee $@.html
+#	      AND b.message NOT like '%synth%' \
+#	wc -l $@.html
+comp1:
+	cut -b1-7 check_offset.tmp >  x.tmp
+	cut -b1-7 check_terms.tmp  >> x.tmp
+	sort x.tmp | uniq -c | grep -v " 1 "
+#--------------------------------
 bulk:
 	rm -rf temp
 	mkdir  temp
@@ -150,6 +178,10 @@ bulk_tar:
 bulk_split:
 	perl split_json.pl -d $(D) bulk_json.tmp
 	ls -al temp
+bulk_update:
+	tar -xjvf bulk.tar.bz2 # to temp
+	make asinfo_update
+	make bfinfo_update
 #--------------------------------
 fsizes_update:
 	$(DBAT) -f temp.create.sql

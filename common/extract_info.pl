@@ -217,11 +217,14 @@ sub extract_from_json { # read JSON of 1  sequence
 #           "time": "2018-05-17T13:40:20-04:00",
 #           "created": "2011-11-13T12:40:47-05:00"
     my $value;
+    my $synth = "synth";
+    my $seqno = 0;
     foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\A\s*\"}) { # ignore
         } elsif ($line =~ m{\A\s*\"number\"\:\s*(\d+)}) {
             $value = $1;
-            $aseqno = sprintf("A%06d", $value);
+            $seqno = sprintf("%06d", $value);
+            $aseqno = "A$seqno";
             $filename =~ m{A(\d{6})\.json}i; # extract seqno
             my $fseqno = "A$1";
             if ($fseqno ne $aseqno) {
@@ -250,10 +253,12 @@ sub extract_from_json { # read JSON of 1  sequence
             $value = $1;
             $created = &get_utc_timestamp($value);
         } elsif ($line =~ m{\A\s*\"results\"\:\s*null}) {
-        	$keyword = "notexist";
-        } else { # ignore
+            $keyword = "notexist";
+        } elsif ($line =~ m{\/$aseqno\/b$seqno\.txt}) {
+            $synth = ""; # not synthesized
         }
     } # foreach $line
+    $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
     return ($aseqno
         , $offset1, $offset2
         , $terms
