@@ -9,6 +9,7 @@ DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
+DATABASE=../coincidence/database
 D=0
 
 all:
@@ -21,14 +22,6 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
-#--------
-update_history: new changed
-new:
-	perl history.pl -g $@ -w $(SLEEP)
-	ls -al `date +%Y-%m-%d`
-changed:
-	perl history.pl -g $@ -w $(SLEEP)
-	ls -al `date +%Y-%m-%d`
 #--------------------------------
 update_list:
 	tar -czvf update_list.`date +%Y-%m-%d`.tgz `date +%Y-%m-%d`/*.t*
@@ -55,10 +48,35 @@ unbf2:
 	tar -C unbf --strip-components=2 -xjf $(DUMPS)/bfiles-cleaned.tar.bz2
 unbf3:
 	tar -C unbf --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.xz "update/*/bfile/*"
+#----
+un.jan: un.jan17 un.jan25
+un.jan17:
+	rm -rf temp
+	tar -xjf $(DUMPS)/bulk.hist.2019-01-17.tar.bz2
+	cp -u temp/bfile/* unbf
+	cp -u temp/json/*  unjs
+un.jan25:
+	rm -rf temp
+	tar -xjf $(DUMPS)/bulk.hist.2019-01-25.tar.bz2
+	touch temp/bfile/no-bfiles.tmp
+	cp -u temp/bfile/* unbf
+	cp -u temp/json/*  unjs
+old.jan25:
+	rm -rf temp
+	mkdir temp
+	mkdir temp/json
+	mkdir temp/bfile
+	find  hist.2019-01-25 -type f -iname "*.json" | xargs -l -i{} \
+	perl split_json.pl -o temp/json {}
+	tar -cjvf bulk.hist.2019-01-25 temp
+stop:
+	cp -u temp/bfile/* unbf
+	cp -u temp/json/*  unjs
 #--------------------------------
-bfinfo: bfinfo_extract
+bfinfo: 
+	make bfinfo_extract DIR=unbf
 bfinfo_extract:
-	perl extract_info.pl -br unbf > bfinfo.txt
+	perl extract_info.pl -br $(DIR) > bfinfo.txt
 	cp bfinfo.txt bfinfo.`date +%Y-%m-%d.%H_%M`.txt
 	wc -l bfinfo.txt
 bfinfo_load:
@@ -75,10 +93,16 @@ bfinfo_update:
 	cat $@.txt | $(DBAT) -m csv -s "\t" -r bfinfo
 	$(DBAT) -4 bfinfo
 	$(DBAT) -n bfinfo
+#---------
+to_be_fetched:
+	A084706/b084706.txt
+	A096089/b096089.txt
+	A299791/b299791.txt
 #--------------------------------
-asinfo: asinfo_extract
+asinfo: 
+	make asinfo_extract DIR=unjs
 asinfo_extract:
-	perl extract_info.pl -jr unjs > asinfo.txt
+	perl extract_info.pl -jr $(DIR) | grep -v "notexist" > asinfo.txt
 	cp asinfo.txt asinfo.`date +%Y-%m-%d.%H_%M`.txt
 	wc -l asinfo.txt
 asinfo_load:
@@ -95,6 +119,62 @@ asinfo_update:
 	cat $@.txt | $(DBAT) -m csv -s "\t" -r asinfo
 	$(DBAT) -4 asinfo
 	$(DBAT) -n asinfo
+#----------------------------------------
+stripped:
+	$(DBAT) -f stripped.create.sql
+	grep -E "^A" $(DATABASE)/stripped \
+	| cut -b1-8,10-73 \
+	| $(DBAT) -m csv -s " " -r stripped
+	$(DBAT) -4 stripped
+	$(DBAT) -n stripped
+stripped_check:
+	echo "SELECT a.aseqno, a.terms, '#', b.terms FROM asinfo a, stripped b \
+	  WHERE a.aseqno = b.aseqno \
+	  AND a.terms <> SUBSTR(b.terms, 1, LENGTH(a.terms)) \
+	  ORDER BY 1" | tee x.sql
+	$(DBAT) -f x.sql | sed -e "s/#/\n/" | tee $@.txt
+	wc -l $@.txt
+asname:
+	perl extract_info.pl -nr unjs > $@.txt
+names_check:
+	grep -vE "^#" $(DATABASE)/names | sed -e "s/ /	/" \
+	> x.tmp
+	perl uncode.pl asname.txt > y.tmp
+	sort x.tmp y.tmp | uniq -c | grep -vE "^ +2 +" \
+	| grep -v "allocated for " \
+	| grep -E "[a-zB-Z]" \
+	> $@.txt
+	wc -l $@.txt
+#--------
+history: hist_recycled \
+         hist_new \
+         hist_changed
+hist_changed:
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed    
+hist_new:                              
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new        
+hist_recycled:                         
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=recycled   
+hist_kw:
+	perl history.pl -k $(KEYWORD) -w $(SLEEP) hist.$(DATE)
+	ls -al hist.$(DATE) | head -n 8
+	ls -1  hist.$(DATE) | wc -l
+hist_split:
+	rm -rf temp
+	mkdir temp
+	mkdir temp/json
+	mkdir temp/bfile
+	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" | xargs -l -i{} \
+	perl split_json.pl -o temp/json {}
+	# make asinfo_extract DIR=temp/json
+old_hist:
+	find 2019-01-17 -iname "*.t*" | xargs -l grep -h "%I" \
+	| cut -b4-10         | sort > $@.1.tmp
+	cut -b1-7 asinfo.txt | sort > $@.2.tmp
+	grep -vf $@.2.tmp $@.1.tmp | sort > $@.txt
+	wc -l $@.*
+old_hist_diff:
+	diff --width=24 -wy old_hist.1.tmp old_hist.2.tmp | less
 #------------------
 refresh: refresh_get
 refresh_get:
@@ -173,7 +253,7 @@ bulk_tar:
 	wc -l $(LIST)
 	cp -v $(LIST) temp
 	tar -cjf  bulk.tar.bz2 temp
-	cp -v	  bulk.tar.bz2 bulk.`date +%Y-%m-%d.%H-%M`.tar.bz2
+	cp -v	  bulk.tar.bz2 bulk.`date +%Y-%m-%d.%H_%M`.tar.bz2
 #--
 bulk_split:
 	perl split_json.pl -d $(D) bulk_json.tmp

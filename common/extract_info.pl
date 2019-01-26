@@ -2,17 +2,21 @@
 
 # Extract information from a b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2019-01-25: $filesize
 # 2019-01-22, Georg Fischer: copied from ../bfcheck/bfanalyze.pl
 #
 # usage:
-#   perl extract_info.pl [-action] [-l lead] [-d level] inputdir > outputfile
+#   perl extract_info.pl [-action] [-l lead] [-d level] [-t tabname] inputdir > outputfile
 #       action  (default -br)
 #           a   for sequence JSON
+#           j   for sequence JSON
+#           n   only extract names from JSON 
 #           b   for bfile
 #           r   TSV for Dbat -r,
 #           c   generate CREATE SQL
 #           i   generate INSERT SQL
 #           u   generate UPDATE SQL
+#       -t tabname  SQL table name
 #       -l lead     print so many initial terms (default 8)
 #       -d level    debug level none(0), some(1), more(2)
 #       -w width    maximum number of characters in term string
@@ -32,32 +36,39 @@ my $imax       = -1; # unknown
 my $lead       =  8; # so many initial terms are printed
 my $tail_width =  8; # length of last digits in last term
 my $width      = 64;
-my $tabname    = "bfinfo";
+my $tabname    = "";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt =~ m{\-d}) {
-        $debug  = shift(@ARGV);
+        $debug    = shift(@ARGV);
     } elsif ($opt =~ m{\-l}) {
-        $lead  = shift(@ARGV);
+        $lead     = shift(@ARGV);
+    } elsif ($opt =~ m{\-t}) {
+        $tabname  = shift(@ARGV);
     } elsif ($opt =~ m{\-}) {
-        $action = $opt;
+        $action   = $opt;
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while ARGV
 my $inputdir = shift(@ARGV);
-$tabname = ($action =~ m{b})
-    ? "bfinfo"
-    : "jsinfo"
-    ;
+if (length($tabname) > 0) { 
+	# believe this one
+} elsif ($action =~ m{b}) {
+    $tabname = "bfinfo";
+} elsif ($action =~ m{[aj]}) {
+    $tabname = "asinfo";
+} elsif ($action =~ m{n}) {
+    $tabname = "names";
+}
 my $access = "1900-01-01 00:00:00"; # modification timestamp from the file
 my $buffer; # contains the whole file
+my $filesize  = 0; # file size in bytes from the operating system
 #----------------------------------------------
 if (0) {
 #--------------------------
 } elsif ($action =~ m{b}) {
-    $tabname = "bfinfo";
     if (0) {
     } elsif ($action =~ m{r}) {
         foreach my $file (glob("$inputdir/*")) {
@@ -73,8 +84,7 @@ if (0) {
         die "invalid action \"$action\"\n";
     }
 #--------------------------
-} elsif ($action =~ m{j}) {
-    $tabname = "asinfo";
+} elsif ($action =~ m{[ajn]}) {
     if (0) {
     } elsif ($action =~ m{r}) {
         foreach my $file (glob("$inputdir/*")) {
@@ -94,7 +104,7 @@ if (0) {
     die "invalid action \"$action\"\n";
 } # actions
 #----------------------
-sub read_file { # returns in global $access, $buffer
+sub read_file { # returns in global $access, $buffer, $filesize
     my ($filename) = @_;
     open(FIL, "<", $filename) or die "cannot read $filename\n";
     my ($dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size, $atime
@@ -102,13 +112,14 @@ sub read_file { # returns in global $access, $buffer
     ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday) = gmtime ($mtime);
     $access = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec); # in UTC: "2019-01-23 08:07:00"
-    read(FIL, $buffer, 100000000); # 100 MB, should be less than 10
+    read(FIL, $buffer, 100000000); # 100 MB, should be less than 10 MB
+    $filesize = $size;
     close(FIL);
 } # read_file
 #---------------------------
 sub extract_from_bfile {
     my ($filename) = @_;
-    &read_file($filename); # sets $access, $buffer
+    &read_file($filename); # sets $access, $buffer, $filesize
     my $terms   = "";
     my $bfimin  = 0;
     my $bfimax  = 0;
@@ -118,6 +129,8 @@ sub extract_from_bfile {
     my $message = "";
     my $index;
     my $term;
+    my $state   = 0;
+    my $state_lead = $lead;
     foreach my $line (split(/\n/, $buffer)) {
         if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
             $message .= " synth"
@@ -133,8 +146,10 @@ sub extract_from_bfile {
                     $message .= " ninc\@" . ($iline + 1);
                 }
             } # not increasing
-            if ($iline < $lead and length($terms) + length($term) < $width) { # store the leading ones
+            if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
                 $terms .= ",$term";
+            } else {
+            	$state_lead = 0; # never try it again
             }
             if ((substr($index, 0, 1) eq "-" or substr($term, 0, 1) eq "-")
                     and ($message !~ m{ sign})) {
@@ -167,6 +182,7 @@ sub extract_from_bfile {
         , $offset2
         , substr($terms, 1) # remove first comma
         , substr($term, -$tail_width)
+        , $filesize
         , substr($message , 1) # remove 1st space
         , $access
         );
@@ -186,6 +202,7 @@ CREATE  TABLE            $tabname
     , offset2   BIGINT        -- line number of first term with abs(term) > 1, or 1
     , terms     VARCHAR($width)   -- first $lead terms if length <= $width
     , tail      VARCHAR(8)    -- last $tail_width digits of last term
+    , filesize  INT           -- size of the file in bytes, from the operating system 
     , message   VARCHAR(64)   -- "sign ninc[iline] ndig[iline]"
     , access    TIMESTAMP     -- b-file modification time in UTC
     , PRIMARY KEY(aseqno)
@@ -199,6 +216,7 @@ sub extract_from_json { # read JSON of 1  sequence
     &read_file($filename); # sets $access, $buffer
     $filename =~ m{(A\d{6})\.json}i; # extract seqno
     my $aseqno   = $1;
+    my $name     = "";
     my $offset1  = 1;
     my $offset2  = 1;
     my $terms    = "";
@@ -234,6 +252,12 @@ sub extract_from_json { # read JSON of 1  sequence
         } elsif ($line =~ m{\A\s*\"data\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             $terms = &get_terms8($value);
+         } elsif ($line =~ m{\A\s*\"name\"\:\s*\"(.*)}) {
+            $value = $1;
+            $value =~ s{\"\,\Z}{};
+            # $value =~ s{\\u003c}{\<}g;
+            # $value =~ s{\\u003e}{\>}g;
+            $name  = $value;
         } elsif ($line =~ m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
             $keyword = $1;
         } elsif ($line =~ m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
@@ -259,7 +283,8 @@ sub extract_from_json { # read JSON of 1  sequence
         }
     } # foreach $line
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
-    return ($aseqno
+    return $action =~ m{n} ? ($aseqno, $name) :
+    	( $aseqno
         , $offset1, $offset2
         , $terms
         , substr($keyword, 0, 64)
@@ -298,10 +323,13 @@ sub get_terms8 { # keep in sync with code in extract_from_bfile !!!
     my @valarray = split(/\,/, $value);
     my $iterm = 0;
     my $terms = "";
-    while ($iterm < $lead and $iterm < scalar(@valarray)) {
+    my $state_lead = $lead;
+    while ($iterm < $state_lead and $iterm < scalar(@valarray)) {
         my $term = $valarray[$iterm];
         if (length($terms) + length($term) < $width) { # store the leading ones
            $terms .= ",$term";
+        } else {
+        	$state_lead = 0; # break loop
         }
         $iterm ++;
     } # while $iterm

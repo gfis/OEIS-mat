@@ -23,10 +23,12 @@ new: prepare newseq archlist regen
 # preprocess/sort the latter
 prepare: prep1 prep2 prep3 prep4
 prep1:
+	rm -f stripped*
 	wget https://oeis.org/stripped.gz
 	rm -f stripped
 	gzip -d stripped.gz
 prep2:
+	rm -f names*
 	wget https://oeis.org/names.gz
 	rm -f names
 	gzip -d names.gz
