@@ -5,7 +5,7 @@
 # 2019-01-19, Georg Fischer
 #
 # usage:
-#   perl aseq_wget.pl [-n numseq] [-t (bfile|text|json)] [-m maxnum] infile > outfile
+#   perl aseq_wget.pl [-n numseq] [-t (bfile|text|[a]json)] [-m maxnum] infile > outfile
 #       -n number of sequences to be fetched per wget command (default8, 1 for bf)
 #       -m maximum number of sequences to be fetched
 #       -t bfile or fmt=text|json
@@ -20,7 +20,8 @@ my $action = "comp";
 my $debug  = 0; # 0 (none), 1 (some), 2 (more)
 my $numseq = 8;
 my $maxnum = 65536;
-my $type   = "json";
+my $type   = "ajson"; # for $outdir
+my $fmt    = "json";  # for OEIS request parameter &ftm=
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -32,6 +33,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $numseq   = shift(@ARGV);
     } elsif ($opt =~ m{\-t}) {
         $type     = shift(@ARGV);
+        $fmt      = $type;
+        $fmt      =~ s{ajson}{json};
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -70,7 +73,7 @@ sub print_buffer {
             print "--directory-prefix=$outdir https://oeis.org/$1/$buffer\n";
         } else { # json|text
             print "https://oeis.org/search?q="
-                . substr($buffer, 1) . "\&fmt=$type\n"; # -O is set outside
+                . substr($buffer, 1) . "\&fmt=$fmt\n"; # -O is set outside
         }
     }
     $buffer = "";

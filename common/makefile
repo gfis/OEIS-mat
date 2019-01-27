@@ -32,35 +32,105 @@ list_dumps:
 	tar -tzvf $(DUMPS)/b000001-b321800.tar.gz  | head -$(HEAD)
 	tar -tjvf $(DUMPS)/bfiles-cleaned.tar.bz2  | head -$(HEAD)
 #----
-unpack_dumps: unjs1 unjs2 unbf1 unbf2 unbf3
-	du -m
-	find   unjs -type f | wc -l
-	find   unbf -type f | wc -l
-unjs1:
-	mkdir  unjs || :
-	tar -C unjs --strip-components=2 -xjf $(DUMPS)/oeis-json.tar.bz2
-unjs2:
-	tar -C unjs --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.xz "update/*/json/*"
-unbf1:
-	mkdir  unbf || :
-	tar -C unbf --strip-components=0 -xzf $(DUMPS)/b000001-b321800.tar.gz
-unbf2:
-	tar -C unbf --strip-components=2 -xjf $(DUMPS)/bfiles-cleaned.tar.bz2
-unbf3:
-	tar -C unbf --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.xz "update/*/bfile/*"
+#================================
+unpack: 
+	make -i unpack0 ECHO= 2>&1 > unpack.log
+unpack0: unpack_start \
+	unpack_tusk \
+	unpack_gfis \
+	unpack_end
+unpack_start:
+	$(ECHO) rm -rf ajson
+	$(ECHO) rm -rf bfile
+	mkdir ajson
+	mkdir bfile
+unpack_end:
+	make   asextract
+	make   bfextract
+#--------------
+unpack_tusk: \
+	2019-01-05 \
+	2019-01-06 \
+	2019-01-20 \
+	2019-01-21
+2019-01-05:
+	$(ECHO) rm -rf unpack.$@
+	mkdir  unpack.$@
+	mkdir  unpack.$@/bfile
+	$(ECHO) tar -C unpack.$@/bfile --strip-components=0 -xzf $(DUMPS)/b000001-b321800.tar.gz
+	find   unpack.$@/bfile -type f | xargs -l -i{} cp -p   {} bfile/
+2019-01-06:
+	$(ECHO) rm -rf unpack.$@
+	mkdir  unpack.$@
+	mkdir  unpack.$@/bfile
+	$(ECHO) tar -C unpack.$@/bfile --strip-components=2 -xjf $(DUMPS)/bfiles-cleaned.tar.bz2
+	find   unpack.$@/bfile -type f | xargs -l -i{} cp -up  {} bfile/
+2019-01-20:
+	$(ECHO) rm -rf unpack.$@
+	mkdir  unpack.$@
+	mkdir  unpack.$@/ajson
+	$(ECHO) tar -C unpack.$@/ajson --strip-components=2 -xjf $(DUMPS)/oeis-json.tar.bz2
+	find   unpack.$@/ajson -type f | xargs -l -i{} cp -p   {} ajson/
+2019-01-21:
+	$(ECHO) rm -rf unpack.$@
+	mkdir  unpack.$@
+	mkdir  unpack.$@/ajson
+	mkdir  unpack.$@/bfile
+	$(ECHO) tar -C unpack.$@/ajson --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.bz2 "update/*/json/*"
+	$(ECHO) tar -C unpack.$@/bfile --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.bz2 "update/*/bfile/*"
+	cd bfile | ls -1 B* | cut -b 2-11 | xargs -l -i{} mv B{} b{}
+	find   unpack.$@/ajson -type f | xargs -l -i{} cp -upv {} ajson/
+	find   unpack.$@/bfile -type f | xargs -l -i{} cp -upv {} bfile/
+#----------------
+unpack_gfis: \
+	2019-01-17 \
+	2019-01-22 \
+	2019-01-23 \
+	2019-01-24.07 \
+	2019-01-24.21 \
+	2019-01-25
+2019-01-17:
+	$(ECHO) rm -rf unpack.$@
+	mkdir  unpack.$@
+	mkdir  unpack.$@/ajson
+	mkdir  unpack.$@/bfile
+	$(ECHO) tar -C unpack.$@/ajson --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.hist.2019-01-17.tar.bz2 "temp/json/*"
+	$(ECHO) tar -C unpack.$@/bfile --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.hist.2019-01-17.tar.bz2 "temp/bfile/*"
+	find   unpack.$@/ajson -type f | xargs -l -i{} cp -upv {} ajson/
+	find   unpack.$@/bfile -type f | xargs -l -i{} cp -upv {} bfile/
+2019-01-25:
+	$(ECHO) rm -rf unpack.$@
+	mkdir  unpack.$@
+	mkdir  unpack.$@/ajson
+	$(ECHO) tar -C unpack.$@/ajson --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.hist.2019-01-25.tar.bz2 "temp/json/*"
+	find   unpack.$@/ajson -type f | xargs -l -i{} cp -upv {} ajson/
+2019-01-22:
+	make unpack_bulk1 DATE=$@
+2019-01-23:
+	make unpack_bulk1 DATE=$@
+2019-01-24.07:
+	make unpack_bulk1 DATE=$@
+2019-01-24.21:
+	make unpack_bulk1 DATE=$@
 #----
-un.jan: un.jan17 un.jan25
-un.jan17:
-	rm -rf temp
-	tar -xjf $(DUMPS)/bulk.hist.2019-01-17.tar.bz2
-	cp -u temp/bfile/* unbf
-	cp -u temp/json/*  unjs
-un.jan25:
-	rm -rf temp
-	tar -xjf $(DUMPS)/bulk.hist.2019-01-25.tar.bz2
-	touch temp/bfile/no-bfiles.tmp
-	cp -u temp/bfile/* unbf
-	cp -u temp/json/*  unjs
+unpack_bulk1:
+	$(ECHO) rm -rf unpack.$(DATE)
+	mkdir  unpack.$(DATE)
+	mkdir  unpack.$(DATE)/ajson
+	mkdir  unpack.$(DATE)/bfile
+	$(ECHO) tar -C unpack.$(DATE)/ajson --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/json/*"
+	$(ECHO) tar -C unpack.$(DATE)/bfile --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/bfile/*"
+	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -upv {} ajson/
+	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -upv {} bfile/
+#--------------
+unpack_list:
+	find . -type d -iname "unpack.*" | xargs -l -i{} make unpack_list1 DIR={}	
+unpack_list1:
+	find $(DIR)/ajson -type f -ls | head -n 4
+	find $(DIR)/ajson -type f -ls | tail -n 4
+	find $(DIR)/bfile -type f -ls | head -n 4
+	find $(DIR)/bfile -type f -ls | tail -n 4
+#------------------------------------------
 old.jan25:
 	rm -rf temp
 	mkdir temp
@@ -73,8 +143,9 @@ stop:
 	cp -u temp/bfile/* unbf
 	cp -u temp/json/*  unjs
 #--------------------------------
+bsextract: bsinfo
 bfinfo: 
-	make bfinfo_extract DIR=unbf
+	make bfinfo_extract DIR=bfile
 bfinfo_extract:
 	perl extract_info.pl -br $(DIR) > bfinfo.txt
 	cp bfinfo.txt bfinfo.`date +%Y-%m-%d.%H_%M`.txt
@@ -99,8 +170,9 @@ to_be_fetched:
 	A096089/b096089.txt
 	A299791/b299791.txt
 #--------------------------------
+asextract: asinfo asname asdata
 asinfo: 
-	make asinfo_extract DIR=unjs
+	make asinfo_extract DIR=ajson
 asinfo_extract:
 	perl extract_info.pl -jr $(DIR) | grep -v "notexist" > asinfo.txt
 	cp asinfo.txt asinfo.`date +%Y-%m-%d.%H_%M`.txt
@@ -119,24 +191,20 @@ asinfo_update:
 	cat $@.txt | $(DBAT) -m csv -s "\t" -r asinfo
 	$(DBAT) -4 asinfo
 	$(DBAT) -n asinfo
-#----------------------------------------
-stripped:
-	$(DBAT) -f stripped.create.sql
-	grep -E "^A" $(DATABASE)/stripped \
-	| cut -b1-8,10-73 \
-	| $(DBAT) -m csv -s " " -r stripped
-	$(DBAT) -4 stripped
-	$(DBAT) -n stripped
-stripped_check:
-	echo "SELECT a.aseqno, a.terms, '#', b.terms FROM asinfo a, stripped b \
-	  WHERE a.aseqno = b.aseqno \
-	  AND a.terms <> SUBSTR(b.terms, 1, LENGTH(a.terms)) \
-	  ORDER BY 1" | tee x.sql
-	$(DBAT) -f x.sql | sed -e "s/#/\n/" | tee $@.txt
+#--------------
+asdata:
+	perl extract_info.pl -asr ajson > $@.txt
+asdata_check:
+	grep -vE "^#" $(DATABASE)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	> x.tmp
+	sort x.tmp asdata.txt | uniq -c | grep -vE "^ +2 +" \
+	| grep -E "," \
+	| cut -b 9- > $@.txt
 	wc -l $@.txt
+#-------
 asname:
 	perl extract_info.pl -nr unjs > $@.txt
-names_check:
+asname_check:
 	grep -vE "^#" $(DATABASE)/names | sed -e "s/ /	/" \
 	> x.tmp
 	perl uncode.pl asname.txt > y.tmp
@@ -226,35 +294,33 @@ comp1:
 	cut -b1-7 check_terms.tmp  >> x.tmp
 	sort x.tmp | uniq -c | grep -v " 1 "
 #--------------------------------
-bulk:
-	rm -rf temp
-	mkdir  temp
-	make   bulk_type TYPE=json  
-	make   bulk_type TYPE=bfile 
-	make   bulk_tar
+bulk: # parameter: $(LIST)
+	make   bulk_all DIR=bulk.`date +%Y-%m-%d`
+
+	mkdir  bulk.`date +%Y-%m-%d`
+	make   bulk_type  TYPE=ajson
+	make   bulk_type DIR=bulk.`date +%Y-%m-%d` TYPE=bfile
+	make   bulk_tar  DIR=bulk.`date +%Y-%m-%d`
 #--
 bulk_type:
-	mkdir  temp/$(TYPE)
+	mkdir  $(DIR)/$(TYPE)
 	wc -l  $(LIST)
 	perl   aseq_wget.pl -t $(TYPE) -n 8 $(LIST) > wget.$(TYPE).tmp
 	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
 bulk_json1:
-	echo   wget -O $@.tmp "$(PARM)" 
-	wget   -O $@.tmp "$(PARM)" 
-	perl   split_json.pl -d $(D) -o temp/json $@.tmp
+	wget   -O $@.tmp      "$(PARM)" 
+	perl   split_json.pl -d $(D) -o $(DIR)/$(TYPE) $@.tmp
 	sleep  $(SLEEP)
 bulk_bfile1:
-	echo   wget "$(PARM)"
 	wget   $(PARM)
-	sleep  10
+	sleep  $(SLEEP)
 #--
 bulk_tar:
-	ls -lR temp | wc -l
-	wc -l $(LIST)
-	cp -v $(LIST) temp
-	tar -cjf  bulk.tar.bz2 temp
-	cp -v	  bulk.tar.bz2 bulk.`date +%Y-%m-%d.%H_%M`.tar.bz2
-#--
+	ls -lR $(DIR) | wc -l
+	wc -l  $(LIST)
+	cp -v  $(LIST) $(DIR)
+	tar    -cjf $(DIR).tar.bz2 $(DIR)
+#-------------------
 bulk_split:
 	perl split_json.pl -d $(D) bulk_json.tmp
 	ls -al temp
