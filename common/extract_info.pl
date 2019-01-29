@@ -36,8 +36,10 @@ my $imin       =  0;
 my $imax       = -1; # unknown
 my $lead       =  8; # so many initial terms are printed
 my $tail_width =  8; # length of last digits in last term
-my $width      = 64;
+my $terms_width      = 64;
 my $tabname    = "";
+my $read_len_max = 100000000; # 100 MB
+my $read_len_min =      8000; # stripped has about 960 max.
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -108,21 +110,21 @@ if (0) {
 } # actions
 #----------------------
 sub read_file { # returns in global $access, $buffer, $filesize
-    my ($filename) = @_;
+    my ($filename, $read_len) = @_;
     open(FIL, "<", $filename) or die "cannot read $filename\n";
     my ($dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size, $atime
         , $mtime, $ctime, $blksize, $blocks) = stat(FIL);
     ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday) = gmtime ($mtime);
     $access = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec); # in UTC: "2019-01-23 08:07:00"
-    read(FIL, $buffer, 100000000); # 100 MB, should be less than 10 MB
+    read(FIL, $buffer, $read_len); # 100 MB, should be less than 10 MB
     $filesize = $size;
     close(FIL);
 } # read_file
 #-------------------------------------------------
 sub extract_from_json { # read JSON of 1  sequence
     my ($filename) = @_;
-    &read_file($filename); # sets $access, $buffer
+    &read_file($filename, $read_len_max); # sets $access, $buffer
     $filename =~ m{(A\d{6})\.json}i; # extract seqno
     my $aseqno   = $1;
     my $name     = "";
@@ -224,7 +226,7 @@ CREATE  TABLE            $tabname
     ( aseqno    VARCHAR(10)   -- A322469
     , offset1   BIGINT        -- index of first term, cf. OEIS definition
     , offset2   BIGINT        -- sequential number of first term with abs() > 1, or 1
-    , terms     VARCHAR($width)   -- first $lead terms if length <= $width
+    , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
     , keyword   VARCHAR(64)   -- "hard,nice,more" etc.
     , author    VARCHAR(80)   -- of the sequence; allow for apostrophes
     , revision  INT           -- sequential version number
@@ -244,7 +246,7 @@ sub get_terms8 { # keep in sync with code in extract_from_bfile !!!
     my $state_lead = $lead;
     while ($iterm < $state_lead and $iterm < scalar(@valarray)) {
         my $term = $valarray[$iterm];
-        if (length($terms) + length($term) < $width) { # store the leading ones
+        if (length($terms) + length($term) < $terms_width) { # store the leading ones
            $terms .= ",$term";
         } else {
         	$state_lead = 0; # break loop
@@ -320,7 +322,16 @@ sub feb_last {
 #---------------------------
 sub extract_from_bfile {
     my ($filename) = @_;
-    &read_file($filename); # sets $access, $buffer, $filesize
+    my $width      = $terms_width;
+    my $state_lead = $lead;
+    my $long_width = 1024;
+    if ($action =~ m{t}) { # bfdata
+	    &read_file($filename, $read_len_min); # sets $access, $buffer, $filesize
+	    $width = $long_width; # wc -L stripped -> 970
+	    $state_lead = 1024;
+	} else { # normal bfinfo
+	    &read_file($filename, $read_len_max); # sets $access, $buffer, $filesize
+	}
     my $terms   = "";
     my $bfimin  = 0;
     my $bfimax  = 0;
@@ -331,14 +342,13 @@ sub extract_from_bfile {
     my $index;
     my $term;
     my $state   = 0;
-    my $state_lead = $lead;
     foreach my $line (split(/\n/, $buffer)) {
         if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
             $message .= " synth"
         }
         $line  =~ s{\A\s*(\#.*)?}{}o; # remove leading whitespace and comments
         if ($line =~ m{\A(-?\d+)\s+(\-?\d{1,})\s*(\#.*)?\Z}o) {
-            # loose    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  format "index term #?"
+            # loose    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  format "index term #?"
             ($index, $term) = ($1, $2);
             if ($iline == 0) {
                 $bfimin = $index;
@@ -351,6 +361,7 @@ sub extract_from_bfile {
                 $terms .= ",$term";
             } else {
             	$state_lead = 0; # never try it again
+            	last if $width == $long_width;
             }
             if ((substr($index, 0, 1) eq "-" or substr($term, 0, 1) eq "-")
                     and ($message !~ m{ sign})) {
@@ -377,7 +388,12 @@ sub extract_from_bfile {
     if (length($message) > 0 and ($message =~ m{ n(dig|inc)})) {
         print STDERR "# $filename: $aseqno\t$message\n";
     }
-    return ($aseqno
+    if ($action =~ m{t}) { # bfdata
+	    return ($aseqno
+        , substr($terms, 1) # remove first comma
+        );
+	} else { # normal bfinfo
+	    return ($aseqno
         , $bfimin
         , $bfimax
         , $offset2
@@ -387,6 +403,7 @@ sub extract_from_bfile {
         , substr($message , 1) # remove 1st space
         , $access
         );
+	}
 } # extract_from_bfile
 #-----------------------
 sub print_create_bfinfo {
@@ -401,7 +418,7 @@ CREATE  TABLE            $tabname
     , bfimin    BIGINT        -- index in first data line
     , bfimax    BIGINT        -- index in last  data line
     , offset2   BIGINT        -- line number of first term with abs(term) > 1, or 1
-    , terms     VARCHAR($width)   -- first $lead terms if length <= $width
+    , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
     , tail      VARCHAR(8)    -- last $tail_width digits of last term
     , filesize  INT           -- size of the file in bytes, from the operating system 
     , message   VARCHAR(64)   -- "sign ninc[iline] ndig[iline]"

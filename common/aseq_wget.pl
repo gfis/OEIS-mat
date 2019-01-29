@@ -5,10 +5,11 @@
 # 2019-01-19, Georg Fischer
 #
 # usage:
-#   perl aseq_wget.pl [-n numseq] [-t (bfile|text|[a]json)] [-m maxnum] infile > outfile
+#   perl aseq_wget.pl [-n numseq] [-o outdir] [-t (bfile|text|[a]json)] [-m maxnum] infile > outfile
 #       -n number of sequences to be fetched per wget command (default8, 1 for bf)
 #       -m maximum number of sequences to be fetched
 #       -t bfile or fmt=text|json
+#       -o outdir (for -t bfile only)
 #---------------------------------
 use strict;
 use integer;
@@ -22,6 +23,7 @@ my $numseq = 8;
 my $maxnum = 65536;
 my $type   = "ajson"; # for $outdir
 my $fmt    = "json";  # for OEIS request parameter &ftm=
+my $outdir = "./temp/$type";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -31,6 +33,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $maxnum   = shift(@ARGV);
     } elsif ($opt =~ m{\-n}) {
         $numseq   = shift(@ARGV);
+    } elsif ($opt =~ m{\-o}) {
+        $outdir   = shift(@ARGV);
     } elsif ($opt =~ m{\-t}) {
         $type     = shift(@ARGV);
         $fmt      = $type;
@@ -39,7 +43,6 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         die "invalid option \"$opt\"\n";
     }
 } # while ARGV
-my $outdir = "./temp/$type";
 if ($type =~ m{bfile}) {
     $numseq = 1;
 }
