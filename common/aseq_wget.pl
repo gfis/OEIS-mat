@@ -55,14 +55,15 @@ my $aseqno;
 while (<>) {
     my $line = $_;
     if ($count_cmd <= $maxnum) {
-        $line =~ m{\A(A\d+)};
-        $aseqno = $1;
-        $buffer .= "|id:$aseqno";
-        $count_id ++;
-        if ($count_id % $numseq == 0) {
-            &print_buffer();
-        }
-    }
+        if ($line =~ m{\A(A\d+)}) { # has A-number
+            $aseqno = $1;
+            $buffer .= "|id:$aseqno";
+            $count_id ++;
+            if ($count_id % $numseq == 0) {
+                &print_buffer();
+            }
+        } # has A-number
+    } # below command limit
 } # while <>
 if (length($buffer) > 0) {
     &print_buffer();

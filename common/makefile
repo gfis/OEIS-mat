@@ -29,15 +29,15 @@ unpack0:
 	make unpack_tusk
 	make unpack_gfis
 	make unpack_bulks
-	# make unpack_end
+	make unpack_extract
 unpack_start:
 	$(ECHO) rm -rf ajson
 	$(ECHO) rm -rf bfile
 	mkdir ajson
 	mkdir bfile
-unpack_end:
-	make asextract
-	make bfextract
+unpack_extract:
+	make ajson_extract DIR=.
+	make bfile_extract DIR=.
 #--------------
 unpack_tusk: \
 	2019-01-05 \
@@ -124,13 +124,14 @@ unpack_list1:
 #======================
 fetch_list:
 	cut -b1-7 fetch_list.man \
-	| grep -vE "^#" | sort > $@.tmp
-	uniq $@.tmp            >  $@.txt
+	| grep -E "^A" | sort > $@.tmp
+	uniq $@.tmp           >  $@.txt
 	wc -l $@.*
 #--------------------------------
-asextract: asinfo asname asdata
-asdata:
-	perl extract_info.pl -asr ajson > $@.txt
+ajson_extract: asinfo asname asdata
+asdata: # parameter: DIR
+	perl extract_info.pl -asr $(DIR)/ajson > $@.txt
+	wc -l $@.txt
 asdata_check:
 	grep -vE "^#" $(DATABASE)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
@@ -140,8 +141,9 @@ asdata_check:
 	> $@.txt
 	wc -l $@.txt
 #----
-asname:
-	perl extract_info.pl -anr ajson > $@.txt
+asname: # parameter: DIR
+	perl extract_info.pl -anr $(DIR)/ajson > $@.txt
+	wc -l $@.txt
 asname_check:
 	grep -vE "^#" $(DATABASE)/names | sed -e "s/ /	/" \
 	> x.tmp
@@ -153,10 +155,10 @@ asname_check:
 	> $@.txt
 	wc -l $@.txt
 #----
-asinfo: 
-	make asinfo_extract DIR=ajson
+asinfo: # parameter: DIR
+	make asinfo_extract
 asinfo_extract:
-	perl extract_info.pl -jr $(DIR) | grep -v "notexist" > asinfo.txt
+	perl extract_info.pl -jr $(DIR)/ajson | grep -v "notexist" > asinfo.txt
 	# cp asinfo.txt asinfo.`date +%Y-%m-%d.%H_%M`.txt
 	wc -l asinfo.txt
 asinfo_load:
@@ -168,15 +170,15 @@ asinfo_load:
 	$(DBAT) -n asinfo
 asinfo_update:
 	wc -l       $(INFO)
-	make delseq $(INFO)     TAB=asinfo 
-	cat         $(INFO) \
-	| $(DBAT) -m csv -s "\t" -r asinfo
-	$(DBAT) -4                  asinfo
-	$(DBAT) -n                  asinfo
+	make delseq $(INFO)   TAB=asinfo 
+	$(DBAT) -m csv -s "\t" -r asinfo < $(INFO)
+	$(DBAT) -4                asinfo
+	$(DBAT) -n                asinfo
 #--------------
-bfextract: bfdata bfinfo bfdir
-bfdata:
-	perl extract_info.pl -btr bfile > $@.txt
+bfile_extract: bfdata bfinfo 
+bfdata: # parameter: DIR
+	perl extract_info.pl -btr $(DIR)/bfile > $@.txt
+	wc -l $@.txt
 bfdata_check:
 	grep -vE "^#" $(DATABASE)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
@@ -187,10 +189,10 @@ bfdata_check:
 	> $@.txt
 	wc -l $@.txt
 #------
-bfinfo: 
-	make bfinfo_extract DIR=bfile
+bfinfo: # parameter: DIR
+	make bfinfo_extract
 bfinfo_extract:
-	perl extract_info.pl -br $(DIR) > bfinfo.txt
+	perl extract_info.pl -br $(DIR)/bfile > bfinfo.txt
 	cp bfinfo.txt bfinfo.`date +%Y-%m-%d.%H_%M`.txt
 	wc -l bfinfo.txt
 bfinfo_load:
@@ -202,11 +204,44 @@ bfinfo_load:
 	$(DBAT) -n bfinfo
 bfinfo_update:
 	wc -l       $(INFO)
-	make delseq $(INFO)     TAB=bfinfo 
-	cat         $(INFO) \
-	| $(DBAT) -m csv -s "\t" -r bfinfo
-	$(DBAT) -4                  bfinfo
-	$(DBAT) -n                  bfinfo
+	make delseq $(INFO)   TAB=bfinfo 
+	$(DBAT) -m csv -s "\t" -r bfinfo < $(INFO)
+	$(DBAT) -4                bfinfo
+	$(DBAT) -n                bfinfo
+#--------------------------------
+bulk: # parameter: $(LIST)
+	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
+bulk_all:
+	mkdir  $(DIR)
+	wc -l  $(LIST)
+	cp     $(LIST)        $(DIR)
+	cp     fetch_list.man $(DIR)
+	make   bulk_type TYPE=ajson
+	make   bulk_type TYPE=bfile
+	make   bulk_tar 
+#--
+bulk_type:
+	mkdir  $(DIR)/$(TYPE)
+	perl   aseq_wget.pl -t $(TYPE) -n 8 -o $(DIR)/$(TYPE) $(LIST) > wget.$(TYPE).tmp
+	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
+bulk_ajson1:
+	wget   -O $@.tmp      "$(PARM)" 
+	perl   split_json.pl -d $(D) -o $(DIR)/$(TYPE) $@.tmp
+	sleep  $(SLEEP)
+bulk_bfile1:
+	wget   $(PARM)
+	sleep  $(SLEEP)
+#--
+bulk_tar:
+	ls -lR $(DIR) | wc -l
+	tar    -cjf $(DIR).tar.bz2 $(DIR)
+#-------------------
+bulk_extract: # parameter $(BULK)
+	make asinfo_extract DIR=$(BULK)
+	make bfinfo_extract DIR=$(BULK)
+bulk_update:
+	make asinfo_update INFO=asinfo.txt
+	make bfinfo_update INFO=bfinfo.txt
 #---------------------------
 WWW_TEO=../bfcheck/www_teo
 bfdel:
@@ -323,23 +358,19 @@ eval_checks:
 	cat *check.txt | cut -b1-7 | sort | uniq -c > $@.tmp
 	gawk -e '{ print $$2 }' $@.tmp              > $@.txt
 	wc -l *check*.txt \
-	>        $@.`date +%Y-%m-%d.%H_%M`.log
-	diff -wy $@.`date +%Y-%m-%d.%H_%M`.log $@.log
-	cp       $@.`date +%Y-%m-%d.%H_%M`.log $@.log
-eval_nyi:
-	make seq INFO=eval_checks.txt
-	$(DBAT) -x "SELECT s.aseqno, a.access, a.offset1, b.bfimin, a.keyword, b.message \
-	    FROM      seq    s \
-	    LEFT JOIN asinfo a ON a.aseqno = s.aseqno\
-	    LEFT JOIN bfinfo b ON b.aseqno = a.aseqno \
-	    WHERE a.offset1 <> COALESCE(b.bfimin, 1) \
-	    ORDER BY 1" \
-	| tee $@.txt
+	>   $@.`date +%Y-%m-%d.%H_%M`.log
+	diff -wy --width=64 \
+		$@.`date +%Y-%m-%d.%H_%M`.log $@.log || :
+	cp  $@.`date +%Y-%m-%d.%H_%M`.log $@.log
+prep_fetch:
+	head -n 999999 *_check.txt > $@.tmp
+	cut -b1-7 $@.tmp | grep -E "^A" | sort | uniq \
+	>     $@.txt
 	wc -l $@.txt
 #----------------
 seq: # parameter: $(INFO)
 	$(DBAT) -f seq.create.sql
-	cut -b1-7 $(INFO) | $(DBAT) -m csv -r seq
+	cut -b1-7 $(INFO) | grep -E "^A" | $(DBAT) -m csv -r seq
 	$(DBAT) -n seq
 delseq: seq # parameters: $(TAB) $(INFO)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
@@ -364,38 +395,4 @@ hist_split:
 	mkdir temp/bfile
 	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" | xargs -l -i{} \
 	perl split_json.pl -o temp/json {}
-	# make asinfo_extract DIR=temp/json
-#--------------------------------
-bulk: # parameter: $(LIST)
-	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H`
-bulk_all:
-	mkdir  $(DIR)
-	wc -l  $(LIST)
-	cp     $(LIST) $(DIR)
-	make   bulk_type TYPE=ajson
-	make   bulk_type TYPE=bfile
-	make   bulk_tar 
-#--
-bulk_type:
-	mkdir  $(DIR)/$(TYPE)
-	perl   aseq_wget.pl -t $(TYPE) -n 8 -o $(DIR)/$(TYPE) $(LIST) > wget.$(TYPE).tmp
-	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
-bulk_ajson1:
-	wget   -O $@.tmp      "$(PARM)" 
-	perl   split_json.pl -d $(D) -o $(DIR)/$(TYPE) $@.tmp
-	sleep  $(SLEEP)
-bulk_bfile1:
-	wget   $(PARM)
-	sleep  $(SLEEP)
-#--
-bulk_tar:
-	ls -lR $(DIR) | wc -l
-	tar    -cjf $(DIR).tar.bz2 $(DIR)
-#-------------------
-bulk_info: # parameter $(BULK)
-	make asinfo_extract DIR=$(BULK)/ajson
-	make bfinfo_extract DIR=$(BULK)/bfile
-bulk_update:
-	make asinfo_update INFO=asinfo.txt
-	make bfinfo_update INFO=bfinfo.txt
-#------------
+	# make ajson_extract DIR=temp/json

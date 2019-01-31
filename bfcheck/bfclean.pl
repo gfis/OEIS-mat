@@ -5,8 +5,10 @@
 # 2019-01-24, Georg Fischer
 #
 # usage:
-#   perl bfclean.pl [[+|-]increment] [-s seqno|-f infile] > output
-#       -u  A-number, b-number or number
+#   perl bfclean.pl [[+|-]increment] [-s seqno|-f infile] [outfile]
+#       -s  A-number, b-number or number
+#       outfile is "bnnnnnn.txt" by default, or "-" for STDOUT
+#       default increment 0
 #---------------------------------
 use strict;
 use integer;
@@ -91,7 +93,17 @@ my $header = <<"GFis";
 # Table of n, a(n) for n = $bfimin..$bfimax
 # Processed by bfclean.pl ($version) - $timestamp
 GFis
-    $outbuffer = $header . $outbuffer;
-    print $outbuffer;
+$outbuffer = $header . $outbuffer;
+my $outfile = shift(@ARGV);
+if ($outfile eq "-") { # to STDOUT
+    print     $outbuffer;
+} else {
+	if (length($outfile) == 0) {
+		$outfile = "b$seqno6.txt";
+	}
+    open(OUT, ">", $outfile) or die "cannot write \"$outfile\"\n";
+    print OUT $outbuffer;
+    close(OUT);
+}
 #----------------------
 __DATA__
