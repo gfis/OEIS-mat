@@ -165,7 +165,7 @@ sub extract_from_json { # read JSON of 1  sequence
             $value = $1;
             $data  = $value;
             $terms = &get_terms8($value);
-         } elsif ($line =~ m{\A\s*\"name\"\:\s*\"(.*)}) {
+        } elsif ($line =~ m{\A\s*\"name\"\:\s*\"(.*)}) {
             $value = $1;
             $value =~ s{\"\,\Z}{};
             # $value =~ s{\\u003c}{\<}g;

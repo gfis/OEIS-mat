@@ -216,17 +216,20 @@ bulk_all:
 	wc -l  $(LIST)
 	cp     $(LIST)        $(DIR)
 	cp     fetch_list.man $(DIR)
+	mkdir          $(DIR)/ajson
+	mkdir          $(DIR)/bfile
 	make   bulk_type TYPE=ajson
 	make   bulk_type TYPE=bfile
 	make   bulk_tar 
+	make   bulk_extract 
 #--
 bulk_type:
-	mkdir  $(DIR)/$(TYPE)
+	# mkdir  $(DIR)/$(TYPE)
 	perl   aseq_wget.pl -t $(TYPE) -n 8 -o $(DIR)/$(TYPE) $(LIST) > wget.$(TYPE).tmp
 	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
 bulk_ajson1:
 	wget   -O $@.tmp      "$(PARM)" 
-	perl   split_json.pl -d $(D) -o $(DIR)/$(TYPE) $@.tmp
+	perl   split_json.pl -bf -d $(D) -o $(DIR) $@.tmp
 	sleep  $(SLEEP)
 bulk_bfile1:
 	wget   $(PARM)
@@ -236,7 +239,7 @@ bulk_tar:
 	ls -lR $(DIR) | wc -l
 	tar    -cjf $(DIR).tar.bz2 $(DIR)
 #-------------------
-bulk_extract: # parameter $(BULK)
+bulk_extract: # parameter BULK, only for the bulk
 	make asinfo_extract DIR=$(BULK)
 	make bfinfo_extract DIR=$(BULK)
 bulk_update:
@@ -252,7 +255,8 @@ bfdel:
 	$(WWW_TEO)/gf9.txt \
 	> $@.tmp
 	make seq INFO=$@.tmp
-bfdel_check: bfdela_check bfdelb_check
+bfdel_check: bfdel
+	make bfdela_check bfdelb_check
 bfdela_check:
 	$(DBAT) -x "SELECT s.aseqno, substr(a.access, 1, 16), a.keyword \
 		FROM  seq s, asinfo a \
@@ -307,6 +311,7 @@ syntha_check:
 	      AND a.keyword     LIKE '%synth%' \
 	      AND b.message NOT LIKE '%synth%' \
 	      AND a.access > b.access \
+	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
@@ -319,6 +324,7 @@ synthb_check:
 	      AND a.keyword NOT LIKE '%synth%' \
 	      AND b.message     LIKE '%synth%' \
 	      AND a.access > b.access \
+	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
@@ -328,6 +334,7 @@ terms_check:
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno AND a.terms <> b.terms \
 	      AND b.message NOT LIKE '%synth%' \
+	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
@@ -340,10 +347,14 @@ offset_check:
 	    WHERE a.aseqno = b.aseqno AND a.offset1 <> b.bfimin \
 	      AND a.keyword NOT LIKE '%allocated%'  \
 	      AND a.keyword NOT LIKE '%recycled%'  \
+	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
 #----
+check_update:
+	make asinfo_load
+	make bfinfo_load
 checks:          \
 	asdata_check \
 	asname_check \
@@ -362,6 +373,7 @@ eval_checks:
 	diff -wy --width=64 \
 		$@.`date +%Y-%m-%d.%H_%M`.log $@.log || :
 	cp  $@.`date +%Y-%m-%d.%H_%M`.log $@.log
+	head -n 32768 *check.txt > $@.lst
 prep_fetch:
 	head -n 999999 *_check.txt > $@.tmp
 	cut -b1-7 $@.tmp | grep -E "^A" | sort | uniq \
@@ -375,24 +387,47 @@ seq: # parameter: $(INFO)
 delseq: seq # parameters: $(TAB) $(INFO)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #--------
-history: hist_recycled \
-         hist_new \
-         hist_changed
-hist_changed:
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed    
-hist_new:                              
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new        
-hist_recycled:                         
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=recycled   
-hist_kw:
-	perl history.pl -k $(KEYWORD) -w $(SLEEP) hist.$(DATE)
+draft: 
+	make draft1 N=000
+	make draft1 N=100
+	make draft1 N=200
+	make draft1 N=300
+	make draft1 N=400
+draft1:
+	wget -O draft.$(N).html https://oeis.org/draft?start=$(N)
+	sleep 16 
+draft_load:
+	grep -E "/draft/" draft.*.html \
+	| sed -e "s/[^A0-9]/ /g" -e "s/  */ /g" \
+	| cut -d" " -f3 | grep -E "^A" | sort \
+	>     $@.tmp 
+	wc -l $@.tmp
+	perl draft.pl -c > draft.create.sql
+	$(DBAT)       -f   draft.create.sql
+	$(DBAT) -m csv -s "\t" -r draft < $@.tmp
+	$(DBAT) -4 draft
+	$(DBAT) -n draft
+#--------
+history: # parameter: DATE
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new     MAX=240
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed MAX=1100
+	# make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=recycled   
+hist_kw: # parameter MAX
+	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) hist.$(DATE)
 	ls -al hist.$(DATE) | head -n 8
 	ls -1  hist.$(DATE) | wc -l
 hist_split:
 	rm -rf temp
 	mkdir temp
-	mkdir temp/json
+	mkdir temp/ajson
 	mkdir temp/bfile
-	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" | xargs -l -i{} \
-	perl split_json.pl -o temp/json {}
-	# make ajson_extract DIR=temp/json
+	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" \
+	| xargs -l -i{} perl split_json.pl -bf   -o temp {}
+resplit:
+	# rm -rf temp
+	# mkdir temp
+	# mkdir temp/ajson
+	# mkdir temp/bfile
+	find  hist.2019-02-01 -type f -iname "*.json" \
+	| xargs -l -i{} perl split_json.pl -o temp {}
+

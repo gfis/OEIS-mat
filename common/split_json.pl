@@ -2,12 +2,15 @@
 
 # Read a bulk JSON response and split it into individual sequence JSONs
 # @(#) $Id$
-# 2019-01-23, Georg Fischer: copied from extrac_info.pl
+# 2019-02-02: -bf, and line was omitted
+# 2019-01-23, Georg Fischer: copied from extract_info.pl
 #
 # usage:
-#   perl split_json.pl [-d targetdir] [inputfile]
-#       -o         target directory, default ./temp
+#   perl split_json.pl [-d level] [-o targetdir] [-s seconds] [inputfile]
+#       -o         target directory, default ./temp/; "ajson/" will be appended
 #       -d level   0 = none, 1 = some, 2 = more
+#       -bf        fetch any b-file into parallel directory $targetdir/bfile
+#       -s seconds sleep after fetch
 #       infile     default ./bulk_json.tmp
 #---------------------------------
 use strict;
@@ -18,16 +21,22 @@ my $utc_stamp = sprintf("%04d-%02d-%02dT%02d:%02d:%02dz"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
 # get options
-my $targetdir  = "./temp";
+my $targetdir  = "./temp/";
 my $infile     = "bulk_json.tmp";
 my $debug      = 0;
+my $fetch_bfiles = 0;
+my $sleep      = 16;  # seconds if -bf
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
+    } elsif ($opt =~ m{\-bf}) {
+        $fetch_bfiles = 1;
     } elsif ($opt =~ m{\-d}) {
         $debug     = shift(@ARGV);
     } elsif ($opt =~ m{\-o}) {
         $targetdir = shift(@ARGV);
+    } elsif ($opt =~ m{\-s}) {
+        $sleep     = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -43,8 +52,9 @@ my $trailer = <<"GFis"; # print tail of 1 JSON
 }
 GFis
 my $buffer = "";
-my $seqno;
-my $aseqno;
+my $seqno  = 0;
+my $aseqno = "A000000";
+my $seqno6 = "000000";
 my $id;
 my $state  = 0;
 my $iline  = 0;
@@ -68,8 +78,8 @@ while (<INF>) {
                 $requested{$aseqno} = 1;
                 $_
                 } split(/\|/, $list);
-            $line = "\t\"query\": \"id:$placeholder\",\n"; # 
-            $header .= $line; 
+            $line = "\t\"query\": \"id:$placeholder\",\n"; #
+            $header .= $line;
             if ($debug > 0) {
                 print STDERR "requested " . join("|", sort(keys(%requested))) . "\n";
             }
@@ -86,10 +96,20 @@ while (<INF>) {
         if (0) {
         } elsif ($line =~ m{\A\s*\"number\"\:\s*(\d+)}) {
             $seqno = $1;
+            $seqno6 = sprintf("%06d", $seqno);
             $buffer .= $line;
             if ($debug > 0) {
                 print STDERR "number; $seqno\n";
             }
+        } elsif ($line =~ m{href\=\\\"\/A$seqno6\/b$seqno6\.txt\\\"}) { # b-file link
+            # "Ivan Neretin, \u003ca href=\"/A064707/b064707.txt\"\u003eTable of n, a(n) for n = 0..8191\u003c/a\u003e",
+            if ($fetch_bfiles == 1) {
+                my $cmd = "wget -O $targetdir/bfile/b$seqno6.txt \"https://oeis.org/A$seqno6/b$seqno6.txt\"";
+                print "$cmd\n";
+                print `$cmd`;
+                sleep $sleep;
+            }
+            $buffer .= $line;
         } elsif ($line =~ m[\A\s*\}]  ) { # end of some sequence
             if (($line =~  s[\A\s*\}\,][\t\t\}]) == 0) { # end of last sequence
                 $state = 2;
@@ -99,7 +119,7 @@ while (<INF>) {
             if ($debug > 0) {
                 print STDERR "separator behind \"$aseqno\", write \"$targetdir/$aseqno.json\"\n";
             }
-            &print_seq("$targetdir/$aseqno.json");
+            &print_seq("$targetdir/ajson/$aseqno.json");
             $buffer = "";
         } else {
             $buffer .= $line;
@@ -116,11 +136,11 @@ $header  =~ s{\n\s*\"results\"\:\s*\[}
              {\n\t\"results\"\: null};
 $buffer  = "";
 $trailer = "}\n";
-$iline   = 0;               
+$iline   = 0;
 foreach $aseqno(sort(keys(%requested))) { # write the non-existing
-	if ($requested{$aseqno} == 1) { # was not yet printed
-	    &print_seq("$targetdir/$aseqno.json");
-	}
+    if ($requested{$aseqno} == 1) { # was not yet printed
+        &print_seq("$targetdir/ajson/$aseqno.json");
+    }
 } # foreach non-exsisting
 #----------
 sub print_seq { # global: $header, $buffer, $trailer, $iline

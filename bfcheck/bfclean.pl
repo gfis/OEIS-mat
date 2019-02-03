@@ -24,7 +24,8 @@ my $stripped  = "$basedir/stripped";
 my $increment = 0; # default
 my $seqno6    = -1;
 my $filename  = "";
-my $inbuffer    = "";
+my $inbuffer  = "";
+my $to_stdout = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -43,6 +44,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $inbuffer    = `wget -O - \"https://oeis.org/A$seqno6/b$seqno6.txt\"`;
     } elsif ($opt  =~ m{\A[+\-]\d+\Z}) {
         $increment = $opt;
+    } elsif ($opt  eq "-") {
+        $to_stdout = 1;
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -91,16 +94,14 @@ foreach my $line(@lines) {
 my $header = <<"GFis";
 # $name
 # Table of n, a(n) for n = $bfimin..$bfimax
-# Processed by bfclean.pl ($version) - $timestamp
+# Offset adapted with bfclean.pl by Georg Fischer, Feb 02 2019.
 GFis
 $outbuffer = $header . $outbuffer;
-my $outfile = shift(@ARGV);
-if ($outfile eq "-") { # to STDOUT
+my $outfile;
+if (scalar(@ARGV) == 0 or $to_stdout == 1) { # no outfile name
     print     $outbuffer;
 } else {
-	if (length($outfile) == 0) {
-		$outfile = "b$seqno6.txt";
-	}
+	$outfile = shift(@ARGV);
     open(OUT, ">", $outfile) or die "cannot write \"$outfile\"\n";
     print OUT $outbuffer;
     close(OUT);
