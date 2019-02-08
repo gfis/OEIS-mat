@@ -56,13 +56,24 @@ if (0) {
 #--------------------------
 } elsif ($action =~ m{r}) {
     while (<>) {
-        if (substr($_, 0, 2) eq "-r" and (m{\sb(\d{6})\.txt})) {
-        	my $seqno = $1;
+        if (m{\sb(\d{6})\.txt}) {
+            my $seqno = $1;
             s/\s+\Z//; # chompr
-            my ($prot, $d1, $group, $owner, $filesize, $monthname, $day, $year_time, $bfname) = split;
-            # -rw-rw-r-- 1 oeisprod oeis    14021 Feb  8  2018 b000001.txt
-            # -rw-r--r-- 1 oeisprod oeis   517991 Sep 25 05:47 b009191.txt
-            # 0          1 2        3       4     5    6  7    8
+            my $line = $_;
+            my @fields = split;
+            my ($prot, $d1, $group, $owner, $filesize, $monthname, $day, $year_time, $bfname);
+            if ($line =~ m{\A\-}) {
+                # -rw-rw-r-- 1 oeisprod oeis    14021 Feb  8  2018 b000001.txt
+                # -rw-r--r-- 1 oeisprod oeis   517991 Sep 25 05:47 b009191.txt
+                # 0          1 2        3       4     5    6  7    8
+                ($prot, $d1, $group, $owner, $filesize, $monthname, $day, $year_time, $bfname) = split(/\s+/, $line);
+            } else {
+                #  201230 Feb  8  2018 b000009.txt
+                # 1167322 Feb  8  2018 b000010.txt
+                # 1682839 Feb  8  2018 b000011.txt
+                $line =~ s{\A\s+}{}; # remove leading whitespace
+                ($filesize, $monthname, $day, $year_time, $bfname) = split(/\s+/, $line);
+            }
             my $aseqno   = "A$seqno";
             my $monthnum = $months{lc($monthname)};
             my $fileyear = $year - ($monthnum > $mon ? 1 : 0);
@@ -72,7 +83,7 @@ if (0) {
             } else {
                 $fileyear = $year_time;
             }
-            my $created = sprintf("%04d-%02d-%02d %s:00-04:00", $fileyear, $monthnum, $day, $hour_min);
+            my $created = sprintf("%04d-%02d-%02d %s:00-00:00", $fileyear, $monthnum, $day, $hour_min);
             print join("\t", ($aseqno, &get_utc_timestamp($created), $filesize)) . "\n";
         } # no comment
     } # while <>

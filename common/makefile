@@ -124,8 +124,7 @@ unpack_list1:
 #======================
 fetch_list:
 	cut -b1-7 fetch_list.man \
-	| grep -E "^A" | sort > $@.tmp
-	uniq $@.tmp           >  $@.txt
+	| grep -E "^A" | sort | uniq > $@.txt
 	wc -l $@.*
 #--------------------------------
 ajson_extract: asinfo asname asdata
@@ -275,8 +274,7 @@ bfdelb_check:
 	wc -l $@.txt
 #-------------------
 NLIST=../bfcheck/neil_lists
-bfdir: bfdir1 bfdir2
-bfdir1:
+bfdir_old:
 	perl bfdir.pl -r \
 	$(NLIST)/bfilelist0.txt \
 	$(NLIST)/bfilelist1.txt \
@@ -284,47 +282,74 @@ bfdir1:
 	$(NLIST)/bfilelist3.txt \
 	> $@.tmp
 	perl NLIST.pl -c > bfdir.create.sql
+bfdir: bfdir0 bfdir1 bfdir2
+bfdir0:
+	wget https://oeis.org/bfilelist.gz
+	gzip -df bfilelist.gz
+bfdir1: 
 bfdir2:
+	perl bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f         bfdir.create.sql
-	$(DBAT) -m csv -s "\t" -r bfdir < bfdir1.tmp
+	perl bfdir.pl -r bfilelist \
+	| $(DBAT) -m csv -s "\t" -r bfdir
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 bfdir_check:
 	$(DBAT) -x "SELECT d.aseqno \
 		, substr(d.created, 1, 16), substr(b.access, 1, 16) \
-		, d.filesize - b.filesize \
-		, d.filesize,  b.filesize \
+		, d.filesize,  b.filesize, b.message \
 		FROM  bfdir d, bfinfo b \
 		WHERE d.aseqno   = b.aseqno \
-	 	  AND d.created  > b.access \
-		ORDER BY 1" \
+	 	  AND (d.filesize <> b.filesize \
+		) ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#   	        OR substr(d.created, 1, 10)  <> substr(b.access, 1, 10)s \
+#		, d.filesize - b.filesize \
 #---------------------------
-synth_check: syntha_check synthb_check
+synth_check: syntha_check synthb_check synthc_check synthd_check
 syntha_check:
 	$(DBAT) -x "SELECT a.aseqno \
-		, substr(a.access, 1, 16), substr(b.access, 1, 16) \
-		, 'a:' || a.keyword, 'b:' || b.message \
-	    FROM asinfo a, bfinfo b \
-	    WHERE a.aseqno = b.aseqno \
-	      AND a.keyword     LIKE '%synth%' \
-	      AND b.message NOT LIKE '%synth%' \
-	      AND a.access > b.access \
-	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
+		, substr(a.access, 1, 16) \
+		, a.keyword \
+	    FROM asinfo a \
+	    WHERE a.keyword     LIKE '%synth%' \
+	      AND a.aseqno IN (SELECT aseqno FROM bfdir b) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
 synthb_check:
 	$(DBAT) -x "SELECT a.aseqno \
-		, substr(a.access, 1, 16), substr(b.access, 1, 16) \
-		, 'a:' || a.keyword, 'b:' || b.message \
-	    FROM asinfo a, bfinfo b \
-	    WHERE a.aseqno = b.aseqno \
-	      AND a.keyword NOT LIKE '%synth%' \
+		, substr(a.access, 1, 16) \
+		, a.keyword \
+	    FROM asinfo a \
+	    WHERE a.keyword  NOT LIKE '%synth%' \
+	      AND a.aseqno   NOT IN (SELECT aseqno FROM bfdir b) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	>     $@.txt
+	wc -l $@.txt
+synthc_check:
+	$(DBAT) -x "SELECT b.aseqno \
+		, substr(b.access, 1, 16) \
+		, b.filesize \
+		, b.message \
+	    FROM bfinfo b \
+	    WHERE b.message NOT LIKE '%synth%' \
+	      AND b.aseqno NOT in (SELECT d.aseqno FROM bfdir d) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+synthd_check:
+	$(DBAT) -x "SELECT d.aseqno \
+		, substr(d.created, 1, 16), substr(b.access, 1, 16) \
+		, d.filesize, b.filesize \
+		, b.message \
+	    FROM bfdir d, bfinfo b \
+	    WHERE d.aseqno   = b.aseqno \
 	      AND b.message     LIKE '%synth%' \
-	      AND a.access > b.access \
-	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
+	      AND d.filesize = b.filesize \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
@@ -373,7 +398,7 @@ eval_checks:
 	diff -wy --width=64 \
 		$@.`date +%Y-%m-%d.%H_%M`.log $@.log || :
 	cp  $@.`date +%Y-%m-%d.%H_%M`.log $@.log
-	head -n 32768 *check.txt > $@.lst
+	head -n 999999 *_check.txt > $@.lst
 prep_fetch:
 	head -n 999999 *_check.txt > $@.tmp
 	cut -b1-7 $@.tmp | grep -E "^A" | sort | uniq \
