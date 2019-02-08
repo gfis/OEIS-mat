@@ -7,6 +7,7 @@
 #
 # usage:
 #   perl tsv_html.pl -m mode input.tsv > output.html
+#       -m var      aseqno + varibale number of fields
 #       -m delseq   deleted sequences from wiki
 #       -m strip    comparision with 'stripped'
 #---------------------------------
@@ -16,7 +17,7 @@ my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (ti
 my $timestamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec, $isdst);
 
-my $mode = "delseq";
+my $mode = "var";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -28,6 +29,19 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 } # while $opt
 
 if (0) {
+} elsif ($mode =~ m{var}   ) {
+    print &get_html_head();
+    print <<"GFis";
+<body>
+<p>
+Date: $timestamp 
+<br />Questions, suggestions: email <a href="mailto:georg.fischer\@t-online.de">Georg Fischer</a>
+<br /><a href="https://oeis.org/wiki/Clear-cut_examples_of_keywords" target="_blank">List of keywords in OEIS Wiki</a>
+
+<table class="bor">
+<tr><th class="bor">Keyword</th><th class="bor">Count</th>
+<th class="bor" width="80%">Occurrences</th></tr>
+GFis
 } elsif ($mode =~ m{delseq}) {
     print &get_html_head();
     print <<"GFis";
@@ -70,15 +84,18 @@ while (<>) {
     my $line = $_;
     $count ++;
     if (0) {
+    } elsif ($mode =~ m{var}   ) {
+        my ($aseqno, @rest) = split(/\t/, $line);
+        print "<tr><td class=\"bor\"><a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a>" 
+        	. join("</td><td class=\"bor\">". @rest)
+        	. "</td></tr>\n";
     } elsif ($mode =~ m{delseq}) {
-        my ($aseqno, $rest)
-            = split(/\t/, $line);
+        my ($aseqno, $rest) = split(/\t/, $line);
         print "<tr><td class=\"bor\">" . join("</td><td class=\"bor\">"
-            , "<a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a> $rest"            
+            , "<a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a> $rest"
             ) . "</td></tr>\n";
     } elsif ($mode =~ m{strip} ) {
-        my ($aseqno, $bixmin, $bixmax, $offset, $strip, $binit, $mess, $buthor)
-            = split(/\t/, $line);
+        my ($aseqno, $bixmin, $bixmax, $offset, $strip, $binit, $mess, $buthor) = split(/\t/, $line);
             $strip =~ s{\,}{ }g;
             $binit =~ s{\,}{ }g;
         my $seqno = substr($aseqno, 1);

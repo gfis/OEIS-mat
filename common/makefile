@@ -228,7 +228,7 @@ bulk_type:
 	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
 bulk_ajson1:
 	wget   -O $@.tmp      "$(PARM)" 
-	perl   split_json.pl -bf -d $(D) -o $(DIR) $@.tmp
+	perl   split_json.pl -d $(D) -o $(DIR) $@.tmp
 	sleep  $(SLEEP)
 bulk_bfile1:
 	wget   $(PARM)
@@ -274,19 +274,10 @@ bfdelb_check:
 	wc -l $@.txt
 #-------------------
 NLIST=../bfcheck/neil_lists
-bfdir_old:
-	perl bfdir.pl -r \
-	$(NLIST)/bfilelist0.txt \
-	$(NLIST)/bfilelist1.txt \
-	$(NLIST)/bfilelist2.txt \
-	$(NLIST)/bfilelist3.txt \
-	> $@.tmp
-	perl NLIST.pl -c > bfdir.create.sql
-bfdir: bfdir0 bfdir1 bfdir2
+bfdir: bfdir0 bfdir2
 bfdir0:
 	wget https://oeis.org/bfilelist.gz
 	gzip -df bfilelist.gz
-bfdir1: 
 bfdir2:
 	perl bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f         bfdir.create.sql
@@ -294,7 +285,7 @@ bfdir2:
 	| $(DBAT) -m csv -s "\t" -r bfdir
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
-bfdir_check:
+bfdir_check: # do we have the proper filesizes?
 	$(DBAT) -x "SELECT d.aseqno \
 		, substr(d.created, 1, 16), substr(b.access, 1, 16) \
 		, d.filesize,  b.filesize, b.message \
@@ -307,18 +298,19 @@ bfdir_check:
 #   	        OR substr(d.created, 1, 10)  <> substr(b.access, 1, 10)s \
 #		, d.filesize - b.filesize \
 #---------------------------
-synth_check: syntha_check synthb_check synthc_check synthd_check
-syntha_check:
+synth_check: syntha_check synthb_check synthc_check synthd_check synthe_checck
+syntha_check: # sequence claims synth and there is a b-file
 	$(DBAT) -x "SELECT a.aseqno \
 		, substr(a.access, 1, 16) \
 		, a.keyword \
 	    FROM asinfo a \
 	    WHERE a.keyword     LIKE '%synth%' \
-	      AND a.aseqno IN (SELECT aseqno FROM bfdir b) \
+	      AND a.aseqno     IN (SELECT aseqno FROM bfdir b) \
+	      AND a.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-synthb_check:
+synthb_check: # sequence claims not synth and there is no b-file
 	$(DBAT) -x "SELECT a.aseqno \
 		, substr(a.access, 1, 16) \
 		, a.keyword \
@@ -330,18 +322,18 @@ synthb_check:
 	wc -l $@.txt
 	>     $@.txt
 	wc -l $@.txt
-synthc_check:
+synthc_check: # our file is not synth and it is not in bfdir
 	$(DBAT) -x "SELECT b.aseqno \
 		, substr(b.access, 1, 16) \
 		, b.filesize \
 		, b.message \
 	    FROM bfinfo b \
-	    WHERE b.message NOT LIKE '%synth%' \
-	      AND b.aseqno NOT in (SELECT d.aseqno FROM bfdir d) \
+	    WHERE b.message  NOT LIKE '%synth%' \
+	      AND b.aseqno   NOT IN (SELECT d.aseqno FROM bfdir d) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-synthd_check:
+synthd_check: # our file is synth and bfdir says it is not
 	$(DBAT) -x "SELECT d.aseqno \
 		, substr(d.created, 1, 16), substr(b.access, 1, 16) \
 		, d.filesize, b.filesize \
@@ -349,7 +341,17 @@ synthd_check:
 	    FROM bfdir d, bfinfo b \
 	    WHERE d.aseqno   = b.aseqno \
 	      AND b.message     LIKE '%synth%' \
-	      AND d.filesize = b.filesize \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+synthe_check: # there is a sequence, we don't have a synth, nor has bfdir
+	$(DBAT) -x "SELECT a.aseqno \
+		, substr(a.access, 1, 16) \
+		, a.keyword \
+	    FROM asinfo a \
+	    WHERE a.keyword LIKE '%synth%' \
+	      AND a.aseqno   NOT IN (SELECT d.aseqno FROM bfdir  d) \
+	      AND a.aseqno   NOT IN (SELECT b.aseqno FROM bfinfo b) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
@@ -412,7 +414,8 @@ seq: # parameter: $(INFO)
 delseq: seq # parameters: $(TAB) $(INFO)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #--------
-draft: 
+draft: draft_get draft_load
+draft_get:
 	make draft1 N=000
 	make draft1 N=100
 	make draft1 N=200
