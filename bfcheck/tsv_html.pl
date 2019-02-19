@@ -7,7 +7,7 @@
 #
 # usage:
 #   perl tsv_html.pl -m mode input.tsv > output.html
-#       -m var      aseqno + varibale number of fields
+#       -m var      aseqno + variable number of fields
 #       -m delseq   deleted sequences from wiki
 #       -m strip    comparision with 'stripped'
 #---------------------------------
@@ -37,11 +37,13 @@ if (0) {
 Date: $timestamp 
 <br />Questions, suggestions: email <a href="mailto:georg.fischer\@t-online.de">Georg Fischer</a>
 <br /><a href="https://oeis.org/wiki/Clear-cut_examples_of_keywords" target="_blank">List of keywords in OEIS Wiki</a>
-
 <table class="bor">
-<tr><th class="bor">Keyword</th><th class="bor">Count</th>
-<th class="bor" width="80%">Occurrences</th></tr>
 GFis
+	my $line = <>;
+	$line =~ s{\s+\Z}{}; # chompr
+	my @labels = split(/\t/, $line);
+    print "<tr><th class=\"bor\">" . join("</th><th class=\"bor\">", @labels) . "</th></tr>\n";
+
 } elsif ($mode =~ m{delseq}) {
     print &get_html_head();
     print <<"GFis";
@@ -57,6 +59,7 @@ Date: $timestamp
 <tr><th class="bor">Keyword</th><th class="bor">Count</th>
 <th class="bor" width="80%">Occurrences</th></tr>
 GFis
+
 } elsif ($mode =~ m{strip} ) {
     print &get_html_head();
     print <<"GFis";
@@ -74,6 +77,7 @@ GFis
             , "Range"
             , "Terms<br />b-file"
              ) . "</th></tr>\n";
+             
 } else { 
     die "invalid mode \"$mode\"\n";
 }
@@ -85,10 +89,10 @@ while (<>) {
     $count ++;
     if (0) {
     } elsif ($mode =~ m{var}   ) {
-        my ($aseqno, @rest) = split(/\t/, $line);
-        print "<tr><td class=\"bor\"><a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a>" 
-        	. join("</td><td class=\"bor\">". @rest)
-        	. "</td></tr>\n";
+        my @rest = split(/\t/, $line);
+        my $aseqno = shift(@rest);
+        print "<tr><td class=\"bor\"><a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a></td>"
+        	. "<td class=\"bor\">" . join("</td><td class=\"bor\">", @rest) . "</td></tr>\n";
     } elsif ($mode =~ m{delseq}) {
         my ($aseqno, $rest) = split(/\t/, $line);
         print "<tr><td class=\"bor\">" . join("</td><td class=\"bor\">"

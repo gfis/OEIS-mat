@@ -17,6 +17,9 @@ my $version = "V1.0";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+my @parts = split(/\s+/, $asctime()); #  "Fri Jun  2 18:22:13 2000\n\0"
+#                                         0   1    2 3        4
+my $sigtime = sprintf("%s %02d %04d", $part[1]s, $parts[2], $parts[4]);
 
 my $basedir   = "../coincidence/database";
 my $names     = "$basedir/names";     
@@ -94,7 +97,7 @@ foreach my $line(@lines) {
 my $header = <<"GFis";
 # $name
 # Table of n, a(n) for n = $bfimin..$bfimax
-# Offset adapted with bfclean.pl by Georg Fischer, Feb 02 2019.
+# Offset adapted with bfclean.pl by Georg Fischer, $sigtime.
 GFis
 $outbuffer = $header . $outbuffer;
 my $outfile;
@@ -104,6 +107,7 @@ if (scalar(@ARGV) == 0 or $to_stdout == 1) { # no outfile name
 	$outfile = shift(@ARGV);
     open(OUT, ">", $outfile) or die "cannot write \"$outfile\"\n";
     print OUT $outbuffer;
+    print OUT "\n"; # for Alois
     close(OUT);
 }
 #----------------------

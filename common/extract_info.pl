@@ -36,7 +36,7 @@ my $imin       =  0;
 my $imax       = -1; # unknown
 my $lead       =  8; # so many initial terms are printed
 my $tail_width =  8; # length of last digits in last term
-my $terms_width      = 64;
+my $terms_width= 64;
 my $tabname    = "";
 my $read_len_max = 100000000; # 100 MB
 my $read_len_min =      8000; # stripped has about 960 max.
@@ -57,7 +57,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 } # while ARGV
 my $inputdir = shift(@ARGV);
 if (length($tabname) > 0) { 
-	# believe this one
+    # believe this one
 } elsif ($action =~ m{b}) {
     $tabname = "bfinfo";
 } elsif ($action =~ m{[aj]}) {
@@ -196,14 +196,14 @@ sub extract_from_json { # read JSON of 1  sequence
         }
     } # foreach $line
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
-	if (0) {
-	} elsif ($action =~ m{n}) {
-	    return ($aseqno, $name);
-	} elsif ($action =~ m{s}) {
-	    return ($aseqno, $data);
-	} else {
-		return
-    	( $aseqno
+    if (0) {
+    } elsif ($action =~ m{n}) {
+        return ($aseqno, $name);
+    } elsif ($action =~ m{s}) {
+        return ($aseqno, $data);
+    } else {
+        return
+        ( $aseqno
         , $offset1, $offset2
         , $terms
         , substr($keyword, 0, 64)
@@ -249,7 +249,7 @@ sub get_terms8 { # keep in sync with code in extract_from_bfile !!!
         if (length($terms) + length($term) < $terms_width) { # store the leading ones
            $terms .= ",$term";
         } else {
-        	$state_lead = 0; # break loop
+            $state_lead = 0; # break loop
         }
         $iterm ++;
     } # while $iterm
@@ -326,46 +326,41 @@ sub extract_from_bfile {
     my $state_lead = $lead;
     my $long_width = 1024;
     if ($action =~ m{t}) { # bfdata
-	    &read_file($filename, $read_len_min); # sets $access, $buffer, $filesize
-	    $width = $long_width; # wc -L stripped -> 970
-	    $state_lead = 1024;
-	} else { # normal bfinfo
-	    &read_file($filename, $read_len_max); # sets $access, $buffer, $filesize
-	}
+        &read_file($filename, $read_len_min); # sets $access, $buffer, $filesize
+        $width = $long_width; # wc -L stripped -> 970
+        $state_lead = 1024;
+    } else { # normal bfinfo
+        &read_file($filename, $read_len_max); # sets $access, $buffer, $filesize
+    }
     my $terms   = "";
     my $bfimin  = 0;
     my $bfimax  = 0;
     my $offset2 = 1;
-    my $busyof2 = 1;
+    my $busyof2 = 1; # as long as offset2 is not determined
     my $iline   = 0;
-    my $message = "";
+    my %mess    = (); # hash for messages
     my $index;
     my $term;
     my $state   = 0;
+    if (substr($buffer, -1) ne "\n") {
+    	$mess{"neof"} = ord(substr($buffer, -1));
+    }
     foreach my $line (split(/\n/, $buffer)) {
-        if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
-            $message .= " synth"
-        }
-        $line  =~ s{\A\s*(\#.*)?}{}o; # remove leading whitespace and comments
-        if ($line =~ m{\A(-?\d+)\s+(\-?\d{1,})\s*(\#.*)?\Z}o) {
-            # loose    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  format "index term #?"
+        if ($line =~ m{\A(\-?\d+)\s(\-?\d+)\Z}o) { # index space term
             ($index, $term) = ($1, $2);
             if ($iline == 0) {
                 $bfimin = $index;
-            } elsif ($index != $bfimax + 1) { # check for increasing only
-                if ($message !~ m{ ninc}) {
-                    $message .= " ninc\@" . ($iline + 1);
-                }
+            } elsif ($index != $bfimax + 1) { # check for increasing index
+                $mess{"ninc"} = ($iline + 1);
             } # not increasing
             if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
                 $terms .= ",$term";
             } else {
-            	$state_lead = 0; # never try it again
-            	last if $width == $long_width;
+                $state_lead = 0; # never try it again
+                last if $width == $long_width;
             }
-            if ((substr($index, 0, 1) eq "-" or substr($term, 0, 1) eq "-")
-                    and ($message !~ m{ sign})) {
-                $message .= " sign";
+            if (substr($term, 0, 1) eq "-" and ! defined($mess{"sign"})) { # sign applies to terms only
+                $mess{"sign"} = ($iline + 1);
             }
             $bfimax = $index;
             $iline ++;
@@ -374,36 +369,74 @@ sub extract_from_bfile {
                 $busyof2 = 0;
             }
             # line with parseable term
-        } elsif (length($line) == 0) {
-            # was comment or whitespace
-        } else { # bad
-            $iline ++;
-            if ($message !~ m{ ndig}) { # not exactly 2 numbers
-               $message .= " ndig\@$iline";
+        } elsif ($line =~ m{\A\#.*}) { # comment
+            if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
+                $mess{"synth"} = "";
+            } elsif ($iline > 0) { 
+                $mess{"ecomt"} = "";
+                $mess{"loose"} = "";
+            } else { 
+                $mess{"comt"} = "";
             }
-        }
+            # otherwise ignore comment
+        } elsif ($line =~ m{\A\s*\Z}) { # blank line 
+            $mess{"blank"} = "";
+            # otherwise ignore blank line
+        } else { # loose format
+            if (($line =~ s{\A\s+}{})  > 0) { # leading whitespace
+                $mess{"lsp"} = "";
+                $mess{"loose"} = "";
+            }
+            if (($line =~ s{\s\s+}{ }) > 0) { # middle whitespace
+                $mess{"msp"} = "";
+                $mess{"loose"} = "";
+            }
+            if (($line =~ s{\r\Z}{})   > 0) { # cr
+                $mess{"cr"    } = "";
+                $mess{"loose"} = "";
+            }
+            if (($line =~ s{\#.*}{})   > 0) { # comment behind term
+                $mess{"tcomt" } = "";
+                $mess{"loose"} = "";
+            }
+            if (($line =~ s{\s+\Z}{})  > 0) { # right whitespace
+                $mess{"rsp"} = "";
+                $mess{"loose"} = "";
+            }
+            if ($line =~ m{\A(\-?\d+)\s(\-?\d+)\Z}o) { # index space term
+                redo;
+            } else { # really broken - ignore
+                $mess{"bad"} = "$iline";
+            }
+        } # loose
     } # foreach $line
     $filename =~ m{b(\d{6})\.txt}i; # extract seqno
     my $aseqno = "A$1";
-    if (length($message) > 0 and ($message =~ m{ n(dig|inc)})) {
+    my $message = "";
+    if (scalar(keys(%mess) > 0)) { # some message
+        foreach my $key (sort(keys(%mess))) {
+            $message .= ",$key$mess{$key}"
+        } # foreach
+    } # some message    
+    if ($message =~ m{ n(dig|inc)}) {
         print STDERR "# $filename: $aseqno\t$message\n";
     }
     if ($action =~ m{t}) { # bfdata
-	    return ($aseqno
-        , substr($terms, 1) # remove first comma
+        return ($aseqno
+        , substr($terms,   1) # remove 1st comma
         );
-	} else { # normal bfinfo
-	    return ($aseqno
+    } else { # normal bfinfo
+        return ($aseqno
         , $bfimin
         , $bfimax
         , $offset2
-        , substr($terms, 1) # remove first comma
+        , substr($terms,   1) # remove 1st comma
         , substr($term, -$tail_width)
         , $filesize
-        , substr($message , 1) # remove 1st space
+        , substr($message, 1) # remove 1st comma
         , $access
         );
-	}
+    }
 } # extract_from_bfile
 #-----------------------
 sub print_create_bfinfo {
@@ -421,7 +454,7 @@ CREATE  TABLE            $tabname
     , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
     , tail      VARCHAR(8)    -- last $tail_width digits of last term
     , filesize  INT           -- size of the file in bytes, from the operating system 
-    , message   VARCHAR(64)   -- "sign ninc[iline] ndig[iline]"
+    , message   VARCHAR(128)   -- "sign ninc[iline] ndig[iline]"
     , access    TIMESTAMP     -- b-file modification time in UTC
     , PRIMARY KEY(aseqno)
     );
@@ -471,3 +504,40 @@ __DATA__
         }
     ]
 }
+
+    foreach my $line (split(/\n/, $buffer)) {
+        if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
+            $mess{"synth"} = "";
+        }
+        $line  =~ s{\A\s*(\#.*)?}{}o; # remove leading whitespace and comments
+        if ($line =~ m{\A(-?\d+)\s+(\-?\d{1,})\s*(\#.*)?\Z}o) {
+            # loose    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  format "index term #?"
+            ($index, $term) = ($1, $2);
+            if ($iline == 0) {
+                $bfimin = $index;
+            } elsif ($index != $bfimax + 1) { # check for increasing index
+                $mess{"ninc"} = ($iline + 1);
+            } # not increasing
+            if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
+                $terms .= ",$term";
+            } else {
+                $state_lead = 0; # never try it again
+                last if $width == $long_width;
+            }
+            if (substr($term, 0, 1) eq "-") { # sign applies to terms only
+                $mess{"sign"} = "";
+            }
+            $bfimax = $index;
+            $iline ++;
+            if ($busyof2 == 1 and ($term !~ m{\A\-?[01]{1}\Z}o)) {
+                $offset2 = $iline;
+                $busyof2 = 0;
+            }
+            # line with parseable term
+        } elsif (length($line) == 0) {
+            # was comment or whitespace
+        } else { # bad
+            $iline ++;
+            $mess{"ndig"} = $iline;
+        }
+    } # foreach $line

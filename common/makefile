@@ -105,14 +105,14 @@ unpack_bulk1:
 	mkdir  unpack.$(DATE)/bfile
 	$(ECHO) tar -C unpack.$(DATE)/ajson --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/json/*"
 	$(ECHO) tar -C unpack.$(DATE)/bfile --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/bfile/*"
-	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -upv {} ajson/
-	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -upv {} bfile/
+	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
+	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
 unpack_bulk2:
 	$(ECHO) rm -rf unpack.$(DATE)
 	$(ECHO) tar    -xjf $(DUMPS)/bulk.$(DATE).tar.bz2
 	$(ECHO) mv     bulk.$(DATE) unpack.$(DATE)
-	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -upv {} ajson/
-	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -upv {} bfile/
+	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
+	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
 #--------------
 unpack_list:
 	find . -type d -iname "unpack.*" | xargs -l -i{} make unpack_list1 DIR={}	
@@ -179,6 +179,7 @@ bfdata: # parameter: DIR
 	perl extract_info.pl -btr $(DIR)/bfile > $@.txt
 	wc -l $@.txt
 bfdata_check:
+	# compare stripped with terms extracted from b-files
 	grep -vE "^#" $(DATABASE)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
 	sort x.tmp bfdata.txt | uniq -c | grep -vE "^ +2 +" \
@@ -197,7 +198,7 @@ bfinfo_extract:
 bfinfo_load:
 	perl extract_info.pl -bc | tee bfinfo.create.sql
 	$(DBAT) -f bfinfo.create.sql
-	cut -b1-128 bfinfo.txt \
+	cat bfinfo.txt \
 	| $(DBAT) -m csv -s "\t" -r bfinfo
 	$(DBAT) -4 bfinfo
 	$(DBAT) -n bfinfo
@@ -211,14 +212,44 @@ bfinfo_update:
 bulk: # parameter: $(LIST)
 	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
 bulk_all:
-	mkdir  $(DIR)
+	mkdir  $(DIR)               || :
 	wc -l  $(LIST)
 	cp     $(LIST)        $(DIR)
 	cp     fetch_list.man $(DIR)
-	mkdir          $(DIR)/ajson
-	mkdir          $(DIR)/bfile
+	mkdir          $(DIR)/ajson || :
+	mkdir          $(DIR)/bfile || :
 	make   bulk_type TYPE=ajson
 	make   bulk_type TYPE=bfile
+	make   bulk_tar 
+	make   bulk_extract 
+#--
+bulk_tar:
+	ls -lR $(DIR) | wc -l
+	tar    -cjf $(DIR).tar.bz2 $(DIR)
+#----
+bulkb: # parameter: $(LIST)
+	make   bulkb1 DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
+bulkb1:
+	mkdir  $(DIR)               || :
+	wc -l  $(LIST)
+	cp     $(LIST)        $(DIR)
+	cp     fetch_list.man $(DIR)
+	mkdir          $(DIR)/ajson || :
+	mkdir          $(DIR)/bfile || :
+	make   bulk_type TYPE=bfile
+	make   bulk_tar 
+	make   bulk_extract 
+#----
+bulka: # parameter: $(LIST)
+	make   bulka1 DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
+bulka1:
+	mkdir  $(DIR)               || :
+	wc -l  $(LIST)
+	cp     $(LIST)        $(DIR)
+	cp     fetch_list.man $(DIR)
+	mkdir          $(DIR)/ajson || :
+	mkdir          $(DIR)/bfile || :
+	make   bulk_type TYPE=ajson
 	make   bulk_tar 
 	make   bulk_extract 
 #--
@@ -233,10 +264,17 @@ bulk_ajson1:
 bulk_bfile1:
 	wget   $(PARM)
 	sleep  $(SLEEP)
-#--
-bulk_tar:
-	ls -lR $(DIR) | wc -l
-	tar    -cjf $(DIR).tar.bz2 $(DIR)
+#-------------
+unbulk:
+	# make unbulk1 DATE=2019-02-02.16
+	# make unbulk1 DATE=2019-02-08.06
+	make unbulk1 DATE=2019-02-15.10
+	make unbulk1 DATE=2019-02-15.20
+unbulk1:
+	rm -rf bulk.$(DATE)
+	tar    -xjf $(DUMPS)/bulk.$(DATE).tar.bz2
+	find   bulk.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
+	find   bulk.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
 #-------------------
 bulk_extract: # parameter BULK, only for the bulk
 	make asinfo_extract DIR=$(BULK)
@@ -273,6 +311,20 @@ bfdelb_check:
 	> $@.txt
 	wc -l $@.txt
 #-------------------
+bfmess_stat:
+	$(DBAT) -x "select message from bfinfo" \
+	| sed -e "s/[0-9]//g" > $@.1.tmp 
+	grep "neof" $@.1.tmp | wc -l
+	sort $@.1.tmp | uniq -c > $@.txt
+#-------
+mvsynth:
+	echo "mkdir -f bsynth" > $@.tmp
+	$(DBAT) -x "SELECT 'mv bfile/b' || SUBSTR(i.aseqno, 2, 6) || '.txt bsynth/' \
+		FROM bfinfo i WHERE i.aseqno NOT IN (SELECT d.aseqno FROM bfdir d)" \
+	>> $@.tmp
+	sed -e "s/\r//" $@.tmp > $@.sh
+	wc -l $@.sh
+#-------------------
 NLIST=../bfcheck/neil_lists
 bfdir: bfdir0 bfdir2
 bfdir0:
@@ -298,7 +350,23 @@ bfdir_check: # do we have the proper filesizes?
 #   	        OR substr(d.created, 1, 10)  <> substr(b.access, 1, 10)s \
 #		, d.filesize - b.filesize \
 #---------------------------
-synth_check: syntha_check synthb_check synthc_check synthd_check synthe_checck
+bfsynth:
+	cut -b1-7 fetch_list.txt > $@.1.tmp
+	grep -f $@.1.tmp $(DATABASE)/stripped > $@.2.tmp
+	wc -l $@.2.tmp
+	make seq INFO=$@.1.tmp
+	$(DBAT) -x "SELECT aseqno, offset1 FROM asinfo \
+	WHERE aseqno IN (SELECT aseqno FROM seq) \
+	  AND keyword LIKE '%synth%' \
+	ORDER BY 1" \
+	> $@.3.tmp
+	wc -l $@.3.tmp
+	rm -rf temp2
+	mkdir  temp2
+	perl bfsynth.pl -s $@.2.tmp -o temp2 $@.3.tmp
+	find   temp2 -iname "*.txt" | wc -l
+#---------------------------
+synth_check: syntha_check synthb_check synthc_check synthd_check synthe_check
 syntha_check: # sequence claims synth and there is a b-file
 	$(DBAT) -x "SELECT a.aseqno \
 		, substr(a.access, 1, 16) \
@@ -378,6 +446,61 @@ offset_check:
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#--------------------------------
+denom_check: # Name of the sequence contains "Denominator", keyword "sign", and no sign seen in terms: keyword "nonn"?
+	$(DBAT) -f seq2.create.sql
+	grep -i "denominator" asname.txt > $@.tmp
+	$(DBAT) -m csv -s "\t" -r seq2 < $@.tmp
+	$(DBAT) "SELECT a.aseqno, s.info, a.revision AS rev, substr(a.access, 1, 10) AS changed, a.keyword, a.author \
+		FROM seq2 s, asinfo a  \
+		LEFT JOIN bfinfo b ON b.aseqno = a.aseqno \
+		WHERE a.aseqno = s.aseqno \
+		  AND a.keyword LIKE '%sign%' \
+		  AND COALESCE(b.message, 'dummy') NOT LIKE '%sign%' \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	perl ../bfcheck/tsv_html.pl -m var $@.txt > $@.html
+#--------------------------------
+neof_check: # B-files with no LF behind the last term
+	$(DBAT) -x "SELECT 'b' || substr(aseqno, 2, 6) || '.txt' FROM bfinfo WHERE message LIKE '%neof%' ORDER BY 1" \
+	| sed -e "s/\r//" \
+	> $@.1.tmp
+	wc -l $@.1.tmp
+noef2:
+	grep -E "neof48|neof49|neof50|neof51|neof52|neof53|neof54|neof55|neof56|neof57" \
+	rm -f $@.2.tmp
+	cat  $@.1.tmp | xargs -l -i{} tail -vc32 bfile/{}.txt >> $@.2.tmp
+	wc -l $@.*
+	# perl ../bfcheck/tsv_html.pl -m var $@.txt > $@.html
+#--------------------------------
+sign_check: signa_check signb_check
+signa_check:
+	$(DBAT)  "SELECT a.aseqno, a.keyword, b.message \
+	    FROM asinfo a, bfinfo b \
+	    WHERE a.aseqno = b.aseqno \
+	      AND b.bfimin >= 0 \
+	      AND  a.keyword NOT LIKE '%dead%' \
+	      AND (a.keyword     LIKE '%sign%' AND b.message NOT LIKE '%sign%' \
+	      ) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	perl ../bfcheck/tsv_html.pl -m var $@.txt > $@.html
+signb_check:
+	$(DBAT)  "SELECT a.aseqno, a.keyword, b.message \
+	    FROM asinfo a, bfinfo b \
+	    WHERE a.aseqno = b.aseqno \
+	      AND b.bfimin >= 0 \
+	      AND  a.keyword NOT LIKE '%dead%' \
+	      AND (a.keyword NOT LIKE '%sign%' AND b.message     LIKE '%sign%' \
+	      ) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	perl ../bfcheck/tsv_html.pl -m var $@.txt > $@.html
+
+# First negative term is a(157). - ~~~~
 #----
 check_update:
 	make asinfo_load
@@ -389,7 +512,8 @@ checks:          \
 	bfdel_check  \
 	bfdir_check  \
 	offset_check \
-	synth_check \
+	sign_check   \
+	synth_check  \
 	terms_check  \
 	eval_checks
 eval_checks:
@@ -437,8 +561,9 @@ draft_load:
 	$(DBAT) -n draft
 #--------
 history: # parameter: DATE
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new     MAX=240
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed MAX=1100
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new     MAX=490
+	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed MAX=2020
+	make hist_split
 	# make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=recycled   
 hist_kw: # parameter MAX
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) hist.$(DATE)
@@ -450,7 +575,7 @@ hist_split:
 	mkdir temp/ajson
 	mkdir temp/bfile
 	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" \
-	| xargs -l -i{} perl split_json.pl -bf   -o temp {}
+	| xargs -l -i{} perl split_json.pl  -o temp {}
 resplit:
 	# rm -rf temp
 	# mkdir temp
@@ -458,4 +583,12 @@ resplit:
 	# mkdir temp/bfile
 	find  hist.2019-02-01 -type f -iname "*.json" \
 	| xargs -l -i{} perl split_json.pl -o temp {}
-
+#----------------------
+flinrec:
+	perl flinrec.pl $(DATABASE)/stripped | tee $@.tmp
+linhrec1:
+	perl linhrec.pl $(DATABASE)/stripped 
+linhrec:
+	cp -v ../../linhrec/dist/linhrec.jar .
+	java -jar linhrec.jar -f $(DATABASE)/stripped
+	
