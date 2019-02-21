@@ -2,6 +2,7 @@
 
 # Convert a tsv file into HTML
 # @(#) $Id$
+# 2019-02-20: -m init, term
 # 2019-01-19: -m strip, CSS
 # 2019-01-06, Georg Fischer
 #
@@ -10,12 +11,15 @@
 #       -m var      aseqno + variable number of fields
 #       -m delseq   deleted sequences from wiki
 #       -m strip    comparision with 'stripped'
+#       -m init     write start of index file
+#       -m term     write end   of index file
 #---------------------------------
 use strict;
 use integer;
+my $index_name = "check_index.html";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $timestamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\+01:00"
-        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec, $isdst);
+my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"  #:%02d\+01:00"
+        , $year + 1900, $mon + 1, $mday, $hour);     # , $min, $sec, $isdst);
 
 my $mode = "var";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
@@ -28,47 +32,47 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     }
 } # while $opt
 
+my $target = "Check";
+my $title  = "Check";
+my $infile = shift(@ARGV);
+if ($infile =~ m{^(\w+_check)}) {
+    $target = "$1:";
+    $title = `grep -i $target makefile`;
+    $title =~ s{\s+\Z}{};
+    $title =~ s{$target\s*\#\s*}{};
+    $target =~ s{\W}{}g;
+    # print $title;
+}
+open(INF, "<", $infile) or die "cannot read \"$infile\"\n";
+#---------------
 if (0) {
+} elsif ($mode =~ m{init}   ) {
+    print &get_html_head("Index of maintenance worksheets");
+    print "<tr><th class=\"bor\">Name</th>"
+    	. "<th class=\"bor\">Count</th>"
+    	. "<th class=\"bor\">Description</th></tr>\n";
+
+} elsif ($mode =~ m{term}   ) {
+    print &get_html_tail();
+    
 } elsif ($mode =~ m{var}   ) {
-    print &get_html_head();
-    print <<"GFis";
-<body>
-<p>
-Date: $timestamp 
-<br />Questions, suggestions: email <a href="mailto:georg.fischer\@t-online.de">Georg Fischer</a>
-<br /><a href="https://oeis.org/wiki/Clear-cut_examples_of_keywords" target="_blank">List of keywords in OEIS Wiki</a>
-<table class="bor">
-GFis
-	my $line = <>;
-	$line =~ s{\s+\Z}{}; # chompr
-	my @labels = split(/\t/, $line);
-    print "<tr><th class=\"bor\">" . join("</th><th class=\"bor\">", @labels) . "</th></tr>\n";
-
+    print &get_html_head($title);
+    if ($_ = <INF>) { # first line with labels
+        my $line = $_;
+        $line =~ s{\s+\Z}{}; # chompr
+        my @labels = split(/\t/, $line);
+        print "<tr><th class=\"bor\">" . join("</th><th class=\"bor\">", @labels) 
+            . "</th></tr>\n";
+    } # first line with labels
+    
 } elsif ($mode =~ m{delseq}) {
-    print &get_html_head();
-    print <<"GFis";
-<body>
-<h3><a href="https://oeis.org" target="_blank">OEIS</a> - Deleted sequences in Wiki log
-</h3>
-<p>
-Date: $timestamp 
-<br />Questions, suggestions: email <a href="mailto:georg.fischer\@t-online.de">Georg Fischer</a>
-<br /><a href="https://oeis.org/wiki/Clear-cut_examples_of_keywords" target="_blank">List of keywords in OEIS Wiki</a>
-
-<table class="bor">
-<tr><th class="bor">Keyword</th><th class="bor">Count</th>
-<th class="bor" width="80%">Occurrences</th></tr>
-GFis
+    print &get_html_head("Deleted sequences in Wiki log");
+    print "<tr><th class=\"bor\">Keyword</th>"
+        . "<th class=\"bor\">Count</th>"
+        . "<th class=\"bor\" width=\"80%\">Occurrences</th></tr>\n";
 
 } elsif ($mode =~ m{strip} ) {
-    print &get_html_head();
-    print <<"GFis";
-<body>
-<h3><a href="https://oeis.org" target="_blank">OEIS</a> - Comparision of first terms with b-file
-</h3>
-Date: $timestamp 
-<table class="bor">
-GFis
+    print &get_html_head("Comparision of first terms with b-file");
     print "<tr><th class=\"bor\">" . join("</th><th class=\"bor\">"
             , "Sequence"
             , "Author<br />... of b-f."
@@ -81,23 +85,26 @@ GFis
 } else { 
     die "invalid mode \"$mode\"\n";
 }
-
+#---------------
 my $count = 0;
-while (<>) {
+while (<INF>) {
     s/\s+\Z//; # chompr
     my $line = $_;
     $count ++;
     if (0) {
+
     } elsif ($mode =~ m{var}   ) {
         my @rest = split(/\t/, $line);
         my $aseqno = shift(@rest);
         print "<tr><td class=\"bor\"><a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a></td>"
-        	. "<td class=\"bor\">" . join("</td><td class=\"bor\">", @rest) . "</td></tr>\n";
+            . "<td class=\"bor\">" . join("</td><td class=\"bor\">", @rest) . "</td></tr>\n";
+
     } elsif ($mode =~ m{delseq}) {
         my ($aseqno, $rest) = split(/\t/, $line);
         print "<tr><td class=\"bor\">" . join("</td><td class=\"bor\">"
             , "<a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a> $rest"
             ) . "</td></tr>\n";
+
     } elsif ($mode =~ m{strip} ) {
         my ($aseqno, $bixmin, $bixmax, $offset, $strip, $binit, $mess, $buthor) = split(/\t/, $line);
             $strip =~ s{\,}{ }g;
@@ -114,18 +121,36 @@ while (<>) {
             , "<span class=\"warn\">$strip<br />$binit</span>"
             ) . "</td></tr>\n";
     }
-} # while <>
+} # while <INF>
+close(INF);
 
-print <<"GFis";
+if ($mode !~ m{init|term}) {
+    open(IDX, ">>", $index_name) or die "cannot append to \"$index_name\"\n";
+    print IDX "<tr><td class=\"bor\"><a href=\"$target.html\">$target</a></td>"
+        . "<td class=\"bor\" align=\"right\">$count</td>"
+        . "<td class=\"bor\">$title</td></tr>\n";
+    print STDERR sprintf("%-16s %6d  %-64s\n", $target, $count, $title);
+    close(IDX);
+    print get_html_tail();
+}
+#-----------------------------
+sub get_html_tail {
+    my $result = <<"GFis";
 </table>
 <p>
-$count records
+GFis
+    if ($mode !~ m{init|term}) {
+        $result .= "$count records\n";
+    }
+    $result .= <<"GFis";
+<br />Generated: $timestamp 
 <br />Questions, suggestions: email <a href="mailto:georg.fischer\@t-online.de">Georg Fischer</a>
 <br /><a href="https://oeis.org/wiki/Clear-cut_examples_of_keywords" target="_blank">List of keywords in OEIS Wiki</a>
 </p>
 </body>
 </html>
 GFis
+} # get_html_tail
 #-----------------------------
 sub get_html_head {
     my ($title) = @_;
@@ -136,7 +161,7 @@ sub get_html_head {
 ]>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>$title</title>
+<title>$target</title>
 <meta name="generator" content="https://github.com/gfis/OEIS-mat/blob/master/bfcheck/tsv_html.pl" />
 <meta name="author"    content="Georg Fischer" />
 <style>
@@ -144,9 +169,9 @@ body,table,p,td,th
         { font-family: Verdana,Arial,sans-serif; }
 table   { border-collapse: collapse; }
 td      { padding-right: 4px; }
-tr,td,th{ text-align: left; vertical-align: top; }
+tr,td,th{ vertical-align: top; }
 .arr    { text-align: right; background-color: white; color: black; }
-.bor    { border-left  : 1px solid gray    ;
+.bor    { border-left  : 1px solid gray    ; padding-left: 8px; padding-right: 8px; 
           border-top   : 1px solid gray    ;
           border-right : 1px solid gray    ;                                
           border-bottom: 1px solid gray    ;  }
@@ -164,6 +189,10 @@ tr,td,th{ text-align: left; vertical-align: top; }
 .same   { background-color:lightyellow }
 </style>
 </head>
+<body>
+<h3><a href="check_index.html" target="_blank">OEIS-mat</a> - $target</h3>
+<h4>$title</h4>
+<table class="bor">
 GFis
 } # get_html_head
 __DATA__
@@ -177,3 +206,4 @@ __DATA__
 <li> <a href="http://oeis.org/A293687">A293687</a>, <a href="http://oeis.org/A294921">A294921</a> (A. W. Ferencz) rifo <a href="http://oeis.org/A007494">A007494</a>, <a href="http://oeis.org/A032766">A032766</a> &#8212; Editors, Nov 15 2017</li>
 <li> <a href="http://oeis.org/A295086">A295086</a> (Burghard Herrmann) Duplicate of <a href="http://oeis.org/A190250">A190250</a> &#8212; Editors, Nov 15 2017</li>
 <li> <a href="http://oeis.org/A294992">A294992</a> (M. F. Hasler) merged into <a href="http://oeis.org/A000194">A000194</a> - <a href="/wiki/User:N._J._A._Sloane" title="User:N. J. A. Sloane">N. J. A. Sloane</a> 03:11, 14 November 2017 (UTC)</li>
+p = floor((n + 2) / 2) for n >= 4: if n even then a(n) = 2^p + 4 * (2^(p - 4) - 1); if n odd then a(n) = 2^p + 4 * (2^(p - 3) - 1).

@@ -1,6 +1,6 @@
 #!perl
 
-# Extract information from a b-file, and generate .tsv or SQL
+# Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
 # 2019-01-25: $filesize
 # 2019-01-22, Georg Fischer: copied from ../bfcheck/bfanalyze.pl
@@ -370,7 +370,7 @@ sub extract_from_bfile {
             }
             # line with parseable term
         } elsif ($line =~ m{\A\#.*}) { # comment
-            if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
+            if ($iline == 0 and ($line =~ m{\A\# A\d{6} \Wb\-file synthesized from sequence entry\W\s*\Z})) {
                 $mess{"synth"} = "";
             } elsif ($iline > 0) { 
                 $mess{"ecomt"} = "";

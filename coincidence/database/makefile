@@ -1,6 +1,6 @@
 #!make
 
-# Examine stripped.gz
+# makefile for coincidence/database
 # @(#) $Id$
 # 2018-10-17: P=3
 # 2018-10-09: gen_all, my_mails

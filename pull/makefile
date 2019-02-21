@@ -1,29 +1,42 @@
 #!make
 
-# OEIS-mat/common - scripts and data common to all subprojects
+# OEIS-mat/pull - synchronize local sequences and b-files with OEIS-server
 # @(#) $Id$
-# 2019-02-19: HTMLIZE
-# 2019-01-22: unpacking from ../dumps
-# 2019-01-17: Georg Fischer
+# 2019-02-21: Georg Fischer: extracted from ../common
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
 SLEEP=16
 DUMPS=../dumps
-HEAD=8
-DATABASE=../coincidence/database
-D=0
-HTMLIZE=perl ../bfcheck/tsv_html.pl -m var
-HTMLIZE=cat 
 
 all:
-	# targets: new = prepare newseq archlist regen (in that order)
+	# targets: 
 	grep -E "^[a-z]" makefile
 #================================
-list_dumps:
-	tar -tzvf $(DUMPS)/b000001-b321800.tar.gz  | head -$(HEAD)  # 2019-01-05
-	# tar -tjvf $(DUMPS)/bfiles-cleaned.tar.bz2  | head -$(HEAD) # 2019-01-06
-	tar -tjvf $(DUMPS)/oeis-json.tar.bz2       | head -$(HEAD)  # 2019-01-20
-	tar -tjvf $(DUMPS)/2019-01-21.tar.xz       | head -$(HEAD)  # 2019-01-21
+rmlog:
+	rm -f prepare.log
+prepare: prep1 prep2 prep3 
+	tail -16 prepare.log
+prep1:
+	rm -f stripped*
+	wget https://oeis.org/stripped.gz
+	ls -al strip*              >> prepare.log
+	gzip -df stripped.gz
+	mv stripped ../common/
+	sleep $(SLEEP)
+prep2:
+	rm -f names*
+	wget https://oeis.org/names.gz
+	ls -al name*               >> prepare.log
+	gzip -df names.gz
+	mv names ../common/
+	sleep $(SLEEP)
+prep3:
+	rm -f bfilelist*
+	wget https://oeis.org/bfilelist.gz
+	ls -al bfile*              >> prepare.log
+	gzip -df bfilelist.gz
+	mv bfilelist ../common/
+#	sleep $(SLEEP)
 #================================
 unpack: 
 	make -i unpack0 ECHO= 2>&1 > unpack.log
