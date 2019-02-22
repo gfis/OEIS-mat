@@ -10,10 +10,8 @@ DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
-DATABASE=../coincidence/database
+PULL=../pull
 D=0
-HTMLIZE=perl ../bfcheck/tsv_html.pl -m var
-HTMLIZE=cat 
 
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -165,15 +163,16 @@ bfdata: # parameter: DIR
 	wc -l $@.txt
 #--
 bfdata_check: # Compare <code>stripped</code> file with terms extracted from local b-files
-	grep -vE "^#" $(DATABASE)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	grep -vE "^#" $(PULL)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
+	echo -e "A-Number\tTerms" > $@.txt
 	sort x.tmp bfdata.txt | uniq -c | grep -vE "^ +2 +" \
 	| grep -E "," \
 	| cut -b 9- \
 	| perl comp_terms.pl \
-	> $@.txt
+	| grep -vf $(PULL)/draft_load.tmp \
+	>> $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #------
 bfinfo: # parameter: DIR
 	make bfinfo_extract
@@ -303,55 +302,52 @@ bfmess_stat:
 	grep "neof" $@.1.tmp | wc -l
 	sort $@.1.tmp | uniq -c > $@.txt
 #-------------------
-NLIST=../bfcheck/neil_lists
-bfdir: bfdir0 bfdir2
-bfdir0:
-	wget https://oeis.org/bfilelist.gz
-	gzip -df bfilelist.gz
-bfdir2:
+bfdir_load: # Load <code>bfilelist</code> into table <code>bfdir</code>
 	perl bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f         bfdir.create.sql
-	perl bfdir.pl -r bfilelist \
+	perl bfdir.pl -r $(PULL)/bfilelist \
 	| $(DBAT) -m csv -s "\t" -r bfdir
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 #--
 asdata_check: # Show sequence terms and entry in <code>stripped</code> file
-	grep -vE "^#" $(DATABASE)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	grep -vE "^#" $(PULL)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
+	echo -e "A-Number\tName" > $@.txt
 	sort x.tmp asdata.txt | uniq -c | grep -vE "^  *2 " \
 	| grep -E "," \
 	| cut -b 9- \
-	> $@.txt
+	| grep -vf $(PULL)/draft_load.tmp \
+	>> $@.txt
 	wc -l $@.txt
 asname_check: # Show sequence name and entry in <code>names</code> file
-	grep -vE "^#" $(DATABASE)/names | sed -e "s/ /	/" \
+	grep -vE "^#" $(PULL)/names | sed -e "s/ /	/" \
 	> x.tmp
 	perl uncode.pl asname.txt > y.tmp
+	echo -e "A-Number\tName" > $@.txt
 	sort x.tmp y.tmp | uniq -c | grep -vE "^  *2 " \
 	| grep -v "allocated for " \
 	| grep -E "[a-zB-Z]" \
 	| cut -b 9- \
-	> $@.txt
+	| grep -vf $(PULL)/draft_load.tmp \
+	>> $@.txt
 	wc -l $@.txt
-bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (not for drafts)
+bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for draft)
 	$(DBAT) "SELECT d.aseqno \
 		, substr(d.created, 1, 16) AS oeis_time, substr(b.access, 1, 16) as local_time \
 		, d.filesize AS oeis_size,  b.filesize AS local_size, b.message \
-		FROM  bfdir d, bfinfo b \
-		WHERE d.aseqno   = b.aseqno \
-	 	  AND (d.filesize <> b.filesize \
-	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) \
-		) ORDER BY 1" \
+		FROM  bfdir d LEFT JOIN bfinfo b ON d.aseqno = b.aseqno  \
+		WHERE d.filesize <> COALESCE(b.filesize, 1) \
+		ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #   	        OR substr(d.created, 1, 10)  <> substr(b.access, 1, 10)s \
 #		, d.filesize - b.filesize \
+#	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) 
 #---------------------------
 bfsynth: # synthesize temp2/bfiles.txt for all in fetch_list.txt
 	cut -b1-7 fetch_list.txt > $@.1.tmp
-	grep -f $@.1.tmp $(DATABASE)/stripped > $@.2.tmp
+	grep -f $@.1.tmp $(PULL)/stripped > $@.2.tmp
 	wc -l $@.2.tmp
 	make seq INFO=$@.1.tmp
 	$(DBAT) -x "SELECT aseqno, offset1 FROM asinfo \
@@ -377,8 +373,10 @@ synth_check: syntha_check synthb_check synthc_check synthd_check synthe_check
 #--
 syntha_check: # Sequence (no draft) does not link to a b-file, but there is one in <code>bfilelist</code>
 	$(DBAT) "SELECT a.aseqno \
-		, substr(a.access, 1, 16) AS access \
 		, a.keyword \
+		, substr(a.access , 1, 16) AS oeis_time \
+		, substr(d.created, 1, 16) AS bfdir_time \
+		, d.filesize \
 	    FROM asinfo a, bfdir d \
 	    WHERE a.aseqno = d.aseqno \
 	      AND a.keyword      LIKE '%synth%' \
@@ -386,7 +384,6 @@ syntha_check: # Sequence (no draft) does not link to a b-file, but there is one 
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--
 synthb_check: # Sequence links to a b-file which is not in <code>bfilelist</code>
 	$(DBAT) "SELECT a.aseqno \
@@ -398,7 +395,6 @@ synthb_check: # Sequence links to a b-file which is not in <code>bfilelist</code
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--
 synthc_check: # Local b-file is not <code>synth</code>, but it is not in <code>bfilelist</code>
 # our file is not synth and it is not in bfdir
@@ -412,7 +408,6 @@ synthc_check: # Local b-file is not <code>synth</code>, but it is not in <code>b
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--
 synthd_check: # Local b-file is <code>synth</code>, but it is in <code>bfilelist</code>
 	$(DBAT) "SELECT d.aseqno \
@@ -426,10 +421,9 @@ synthd_check: # Local b-file is <code>synth</code>, but it is in <code>bfilelist
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--
 synthe_check: # Sequence without local synthesized b-file and no entry in <code>bfilelist</code>
-	$(DBAT) "SELECT a.aseqno \
+	$(DBAT) "SELECT a.aseqno, a.offset1 \
 		, substr(a.access, 1, 16) AS astime \
 		, a.keyword \
 	    FROM asinfo a \
@@ -440,7 +434,29 @@ synthe_check: # Sequence without local synthesized b-file and no entry in <code>
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
+#--
+synthf: synthf1 synthf2
+synthf1:
+	$(DBAT) -x "SELECT 'bfile/b' || SUBSTR(aseqno, 2, 6) || '.txt' \
+	    FROM bfdir \
+	    ORDER BY 1" \
+	| sed -e "s/\r//" > $@.txt
+	head -n 4 $@.txt
+	wc -l $@.txt
+synthf2:
+	rm -f $@.tmp
+	cat synthf1.txt | xargs -l head -n 1 >> $@.tmp || :
+#
+synthf_check: # b-files with fake comment "synthesized from ..."
+	grep -i synthesi synthf2.tmp | cut -b 3- | sed -e "s/ /\t/" > $@.tmp
+	wc -l $@.tmp
+	make seq INFO=$@.tmp
+	$(DBAT) "SELECT aseqno FROM seq \
+		WHERE aseqno IN (SELECT aseqno FROM BFDIR) \
+		ORDER BY 1 " \
+	| sed -e "s/\r//" > $@.txt
+	head -n 4 $@.txt
+	wc -l $@.txt
 #-----------------------------
 terms_check: # The first few terms differ from the b-file, and that is not synthesized and no draft
 	$(DBAT) "SELECT a.aseqno, a.terms AS asterms, b.terms AS bfterms\
@@ -452,7 +468,6 @@ terms_check: # The first few terms differ from the b-file, and that is not synth
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--------------------------------
 offset_check: # Sequence offset differs from first index in b-file
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
@@ -467,7 +482,6 @@ offset_check: # Sequence offset differs from first index in b-file
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--------------------------------
 denom_check: # Name of the sequence contains "Denominator", keyword <code>sign</code>, and <code>nonn</code> terms
 	$(DBAT) -f seq2.create.sql
@@ -482,7 +496,6 @@ denom_check: # Name of the sequence contains "Denominator", keyword <code>sign</
 		ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--------------------------------
 neof_check: # b-files with no LF behind the last term
 	$(DBAT) "SELECT 'b' || substr(aseqno, 2, 6) || '.txt' FROM bfinfo WHERE message LIKE '%neof%' ORDER BY 1" \
@@ -494,7 +507,6 @@ noef2:
 	rm -f $@.2.tmp
 	cat  $@.1.tmp | xargs -l -i{} tail -vc32 bfile/{}.txt >> $@.2.tmp
 	wc -l $@.*
-	# $(HTMLIZE) $@.txt > $@.html
 #--------------------------------
 sign_check: signa_check signb_check
 signa_check: # Sequence has keyword <code>sign</code> and no negative terms in b-file
@@ -508,7 +520,6 @@ signa_check: # Sequence has keyword <code>sign</code> and no negative terms in b
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
 #--
 signb_check: # Sequence has no keyword <code>sign</code> and b-file has negative terms
 	$(DBAT)  "SELECT a.aseqno, a.keyword, b.message \
@@ -521,8 +532,6 @@ signb_check: # Sequence has no keyword <code>sign</code> and b-file has negative
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	$(HTMLIZE) $@.txt > $@.html
-# First negative term is a(157). - ~~~~
 #----
 check_update:
 	make asinfo_load
@@ -595,21 +604,23 @@ draft_load:
 	$(DBAT) -4 draft
 	$(DBAT) -n draft
 #--------
-history: # parameter: DATE
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new     MAX=490
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed MAX=2020
+history: # Fetch new or recently changed JSONs
+	# make -s bfdir_get
+	make -s history1 DIR=bulk.`date +%Y-%m-%d` 
+history1:
+	make history2 KEYWORD=new     MAX=280
+	make history2 KEYWORD=changed MAX=1000
+	# make history2 KEYWORD=recycled MAX=3600
 	make hist_split
-	# make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=recycled   
-hist_kw: # parameter MAX
-	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) hist.$(DATE)
-	ls -al hist.$(DATE) | head -n 8
-	ls -1  hist.$(DATE) | wc -l
-hist_split:
+history2: # parameter KEYWORD, DIR, MAX
+	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
+	ls -al bulk.$(DATE) | head -n 8
+	ls -1  bulk.$(DATE) | wc -l
+hist_split: # parameter DIR
 	rm -rf temp
 	mkdir temp
 	mkdir temp/ajson
-	mkdir temp/bfile
-	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" \
+	find  $(DIR) -type f -iname "*.json" \
 	| xargs -l -i{} perl split_json.pl  -o temp {}
 resplit:
 	# rm -rf temp
@@ -620,21 +631,21 @@ resplit:
 	| xargs -l -i{} perl split_json.pl -o temp {}
 #----------------------
 flinrec:
-	perl flinrec.pl $(DATABASE)/stripped | tee $@.tmp
+	perl flinrec.pl $(PULL)/stripped | tee $@.tmp
 linhrec1:
-	perl linhrec.pl $(DATABASE)/stripped 
+	perl linhrec.pl $(PULL)/stripped 
 linhrec:
 	cp -v ../../linhrec/dist/linhrec.jar .
-	java -jar linhrec.jar -f $(DATABASE)/stripped
+	java -jar linhrec.jar -f $(PULL)/stripped
 #---------------
-linrec: linrec_link linrec_mmacall linrec_wget_index linrec_index
+linrec: linrec_link linrec_index linrec_load
+# linrec_link linrec_mmacall linrec_wget_index linrec_index
 #--
 linrec_link:
 	find ajson -iname "*.json" | xargs -l grep -H \
 	"Index entries for linear recurrence" \
 	> $@.tmp || :
-	# "Index entries for linear recurrences with constant coefficients" 
-	perl extract_linrec.pl -m link    $@.tmp > $@.txt
+	perl extract_linrec.pl -m link    $@.tmp | sort | uniq > $@.txt
 linrec_mmacall:
 	find ajson -iname "*.json" | xargs -l grep -iH \
 	"LinearRecurrence" \
@@ -655,41 +666,70 @@ linrec_eval:
 	>     all_linrec.tmp
 	wc -l all_linrec.tmp
 linrec_load:
-	$(DBAT) -f linrec.create.sql
-	$(DBAT) -m csv -s "\t" -r linrec < all_linrec.tmp
-	$(DBAT) -n linrec
-	$(DBAT) -4 linrec
+	perl extract_linrec.pl -m create > linrec.create.sql
+	$(DBAT) -f                         linrec.create.sql
+	$(DBAT) -m csv -s "\t" -r lrindx < linrec_index.txt
+	$(DBAT) -n lrindx
+	$(DBAT) -4 lrindx
+	$(DBAT) -m csv -s "\t" -r lrlink < linrec_link.txt
+	$(DBAT) -n lrlink
+	$(DBAT) -4 lrindx
 #-------------
-linrec_checks: linrec_li_check linrec_il_check linrec_sig_check
+lr_checks: lrlink_check lrindex_check lrsign_check
 #--	
-linrec_li_check: # Lin.Rec. link, but no index entry
+lrlink_check: # Lin. rec. link, but no index entry
 	$(DBAT) "SELECT a.aseqno, a.lorder, a.signature \
-	FROM linrec a \
-	WHERE a.mode = 'link' \
-	  AND a.aseqno NOT IN (SELECT b.aseqno FROM linrec b WHERE b.mode = 'index') \
+	FROM lrlink a \
+	WHERE a.aseqno NOT IN (SELECT aseqno FROM lrindx) \
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt
 #--	
-linrec_il_check: # Lin.Rec. in index, but no link
-	$(DBAT) "SELECT a.aseqno, a.lorder, a.signature \
-	FROM linrec a \
-	WHERE a.mode = 'index' \
-	  AND a.aseqno NOT IN (SELECT b.aseqno FROM linrec b WHERE b.mode = 'link') \
+lrindex_check: # Lin. rec. in index, but no link -&gt; delete index entry
+	$(DBAT) "SELECT a.aseqno, a.lorder \
+		, a.signature as Index_Signature \
+	FROM lrindx a \
+	WHERE a.aseqno NOT IN (SELECT aseqno FROM lrlink) \
 	  AND (SELECT s.keyword FROM asinfo s WHERE s.aseqno = a.aseqno) NOT LIKE '%dead%' \
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	
 #--	
-linrec_sig_check: # Consistency of Lin.Rec. signatures
+lrsign_check: # Differences in lin. rec. signatures
 	$(DBAT) "SELECT a.aseqno, a.lorder \
-		, a.mode AS amode, a.signature AS asig \
-		, b.mode AS bmode, b.signature AS bsig \
-	FROM linrec a, linrec b \
+		, a.signature AS Index_Signature \
+		, b.signature AS Link_Signature \
+	FROM lrindx a, lrlink b \
 	WHERE a.aseqno    =  b.aseqno \
 	  AND a.signature <> b.signature \
-	  AND a.mode      <  b.mode \
-	  AND b.mode      <> 'mmacall' \
+	  AND b.mode      =  'link' \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+#---------------------
+lrsigadd:
+	$(DBAT) "SELECT DISTINCT a.lorder \
+		, a.signature AS asig \
+	FROM linrec a \
+	WHERE a.mode      = 'link' \
+	  AND a.signature NOT IN \
+	    ( SELECT DISTINCT b.signature \
+	      FROM linrec b \
+	      WHERE b.mode      = 'index'\
+	    ) \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+#
+lrordadd:
+	$(DBAT) "SELECT DISTINCT a.lorder \
+	FROM linrec a \
+	WHERE a.mode      = 'link' \
+	  AND a.lorder NOT IN \
+	    ( SELECT DISTINCT b.lorder \
+	      FROM linrec b \
+	      WHERE b.mode      = 'index'\
+	    ) \
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	

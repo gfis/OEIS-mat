@@ -4,10 +4,10 @@
 # @(#) $Id$
 # 2019-02-18, Georg Fischer
 #
-# usage:
-#   perl mma_bfile.pl -o offset -s seqno input > output.txt
-#       -o offset (index of first term)
-#       -s sequence number [Ab]nnnnnn
+#:# usage:
+#:#   perl mma_bfile.pl -o offset -s seqno input > output.txt
+#:#       -o offset (index of first term)
+#:#       -s sequence number [Ab]nnnnnn
 #---------------------------------
 use strict;
 use integer;
@@ -26,6 +26,10 @@ my $names     = "$basedir/names";
 
 my $offset = 1;
 my $seqno6 = "999999";
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {

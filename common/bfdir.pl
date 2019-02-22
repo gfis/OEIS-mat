@@ -1,11 +1,11 @@
 #!perl
 
-# Extract b-file directory listings, and generate .tsv or SQL
+# Parse file 'bfilelsit', and generate .tsv or CREATE SQL
 # @(#) $Id$
 # 2019-01-29, Georg Fischer: copied from extract_info.pl
 #
-# usage:
-#   perl bfdir.pl {-c | -r infile1 infile2 ...} > outfile
+#:# usage:
+#:#     perl bfdir.pl {-c | -r infile1 infile2 ...} > outfile
 #---------------------------------
 use strict;
 use integer;
@@ -19,6 +19,10 @@ my $utc_stamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\z"
 my $action     = "-r"; # generate TSV for Dbat -r
 my $debug      =  0; # 0 (none), 1 (some), 2 (more)
 my $tabname    = "bfdir";
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {

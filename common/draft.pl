@@ -1,49 +1,31 @@
 #!perl
 
-# Get the OEIS history for keywords "new", "changed" or "recycled"
+# Create a db table for draft listings
 # @(#) $Id$
 # 2019-01-25: rewritten for -t json
 # 2019-01-17: Georg Fischer, copied from ../broken_link/brol_process.pl
 #
-# Usage:
-#   perl history.pl [-k (new|changed|recycled)] [-n maxnum] [-w sleep] [-t (text|json)] [outputdir]
-#       -k    for keyword kw (default "changed")
-#       -n    fetch a maximum of n sequences 
-#       -w    wait time in seconds (default 16)
-#       -t    format, "text" or "json"
-#       outputdir (default yyyy-mm-dd)
+#:# Usage:
+#:#   perl draft.pl -c > draft.create.sql
 #------------------------------------
 use strict;
 use warnings;
-use LWP;
-use LWP::UserAgent;
-use LWP::RobotUA;
-use HTTP::Request::Common;
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = gmtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d.%02d_%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min);
 
 my $debug      = 0;
 my $action     = "g";
-my $keyword    = "changed";
-my $maxnum     = 65536; # maximum number of sequences (default unlimited)
-my $increment  = 10; # for &start, fixed by OEIS server
 my $sleep      = 16; # wait time in seconds
-my $type       = "json";
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{c}) {
         $action    =   "c";
-    } elsif ($opt  =~ m{d}) {
-        $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{k}) {
-        $action    = "g";
-        $keyword   = shift(@ARGV);
-    } elsif ($opt  =~ m{n}) {
-        $maxnum    = shift(@ARGV);
-    } elsif ($opt  =~ m{r}) {
-        $action    =   "r";
     } elsif ($opt  =~ m{w}) {
         $sleep      =  shift(@ARGV);
     } else {
@@ -57,58 +39,6 @@ if (scalar(@ARGV) > 0) {
 }
 print `mkdir $outdir`;
 if (0) {
-#-------------------------------------------------------------
-} elsif ($action =~ m{g}) { # get blocks of 10 sequences
-    my $ua;
-    if (1) {
-        $ua = LWP::UserAgent->new;
-        $ua->agent("Mozilla/8.0"); # pretend we are a capable browser
-        # $ua->agent("Chrome/70.0.3538.110");
-    } else { # robot
-        $ua = LWP::RobotUA->new('EiC-gfis/1.0', 'georg.fischer@t-online.de');
-        $ua->delay($sleep/60);
-    }
-    $ua->timeout(6); # give up if server does not respond in time
-    my $url = "https://oeis.org/search?q="
-        . join("\&", ( "keyword:$keyword"
-                     , "sort=" . ($keyword eq "new" ? "created" : "modified")
-                     , "fmt=$type"
-                     , "start="));
-    my $start  = 0;
-    my $total  = 0;
-    while ($start < $maxnum) {
-        my $status = "000";
-        print STDERR "read $url$start\n";
-        my $response = $ua->request(GET "$url$start");
-        # print STDERR "status " . $response->code() . "\n";
-        my $page  = $response->decoded_content(charset => 'UTF-8');
-        $status   = $response->code();
-        if ($status ne "200") {
-            die "bad status $status\n";
-        }
-        my $outname = sprintf("$outdir/${keyword}_%04d\.$type", $start);
-        open (OUT, ">", $outname) || die "cannot write \"$outname\"\n";
-        print OUT "$page\n";
-        close(OUT);
-        #   "count": 451,
-        $page =~ m{\n\t+\"count\"\: (\d+)\,}m;
-        my $count = $1;
-        #           "time": "2019-01-25T04:04:11-05:00",
-        my @modtimes = ($page =~ m{\n\t+\"time\"\: \"([0-9\-\:T\+]+)\"\,}mg);
-        $total += scalar(@modtimes);
-        print STDERR "-> $outname\t$count\n";
-        foreach my $modtime(@modtimes) {
-            print STDERR "$modtime\n";
-        } # foreach
-        $start += $increment;
-        if ($count == 0 or $count < $start) {
-            $start = $maxnum; # break loop
-        } else { # continue
-            print STDERR "sleep $sleep s\n"; 
-            sleep $sleep;
-        }
-    } # while $start < $count
-    print STDERR "history.pl read $total sequences for keyword \"$keyword\"\n";
 #-------------------------------------------------------------
 } elsif ($action =~ m{c}) {
     print <<"GFis";

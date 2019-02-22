@@ -4,12 +4,12 @@
 # @(#) $Id$
 # 2019-01-19, Georg Fischer
 #
-# usage:
-#   perl aseq_wget.pl [-n numseq] [-o outdir] [-t (bfile|text|[a]json)] [-m maxnum] infile > outfile
-#       -n number of sequences to be fetched per wget command (default8, 1 for bf)
-#       -m maximum number of sequences to be fetched
-#       -t bfile or fmt=text|json
-#       -o outdir (for -t bfile only)
+#:# usage:
+#:#     perl aseq_wget.pl [-n numseq] [-o outdir] [-t (bfile|text|[a]json)] [-m maxnum] infile > outfile
+#:#       -n number of sequences to be fetched per wget command (default 8, 1 for bf)
+#:#       -m maximum number of sequences to be fetched
+#:#       -t bfile or fmt=text|json
+#:#       -o outdir (for -t bfile only)
 #---------------------------------
 use strict;
 use integer;
@@ -24,6 +24,10 @@ my $maxnum = 65536;
 my $type   = "ajson"; # for $outdir
 my $fmt    = "json";  # for OEIS request parameter &ftm=
 my $outdir = "./temp/$type";
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {

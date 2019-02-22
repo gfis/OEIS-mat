@@ -1,13 +1,17 @@
 #!perl
 
-# Extract linear recurrence signatures from JSON grep
+# Extract linear recurrence signatures (and initial terms) from JSON grep
 # @(#) $Id$
+# 2019-02-22: tables 'lrindx' and 'lrlink'
 # 2019-02-19, Georg Fischer
 #
-# Usage:
-#   perl extract_signature.pl -m mode infile > outfile
-#       -m  index, mmacall, link
-#---------------------------------
+#:# Usage:
+#:#   perl extract_linrec.pl -m mode infile > outfile
+#:#       -m  index    parse https://oeis.org/w/index.php?title=Index_to_OEIS:_Section_Rec&action=edit
+#:#           mmacall  parse Mathematica calls: LinearRecurrence[{1, 0, 1, -1}, {2, 3, 5, 10}, 50]
+#:#           link     parse links in JSON: "\u003ca href=\"/index/Rec#order_02\"\u003eIndex entries for linear recurrences with constant coefficients\u003c/a\u003e, signature (7,-1)"
+#:#           create   write CREATE SQL for tables 'lrindx' and 'lrlink'
+#:#---------------------------------
 use strict;
 use integer;
 use warnings;
@@ -17,6 +21,10 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
 
 my $debug = 0;
 my $mode  = "link";
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -30,80 +38,113 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 my @parts;
+my $line;
 my $aseqno;
 my $signature;
 my @signatures;
 my $initerm = "";
 my @initerms;
-my $line;
-my $termno = 0;
-while (<>) {
-    s/\s+\Z//; # chompr
-    $line = $_;
-    if (0) {
-    } elsif ($mode =~ m{index}) {
-        if ($line =~ m{\A\:\s*\(([^\)]+)\)[^\:]*\:(.*)}) { # index
-            $signature  = $1;
-            my $seqlist = $2;
-            # print "======> signature=\"$signature\" seqlist=\"$seqlist\"\n";
-            while (($seqlist =~ s{(A\d{6})}{}) > 0) {
-                $aseqno = $1;
+my $style   = "";
+my $termno  = 0;
+
+if ($mode =~ m{create}) {
+    &create_sql("lrindx");
+    &create_sql("lrlink");
+} else { # extraction modes
+    while (<>) {
+        s/\s+\Z//; # chompr
+        $line = $_;
+        if (0) {
+        } elsif ($mode =~ m{index}) {
+            if ($line =~ m{\A\:\s*\(([^\)]+)\)[^\:]*\:(.*)}) { # index
+                $signature  = $1;
+                my $seqlist = $2;
+                # print "======> signature=\"$signature\" seqlist=\"$seqlist\"\n";
+                while (($seqlist =~ s{(A\d{6})}{}) > 0) {
+                    $aseqno = $1;
+                    &output;
+                }
+            }
+        } elsif ($mode =~ m{link|mmacall}) {
+            if ($line =~ m{(A\d{6})\.json\:}) { # link, mmacall
+                $aseqno   = $1;
+                $initerm  = "";
+                $termno   = 0;
+                if (0) {
+                } elsif ($mode eq "link") {
+                    if ($line =~ m{signature\s*\(([^\)]+)}i) {
+                        $signature = $1;
+                        &output;
+                    }
+                } elsif ($mode eq "mmacall") {
+                    if ($line =~ m{LinearRecurrence\s*\[\s*\{([^\}]+)\}\s*\,\s*\{([^\}]+)\}\s*\,\s*(\d+)\s*\]}i) {
+                        $signature = $1;
+                        $initerm   = $2;
+                        $termno    = $3;
+                        &output;
+                    }
+                }
+            } # Annnnnn.json
+        } elsif ($mode =~ m{xtract}) {
+            if ($line =~ m{\A(A\d{6})\t([^\t]+)\t([^\t]+)}) { # xtract
+                # A000096   a(n) = +3 * a(n-1) -3 * a(n-2) +1 * a(n-3)  0,2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189,209,230,252,275,299
+                $aseqno     = $1;
+                $signature  = $2;
+                $initerm    = $3;
+                @signatures = map {
+                        s{\+}{};
+                        $_
+                    } grep {
+                        m{[\+\-]\d+}
+                    } split(/\s+/, $signature);
+                $termno = scalar(@signatures);
+                $signature  = join(",", @signatures);
+                @initerms   = split(/\,/, $initerm  );
+                $initerm    = join(",", splice(@initerms, 0, $termno));
+                $termno = 0;
                 &output;
             }
-        }
-    } elsif ($mode =~ m{link|mmacall}) {
-        if ($line =~ m{(A\d{6})\.json\:}) { # link, mmacall
-            $aseqno   = $1;
-            $initerm  = "";
-            $termno   = 0;
-            if (0) {
-            } elsif ($mode eq "link") {
-                if ($line =~ m{signature\s*\(([^\)]+)}i) {
-                    $signature = $1;
-                    &output;
-                }
-            } elsif ($mode eq "mmacall") {
-                if ($line =~ m{LinearRecurrence\s*\[\s*\{([^\}]+)\}\s*\,\s*\{([^\}]+)\}\s*\,\s*(\d+)\s*\]}i) {
-                    $signature = $1;
-                    $initerm   = $2;
-                    $termno    = $3;
-                    &output;
-                }
-            }
-        } # Annnnnn.json
-    } elsif ($mode =~ m{xtract}) {
-        if ($line =~ m{\A(A\d{6})\t([^\t]+)\t([^\t]+)}) { # xtract
-            # A000096   a(n) = +3 * a(n-1) -3 * a(n-2) +1 * a(n-3)  0,2,5,9,14,20,27,35,44,54,65,77,90,104,119,135,152,170,189,209,230,252,275,299
-            $aseqno     = $1;
-            $signature  = $2;
-            $initerm    = $3;
-            @signatures = map {
-                    s{\+}{};
-                    $_
-                } grep {
-                    m{[\+\-]\d+}
-                } split(/\s+/, $signature);
-            $termno = scalar(@signatures);
-            $signature  = join(",", @signatures);
-            @initerms   = split(/\,/, $initerm  );
-            $initerm    = join(",", splice(@initerms, 0, $termno));
-            $termno = 0;
-            &output;
-        }
-    } # modes
-} # while <>
+        } # modes
+    } # while <>
+} # extraction modes
 #----
 sub output {
-    $signature =~ s{[^\,\-\d]}{}g;
+    $signature =~ s{[^\.\,\-\d]}{}g;
     @signatures = split(/\,/, $signature);
     $initerm   =~ s{[^\,\-\d]}{}g;
     @initerms   = split(/\,/, $initerm  );
-    print "$aseqno\t$mode\t"
-        . scalar(@signatures) . "\t" . join(",", @signatures) 
-        . "\t"
-        . scalar(@initerms  ) . "\t" . join(",", @initerms  )
-        . "\t$termno\n";
+    print join("\t"
+        , $aseqno
+        , $mode
+        , $style
+        , scalar(@signatures)   
+        , join(",", @signatures)
+        , scalar(@initerms  )   
+        , join(",", @initerms  )
+        ) . "\n";
 }
+#-----------------
+sub create_sql {
+    my ($tabname) = @_;
+    print <<"GFis";
+--  OEIS-mat: $tabname - working table for index of linear recurrences
+--  \@(#) \$Id\$
+--  $timestamp, generated by extract_linrec.pl - DO NOT EDIT HERE!
+--
+DROP    TABLE  IF EXISTS $tabname;
+CREATE  TABLE            $tabname
+    ( aseqno    VARCHAR(10) NOT NULL  -- A322469
+    , mode      VARCHAR(8)  NOT NULL  -- index, link, mmacall, xtract
+    , style     VARCHAR(8)    -- for insertions, deletions
+    , lorder    INT         NOT NULL  -- order = number of right terms
+    , signature VARCHAR(1024) -- comma separated, without "( )"
+    , termno    INT                   -- number of initial terms
+    , initerms  VARCHAR(1024) -- dito
+    , PRIMARY KEY(aseqno, mode, lorder)
+    );
+COMMIT;
+GFis
+} # create_sql
 #--------------------
 __DATA__
 link

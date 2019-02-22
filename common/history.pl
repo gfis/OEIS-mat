@@ -5,13 +5,13 @@
 # 2019-01-25: rewritten for -t json
 # 2019-01-17: Georg Fischer, copied from ../broken_link/brol_process.pl
 #
-# Usage:
-#   perl history.pl [-k (new|changed|recycled)] [-n maxnum] [-w sleep] [-t (text|json)] [outputdir]
-#       -k    for keyword kw (default "changed")
-#       -n    fetch a maximum of n sequences 
-#       -w    wait time in seconds (default 16)
-#       -t    format, "text" or "json"
-#       outputdir (default yyyy-mm-dd)
+#:# Usage:
+#:#   perl history.pl [-k (new|changed|recycled)] [-n maxnum] [-w sleep] [-t (text|json)] [outputdir]
+#:#       -k    for keyword kw (default "changed")
+#:#       -n    fetch a maximum of n sequences 
+#:#       -w    wait time in seconds (default 16)
+#:#       -t    format, "text" or "json"
+#:#       outputdir (default yyyy-mm-dd)
 #------------------------------------
 use strict;
 use warnings;
@@ -30,6 +30,10 @@ my $maxnum     = 65536; # maximum number of sequences (default unlimited)
 my $increment  = 10; # for &start, fixed by OEIS server
 my $sleep      = 16; # wait time in seconds
 my $type       = "json";
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -69,6 +73,8 @@ if (0) {
         $ua->delay($sleep/60);
     }
     $ua->timeout(6); # give up if server does not respond in time
+    # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=600
+    # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=280
     my $url = "https://oeis.org/search?q="
         . join("\&", ( "keyword:$keyword"
                      , "sort=" . ($keyword eq "new" ? "created" : "modified")

@@ -5,13 +5,13 @@
 # 2019-02-02: -bf, and line was omitted
 # 2019-01-23, Georg Fischer: copied from extract_info.pl
 #
-# usage:
-#   perl split_json.pl [-d level] [-o targetdir] [-s seconds] [inputfile]
-#       -o         target directory, default ./temp/; "ajson/" will be appended
-#       -d level   0 = none, 1 = some, 2 = more
-#       -bf        fetch any b-file into parallel directory $targetdir/bfile
-#       -s seconds sleep after fetch
-#       infile     default ./bulk_json.tmp
+#:# usage:
+#:#   perl split_json.pl [-d level] [-o targetdir] [-s seconds] [inputfile]
+#:#       -o         target directory, default ./temp/; "ajson/" will be appended
+#:#       -d level   0 = none, 1 = some, 2 = more
+#:#       -bf        fetch any b-file into parallel directory $targetdir/bfile
+#:#       -s seconds sleep after fetch
+#:#       infile     default ./bulk_json.tmp
 #---------------------------------
 use strict;
 use integer;
@@ -26,6 +26,10 @@ my $infile     = "bulk_json.tmp";
 my $debug      = 0;
 my $fetch_bfiles = 0;
 my $sleep      = 16;  # seconds if -bf
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {

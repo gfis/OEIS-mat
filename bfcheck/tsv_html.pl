@@ -6,14 +6,14 @@
 # 2019-01-19: -m strip, CSS
 # 2019-01-06, Georg Fischer
 #
-# usage:
-#   perl tsv_html.pl -m mode input.tsv > output.html
-#       -m var      aseqno + variable number of fields
-#       -m delseq   deleted sequences from wiki
-#       -m strip    comparision with 'stripped'
-#       -m init     write start of index file
-#       -m term     write end   of index file
-#---------------------------------
+#:# usage:
+#:#   perl tsv_html.pl -m mode input.tsv > output.html
+#:#       -m var      aseqno + variable number of fields
+#:#       -m delseq   deleted sequences from wiki
+#:#       -m strip    comparision with 'stripped'
+#:#       -m init     write start of index file
+#:#       -m term     write end   of index file
+#:#---------------------------------
 use strict;
 use integer;
 my $index_name = "check_index.html";
@@ -22,6 +22,10 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"  #:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour);     # , $min, $sec, $isdst);
 
 my $mode = "var";
+if (scalar(@ARGV) == 0) {
+	print `grep -E "^#:#" $0 | cut -b3-`;
+	exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -170,6 +174,7 @@ body,table,p,td,th
 table   { border-collapse: collapse; }
 td      { padding-right: 4px; }
 tr,td,th{ vertical-align: top; }
+th      { text-align: left; }
 .arr    { text-align: right; background-color: white; color: black; }
 .bor    { border-left  : 1px solid gray    ; padding-left: 8px; padding-right: 8px; 
           border-top   : 1px solid gray    ;

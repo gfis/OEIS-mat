@@ -5,23 +5,23 @@
 # 2019-01-25: $filesize
 # 2019-01-22, Georg Fischer: copied from ../bfcheck/bfanalyze.pl
 #
-# usage:
-#   perl extract_info.pl [-action] [-l lead] [-d level] [-t tabname] inputdir > outputfile
-#       action  (default -br)
-#           a   for sequence JSON
-#           j   for sequence JSON
-#           n   only extract names from JSON 
-#           s   only extract data  from JSON 
-#           b   for bfile
-#           r   TSV for Dbat -r,
-#           c   generate CREATE SQL
-#           i   generate INSERT SQL
-#           u   generate UPDATE SQL
-#       -t tabname  SQL table name
-#       -l lead     print so many initial terms (default 8)
-#       -d level    debug level none(0), some(1), more(2)
-#       -w width    maximum number of characters in term string
-#       inputdir    default: ./unbf
+#:# usage:
+#:#   perl extract_info.pl [-action] [-l lead] [-d level] [-t tabname] inputdir > outputfile
+#:#       action  (default -br)
+#:#           a   for sequence JSON
+#:#           j   for sequence JSON
+#:#           n   only extract names from JSON 
+#:#           s   only extract data  from JSON 
+#:#           b   for bfile
+#:#           r   TSV for Dbat -r,
+#:#           c   generate CREATE SQL
+#:#           i   generate INSERT SQL
+#:#           u   generate UPDATE SQL
+#:#       -t tabname  SQL table name
+#:#       -l lead     print so many initial terms (default 8)
+#:#       -d level    debug level none(0), some(1), more(2)
+#:#       -w width    maximum number of characters in term string
+#:#       inputdir    default: ./unbf
 #---------------------------------
 use strict;
 use integer;
@@ -40,6 +40,10 @@ my $terms_width= 64;
 my $tabname    = "";
 my $read_len_max = 100000000; # 100 MB
 my $read_len_min =      8000; # stripped has about 960 max.
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -370,7 +374,7 @@ sub extract_from_bfile {
             }
             # line with parseable term
         } elsif ($line =~ m{\A\#.*}) { # comment
-            if ($iline == 0 and ($line =~ m{\A\# A\d{6} \Wb\-file synthesized from sequence entry\W\s*\Z})) {
+            if ($iline == 0 and ($line =~ m{\A\# A\d{6} \Wb\-file synthesized from seq.*\Z})) {
                 $mess{"synth"} = "";
             } elsif ($iline > 0) { 
                 $mess{"ecomt"} = "";
