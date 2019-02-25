@@ -22,21 +22,21 @@ prep1:
 	wget https://oeis.org/stripped.gz
 	ls -al strip*              >> prepare.log
 	gzip -df stripped.gz
-	mv stripped ../common/
+	mv stripped $(COMMON)
 	sleep $(SLEEP)
 prep2:
 	rm -f names*
 	wget https://oeis.org/names.gz
 	ls -al name*               >> prepare.log
 	gzip -df names.gz
-	mv names ../common/
+	mv names    $(COMMON)
 	sleep $(SLEEP)
 prep3:
 	rm -f bfilelist*
 	wget https://oeis.org/bfilelist.gz
 	ls -al bfile*              >> prepare.log
 	gzip -df bfilelist.gz
-	mv bfilelist ../common/
+	mv bfilelist $(COMMON)
 #	sleep $(SLEEP)
 #----------
 bfdir_load: # Load the <code>bfilelist</code> into a db table
@@ -59,6 +59,7 @@ bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for
 #--------
 draft: draft_get draft_load
 draft_get:
+	rm -f   draft.*.html
 	rm -f   draft1
 	# file "draft1" will be created if there are no "older changes"
 	# and the loop will be stopped
@@ -79,6 +80,7 @@ draft_load:
 	| cut -d" " -f3 | grep -E "^A" | sort \
 	>     $@.tmp 
 	wc -l $@.tmp
+	cp -v $@.tmp $(COMMON)/
 	perl $(COMMON)/draft.pl -c > draft.create.sql
 	$(DBAT)       -f   draft.create.sql
 	$(DBAT) -m csv -s "\t" -r draft < $@.tmp

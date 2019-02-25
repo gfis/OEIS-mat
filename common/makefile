@@ -11,6 +11,7 @@ SLEEP=16
 DUMPS=../dumps
 HEAD=8
 PULL=../pull
+COMMON=../common
 D=0
 
 all:
@@ -163,14 +164,14 @@ bfdata: # parameter: DIR
 	wc -l $@.txt
 #--
 bfdata_check: # Compare <code>stripped</code> file with terms extracted from local b-files
-	grep -vE "^#" $(PULL)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
 	echo -e "A-Number\tTerms" > $@.txt
 	sort x.tmp bfdata.txt | uniq -c | grep -vE "^ +2 +" \
 	| grep -E "," \
 	| cut -b 9- \
 	| perl comp_terms.pl \
-	| grep -vf $(PULL)/draft_load.tmp \
+	| grep -vf $(COMMON)/draft_load.tmp \
 	>> $@.txt
 	wc -l $@.txt
 #------
@@ -194,17 +195,27 @@ bfinfo_update:
 	$(DBAT) -4                bfinfo
 	$(DBAT) -n                bfinfo
 #--------------------------------
-bulk: # parameter: $(LIST)
-	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
+bulk_lists:
+	cat asname_check.txt asdata_check.txt bfdata_check.txt offset_check.txt terms_check.txt \
+	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
+	>     bulka.txt
+	wc -l bulka.txt
+	cat bfdir_check.txt \
+	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
+	>     bulkb.txt
+	wc -l bulkb.txt
+	# copy them to the Unix machine
+bulk: 
+	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H` 
 bulk_all:
 	mkdir  $(DIR)               || :
-	wc -l  $(LIST)
-	cp     $(LIST)        $(DIR)
+	wc -l  bulk?.txt
+	cp     bulk?.txt      $(DIR)
 	cp     fetch_list.man $(DIR)
 	mkdir          $(DIR)/ajson || :
 	mkdir          $(DIR)/bfile || :
-	make   bulk_type TYPE=ajson
-	make   bulk_type TYPE=bfile
+	make   bulk_type TYPE=ajson LIST=bulka.txt
+	make   bulk_type TYPE=bfile LIST=bulkb.txt
 	make   bulk_tar 
 	make   bulk_extract 
 #--
@@ -305,13 +316,13 @@ bfmess_stat:
 bfdir_load: # Load <code>bfilelist</code> into table <code>bfdir</code>
 	perl bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f         bfdir.create.sql
-	perl bfdir.pl -r $(PULL)/bfilelist \
+	perl bfdir.pl -r $(COMMON)/bfilelist \
 	| $(DBAT) -m csv -s "\t" -r bfdir
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 #--
 asdata_check: # Show sequence terms and entry in <code>stripped</code> file
-	grep -vE "^#" $(PULL)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
 	echo -e "A-Number\tName" > $@.txt
 	sort x.tmp asdata.txt | uniq -c | grep -vE "^  *2 " \
@@ -321,7 +332,7 @@ asdata_check: # Show sequence terms and entry in <code>stripped</code> file
 	>> $@.txt
 	wc -l $@.txt
 asname_check: # Show sequence name and entry in <code>names</code> file
-	grep -vE "^#" $(PULL)/names | sed -e "s/ /	/" \
+	grep -vE "^#" $(COMMON)/names | sed -e "s/ /	/" \
 	> x.tmp
 	perl uncode.pl asname.txt > y.tmp
 	echo -e "A-Number\tName" > $@.txt
@@ -347,7 +358,7 @@ bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for
 #---------------------------
 bfsynth: # synthesize temp2/bfiles.txt for all in fetch_list.txt
 	cut -b1-7 fetch_list.txt > $@.1.tmp
-	grep -f $@.1.tmp $(PULL)/stripped > $@.2.tmp
+	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp
 	wc -l $@.2.tmp
 	make seq INFO=$@.1.tmp
 	$(DBAT) -x "SELECT aseqno, offset1 FROM asinfo \
@@ -584,6 +595,7 @@ delseq: seq # parameters: $(TAB) $(INFO)
 #--------
 draft: draft_get draft_load
 draft_get:
+	rm draft.*.html
 	make draft1 N=000
 	make draft1 N=100
 	make draft1 N=200
@@ -591,7 +603,7 @@ draft_get:
 	make draft1 N=400
 draft1:
 	wget -O draft.$(N).html https://oeis.org/draft?start=$(N)
-	sleep 16 
+	sleep 10 
 draft_load:
 	grep -E "/draft/" draft.*.html \
 	| sed -e "s/[^A0-9]/ /g" -e "s/  */ /g" \
@@ -609,7 +621,7 @@ history: # Fetch new or recently changed JSONs
 	make -s history1 DIR=bulk.`date +%Y-%m-%d` 
 history1:
 	make history2 KEYWORD=new     MAX=280
-	make history2 KEYWORD=changed MAX=1000
+	make history2 KEYWORD=changed MAX=60
 	# make history2 KEYWORD=recycled MAX=3600
 	make hist_split
 history2: # parameter KEYWORD, DIR, MAX
@@ -631,31 +643,45 @@ resplit:
 	| xargs -l -i{} perl split_json.pl -o temp {}
 #----------------------
 flinrec:
-	perl flinrec.pl $(PULL)/stripped | tee $@.tmp
+	perl flinrec.pl $(COMMON)/stripped | tee $@.tmp
 linhrec1:
-	perl linhrec.pl $(PULL)/stripped 
+	perl linhrec.pl $(COMMON)/stripped 
 linhrec:
 	cp -v ../../linhrec/dist/linhrec.jar .
-	java -jar linhrec.jar -f $(PULL)/stripped
+	java -jar linhrec.jar -f $(COMMON)/stripped
 #---------------
-linrec: linrec_link linrec_index linrec_load
-# linrec_link linrec_mmacall linrec_wget_index linrec_index
+linrec: lrlink lrindx lrload
+# linrec_link linrec_mmacall linrec_wget linrec_index
 #--
-linrec_link:
+lrlink:
 	find ajson -iname "*.json" | xargs -l grep -H \
 	"Index entries for linear recurrence" \
 	> $@.tmp || :
-	perl extract_linrec.pl -m link    $@.tmp | sort | uniq > $@.txt
+	perl extract_linrec.pl -m link     $@.tmp \
+	| sort | uniq > $@.txt
+	perl extract_linrec.pl -m lrlink > lrlink.create.sql
+	$(DBAT) -f                         lrlink.create.sql
+	$(DBAT) -m csv -s "\t" -r lrlink < lrlink.txt
+	$(DBAT) -n lrlink
+	$(DBAT) -4 lrlink
 linrec_mmacall:
 	find ajson -iname "*.json" | xargs -l grep -iH \
 	"LinearRecurrence" \
 	> $@.tmp || :
 	perl extract_linrec.pl -m mmacall $@.tmp > $@.txt
-linrec_wget_index:
-	# wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec" -O $@.htm
-	wget "https://oeis.org/w/index.php?title=Index_to_OEIS:_Section_Rec&action=edit" -O $@.wiki
-linrec_index:
-	perl extract_linrec.pl -m index   linrec_wget_index.wiki > $@.txt
+#----------------------
+lrindx: lrindx1 lrindx2 lrindx3
+lrindx1:
+	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.wiki
+lrindx2:
+	perl extract_linrec.pl -m index    lrindx.wiki > lrindx.txt # also writes lrindx_spec.txt
+lrindx3:
+	perl extract_linrec.pl -m lrindx > lrindx.create.sql
+	$(DBAT) -f                         lrindx.create.sql
+	$(DBAT) -m csv -s "\t" -r lrindx < lrindx.txt
+	$(DBAT) -n lrindx
+	$(DBAT) -4 lrindx
+#-------------------------------	
 linrec_xtract:
 	perl extract_linrec.pl -m xtract  linhrec12.txt > $@.txt
 linrec_eval:
@@ -665,15 +691,25 @@ linrec_eval:
 	| grep -v "A113300	mmacall	3	1,1,1" \
 	>     all_linrec.tmp
 	wc -l all_linrec.tmp
-linrec_load:
-	perl extract_linrec.pl -m create > linrec.create.sql
-	$(DBAT) -f                         linrec.create.sql
-	$(DBAT) -m csv -s "\t" -r lrindx < linrec_index.txt
-	$(DBAT) -n lrindx
-	$(DBAT) -4 lrindx
-	$(DBAT) -m csv -s "\t" -r lrlink < linrec_link.txt
-	$(DBAT) -n lrlink
-	$(DBAT) -4 lrindx
+#-------
+lrsort:
+	cut -d "	" -f4,5 linrec_index.txt \
+	| uniq > $@.1.tmp
+	sort        -k1g  -k2g  -k3g  -k4g  -k5g  -k6g  -k7g  -k8g  -k9g \
+	     -k10g -k11g -k12g -k13g -k14g -k15g -k16g -k17g -k18g -k19g \
+	     -k20g -k21g -k22g -k23g -k24g -k25g -k26g -k27g -k28g -k29g \
+	     -k30g -k31g -k32g -k33g -k34g -k35g -k36g -k37g -k38g -k39g \
+	     -k40g -k41g -k42g -k43g -k44g -k45g -k46g -k47g -k48g -k49g \
+	     -k30g -k31g -k32g -k33g -k34g -k35g -k36g -k37g -k38g -k39g \
+	     -k40g -k41g -k42g -k43g -k44g -k45g -k46g -k47g -k48g -k49g \
+	     -k50g -k51g -k52g -k53g -k54g -k55g -k56g -k57g -k58g -k59g \
+	     -k60g -k61g -k62g -k63g -k64g -k65g -k66g -k67g -k68g -k69g \
+	     $@.1.tmp > $@.2.tmp
+#sort        -k1n  -k2n  -k3n  -k4n  -k5n  -k6n  -k7n  -k8n  -k9n \
+#     -k10n -k11n -k12n -k13n -k14n -k15n -k16n -k17n -k18n -k19n \
+#     $@.1.tmp > $@.2.tmp
+	# diff -y                         $@.1.tmp $@.2.tmp | less
+	  diff -y --suppress-common-lines $@.1.tmp $@.2.tmp | less
 #-------------
 lr_checks: lrlink_check lrindex_check lrsign_check
 #--	
@@ -703,6 +739,14 @@ lrsign_check: # Differences in lin. rec. signatures
 	WHERE a.aseqno    =  b.aseqno \
 	  AND a.signature <> b.signature \
 	  AND b.mode      =  'link' \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+#---------------------
+lrsigadd_check: # Additional signatures in links
+	$(DBAT) "SELECT DISTINCT a.signature \
+	FROM lrlink a LEFT JOIN lrindx b ON a.signature = b.signature
+	WHERE a.signature NOT IN (SELECT DISTINCT b.signature FROM lrindx b) \
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	

@@ -2,15 +2,19 @@
 
 # Extract linear recurrence signatures (and initial terms) from JSON grep
 # @(#) $Id$
+# 2019-02-25: write also lrindx_spec.txt
 # 2019-02-22: tables 'lrindx' and 'lrlink'
 # 2019-02-19, Georg Fischer
 #
 #:# Usage:
 #:#   perl extract_linrec.pl -m mode infile > outfile
-#:#       -m  index    parse https://oeis.org/w/index.php?title=Index_to_OEIS:_Section_Rec&action=edit
+#:#       -m  index    parse https://oeis.org/w/index.php?title=Index_to_OEIS:_Section_Rec?action=raw
+#:#                    and write lrindx.txt, lrindx_spec.txt
 #:#           mmacall  parse Mathematica calls: LinearRecurrence[{1, 0, 1, -1}, {2, 3, 5, 10}, 50]
 #:#           link     parse links in JSON: "\u003ca href=\"/index/Rec#order_02\"\u003eIndex entries for linear recurrences with constant coefficients\u003c/a\u003e, signature (7,-1)"
-#:#           create   write CREATE SQL for tables 'lrindx' and 'lrlink'
+#:#                    and write lrlink.txt
+#:#           lrindx   write CREATE SQL for table 'lrindx'
+#:#           lrlink   write CREATE SQL for table 'lrlink'
 #:#---------------------------------
 use strict;
 use integer;
@@ -44,24 +48,59 @@ my $signature;
 my @signatures;
 my $initerm = "";
 my @initerms;
-my $style   = "";
+my $spec    = "";
 my $termno  = 0;
 
-if ($mode =~ m{create}) {
+} elsif ($mode =~ m{lrindx}) {
     &create_sql("lrindx");
+} elsif ($mode =~ m{lrlink}) {
     &create_sql("lrlink");
+} elsif ($mode =~ m{index}) {
+	open(SPEC, ">", "lrindx_spec.txt") || die "cannot write lrindx_spec.txt\n";
+    while (<>) {
+        s/\s+\Z//; # chompr
+        $line = $_;
+        if (0) {
+        } elsif ($line =~ m{\>recurrence\,\s+linear\,\s+order\s+(\d*)\:\<}) { # index
+			# >recurrence, linear, order 2:<
+        	$termno = $1;
+        } elsif ($line =~ m{\A\:\s*\(([^\)]+)\)[^\:]*\:(.*)}) { # index
+            $signature  = $1;
+            my $seqlist = $2;
+            my $oldsno = "A000000";
+            # print "======> signature=\"$signature\" seqlist=\"$seqlist\"\n";
+            while (($seqlist =~ s{(A\d{6})}{}) > 0) {
+                $aseqno = $1;
+                if ($aseqno le $oldsno) {
+                	print STDERR "$aseqno <= $oldsno\n";
+                }
+                $oldsno = $aseqno;
+                &output;
+            }
+        }
+    } # while <>
+	close(SPEC);
 } else { # extraction modes
     while (<>) {
         s/\s+\Z//; # chompr
         $line = $_;
         if (0) {
         } elsif ($mode =~ m{index}) {
-            if ($line =~ m{\A\:\s*\(([^\)]+)\)[^\:]*\:(.*)}) { # index
+            if (0) {
+			# >recurrence, linear, order 2:<
+            } elsif ($line =~ m{\>recurrence\,\s+linear\,\s+order\s+(\d*)\:\<}) { # index
+            	$termno = $1;
+            } elsif ($line =~ m{\A\:\s*\(([^\)]+)\)[^\:]*\:(.*)}) { # index
                 $signature  = $1;
                 my $seqlist = $2;
+                my $oldsno = "A000000";
                 # print "======> signature=\"$signature\" seqlist=\"$seqlist\"\n";
                 while (($seqlist =~ s{(A\d{6})}{}) > 0) {
                     $aseqno = $1;
+                    if ($aseqno le $oldsno) {
+                    	print STDERR "$aseqno <= $oldsno\n";
+                    }
+                    $oldsno = $aseqno;
                     &output;
                 }
             }
@@ -97,7 +136,7 @@ if ($mode =~ m{create}) {
                     } grep {
                         m{[\+\-]\d+}
                     } split(/\s+/, $signature);
-                $termno = scalar(@signatures);
+                $termno     = scalar(@signatures);
                 $signature  = join(",", @signatures);
                 @initerms   = split(/\,/, $initerm  );
                 $initerm    = join(",", splice(@initerms, 0, $termno));
@@ -106,20 +145,24 @@ if ($mode =~ m{create}) {
             }
         } # modes
     } # while <>
-} # extraction modes
-#----
+    # extraction modes
+} # switch $mode
+#------------------
 sub output {
-    $signature =~ s{[^\.\,\-\d]}{}g;
+    $signature =~ s{[^\.\,\-\d]}{}g; # remove letters
     @signatures = split(/\,/, $signature);
-    $initerm   =~ s{[^\,\-\d]}{}g;
+    my $lorder  = scalar(@signatures);
+    $initerm   =~ s{[^\,\-\d]}{}g; # remove letters 
     @initerms   = split(/\,/, $initerm  );
+    my $compsig = join(" ", map { s/ //g; $_ } @signatures); # compressed signature
+	#   $compsig =~ s{0 0 0 0 (0 0 ){8,}}{0 0 ... 0 0 }; # destroys the sort order
     print join("\t"
         , $aseqno
         , $mode
-        , $style
-        , scalar(@signatures)   
-        , join(",", @signatures)
-        , scalar(@initerms  )   
+        , $spec
+        , $lorder 
+        , $compsig
+        , $termno   
         , join(",", @initerms  )
         ) . "\n";
 }
@@ -135,7 +178,7 @@ DROP    TABLE  IF EXISTS $tabname;
 CREATE  TABLE            $tabname
     ( aseqno    VARCHAR(10) NOT NULL  -- A322469
     , mode      VARCHAR(8)  NOT NULL  -- index, link, mmacall, xtract
-    , style     VARCHAR(8)    -- for insertions, deletions
+    , spec      VARCHAR(8)    -- for insertions, deletions
     , lorder    INT         NOT NULL  -- order = number of right terms
     , signature VARCHAR(1024) -- comma separated, without "( )"
     , termno    INT                   -- number of initial terms
