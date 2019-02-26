@@ -13,6 +13,7 @@ HEAD=8
 PULL=../pull
 COMMON=../common
 D=0
+G=n
 
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -670,17 +671,89 @@ linrec_mmacall:
 	> $@.tmp || :
 	perl extract_linrec.pl -m mmacall $@.tmp > $@.txt
 #----------------------
-lrindx: lrindx1 lrindx2 lrindx3
+lrindx: lrindx0 lrindx1 lrindx2 lrindx3 lrindx4
+lrindx0:
+	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
 lrindx1:
-	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.wiki
+	sed -e "s/:signature */:/" -e "s/=====/====/g" lrindx.raw \
+	| grep -vE "^ *$$" \
+	> lrindx.wiki
+	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
+	perl extract_linrec.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki > lrindx.tmp
 lrindx2:
-	perl extract_linrec.pl -m index    lrindx.wiki > lrindx.txt # also writes lrindx_spec.txt
+	perl extract_linrec.pl -d $(D) -m lrindx \
+			>  lrindx.create.sql
+	$(DBAT) -f lrindx.create.sql
+	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
+	$(DBAT) -n                lrindx
+	$(DBAT) -4 lrindx
 lrindx3:
-	perl extract_linrec.pl -m lrindx > lrindx.create.sql
-	$(DBAT) -f                         lrindx.create.sql
-	$(DBAT) -m csv -s "\t" -r lrindx < lrindx.txt
+lrindx4:
+
+#-------------------------------------
+lrtest: lrtest0 lrtest1 lrtest2 lrtest3 lrtest4 lrtest4 lrtest5
+lrtest0:
+	rm -f lrindx.spec.tmp
+	perl extract_linrec.pl -d $(D) -m index  -f lrindx.spec.tmp  lrtest.man \
+	          > lrindx.tmp
+	head -n 999 lrindx.tmp lrindx.spec.tmp
+lrtest1:
+lrtest2:
+	perl extract_linrec.pl -d $(D) -m lrindx \
+			>  lrindx.create.sql
+	$(DBAT) -f lrindx.create.sql
+	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
+	$(DBAT) -n                lrindx
+	$(DBAT) -9999 lrindx
+lrtest3:
+	$(DBAT) -x "SELECT lorder, compsig, aseqno, sigorder, signature, comment \
+		FROM lrindx " \
+	| sed -e "s/\r//" \
+	| sort          -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
+	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
+	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
+	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
+	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
+	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
+	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
+	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
+	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) \
+	> lrindx.sort.tmp
+	diff -wy lrindx.tmp lrindx.sort.tmp || :
+lrtest4:
+	perl extract_linrec.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
+	| grep -vE "^ *$$"> lrindx.new.tmp
+	wc -l lrtest.man    lrindx.new.tmp 
+	head -n 999         lrindx.new.tmp 
+lrtest5:
+	diff -wC0  lrtest.man lrindx.new.tmp > lrindx.diff.tmp || :
+	diff -y    lrtest.man lrindx.new.tmp                   || :
+#--------------------------------
+lrindx4:
+	perl extract_linrec.pl -m lrindx >  lrindx.create.sql
+	$(DBAT) -f                          lrindx.create.sql
+	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.txt
 	$(DBAT) -n lrindx
 	$(DBAT) -4 lrindx
+wrindx: wrindx1 wrindx2
+wrindx1:
+   
+	$(DBAT) "SELECT lorder, signature, aseqno, spec \
+		FROM lrindx \
+		ORDER BY lorder, signature, aseqno, spec" \
+	| sed -e "s/\r//" \
+	| sort          -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
+	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
+	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
+	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
+	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
+	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
+	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
+	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
+	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) \
+	> lrindx.merge.tmp
+wrindx2:
+	perl extract_linrec.pl -m wrindx -f lrindx_spec.txt lrindx.merge.tmp > lrindx.merge.txt 
 #-------------------------------	
 linrec_xtract:
 	perl extract_linrec.pl -m xtract  linhrec12.txt > $@.txt

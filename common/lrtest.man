@@ -1,0 +1,20 @@
+__NOTOC__<!-- TOC looks ugly since all contents are in sect. 1.1.x -->
+= Index to [http://oeis.org OEIS]: Section Rec =
+'''This is a special index page, which contains the "recurrence, linear" section of ]'''
+{{Index header}}
+<span id="recLCC"></span>
+===recurrence, linear, constant coefficients,  sequences related to:===
+:Index to sections by order: [ [[Index to OEIS: Section Rec#order_01|1]] | [[Index to OEIS: Section Rec#order_131071|131071]] ]
+====<span id="order 02">recurrence, linear, order 2:</span>====
+:(-4,-1), single: A009116
+:(-4,1), double: A009117, A262710
+:(-2,1): A084633, A110164 (3*(-2)^n except for n<2), A122803 (powers of -2), A123344, A141531, A166577, A176414 (3*(-2)^n except for n=0), A279634, A296775
+:(-1,1), i.e., anti-periodic, also 2-periodic: see [[Index_to_OEIS:_Section_Per#periodic_sequences|Index to 2-periodic sequences]]
+:(1,1), i.e., 1-periodic, i.e., (eventually) constant: see [[Index_to_OEIS:_Section_Con#constant|Index to constant (and eventually constant) sequences]]
+:(10,1): A003953, A011557 (powers of 10), A052268, A055996, A090019, A093136, A093138, A093141, A093143, A096363, A105694, A178501, A196662, A216156, A216164
+====<span id="order 65535">recurrence, linear, order 65535:</span>====
+Remark: The expansion of the inverse of the ''N''-th cyclotomic polynomial is also ''N''-periodic.
+:(0,9,9,9,0,1), i.e., 65535-periodic: A011729 (binary m-expansion of reciprocal of ...).
+====<span id="order 131071">recurrence, linear, order 131071:</span>====
+:(0,...0,1), i.e., 131071-periodic: A011730 (binary m-expansion of reciprocal of ...).
+{{Index header}}
