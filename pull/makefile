@@ -77,7 +77,7 @@ draft1:
 draft_load:
 	grep -E "/draft/" draft.*.html \
 	| sed -e "s/[^A0-9]/ /g" -e "s/  */ /g" \
-	| cut -d" " -f3 | grep -E "^A" | sort \
+	| cut -d" " -f3 | grep -E "^A" | sort | uniq \
 	>     $@.tmp 
 	wc -l $@.tmp
 	cp -v $@.tmp $(COMMON)/

@@ -14,7 +14,15 @@ PULL=../pull
 COMMON=../common
 D=0
 G=n
-
+SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
+	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
+	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
+	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
+	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
+	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
+	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
+	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
+	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) 
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
@@ -621,8 +629,10 @@ history: # Fetch new or recently changed JSONs
 	# make -s bfdir_get
 	make -s history1 DIR=bulk.`date +%Y-%m-%d` 
 history1:
-	make history2 KEYWORD=new     MAX=280
-	make history2 KEYWORD=changed MAX=60
+    # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=280
+    # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=600
+	make history2 KEYWORD=new     MAX=180
+	make history2 KEYWORD=changed MAX=800
 	# make history2 KEYWORD=recycled MAX=3600
 	make hist_split
 history2: # parameter KEYWORD, DIR, MAX
@@ -650,36 +660,110 @@ linhrec1:
 linhrec:
 	cp -v ../../linhrec/dist/linhrec.jar .
 	java -jar linhrec.jar -f $(COMMON)/stripped
-#---------------
+#======================================================
 linrec: lrlink lrindx lrload
 # linrec_link linrec_mmacall linrec_wget linrec_index
 #--
-lrlink:
-	find ajson -iname "*.json" | xargs -l grep -H \
-	"Index entries for linear recurrence" \
-	> $@.tmp || :
-	perl extract_linrec.pl -m link     $@.tmp \
-	| sort | uniq > $@.txt
+lrlink: lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
+lrlink0:
+	find ajson -iname "*.json" | sort | xargs -l grep -H \
+	"Index entries for linear recurrence" > lrlink1.tmp || :
+lrlink2:
+	perl extract_linrec.pl -m link          lrlink1.tmp \
+	| $(SORTALLN) \
+	| uniq \
+	| grep -vE "01174[05]" \
+	> lrlink2.tmp
+	wc -l lrlink*.tmp
+lrlink3:
 	perl extract_linrec.pl -m lrlink > lrlink.create.sql
 	$(DBAT) -f                         lrlink.create.sql
-	$(DBAT) -m csv -s "\t" -r lrlink < lrlink.txt
+	$(DBAT) -m csv -s "\t" -r lrlink < lrlink2.tmp
 	$(DBAT) -n lrlink
 	$(DBAT) -4 lrlink
-linrec_mmacall:
+#--
+lrlink_patch:
+	$(DBAT) -n lrlink
+	$(DBAT) -v "DELETE FROM lrlink where lorder <> 88888888 AND lorder >= 2800;"
+	$(DBAT) -v "UPDATE lrlink SET lorder = sigorder WHERE lorder = 88888888;"
+	$(DBAT) -n lrlink
+#----
+lrlink_check: # Lin. rec. link, but no index entry
+	$(DBAT) "SELECT 'A' || seqno, lorder, compsig, sigorder, signature, '#' \
+	FROM lrlink \
+	WHERE seqno NOT IN (SELECT seqno FROM lrindx) \
+	  AND lorder < 2800 \
+	ORDER by 1" \
+	| sed -e "s/\r//" \
+	>       $@.txt
+	head -4 $@.txt	
+	wc -l   $@.txt
+#----
+lrlord_check: # Compare orders in lin. rec. links
+	# Link was to wrong order.
+	$(DBAT) "SELECT 'A' || seqno AS aseqno, lorder, sigorder, signature \
+	FROM lrlink \
+	WHERE lorder    <> sigorder \
+	  AND sigorder  <> 0 \
+	  AND signature <> '88888888' \
+	ORDER by 1" \
+	| sed -e "s/\r//" \
+	>       $@.txt
+	head -4 $@.txt	
+	wc -l   $@.txt
+lrlord_patch:
+	$(DBAT) -v "UPDATE lrlink SET sigorder = lorder WHERE seqno = '322829';"
+	make seq INFO=lrlord_check.man
+	$(DBAT) -v "UPDATE lrlink SET lorder = sigorder WHERE 'A' || seqno IN \
+		(SELECT aseqno FROM seq);"
+lriord_check: # Compare orders in lin. rec. index
+	$(DBAT) "SELECT 'A' || seqno AS aseqno, lorder, sigorder, compsig, signature \
+	FROM lrindx \
+	WHERE lorder <> sigorder \
+	ORDER by 1" \
+	| sed -e "s/\r//" \
+	>       $@.txt
+	head -4 $@.txt	
+	wc -l   $@.txt
+#----
+lrlink_insert:
+	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, '#' \
+	FROM lrlink \
+	WHERE seqno NOT IN (SELECT seqno FROM lrindx) \
+	  AND lorder < 2800 \
+	ORDER by 1" \
+	| sed -e "s/\r//" \
+	>       $@.txt
+	head -4 $@.txt	
+	wc -l   $@.txt
+	#
+	$(DBAT) -n lrindx
+	$(DBAT) -m csv -s "\t" -r lrindx < $@.txt
+	$(DBAT) -n lrindx
+#-------------
+lrlink_mmacall:
 	find ajson -iname "*.json" | xargs -l grep -iH \
 	"LinearRecurrence" \
-	> $@.tmp || :
-	perl extract_linrec.pl -m mmacall $@.tmp > $@.txt
+	> $@.1.tmp || :
+	perl extract_linrec.pl -m mmacall $@.tmp > $@.1.tmp
+#-----
+lrperiod:
+	find ajson -iname "*.json" | sort | xargs -l grep -H \
+	"Index entries for periodic sequences with large period" \
+	> $@.tmp
 #----------------------
-lrindx: lrindx0 lrindx1 lrindx2 lrindx3 lrindx4
+lrindx: lrindx1 lrindx2 lrindx3 lrindx4 lrindx5
 lrindx0:
 	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
 lrindx1:
-	sed -e "s/:signature */:/" -e "s/=====/====/g" lrindx.raw \
-	| grep -vE "^ *$$" \
+	# sed -e "s/:signature */:/" -e "s/=====/====/g" lrindx.raw \
+	# | grep -vE "^ *$$" \
+	cat lrindx.raw \
 	> lrindx.wiki
+	echo >> lrindx.wiki # append linefeed
 	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
-	perl extract_linrec.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki > lrindx.tmp
+	perl extract_linrec.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki \
+			> lrindx.tmp
 lrindx2:
 	perl extract_linrec.pl -d $(D) -m lrindx \
 			>  lrindx.create.sql
@@ -688,72 +772,34 @@ lrindx2:
 	$(DBAT) -n                lrindx
 	$(DBAT) -4 lrindx
 lrindx3:
-lrindx4:
-
-#-------------------------------------
-lrtest: lrtest0 lrtest1 lrtest2 lrtest3 lrtest4 lrtest4 lrtest5
-lrtest0:
-	rm -f lrindx.spec.tmp
-	perl extract_linrec.pl -d $(D) -m index  -f lrindx.spec.tmp  lrtest.man \
-	          > lrindx.tmp
-	head -n 999 lrindx.tmp lrindx.spec.tmp
-lrtest1:
-lrtest2:
-	perl extract_linrec.pl -d $(D) -m lrindx \
-			>  lrindx.create.sql
-	$(DBAT) -f lrindx.create.sql
-	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
-	$(DBAT) -n                lrindx
-	$(DBAT) -9999 lrindx
-lrtest3:
-	$(DBAT) -x "SELECT lorder, compsig, aseqno, sigorder, signature, comment \
+	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, comment \
 		FROM lrindx " \
 	| sed -e "s/\r//" \
-	| sort          -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
-	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
-	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
-	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
-	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
-	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
-	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
-	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
-	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) \
+	| $(SORTALLN) \
+	| perl -ne "s/\'\'/\'/g; print;" \
 	> lrindx.sort.tmp
-	diff -wy lrindx.tmp lrindx.sort.tmp || :
-lrtest4:
-	perl extract_linrec.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
-	| grep -vE "^ *$$"> lrindx.new.tmp
-	wc -l lrtest.man    lrindx.new.tmp 
-	head -n 999         lrindx.new.tmp 
-lrtest5:
-	diff -wC0  lrtest.man lrindx.new.tmp > lrindx.diff.tmp || :
-	diff -y    lrtest.man lrindx.new.tmp                   || :
-#--------------------------------
+	diff -wy --suppress-common-lines lrindx.tmp lrindx.sort.tmp || : 
+	diff -C0 -w                      lrindx.tmp lrindx.sort.tmp || :
 lrindx4:
-	perl extract_linrec.pl -m lrindx >  lrindx.create.sql
-	$(DBAT) -f                          lrindx.create.sql
-	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.txt
-	$(DBAT) -n lrindx
-	$(DBAT) -4 lrindx
-wrindx: wrindx1 wrindx2
-wrindx1:
-   
-	$(DBAT) "SELECT lorder, signature, aseqno, spec \
-		FROM lrindx \
-		ORDER BY lorder, signature, aseqno, spec" \
-	| sed -e "s/\r//" \
-	| sort          -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
-	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
-	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
-	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
-	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
-	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
-	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
-	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
-	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) \
-	> lrindx.merge.tmp
-wrindx2:
-	perl extract_linrec.pl -m wrindx -f lrindx_spec.txt lrindx.merge.tmp > lrindx.merge.txt 
+	perl extract_linrec.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
+	> lrindx.new.tmp
+	# | grep -vE "^ *$$"
+	tail -2 lrindx.new.tmp | hexdump -C
+	wc -l lrindx.new.tmp 
+lrindx5:
+	wc -l      lrindx.wiki lrindx.new.tmp 
+	diff -C0                          lrindx.wiki lrindx.new.tmp > lrindx.diffc.tmp || :
+	diff -wy --suppress-common-lines  lrindx.wiki lrindx.new.tmp > lrindx.diffy.tmp || :
+#-------------------------------------
+lrtest: lrtest0 lrtest1 lrindx2 lrindx3 lrindx4 lrtest5
+lrtest0:
+lrtest1:
+	perl extract_linrec.pl -d $(D) -m index  -f lrindx.spec.tmp  lrtest.man \
+	          > lrindx.tmp
+lrtest5:
+	head -n 999         lrindx.new.tmp 
+	diff -C2   lrtest.man lrindx.new.tmp > lrindx.diffc.tmp || :
+	diff -wy   lrtest.man lrindx.new.tmp                    || :
 #-------------------------------	
 linrec_xtract:
 	perl extract_linrec.pl -m xtract  linhrec12.txt > $@.txt
@@ -761,57 +807,31 @@ linrec_eval:
 	cat linrec_*.txt \
 	| gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4}' \
 	| sort | uniq \
-	| grep -v "A113300	mmacall	3	1,1,1" \
+	| grep -v "113300	mmacall	3	1,1,1" \
 	>     all_linrec.tmp
 	wc -l all_linrec.tmp
-#-------
-lrsort:
-	cut -d "	" -f4,5 linrec_index.txt \
-	| uniq > $@.1.tmp
-	sort        -k1g  -k2g  -k3g  -k4g  -k5g  -k6g  -k7g  -k8g  -k9g \
-	     -k10g -k11g -k12g -k13g -k14g -k15g -k16g -k17g -k18g -k19g \
-	     -k20g -k21g -k22g -k23g -k24g -k25g -k26g -k27g -k28g -k29g \
-	     -k30g -k31g -k32g -k33g -k34g -k35g -k36g -k37g -k38g -k39g \
-	     -k40g -k41g -k42g -k43g -k44g -k45g -k46g -k47g -k48g -k49g \
-	     -k30g -k31g -k32g -k33g -k34g -k35g -k36g -k37g -k38g -k39g \
-	     -k40g -k41g -k42g -k43g -k44g -k45g -k46g -k47g -k48g -k49g \
-	     -k50g -k51g -k52g -k53g -k54g -k55g -k56g -k57g -k58g -k59g \
-	     -k60g -k61g -k62g -k63g -k64g -k65g -k66g -k67g -k68g -k69g \
-	     $@.1.tmp > $@.2.tmp
-#sort        -k1n  -k2n  -k3n  -k4n  -k5n  -k6n  -k7n  -k8n  -k9n \
-#     -k10n -k11n -k12n -k13n -k14n -k15n -k16n -k17n -k18n -k19n \
-#     $@.1.tmp > $@.2.tmp
-	# diff -y                         $@.1.tmp $@.2.tmp | less
-	  diff -y --suppress-common-lines $@.1.tmp $@.2.tmp | less
 #-------------
-lr_checks: lrlink_check lrindex_check lrsign_check
+lr_checks: lrlink_check lrindex_check lriord_check lrlord_check
+# lrsign_check 
 #--	
-lrlink_check: # Lin. rec. link, but no index entry
-	$(DBAT) "SELECT a.aseqno, a.lorder, a.signature \
-	FROM lrlink a \
-	WHERE a.aseqno NOT IN (SELECT aseqno FROM lrindx) \
-	ORDER by 1" \
-	>     $@.txt	
-	wc -l $@.txt
 #--	
 lrindex_check: # Lin. rec. in index, but no link -&gt; delete index entry
-	$(DBAT) "SELECT a.aseqno, a.lorder \
-		, a.signature as Index_Signature \
+	$(DBAT) "SELECT a.seqno, a.lorder, a.signature as Index_Signature \
 	FROM lrindx a \
-	WHERE a.aseqno NOT IN (SELECT aseqno FROM lrlink) \
-	  AND (SELECT s.keyword FROM asinfo s WHERE s.aseqno = a.aseqno) NOT LIKE '%dead%' \
+	WHERE a.seqno NOT IN (SELECT seqno FROM lrlink) \
+	  AND (SELECT s.keyword FROM asinfo s WHERE s.aseqno = 'A' || a.seqno) NOT LIKE '%dead%' \
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	
 #--	
 lrsign_check: # Differences in lin. rec. signatures
-	$(DBAT) "SELECT a.aseqno, a.lorder \
+	$(DBAT) "SELECT 'A' || a.seqno, a.lorder \
+	    , b.mode \
 		, a.signature AS Index_Signature \
 		, b.signature AS Link_Signature \
 	FROM lrindx a, lrlink b \
-	WHERE a.aseqno    =  b.aseqno \
-	  AND a.signature <> b.signature \
-	  AND b.mode      =  'link' \
+	WHERE a.seqno     =  b.seqno \
+	  AND a.compsig   <> b.compsig \
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	

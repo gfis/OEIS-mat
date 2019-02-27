@@ -69,10 +69,12 @@ my $key;
 my $value;
 my $state;
 my $comment;
-my $void = "++++";
-my $void_sig = "-999999";
+my $void_ord = "88888888";
+my $void_sig = "88888888";
 my $void_sno = "A000000";
 my %seqs = ();
+my $trunc_len = 240;
+my $prefix = ""; # for comment before signature
 
 if (0) { # switch for $mode
 
@@ -86,15 +88,15 @@ if (0) { # switch for $mode
     open(SPEC, "<", $spec_file) || die "cannot read \"$spec_file\"\n";
     print &read_spec() . "\n"; # print header
     my $separator = ": " ;
-    my $old_line  = join("\t", (-1, $void, $void, $void, $void)); # 5 fields in split below
+    my $old_line  = join("\t", (-1, $void_sig, $void_sno, 0, $void_sig, "#")); # 5 fields in split below
     my $new_line;
     %seqs = ();
     while (<>) {
         $new_line = $_;
         $new_line =~ s/\s+\Z//; # chompr
         if ($new_line !~ m{\A\s*\Z}) { # not blank
-            $new_line =~ s{\'\'}{\'}g;
-            # SELECT lorder,  signature,  aseqno, signorder comment FROM lrindx
+            # $new_line =~ s{\'\'}{\'}g;
+            # SELECT lorder,  compsig,  aseqno, sigorder, signature, comment FROM lrindx
             if ($debug > 0) {
                 print "\n";
                 print "# old: $old_line\n";
@@ -102,33 +104,39 @@ if (0) { # switch for $mode
             }
             my ($oord, $ocos, $osno, $osor, $osig, $ocom) = split(/\t/, $old_line);
             my ($nord, $ncos, $nsno, $nsor, $nsig, $ncom) = split(/\t/, $new_line);
-            $ocom = substr($ocom, 1); # must shield it because Dbat trims
+            $ocom = substr($ocom, 1); # remove shielding "#"
             $ncom = substr($ncom, 1);
             if (0) {
             } elsif ($oord != $nord) { # new order
-                if ($nord != 999999) { 
+                if ($nord != $void_ord) { 
                     &write_seqs("");
-                    print "====<span id=\"order " . sprintf("%02d", $nord) 
-                    	. "\"\>recurrence, linear, order $nord:</span>====\n";
+                    print "\n====<span id=\"order " . sprintf("%02d", $nord) 
+                        . "\"\>recurrence, linear, order $nord:</span>====";
                     if ($ncom ne "") {
-                        print "$ncom\n";
+                        print "\n$ncom\n";
                     }
-                } # != 999999 
-            } elsif ($ocos ne $ncos) { # new signature
-            	if (scalar(%seqs) > 0) {
-	                &write_seqs("");
-	            } else {
-	            	print "\n";
-	            }
-                # print ":(" . join(",", split(/ /, $nsig)) . ")$ncom";
+                } # != $void_ord
+            } elsif (($ocos ne $ncos)) { # new signature
+                if (scalar(%seqs) > 0) {
+                    &write_seqs("");
+                } else {
+                    print "\n";
+                }
+                # print STDERR "ncom=\"$ncom\"\n" if ($debug > 0);
+                my $sharp_pos = index($ncom, "?");
+                if ($sharp_pos > 0) {
+                    print substr($ncom, $sharp_pos + 1) . "\n";  # POSTMATCH
+                    $ncom =~ s{\s*\?.*}{}; #  substr($ncom, 0, $sharp_pos - 1); # PREMATCH; the "-1" is empirical
+                }
                 print ":($nsig)$ncom";
-            } elsif ($nsno ne $void) { # new aseqno
+            } elsif ($nsno ne $void_sno) { # new aseqno
                 $seqs{"A$nsno"} = $ncom;
             }
             $old_line = $new_line;
         } # not blank
     } # while <>
     &write_seqs("");
+    print "\n"; # last line
     print &read_spec() . "\n"; # print trailer
     close(SPEC);
     # wrindx
@@ -137,9 +145,10 @@ if (0) { # switch for $mode
     open(SPEC, ">", $spec_file) || die "cannot write \"$spec_file\"\n";
     $buffer        = "";
     $state         = 0; # in header
+    $prefix        = ""; # passed through
     my $old_line   = "";
     my $new_line;
-    $lorder        = $void;
+    $lorder        = -1;
     while (<>) {
         $new_line  = $_;
         $new_line  =~ s/\s+\Z//; # chompr
@@ -147,11 +156,11 @@ if (0) { # switch for $mode
         $old_line  =~ s/\t/ /g; # precaution for split in 'wrindx'
         # $lorder is passed through
         $aseqno    = $void_sno;
-        $signature = $void_sig;
+        $signature = - $void_sig;
         $comment   = "";
         if (0) {
         } elsif ($state == 9) {
-        	$buffer .= $old_line;
+            $buffer .= $old_line;
         } elsif ($old_line =~ m{\A\s*\Z}) { 
             # ignore blank line
         } elsif ($old_line =~ m{\>recurrence\,\s*linear\,\s*order\s+(\d+)\:?\<}) { # order in index
@@ -162,42 +171,57 @@ if (0) { # switch for $mode
                 $buffer = "";
                 $state = 1; # in order
             }
-            if ($new_line =~ m{\A[^\:\(\d]}) { # no signature in following line
+            if (0 and ($new_line =~ m{\A[^\:\(\d]})) { # no signature in following line
                 $comment = $new_line;
                 $new_line = ""; # will be ignored
             }
             &index_output();
-        } elsif ($old_line =~ m{\A\:\s*\(([^\)]+)\)}) { # signature in index
+        } elsif ($old_line =~ m{\A\:\s*\(([^\)]*)\)}) { # signature in index
+            $old_line =~ s{\((total\s+of\s+\d+[^\)]+)\)}{\[$1\]}; # shield, translate () into []
+            $old_line =~ m{\A\:\s*\(([^\)]*)\)}; # whole ()
             $signature  = $1;
-            $old_line =~ s{\A\:\s*\(([^\)]+)\)\s*}{}; # remove signature
+            $signature  =~ tr{\[\]}{\(\)}; # round () again
+            $old_line =~ s{\A\:\s*\(([^\)]*)\)\s*}{}; # remove whole () signature
             $comment = "";
             if ($old_line =~ m{(A\d{6})}) { # something before the first aseqno
                 $comment  = $`; # PREMATCH;
                 $old_line = substr($old_line, length($comment)); # remove prefix before the ":"
             } else {
-            	$comment  = $old_line;
+                $comment  = $old_line;
                 $old_line = "";
             }
+            if (length($prefix) > 0) {
+                $comment .= "?" . $prefix;
+                $prefix = "";
+            }
             &index_output();
-            my $old_seqno = "A000000";
+            my $old_seqno = $void_sno;
             if ($debug > 0) {
                 print "split \"$old_line\"\n";
             }
-            my @parts = split(/\,\s*/, $old_line); # 
+            my @parts = split(/\,\s*/, $old_line); 
+            %seqs = ();
             my $ipart = 0;
             while ($ipart < scalar(@parts)) {
                 my $part = $parts[$ipart];
                 if ($part =~ m{\A(A\d+)(.*)}) { # 
-                    $aseqno   = $1; 
-                    $comment  = $2;
-                    if ($old_seqno ge $aseqno) { # non-increasing
-                        print STDERR "# non-increasing: $old_seqno ge $aseqno\n";
+                    my $ano  = $1; 
+                    my $cmt  = $2;
+                    if ($old_seqno ge $ano) { # non-increasing
+                        print STDERR "# non-increasing: $old_seqno ge $ano\n";
                     }
-                    $old_seqno = $aseqno;
-                    &index_output();
-                } # is separator
+                    $old_seqno  = $ano;
+                    $seqs{$ano} = $cmt;
+                } else { # no A-number, append comment to previous
+                    $seqs{$old_seqno} .= ", $part";
+                } # append
                 $ipart ++;
             } # while $ipart
+            foreach my $key (sort(keys(%seqs))) {
+                $aseqno  = $key;
+                $comment = $seqs{$key};
+                &index_output();
+            } # foreach
         } elsif ($old_line =~ m[\{\{Index header\}\}]) {
             if ($state == 0) {
                 $buffer .= "$old_line\n";
@@ -206,12 +230,20 @@ if (0) { # switch for $mode
                 $state = 9;
             }
         } elsif ($state == 0) {
-        	$buffer .= "$old_line\n";
+            $buffer .= "$old_line\n";
+        } elsif ($old_line =~ m{\A\s*\Z}) {
+            # ignore blank line
+            $prefix = "";
+        } else { # <span id="fibo-16"></span>
+            if (length($prefix) > 0) {
+                $prefix .= "\n";
+            }
+            $prefix .= $old_line;
         }
         $old_line = $new_line;
     } # while <>
-    ($lorder, $signature, $aseqno, $sigorder, $comment) 
-        = (999999, $void, $void, 0, "will be ignored"); 
+    ($lorder, $signature, $aseqno, $sigorder, $signature, $comment) 
+        = ($void_ord, $void_sig, $void_sno, 0, $void_sig, "will be ignored"); 
     &index_output(); # this line is > all $lorder, and will be ignored
     $buffer .= $old_line;
     &write_spec($buffer); # trailer
@@ -224,15 +256,20 @@ if (0) { # switch for $mode
         if (0) {
         } elsif ($mode =~ m{link|mmacall}) {
             if ($line =~ m{(A\d{6})\.json\:}) { # link, mmacall
-                $aseqno   = $1;
-                $initerm  = "";
-                $termno   = 0;
+                $aseqno    = $1;
+                $initerm   = "";
+                $termno    = 0;
+                $signature = $void_sig;
+                $lorder    = $void_ord;
                 if (0) {
                 } elsif ($mode eq "link") {
                     if ($line =~ m{signature\s*\(([^\)]+)}i) {
                         $signature = $1;
-                        &output;
                     }
+                    if ($line =~ m{\#order\D*(\d+)}) {
+                        $lorder    = $1;
+                    }
+                    &output;
                 } elsif ($mode eq "mmacall") {
                     if ($line =~ m{LinearRecurrence\s*\[\s*\{([^\}]+)\}\s*\,\s*\{([^\}]+)\}\s*\,\s*(\d+)\s*\]}i) {
                         $signature = $1;
@@ -294,20 +331,36 @@ sub write_seqs {
         $separator = ",";
     } # foreach
     if (scalar(%seqs) > 0) {
-    	print "\n";
+        print "\n";
     }
     %seqs = ();
 } # write_seqs
 #------------------
-sub index_output {
-    my $compsig   = $signature;
+sub compress_signature {
+    my ($signature) = @_;
     my $sigorder  = 0;
-    if ($compsig ne $void) {
+    my $compsig   = $signature;
+    if ($compsig ne $void_sig) {
+        if ($compsig =~ m{\(total of (\d+)[^\)]*\)}) {
+            my $total = $1 - 1;
+            $compsig =~ s{\,\.\.\.\(total of (\d+)[^\)]*\)\.*}{',0'x$total}e;
+            # :(1,0,...(total of 27 '0's)...,0,-1,1,0,...): A016126 (1/&Phi;<sub>2117</sub>, also [[#order 2117|2117-periodic]]).
+        }
         $compsig  =~ s{[^\.\,\-\d]}{}g; # remove letters and spaces
         my @compsigs  = split(/\,/, $compsig);
         $sigorder = scalar(@compsigs);
-        $compsig  = substr(join(" ", @compsigs), 0, 240); # compressed and abbreviated signature
+        $compsig  = substr(join(" ", @compsigs), 0, $trunc_len); # compressed and abbreviated signature
+        if (length($compsig) == 0) {
+            $compsig  = $void_sig;
+            $sigorder = 1;
+        }
     } # ne $void
+    return ($sigorder, $compsig);
+} # compress_signature;
+#------------------
+sub index_output {
+    # global $lorder
+    my ($sigorder, $compsig) = &compress_signature($signature);
     print join("\t"
         , $lorder
         , $compsig
@@ -319,20 +372,17 @@ sub index_output {
 } # index_output
 #----------
 sub output {
-    my $compsig  = $signature;
-    $compsig     =~ s{[^\.\,\-\d]}{}g; # remove letters
-    my @signatures  = split(/\,/, $signature);
-    my $lorder   = scalar(@signatures);
     $initerm     =~ s{[^\,\-\d]}{}g; # remove letters
     @initerms    = split(/\,/, $initerm  );
-    $compsig     = join(" ", map { s/ //g; $_ } @signatures); # compressed signature
-    #   $compsig =~ s{0 0 0 0 (0 0 ){8,}}{0 0 ... 0 0 }; # destroys the sort order
+    my ($sigorder, $compsig) = &compress_signature($signature);
     print join("\t"
-        , $aseqno
+        , $lorder + 0
+        , $compsig
+        , substr($aseqno, 1) # make it numeric
+        , $sigorder
+        , $signature
         , $mode
         , $spec
-        , $lorder
-        , $compsig
         , $termno
         , join(",", @initerms  )
         ) . "\n";
@@ -341,6 +391,28 @@ sub output {
 sub create_sql {
     my ($tabname) = @_;
     if (0) {
+    } elsif ($tabname eq "lrlink") {
+        print <<"GFis";
+--  OEIS-mat: $tabname - working table for index of linear recurrences
+--  \@(#) \$Id\$
+--  $timestamp, generated by extract_linrec.pl - DO NOT EDIT HERE!
+--
+DROP    TABLE  IF EXISTS $tabname;
+CREATE  TABLE            $tabname
+    ( lorder    INT         NOT NULL  -- order = number of right terms
+    , compsig   VARCHAR($trunc_len)          -- blank separated, truncated, without "( )"
+    , seqno     VARCHAR(8)  NOT NULL  -- 322469 without 'A'
+    , sigorder  INT                   -- number of signature elements
+    , signature VARCHAR(1020)         -- comma separated, without "( )"
+    , mode      VARCHAR(8)
+    , spec      VARCHAR(16)
+    , termno    INT                   -- number of initial terms
+    , initerms  VARCHAR(1024) -- dito
+    , PRIMARY KEY(lorder, compsig, seqno, sigorder, mode)
+    );
+COMMIT;
+GFis
+#------------------
     } elsif ($tabname eq "lrindx") {
         print <<"GFis";
 --  OEIS-mat: $tabname - working table for index of linear recurrences
@@ -350,38 +422,18 @@ sub create_sql {
 DROP    TABLE  IF EXISTS $tabname;
 CREATE  TABLE            $tabname
     ( lorder    INT         NOT NULL  -- order = number of right terms
-    , compsig   VARCHAR(240)          -- blank separated, truncated, without "( )"
-    , aseqno    VARCHAR(10) NOT NULL  -- A322469
+    , compsig   VARCHAR($trunc_len)          -- blank separated, truncated, without "( )"
+    , seqno     VARCHAR(8)  NOT NULL  -- 322469 without 'A'
     , sigorder  INT                   -- number of signature elements
     , signature VARCHAR(1020)         -- comma separated, without "( )"
-    , comment   VARCHAR(512)          -- behind isgnature, aseqno
-    , PRIMARY KEY(lorder, compsig, aseqno)
-    );
-COMMIT;
-GFis
-    } elsif ($tabname eq "lrlink") {
-        print <<"GFis";
---  OEIS-mat: $tabname - working table for index of linear recurrences
---  \@(#) \$Id\$
---  $timestamp, generated by extract_linrec.pl - DO NOT EDIT HERE!
---
-DROP    TABLE  IF EXISTS $tabname;
-CREATE  TABLE            $tabname
-    ( aseqno    VARCHAR(10) NOT NULL  -- A322469
-    , mode      VARCHAR(8)  NOT NULL  -- index, link, mmacall, xtract
-    , spec      VARCHAR(8)    -- for insertions, deletions
-    , lorder    INT         NOT NULL  -- order = number of right terms
-    , signature VARCHAR(1024) -- comma separated, without "( )"
-    , termno    INT                   -- number of initial terms
-    , initerms  VARCHAR(1024) -- dito
-    , PRIMARY KEY(aseqno, mode, lorder)
+    , comment   VARCHAR(1020)         -- behind isgnature, aseqno
+    , PRIMARY KEY(lorder, compsig, seqno, sigorder)
     );
 COMMIT;
 GFis
     }
 } # create_sql
-
-#--------------------
+#-------------------------------------------------
 __DATA__
 my $rest = <<GFis";
 link

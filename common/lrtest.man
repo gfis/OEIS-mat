@@ -1,10 +1,12 @@
-__NOTOC__<!-- TOC looks ugly since all contents are in sect. 1.1.x -->
+__NOTOC__<!-- TOC looks ugly since all contents are in sect. 1.1.x äöüÄÖÜ -->
 = Index to [http://oeis.org OEIS]: Section Rec =
 '''This is a special index page, which contains the "recurrence, linear" section of ]'''
 {{Index header}}
 <span id="recLCC"></span>
+
 ===recurrence, linear, constant coefficients,  sequences related to:===
 :Index to sections by order: [ [[Index to OEIS: Section Rec#order_01|1]] | [[Index to OEIS: Section Rec#order_131071|131071]] ]
+
 ====<span id="order 02">recurrence, linear, order 2:</span>====
 :(-4,-1), single: A009116
 :(-4,1), double: A009117, A262710
@@ -12,9 +14,40 @@ __NOTOC__<!-- TOC looks ugly since all contents are in sect. 1.1.x -->
 :(-1,1), i.e., anti-periodic, also 2-periodic: see [[Index_to_OEIS:_Section_Per#periodic_sequences|Index to 2-periodic sequences]]
 :(1,1), i.e., 1-periodic, i.e., (eventually) constant: see [[Index_to_OEIS:_Section_Con#constant|Index to constant (and eventually constant) sequences]]
 :(10,1): A003953, A011557 (powers of 10), A052268, A055996, A090019, A093136, A093138, A093141, A093143, A096363, A105694, A178501, A196662, A216156, A216164
-====<span id="order 65535">recurrence, linear, order 65535:</span>====
+
+====<span id="order 331">recurrence, linear, order 331:</span>====
+:(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,-1): A167881
+<span id="fibo-16"></span>
+:(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), also see [[Index to OEIS: Section Fi#Fibonacci|Fibonacci numbers, generalized]]: A249169
+
+====<span id="order 332">recurrence, linear, order 332:</span>====
+:(): A171717, A181818
+
+====<span id="order 333">recurrence, linear, order 333:</span>====
+:(): A191919 (triple 19), A202020
+
+====<span id="order 506">recurrence, linear, order 506:</span>====
+:(0,...,0,1), i.e., 506-periodic: A014515 (inverse of cyclotomic polynomial &Phi;<sub>506</sub>), also satisfies a [[#order 220|recurrence relation of order 220]]
+
+====<span id="order 1980">recurrence, linear, order 1980:</span>====
+:(-1,-1,0,0,0,0,0,0,0,0,0,0,1,-1,-1,0,0,0,0,0,0,0,0,0,0,1,-1,-1,0,0,...): A016176 (1/&Phi;<sub>2167</sub>).
+:(1,0,...(total of 29 '0's)...,0,-1,1,0,...etc...): A016086 (1/&Phi;<sub>2077</sub>), A016087
+
+====<span id="order 1992">recurrence, linear, order 1992:</span>====
+:(1,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,...):  A016180 (1/&Phi;<sub>2171</sub>, also [[#order 2171|2171-periodic]]).
+
+====<span id="order 2016">recurrence, linear, order 2016:</span>====
 Remark: The expansion of the inverse of the ''N''-th cyclotomic polynomial is also ''N''-periodic.
+:(1,0,...(total of 15 '0's)...,0,-1,1,0,...): A016168 (1/&Phi;<sub>2159</sub>, also [[#order 2159|2159-periodic]]).
+:(1,0,...(total of 17 '0's)...,0,-1,1,0,...): A016156 (1/&Phi;<sub>2147</sub>, also [[#order 2147|2147-periodic]]).
+:(1,0,...(total of 27 '0's)...,0,-1,1,0,...): A016126 (1/&Phi;<sub>2117</sub>, also [[#order 2117|2117-periodic]]).
+
+====<span id="order 65535">recurrence, linear, order 65535:</span>====
+Remark: A 2nd signature prefix.
+:(0,0,...(total of 30 ''0''s), 1): A212122 (comment ...).
 :(0,9,9,9,0,1), i.e., 65535-periodic: A011729 (binary m-expansion of reciprocal of ...).
+
 ====<span id="order 131071">recurrence, linear, order 131071:</span>====
 :(0,...0,1), i.e., 131071-periodic: A011730 (binary m-expansion of reciprocal of ...).
+
 {{Index header}}
