@@ -726,8 +726,9 @@ lriord_check: # Compare orders in lin. rec. index
 	head -4 $@.txt	
 	wc -l   $@.txt
 #----
-lrlink_insert:
-	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, '#' \
+lrlink_insert: lrlink_insert1 lrlink_insert2
+lrlink_insert1:
+	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, '#<strong>' \
 	FROM lrlink \
 	WHERE seqno NOT IN (SELECT seqno FROM lrindx) \
 	  AND lorder < 2800 \
@@ -736,9 +737,9 @@ lrlink_insert:
 	>       $@.txt
 	head -4 $@.txt	
 	wc -l   $@.txt
-	#
+lrlink_insert2:
 	$(DBAT) -n lrindx
-	$(DBAT) -m csv -s "\t" -r lrindx < $@.txt
+	$(DBAT) -m csv -s "\t" -r lrindx < lrlink_insert1.txt
 	$(DBAT) -n lrindx
 #-------------
 lrlink_mmacall:
@@ -778,8 +779,8 @@ lrindx3:
 	| $(SORTALLN) \
 	| perl -ne "s/\'\'/\'/g; print;" \
 	> lrindx.sort.tmp
-	diff -wy --suppress-common-lines lrindx.tmp lrindx.sort.tmp || : 
-	diff -C0 -w                      lrindx.tmp lrindx.sort.tmp || :
+	# diff -wy --suppress-common-lines lrindx.tmp lrindx.sort.tmp || :  
+	# diff -C0 -w                      lrindx.tmp lrindx.sort.tmp || :
 lrindx4:
 	perl extract_linrec.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
 	> lrindx.new.tmp

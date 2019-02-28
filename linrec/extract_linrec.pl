@@ -128,7 +128,14 @@ if (0) { # switch for $mode
                     print substr($ncom, $sharp_pos + 1) . "\n";  # POSTMATCH
                     $ncom =~ s{\s*\?.*}{}; #  substr($ncom, 0, $sharp_pos - 1); # PREMATCH; the "-1" is empirical
                 }
-                print ":($nsig)$ncom";
+                if ($ncom =~ m{\<strong\>}) {
+                	print ":<strong>($nsig)</strong>:";
+	                if ($nsno ne $void_sno) { # new aseqno
+    	         	   $seqs{"A$nsno"} = $ncom;
+        	    	}
+            	} else {
+                	print ":($nsig)$ncom";
+                }
             } elsif ($nsno ne $void_sno) { # new aseqno
                 $seqs{"A$nsno"} = $ncom;
             }
@@ -327,7 +334,12 @@ sub write_spec {
 sub write_seqs {
     my ($separator) = @_;
     foreach my $key (sort(keys(%seqs))) {
-        print "$separator $key$seqs{$key}"; # remove shield
+    	my $comt = $seqs{$key};
+        if ($comt =~ m{\<strong\>}) {
+	        print "$separator <strong>$key</strong>"; 
+       	} else {
+	        print "$separator $key$comt"; # remove shield
+        }
         $separator = ",";
     } # foreach
     if (scalar(%seqs) > 0) {
@@ -491,3 +503,12 @@ __NOTOC__<!-- TOC looks ugly since all contents are in sect. 1.1.x - It would be
 ====<span id="order 131071">recurrence, linear, order 131071:</span>====
 :(0,...0,1), i.e., 131071-periodic: A011730 (binary m-expansion of reciprocal of ...).
 {{Index header}}
+
+(88888888): A109821
+(88888888): A110553
+(88888888): A070290
+(88888888): A070291, A174650
+
+LinearRecurrence[{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1}, {10, 5, 30, 10, 2, 15, 70, 20, 90, 1, 110, 30, 130, 35, 6, 40, 170, 45, 190, 2}, 60]
+
+LinearRecurrence[{14, -91, 364, -1001, 2002, -3003, 3432, -3003, 2002, -1001, 364, -91, 14, -1},{3004, 19078, 88938, 335612, 1084387, 3109060, 8104089, 19539904, 44141520, 94346102, 192252586, 375787005, 708083995,1291443529},30]
