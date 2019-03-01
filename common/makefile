@@ -25,6 +25,7 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) 
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
+help:
 	grep -E "^[a-z]" makefile
 #================================
 list_dumps:
@@ -233,7 +234,7 @@ bulk_tar:
 	tar    -cjf $(DIR).tar.bz2 $(DIR)
 #----
 bulkb: # parameter: $(LIST)
-	make   bulkb1 DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
+	make   bulkb1 DIR=bulk.`date +%Y-%m-%d.%H` 
 bulkb1:
 	mkdir  $(DIR)               || :
 	wc -l  $(LIST)
@@ -246,7 +247,7 @@ bulkb1:
 	make   bulk_extract 
 #----
 bulka: # parameter: $(LIST)
-	make   bulka1 DIR=bulk.`date +%Y-%m-%d.%H` LIST=fetch_list.txt
+	make   bulka1 DIR=bulk.`date +%Y-%m-%d.%H` 
 bulka1:
 	mkdir  $(DIR)               || :
 	wc -l  $(LIST)
@@ -631,8 +632,8 @@ history: # Fetch new or recently changed JSONs
 history1:
     # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=280
     # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=600
-	make history2 KEYWORD=new     MAX=180
-	make history2 KEYWORD=changed MAX=800
+	make history2 KEYWORD=new     MAX=50
+	make history2 KEYWORD=changed MAX=280
 	# make history2 KEYWORD=recycled MAX=3600
 	make hist_split
 history2: # parameter KEYWORD, DIR, MAX

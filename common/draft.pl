@@ -33,11 +33,6 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     }
 } # while $opt
 
-my $outdir = $timestamp;
-if (scalar(@ARGV) > 0) {
-    $outdir = shift(@ARGV);
-}
-print `mkdir $outdir`;
 if (0) {
 #-------------------------------------------------------------
 } elsif ($action =~ m{c}) {

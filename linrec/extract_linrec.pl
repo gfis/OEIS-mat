@@ -2,6 +2,7 @@
 
 # Extract linear recurrence signatures (and initial terms) from JSON grep
 # @(#) $Id$
+# 2019-02-28: formula
 # 2019-02-25: write also lrindx_spec.txt
 # 2019-02-22: tables 'lrindx' and 'lrlink'
 # 2019-02-19, Georg Fischer
@@ -16,6 +17,7 @@
 #:#                and write lrlink.txt
 #:#       lrindx   write CREATE SQL for table 'lrindx'
 #:#       lrlink   write CREATE SQL for table 'lrlink'
+#:#   -m  formula  scan grepped JSON formulas "a(n) = ..." for lin.rec. syntax
 #
 # lrindx_spec.txt has the following records:
 # fil   0       header
@@ -129,12 +131,12 @@ if (0) { # switch for $mode
                     $ncom =~ s{\s*\?.*}{}; #  substr($ncom, 0, $sharp_pos - 1); # PREMATCH; the "-1" is empirical
                 }
                 if ($ncom =~ m{\<strong\>}) {
-                	print ":<strong>($nsig)</strong>:";
-	                if ($nsno ne $void_sno) { # new aseqno
-    	         	   $seqs{"A$nsno"} = $ncom;
-        	    	}
-            	} else {
-                	print ":($nsig)$ncom";
+                    print ":<strong>($nsig)</strong>:";
+                    if ($nsno ne $void_sno) { # new aseqno
+                       $seqs{"A$nsno"} = $ncom;
+                    }
+                } else {
+                    print ":($nsig)$ncom";
                 }
             } elsif ($nsno ne $void_sno) { # new aseqno
                 $seqs{"A$nsno"} = $ncom;
@@ -305,6 +307,18 @@ if (0) { # switch for $mode
                 $termno = 0;
                 &output;
             }
+        } elsif ($mode =~ m{form}) {
+            # ../common/ajson/A033889.json:                           "a(n) = 7*a(n-1) - a(n-2). - _Floor van Lamoen_, Dec 10 2001",
+            $line =~ s{\s}{}g;
+            # print "$line\n";
+            if ($line =~ m{\/(A\d{6})\.json\:\"(a\(n\)\=(\d+|[\*\-\+]|a\(n\-\d+\))+)}) { 
+                $aseqno     = $1;
+                my $formula = $2;
+                if ($formula =~ m{a\(n\-\d+\)\Z}) {
+	                $sigorder   = ($formula =~ s{\)}{\)}g) - 1;
+    	            print join("\t", $aseqno, $sigorder, $formula) . "\n";
+    	        }
+            }
         } # modes
     } # while <>
     # extraction modes
@@ -334,11 +348,11 @@ sub write_spec {
 sub write_seqs {
     my ($separator) = @_;
     foreach my $key (sort(keys(%seqs))) {
-    	my $comt = $seqs{$key};
+        my $comt = $seqs{$key};
         if ($comt =~ m{\<strong\>}) {
-	        print "$separator <strong>$key</strong>"; 
-       	} else {
-	        print "$separator $key$comt"; # remove shield
+            print "$separator <strong>$key</strong>"; 
+        } else {
+            print "$separator $key$comt"; # remove shield
         }
         $separator = ",";
     } # foreach
@@ -512,3 +526,5 @@ __NOTOC__<!-- TOC looks ugly since all contents are in sect. 1.1.x - It would be
 LinearRecurrence[{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1}, {10, 5, 30, 10, 2, 15, 70, 20, 90, 1, 110, 30, 130, 35, 6, 40, 170, 45, 190, 2}, 60]
 
 LinearRecurrence[{14, -91, 364, -1001, 2002, -3003, 3432, -3003, 2002, -1001, 364, -91, 14, -1},{3004, 19078, 88938, 335612, 1084387, 3109060, 8104089, 19539904, 44141520, 94346102, 192252586, 375787005, 708083995,1291443529},30]
+
+../common/ajson/A033889.json:                           "a(n) = 7*a(n-1) - a(n-2). - _Floor van Lamoen_, Dec 10 2001",

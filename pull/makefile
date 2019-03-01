@@ -1,15 +1,20 @@
 #!make
 
-# OEIS-mat/pull - synchronize local sequences and b-files with OEIS-server
+# OEIS-mat/pull - fetch names.gz, stripped.gz, bfilelist.gz and drafts
 # @(#) $Id$
+# 2019-03-01: cleaned
 # 2019-02-21: Georg Fischer: extracted from ../common
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
 SLEEP=16
 COMMON=../common
 DUMPS=../dumps
+DATE=`date +%Y-%m-%d`
 
-all: prepare draft bfdir_load bfdir_check 
+all:    prepare bfdir_load draft bfdir_check
+remote: prepare draft_get draft_prep
+bfdir:  prep3 bfdir_load bfdir_check
+help:
 	# targets: 
 	grep -E "^[a-z]" makefile
 #================================
@@ -36,14 +41,16 @@ prep3:
 	wget https://oeis.org/bfilelist.gz
 	ls -al bfile*              >> prepare.log
 	gzip -df bfilelist.gz
-	mv bfilelist $(COMMON)
+	perl      $(COMMON)/bfdir.pl -r  bfilelist \
+	>         $(COMMON)/bfdir.tmp
+	head -n 4 $(COMMON)/bfdir.tmp
+	wc -l     $(COMMON)/bfdir.tmp
 #	sleep $(SLEEP)
-#----------
+#=================================
 bfdir_load: # Load the <code>bfilelist</code> into a db table
 	perl $(COMMON)/bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f                   bfdir.create.sql
-	perl $(COMMON)/bfdir.pl -r   bfilelist \
-	| $(DBAT) -m csv -s "\t" -r  bfdir
+	$(DBAT) -m csv -s "\t" -r    bfdir < $(COMMON)/bfdir.tmp
 	$(DBAT) -4                   bfdir
 	$(DBAT) -n                   bfdir
 #----------
@@ -54,10 +61,17 @@ bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for
 		FROM  bfdir d LEFT JOIN bfinfo b ON d.aseqno = b.aseqno  \
 		WHERE d.filesize <> COALESCE(b.filesize, 1) \
 		ORDER BY 1" \
-	>     $@.txt
-	wc -l $@.txt
-#--------
-draft: draft_get draft_load
+	>     $(COMMON)/$@.txt
+	wc -l $(COMMON)/$@.txt
+#=================================
+cat25: # Fetch the CAT25 file (internal format of all sequences). 
+	# Replace the server filename in next line
+	wget -O cat25.$(DATE).gz https://oeis.org/A123456/a123456.gz 
+	cp -v   cat25.$(DATE).gz $(DUMPS)
+	gzip -d cat25.$(DATE).gz
+	mv -v   cat25.$(DATE) $(COMMON)/cat25.text
+#=================================
+draft: draft_get draft_prep draft_load
 draft_get:
 	rm -f   draft.*.html
 	rm -f   draft1
@@ -74,42 +88,22 @@ draft1:
 	wget -O              draft.$(N).html https://oeis.org/draft?start=$(N)
 	grep "older changes" draft.$(N).html > x.tmp || echo xxx: > draft1
 	sleep $(SLEEP)
-draft_load:
+#----------
+draft_prep:
 	grep -E "/draft/" draft.*.html \
 	| sed -e "s/[^A0-9]/ /g" -e "s/  */ /g" \
 	| cut -d" " -f3 | grep -E "^A" | sort | uniq \
-	>     $@.tmp 
-	wc -l $@.tmp
-	cp -v $@.tmp $(COMMON)/
+	>     draft_load.tmp 
+	wc -l draft_load.tmp
+	cp -v draft_load.tmp $(COMMON)/
+#----------
+draft_load:
 	perl $(COMMON)/draft.pl -c > draft.create.sql
 	$(DBAT)       -f   draft.create.sql
-	$(DBAT) -m csv -s "\t" -r draft < $@.tmp
+	$(DBAT) -m csv -s "\t" -r draft < draft_load.tmp
 	$(DBAT) -4 draft
 	$(DBAT) -n draft
 #----------
-
-#----------------
-seq: # parameter: $(INFO)
-	$(DBAT) -f seq.create.sql
-	cut -b1-7 $(INFO) | grep -E "^A" | $(DBAT) -m csv -r seq
-	$(DBAT) -n seq
-delseq: seq # Delete aseqno's from a table; parameters: $(TAB) $(INFO)
-	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
-#--------
-history: # parameter: DATE
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=new     MAX=490
-	make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=changed MAX=2020
-	make hist_split
-	# make hist_kw DATE=`date +%Y-%m-%d` KEYWORD=recycled   
-hist_kw: # parameter MAX
-	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) hist.$(DATE)
-	ls -al hist.$(DATE) | head -n 8
-	ls -1  hist.$(DATE) | wc -l
-hist_split:
-	rm -rf temp
-	mkdir temp
-	mkdir temp/ajson
-	mkdir temp/bfile
-	find  hist.`date +%Y-%m-%d` -type f -iname "*.json" \
-	| xargs -l -i{} perl split_json.pl  -o temp {}
-#================================
+draft_show:
+	grep -E "(\<ins\>|\<del\>)" draft_A320518.html
+#----------

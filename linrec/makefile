@@ -280,3 +280,28 @@ lrordadd:
 	>     $@.txt	
 	wc -l $@.txt	
 #---------------------
+morix:
+	$(DBAT) "SELECT DISTINCT a.aseqno, a.keyword, a.offset1, b.bfimax, i.signature \
+	FROM lrindx i, asinfo a \
+	LEFT JOIN bfinfo b ON a.aseqno = b.aseqno \
+	WHERE a.aseqno = 'A' || i.seqno \
+	  AND a.keyword like '%more%' \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+morln:
+	$(DBAT) "SELECT DISTINCT a.aseqno, a.keyword, a.offset1, b.bfimax, l.signature \
+	FROM lrlink l, asinfo a \
+	LEFT JOIN bfinfo b ON a.aseqno = b.aseqno \
+	WHERE a.aseqno = 'A' || l.seqno \
+	  AND a.keyword like '%more%' \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+#---------------------------
+form:
+	perl extract_linrec.pl -m form form1.tmp \
+	> $@.tmp
+	wc -l $@.tmp 
+	
+	
