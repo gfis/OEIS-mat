@@ -18,7 +18,7 @@ my $timestamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec, $isdst);
 my @parts = split(/\s+/, POSIX::asctime($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst));
 #  "Fri Jun  2 18:22:13 2000\n\0"
-#  0   1    2 3        4
+#   0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 
 my $basedir   = "../coincidence/database";

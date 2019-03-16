@@ -47,7 +47,7 @@ unpack_start:
 	$(ECHO) rm -rf bfile
 	mkdir ajson
 	mkdir bfile
-unpack_extract:
+extract:
 	make ajson_extract DIR=.
 	make bfile_extract DIR=.
 #--------------
@@ -239,12 +239,10 @@ bulkb1:
 	mkdir  $(DIR)               || :
 	wc -l  $(LIST)
 	cp     $(LIST)        $(DIR)
-	cp     fetch_list.man $(DIR)
 	mkdir          $(DIR)/ajson || :
 	mkdir          $(DIR)/bfile || :
 	make   bulk_type TYPE=bfile
 	make   bulk_tar 
-	make   bulk_extract 
 #----
 bulka: # parameter: $(LIST)
 	make   bulka1 DIR=bulk.`date +%Y-%m-%d.%H` 
@@ -257,10 +255,8 @@ bulka1:
 	mkdir          $(DIR)/bfile || :
 	make   bulk_type TYPE=ajson
 	make   bulk_tar 
-	make   bulk_extract 
 #--
 bulk_type:
-	# mkdir  $(DIR)/$(TYPE)
 	perl   aseq_wget.pl -t $(TYPE) -n 8 -o $(DIR)/$(TYPE) $(LIST) > wget.$(TYPE).tmp
 	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
 bulk_ajson1:
@@ -490,6 +486,25 @@ terms_check: # The first few terms differ from the b-file, and that is not synth
 	>     $@.txt
 	wc -l $@.txt
 #--------------------------------
+keyword_check: # Forbidden combinations of keywords
+	$(DBAT) "SELECT aseqno, keyword \
+	    FROM asinfo a \
+	    WHERE (keyword     LIKE '%tabl%' AND keyword     LIKE '%tabf%') \
+	      OR  (keyword     LIKE '%nice%' AND keyword     LIKE '%less%') \
+	      OR  (keyword     LIKE '%easy%' AND keyword     LIKE '%hard%') \
+	      OR  (keyword     LIKE '%nonn%' AND keyword     LIKE '%sign%') \
+	      OR  (keyword     LIKE '%full%' AND keyword     LIKE '%more%') \
+	      OR  (keyword     LIKE '%cons%' AND keyword     LIKE '%sign%') \
+	      OR  (keyword     LIKE '%full%' AND keyword NOT LIKE '%fini%') \
+	      OR  (keyword NOT LIKE '%nonn%' AND keyword NOT LIKE '%sign%'  \
+	       			AND keyword NOT LIKE 'allocat%' \
+	       			AND keyword NOT LIKE 'dead%' \
+	       			AND keyword NOT LIKE 'recycled%' \
+	          ) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#--------------------------------
 offset_check: # Sequence offset differs from first index in b-file
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
 		, substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
@@ -627,24 +642,29 @@ draft_load:
 	$(DBAT) -n draft
 #--------
 history: # Fetch new or recently changed JSONs
-	# make -s bfdir_get
-	make -s history1 DIR=bulk.`date +%Y-%m-%d` 
+	make -s history1 DIR=bulk.`date +%Y-%m-%d.%H`
+	make -s history3 DIR=bulk.`date +%Y-%m-%d.%H`
 history1:
     # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=280
     # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=600
 	make history2 KEYWORD=new     MAX=50
-	make history2 KEYWORD=changed MAX=280
-	# make history2 KEYWORD=recycled MAX=3600
+	make history2 KEYWORD=changed MAX=150
 	make hist_split
 history2: # parameter KEYWORD, DIR, MAX
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
-	ls -al bulk.$(DATE) | head -n 8
-	ls -1  bulk.$(DATE) | wc -l
+	ls -al $(DIR) | head -n 8
+	ls -1  $(DIR) | wc -l
+history3:
+	mkdir                     $(DIR)/ajson
+	cp -pv temp/ajson/A*.json $(DIR)/ajson/
+	cp -pv temp/ajson/A*.json                     ./ajson/
+	make bulkb1      LIST=bfdir_check.txt
+	cp -pv                    $(DIR)/bfile/b*.txt ./bfile  
 hist_split: # parameter DIR
 	rm -rf temp
 	mkdir temp
 	mkdir temp/ajson
-	find  $(DIR) -type f -iname "*.json" \
+	find  $(DIR) -type f -iname "A*.json" \
 	| xargs -l -i{} perl split_json.pl  -o temp {}
 resplit:
 	# rm -rf temp
@@ -873,3 +893,7 @@ lrordadd:
 	>     $@.txt	
 	wc -l $@.txt	
 #---------------------
+uncat_diff:
+	perl -w uncat25.pl -m comp -o ./ajson cat25.txt \
+	> $@.tmp
+	wc -l $@.tmp

@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2019-03-16: bfinfo keywords with line numbers only for hard errors
 # 2019-01-25: $filesize
 # 2019-01-22, Georg Fischer: copied from ../bfcheck/bfanalyze.pl
 #
@@ -15,13 +16,19 @@
 #:#           b   for bfile
 #:#           r   TSV for Dbat -r,
 #:#           c   generate CREATE SQL
-#:#           i   generate INSERT SQL
-#:#           u   generate UPDATE SQL
-#:#       -t tabname  SQL table name
+#:#           t   generate bfdata
 #:#       -l lead     print so many initial terms (default 8)
 #:#       -d level    debug level none(0), some(1), more(2)
 #:#       -w width    maximum number of characters in term string
-#:#       inputdir    default: ./unbf
+#:#       inputdir    (mandatory)
+#
+# perl extract_info.pl -asr $(DIR)/ajson > asdata.txt
+# perl extract_info.pl -anr $(DIR)/ajson > asname.txt
+# perl extract_info.pl -jr  $(DIR)/ajson > asinfo.txt
+# perl extract_info.pl -jc  | tee asinfo.create.sql
+# perl extract_info.pl -btr $(DIR)/bfile > bfdata.txt
+# perl extract_info.pl -br  $(DIR)/bfile > bfinfo.txt
+# perl extract_info.pl -bc  | tee bfinfo.create.sql
 #---------------------------------
 use strict;
 use integer;
@@ -136,6 +143,7 @@ sub extract_from_json { # read JSON of 1  sequence
     my $offset1  = 1;
     my $offset2  = 1;
     my $terms    = "";
+	my $datalen  = 0;
     my $keyword  = "nokeyword";
     my $author   = "";
     my $revision = 0;
@@ -168,6 +176,7 @@ sub extract_from_json { # read JSON of 1  sequence
         } elsif ($line =~ m{\A\s*\"data\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             $data  = $value;
+            $datalen = length($data);
             $terms = &get_terms8($value);
         } elsif ($line =~ m{\A\s*\"name\"\:\s*\"(.*)}) {
             $value = $1;
@@ -210,6 +219,7 @@ sub extract_from_json { # read JSON of 1  sequence
         ( $aseqno
         , $offset1, $offset2
         , $terms
+		, $datalen
         , substr($keyword, 0, 64)
         , substr($author , 0, 64)
         , $revision
@@ -231,6 +241,7 @@ CREATE  TABLE            $tabname
     , offset1   BIGINT        -- index of first term, cf. OEIS definition
     , offset2   BIGINT        -- sequential number of first term with abs() > 1, or 1
     , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
+    , datalen   INT           -- length of DATA section
     , keyword   VARCHAR(64)   -- "hard,nice,more" etc.
     , author    VARCHAR(80)   -- of the sequence; allow for apostrophes
     , revision  INT           -- sequential version number
@@ -343,20 +354,34 @@ sub extract_from_bfile {
     my $busyof2 = 1; # as long as offset2 is not determined
     my $iline   = 0;
     my %mess    = (); # hash for messages
+    my $maxlen  = 0;
     my $index;
     my $term;
+    my $isge    = 1; # assume that the terms are monotone (<=)
+    my $isgt    = 1; # assume that the terms are strictly increasing (<)
+    my $old_term;
     my $state   = 0;
     if (substr($buffer, -1) ne "\n") {
-    	$mess{"neof"} = ord(substr($buffer, -1));
+    	$mess{"neof"} = ""; # ord(substr($buffer, -1));
     }
     foreach my $line (split(/\n/, $buffer)) {
         if ($line =~ m{\A(\-?\d+)\s(\-?\d+)\Z}o) { # index space term
             ($index, $term) = ($1, $2);
             if ($iline == 0) {
-                $bfimin = $index;
+                $bfimin   = $index;
+            #   $old_term = $term;
             } elsif ($index != $bfimax + 1) { # check for increasing index
-                $mess{"ninc"} = ($iline + 1);
-            } # not increasing
+                $mess{"nxinc"} = ($iline + 1); # hard error
+                # not increasing
+            } else {
+            #	if ($term <= $old_term) {
+            #		$isgt = 0;
+            #	}
+            #	if ($term >  $old_term) {
+            #		$isge = 0;
+            #	}
+            #	$old_term = $term;
+            }
             if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
                 $terms .= ",$term";
             } else {
@@ -364,7 +389,7 @@ sub extract_from_bfile {
                 last if $width == $long_width;
             }
             if (substr($term, 0, 1) eq "-" and ! defined($mess{"sign"})) { # sign applies to terms only
-                $mess{"sign"} = ($iline + 1);
+                $mess{"sign"}  = ""; # ($iline + 1);
             }
             $bfimax = $index;
             $iline ++;
@@ -373,6 +398,11 @@ sub extract_from_bfile {
                 $busyof2 = 0;
             }
             # line with parseable term
+            my $curlen = length($term);
+            if ($curlen > $maxlen) {
+            	$maxlen = $curlen;
+            }
+            
         } elsif ($line =~ m{\A\#.*}) { # comment
             if ($iline == 0 and ($line =~ m{\A\# A\d{6} \Wb\-file synthesized from seq.*\Z})) {
                 $mess{"synth"} = "";
@@ -380,37 +410,37 @@ sub extract_from_bfile {
                 $mess{"ecomt"} = "";
                 $mess{"loose"} = "";
             } else { 
-                $mess{"comt"} = "";
+                $mess{"comt"}  = "";
             }
             # otherwise ignore comment
         } elsif ($line =~ m{\A\s*\Z}) { # blank line 
-            $mess{"blank"} = "";
-            # otherwise ignore blank line
+                $mess{"blank"} = "";
+                # otherwise ignore blank line
         } else { # loose format
             if (($line =~ s{\A\s+}{})  > 0) { # leading whitespace
-                $mess{"lsp"} = "";
+                $mess{"lsp"}   = "";
                 $mess{"loose"} = "";
             }
             if (($line =~ s{\s\s+}{ }) > 0) { # middle whitespace
-                $mess{"msp"} = "";
+                $mess{"msp"}   = "";
                 $mess{"loose"} = "";
             }
             if (($line =~ s{\r\Z}{})   > 0) { # cr
-                $mess{"cr"    } = "";
+                $mess{"cr"}    = "";
                 $mess{"loose"} = "";
             }
             if (($line =~ s{\#.*}{})   > 0) { # comment behind term
-                $mess{"tcomt" } = "";
+                $mess{"tcomt"} = "";
                 $mess{"loose"} = "";
             }
             if (($line =~ s{\s+\Z}{})  > 0) { # right whitespace
-                $mess{"rsp"} = "";
+                $mess{"rsp"}   = "";
                 $mess{"loose"} = "";
             }
             if ($line =~ m{\A(\-?\d+)\s(\-?\d+)\Z}o) { # index space term
                 redo;
             } else { # really broken - ignore
-                $mess{"bad"} = "$iline";
+                $mess{"bad"}   = "$iline"; # hard error
             }
         } # loose
     } # foreach $line
@@ -430,13 +460,15 @@ sub extract_from_bfile {
         , substr($terms,   1) # remove 1st comma
         );
     } else { # normal bfinfo
-        return ($aseqno
+        return 
+        ( $aseqno
         , $bfimin
         , $bfimax
         , $offset2
         , substr($terms,   1) # remove 1st comma
         , substr($term, -$tail_width)
         , $filesize
+        , $maxlen
         , substr($message, 1) # remove 1st comma
         , $access
         );
@@ -458,7 +490,8 @@ CREATE  TABLE            $tabname
     , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
     , tail      VARCHAR(8)    -- last $tail_width digits of last term
     , filesize  INT           -- size of the file in bytes, from the operating system 
-    , message   VARCHAR(128)   -- "sign ninc[iline] ndig[iline]"
+--  , maxlen    INT           -- maximum length of terms
+    , message   VARCHAR(128)  -- "bad<iline>,blank,comt,cr,ecomt,loose,lsp,msp,neof,rsp,sign,nxinc<iline>,synth,tcomt" 
     , access    TIMESTAMP     -- b-file modification time in UTC
     , PRIMARY KEY(aseqno)
     );
