@@ -490,7 +490,7 @@ CREATE  TABLE            $tabname
     , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
     , tail      VARCHAR(8)    -- last $tail_width digits of last term
     , filesize  INT           -- size of the file in bytes, from the operating system 
---  , maxlen    INT           -- maximum length of terms
+    , maxlen    INT           -- maximum length of terms
     , message   VARCHAR(128)  -- "bad<iline>,blank,comt,cr,ecomt,loose,lsp,msp,neof,rsp,sign,nxinc<iline>,synth,tcomt" 
     , access    TIMESTAMP     -- b-file modification time in UTC
     , PRIMARY KEY(aseqno)

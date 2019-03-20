@@ -40,9 +40,11 @@ prep3:
 	rm -f bfilelist*
 	wget https://oeis.org/bfilelist.gz
 	ls -al bfile*              >> prepare.log
-	gzip -df bfilelist.gz
+	gzip -df  bfilelist.gz
 	cp -pv    bfilelist $(COMMON)
 	head -8   bfilelist
+prep4:
+	perl $(COMMON)/bfdir.pl -r $(COMMON)/bfilelist > $(COMMON)/bfdir.tmp
 #	sleep $(SLEEP)
 #=================================
 bfdir_load: # Load the <code>bfilelist</code> into a db table

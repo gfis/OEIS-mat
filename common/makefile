@@ -159,14 +159,28 @@ asinfo_load:
 	$(DBAT) -f asinfo.create.sql
 	cut -b1-256 asinfo.txt \
 	| $(DBAT) -m csv -s "\t" -r asinfo
-	$(DBAT) -4 asinfo
-	$(DBAT) -n asinfo
+	$(DBAT) -4                  asinfo
+	$(DBAT) -n                  asinfo
 asinfo_update:
 	wc -l       $(INFO)
-	make delseq $(INFO)   TAB=asinfo 
-	$(DBAT) -m csv -s "\t" -r asinfo < $(INFO)
-	$(DBAT) -4                asinfo
-	$(DBAT) -n                asinfo
+	make delseq $(INFO)     TAB=asinfo 
+	$(DBAT) -m csv -s "\t" -r   asinfo < $(INFO)
+	$(DBAT) -4                  asinfo
+	$(DBAT) -n                  asinfo
+#--------------
+asdata_load: # Load table <code>asdata</code>
+	$(DBAT) -f                  asdata.create.sql
+	cat asdata.txt \
+	| $(DBAT) -m csv -s "\t" -r asdata
+	$(DBAT) -4                  asdata
+	$(DBAT) -n                  asdata
+#--------------
+asname_load: # Load table <code>asname</code>
+	$(DBAT) -f                  asname.create.sql
+	perl uncode.pl asname.txt \
+	| $(DBAT) -m csv -s "\t" -r asname
+	$(DBAT) -4                  asname
+	$(DBAT) -n                  asname
 #--------------
 bfile_extract: bfdata bfinfo 
 bfdata: # parameter: DIR
@@ -519,6 +533,39 @@ offset_check: # Sequence offset differs from first index in b-file
 	>     $@.txt
 	wc -l $@.txt
 #--------------------------------
+cons_check: consa_check consb_check consc_check
+consa_check: # Keyword "cons" and more than one digit in a term
+	$(DBAT) "SELECT a.aseqno, b.maxlen, b.terms, b.tail \
+		, a.keyword, b.message \
+	    FROM asinfo a, bfinfo b \
+	    WHERE a.aseqno = b.aseqno \
+	      AND a.keyword LIKE '%cons%'  \
+	      AND b.maxlen > 1 \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+consb_check: # Keyword "cons" and not "nonn"
+	$(DBAT) "SELECT a.aseqno, b.maxlen, b.terms, b.tail \
+		, a.keyword, b.message \
+	    FROM asinfo a, bfinfo b \
+	    WHERE a.aseqno = b.aseqno \
+	      AND a.keyword     LIKE '%cons%'  \
+	      AND a.keyword NOT LIKE '%nonn%'  \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+consc_check: # Keyword "cons" related to name
+	$(DBAT) "SELECT a.aseqno, a.keyword, n.name \
+	    FROM asinfo a, asname n \
+	    WHERE a.aseqno = n.aseqno \
+	      AND a.keyword     LIKE '%cons%'  \
+	      AND a.keyword NOT LIKE '%base%'  \
+	      AND n.name    NOT LIKE '%xpansion%' \
+	      AND n.name    NOT LIKE '%ecimal%' \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#--------------------------------
 denom_check: # Name of the sequence contains "Denominator", keyword <code>sign</code>, and <code>nonn</code> terms
 	$(DBAT) -f seq2.create.sql
 	grep -i "denominator" asname.txt > $@.tmp
@@ -569,6 +616,17 @@ signb_check: # Sequence has no keyword <code>sign</code> and b-file has negative
 	>     $@.txt
 	wc -l $@.txt
 #----
+data_check: # Synthesized and term list is longer than 300 characters - candidates for b-files.
+	$(DBAT) "SELECT a.aseqno, LENGTH(d.data), a.author \
+	    FROM asinfo a, asdata d \
+	    LEFT JOIN bfinfo b ON d.aseqno = b.aseqno \
+	    WHERE a.aseqno = d.aseqno \
+	      AND LENGTH(d.data) > 300 \
+	      AND b.message LIKE 'synth' \
+	    ORDER BY 2 DESC, 3 " \
+	>     $@.txt
+	wc -l $@.txt
+#----
 check_update:
 	make asinfo_load
 	make bfinfo_load
@@ -577,13 +635,14 @@ checks:          \
 	asname_check \
 	bfdata_check \
 	bfdir_check  \
+	cons_check   \
+	denom_check  \
 	offset_check \
 	sign_check   \
 	synth_check  \
 	terms_check  \
 	eval_checks  \
 	html_checks
-	# bfdel_check  
 eval_checks:
 	cat *check.txt \
 	| grep -E "^A[0-9]" \
@@ -645,17 +704,17 @@ history: # Fetch new or recently changed JSONs
 	make -s history1 DIR=bulk.`date +%Y-%m-%d.%H`
 	make -s history3 DIR=bulk.`date +%Y-%m-%d.%H`
 history1:
-    # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=280
-    # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=600
-	make history2 KEYWORD=new     MAX=50
-	make history2 KEYWORD=changed MAX=150
+    # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=50
+    # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=150
+	make history2 KEYWORD=new     MAX=100
+	make history2 KEYWORD=changed MAX=300
 	make hist_split
 history2: # parameter KEYWORD, DIR, MAX
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
 	ls -al $(DIR) | head -n 8
 	ls -1  $(DIR) | wc -l
 history3:
-	mkdir                     $(DIR)/ajson
+	mkdir                     $(DIR)/ajson || :
 	cp -pv temp/ajson/A*.json $(DIR)/ajson/
 	cp -pv temp/ajson/A*.json                     ./ajson/
 	make bulkb1      LIST=bfdir_check.txt
@@ -664,7 +723,7 @@ hist_split: # parameter DIR
 	rm -rf temp
 	mkdir temp
 	mkdir temp/ajson
-	find  $(DIR) -type f -iname "A*.json" \
+	find  $(DIR) -type f -iname "*.json" \
 	| xargs -l -i{} perl split_json.pl  -o temp {}
 resplit:
 	# rm -rf temp

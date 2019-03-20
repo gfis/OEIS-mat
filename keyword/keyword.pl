@@ -165,7 +165,6 @@ tr,td,th{ text-align: left; vertical-align: top; }
 GFis
 } # get_html_head
 #--------------------------------------
-#-----------------------------
 __DATA__
 %K A000001 nonn,core,nice,hard
 %K A000002 nonn,core,easy,nice

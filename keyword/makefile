@@ -5,7 +5,7 @@
 # 2019-01-13: Georg Fischer, copied from ../bfcheck
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
-BASE=../bfcheck/keywordlist.txt
+BASE=../bfcheck/neil_lists/keywordlist.txt
 
 all: 
 	# targets: new = prepare newseq archlist regen (in that order)
