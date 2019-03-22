@@ -43,6 +43,7 @@ prep3:
 	gzip -df  bfilelist.gz
 	cp -pv    bfilelist $(COMMON)
 	head -8   bfilelist
+	ls -al bfile*              
 prep4:
 	perl $(COMMON)/bfdir.pl -r $(COMMON)/bfilelist > $(COMMON)/bfdir.tmp
 #	sleep $(SLEEP)

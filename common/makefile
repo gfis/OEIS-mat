@@ -14,6 +14,7 @@ PULL=../pull
 COMMON=../common
 D=0
 G=n
+RALEN=350
 SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
 	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
 	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
@@ -135,9 +136,18 @@ unpack_list1:
 	find $(DIR)/bfile -type f -ls | tail -n 4
 #======================
 fetch_list:
-	cut -b1-7 fetch_list.man \
-	| grep -E "^A" | sort | uniq > $@.txt
-	wc -l $@.*
+	cat \
+	asdata_check.txt \
+	asname_check.txt \
+	asdir_check.txt \
+	bfdata_check.txt \
+	offset_check.txt \
+	syntha_check.txt \
+	synthb_check.txt \
+	synthc_check.txt \
+	synthd_check.txt \
+	| cut -b1-7 | sort | uniq > $@.txt
+	wc -l $@.txt
 #--------------------------------
 ajson_extract: asinfo asname asdata
 asdata: # parameter: DIR
@@ -168,14 +178,14 @@ asinfo_update:
 	$(DBAT) -4                  asinfo
 	$(DBAT) -n                  asinfo
 #--------------
-asdata_load: # Load table <code>asdata</code>
+asdata_load: # Load table <em>asdata</em>
 	$(DBAT) -f                  asdata.create.sql
 	cat asdata.txt \
 	| $(DBAT) -m csv -s "\t" -r asdata
 	$(DBAT) -4                  asdata
 	$(DBAT) -n                  asdata
 #--------------
-asname_load: # Load table <code>asname</code>
+asname_load: # Load table <em>asname</em>
 	$(DBAT) -f                  asname.create.sql
 	perl uncode.pl asname.txt \
 	| $(DBAT) -m csv -s "\t" -r asname
@@ -187,7 +197,7 @@ bfdata: # parameter: DIR
 	perl extract_info.pl -btr $(DIR)/bfile > $@.txt
 	wc -l $@.txt
 #--
-bfdata_check: # Compare <code>stripped</code> file with terms extracted from local b-files
+bfdata_check: # Compare <em>stripped</em> file with terms extracted from local b-files
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
 	echo -e "A-Number\tTerms" > $@.txt
@@ -333,7 +343,7 @@ bfmess_stat:
 	grep "neof" $@.1.tmp | wc -l
 	sort $@.1.tmp | uniq -c > $@.txt
 #-------------------
-bfdir_load: # Load <code>bfilelist</code> into table <code>bfdir</code>
+bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	perl bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f         bfdir.create.sql
 	perl bfdir.pl -r $(COMMON)/bfilelist \
@@ -341,7 +351,7 @@ bfdir_load: # Load <code>bfilelist</code> into table <code>bfdir</code>
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 #--
-asdata_check: # Show sequence terms and entry in <code>stripped</code> file
+asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
 	echo -e "A-Number\tName" > $@.txt
@@ -351,7 +361,19 @@ asdata_check: # Show sequence terms and entry in <code>stripped</code> file
 	| grep -vf $(PULL)/draft_load.tmp \
 	>> $@.txt
 	wc -l $@.txt
-asname_check: # Show sequence name and entry in <code>names</code> file
+asdir_check: # b-file is newer than sequence 
+	$(DBAT) "SELECT d.aseqno \
+		, substr(d.access , 1, 16) AS oeis_time \
+		, substr(b.created, 1, 16) as local_time \
+		FROM  asinfo d, bfdir b \
+		WHERE d.aseqno = b.aseqno  \
+		  AND d.access < b.created \
+		  AND b.created > '2019-02-01 00:00:00' \
+	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+asname_check: # Name in sequence and entry in <em>names</em> file differ
 	grep -vE "^#" $(COMMON)/names | sed -e "s/ /	/" \
 	> x.tmp
 	perl uncode.pl asname.txt > y.tmp
@@ -363,7 +385,7 @@ asname_check: # Show sequence name and entry in <code>names</code> file
 	| grep -vf $(PULL)/draft_load.tmp \
 	>> $@.txt
 	wc -l $@.txt
-bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for draft)
+bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (maybe for draft)
 	$(DBAT) "SELECT d.aseqno \
 		, substr(d.created, 1, 16) AS oeis_time, substr(b.access, 1, 16) as local_time \
 		, d.filesize AS oeis_size,  b.filesize AS local_size, b.message \
@@ -376,8 +398,8 @@ bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for
 #		, d.filesize - b.filesize \
 #	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) 
 #---------------------------
-bfsynth: # synthesize temp2/bfiles.txt for all in fetch_list.txt
-	cut -b1-7 fetch_list.txt > $@.1.tmp
+bfsynth: # Synthesize temp2/bfiles.txt for all in synthe_check.txt
+	cut -b1-7 synthe_check.txt > $@.1.tmp
 	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp
 	wc -l $@.2.tmp
 	make seq INFO=$@.1.tmp
@@ -402,7 +424,7 @@ mvsynth:
 #---------------------------
 synth_check: syntha_check synthb_check synthc_check synthd_check synthe_check
 #--
-syntha_check: # Sequence (no draft) does not link to a b-file, but there is one in <code>bfilelist</code>
+syntha_check: # Sequence (no draft) does not link to a b-file, but there is one in <em>bfilelist</em>
 	$(DBAT) "SELECT a.aseqno \
 		, a.keyword \
 		, substr(a.access , 1, 16) AS oeis_time \
@@ -416,7 +438,7 @@ syntha_check: # Sequence (no draft) does not link to a b-file, but there is one 
 	>     $@.txt
 	wc -l $@.txt
 #--
-synthb_check: # Sequence links to a b-file which is not in <code>bfilelist</code>
+synthb_check: # Sequence links to a b-file which is not in <em>bfilelist</em>
 	$(DBAT) "SELECT a.aseqno \
 		, substr(a.access, 1, 16) AS access \
 		, a.keyword \
@@ -427,7 +449,7 @@ synthb_check: # Sequence links to a b-file which is not in <code>bfilelist</code
 	>     $@.txt
 	wc -l $@.txt
 #--
-synthc_check: # Local b-file is not <code>synth</code>, but it is not in <code>bfilelist</code>
+synthc_check: # Local b-file is not <em>synth</em>, but it is not in <em>bfilelist</em>
 # our file is not synth and it is not in bfdir
 	$(DBAT) "SELECT b.aseqno \
 		, substr(b.access, 1, 16) AS access \
@@ -440,7 +462,7 @@ synthc_check: # Local b-file is not <code>synth</code>, but it is not in <code>b
 	>     $@.txt
 	wc -l $@.txt
 #--
-synthd_check: # Local b-file is <code>synth</code>, but it is in <code>bfilelist</code>
+synthd_check: # Local b-file is <em>synth</em>, but it is in <em>bfilelist</em>
 	$(DBAT) "SELECT d.aseqno \
 		, substr(d.created, 1, 16) AS oeis_time, substr(b.access, 1, 16) AS local_time\
 		, d.filesize, b.filesize \
@@ -453,7 +475,7 @@ synthd_check: # Local b-file is <code>synth</code>, but it is in <code>bfilelist
 	>     $@.txt
 	wc -l $@.txt
 #--
-synthe_check: # Sequence without local synthesized b-file and no entry in <code>bfilelist</code>
+synthe_check: # Sequence without local synthesized b-file and no entry in <em>bfilelist</em>
 	$(DBAT) "SELECT a.aseqno, a.offset1 \
 		, substr(a.access, 1, 16) AS astime \
 		, a.keyword \
@@ -566,7 +588,7 @@ consc_check: # Keyword "cons" related to name
 	>     $@.txt
 	wc -l $@.txt
 #--------------------------------
-denom_check: # Name of the sequence contains "Denominator", keyword <code>sign</code>, and <code>nonn</code> terms
+denom_check: # Name of the sequence contains "Denominator", keyword <em>sign</em>, and <em>nonn</em> terms
 	$(DBAT) -f seq2.create.sql
 	grep -i "denominator" asname.txt > $@.tmp
 	$(DBAT) -m csv -s "\t" -r seq2 < $@.tmp
@@ -592,7 +614,7 @@ noef2:
 	wc -l $@.*
 #--------------------------------
 sign_check: signa_check signb_check
-signa_check: # Sequence has keyword <code>sign</code> and no negative terms in b-file
+signa_check: # Sequence has keyword <em>sign</em> and no negative terms in b-file
 	$(DBAT)  "SELECT a.aseqno, a.keyword, b.message \
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno \
@@ -604,7 +626,7 @@ signa_check: # Sequence has keyword <code>sign</code> and no negative terms in b
 	>     $@.txt
 	wc -l $@.txt
 #--
-signb_check: # Sequence has no keyword <code>sign</code> and b-file has negative terms
+signb_check: # Sequence has no keyword <em>sign</em> and b-file has negative terms
 	$(DBAT)  "SELECT a.aseqno, a.keyword, b.message \
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno \
@@ -616,13 +638,26 @@ signb_check: # Sequence has no keyword <code>sign</code> and b-file has negative
 	>     $@.txt
 	wc -l $@.txt
 #----
-data_check: # Synthesized and term list is longer than 300 characters - candidates for b-files.
-	$(DBAT) "SELECT a.aseqno, LENGTH(d.data), a.author \
-	    FROM asinfo a, asdata d \
+radata_check: # Synthesized and term list is longer than $(RALEN) characters - candidate for b-file
+	$(DBAT) "SELECT a.aseqno, LENGTH(d.data) AS len, a.author \
+		, substr(a.access, 1, 16) AS oeis_time	  \
+		FROM asinfo a, asdata d \
 	    LEFT JOIN bfinfo b ON d.aseqno = b.aseqno \
 	    WHERE a.aseqno = d.aseqno \
-	      AND LENGTH(d.data) > 300 \
+	      AND LENGTH(d.data) > $(RALEN) \
 	      AND b.message LIKE 'synth' \
+	    ORDER BY 2 DESC, 3 " \
+	>     $@.txt
+	wc -l $@.txt
+rbdata_check: # b-file and term list is longer than $(RALEN) characters - candidate for truncation
+	$(DBAT) "SELECT a.aseqno, LENGTH(d.data) AS len, a.author \
+		, substr(a.access, 1, 16) AS oeis_time	  \
+		, b.bfimax \
+		FROM asinfo a, asdata d \
+	    LEFT JOIN bfinfo b ON d.aseqno = b.aseqno \
+	    WHERE a.aseqno = d.aseqno \
+	      AND LENGTH(d.data) > $(RALEN) \
+	      AND b.message NOT LIKE 'synth' \
 	    ORDER BY 2 DESC, 3 " \
 	>     $@.txt
 	wc -l $@.txt
@@ -630,19 +665,24 @@ data_check: # Synthesized and term list is longer than 300 characters - candidat
 check_update:
 	make asinfo_load
 	make bfinfo_load
-checks:          \
+checks: clean_checks \
 	asdata_check \
+	asdir_check  \
 	asname_check \
 	bfdata_check \
 	bfdir_check  \
 	cons_check   \
 	denom_check  \
 	offset_check \
+	radata_check \
+	rbdata_check \
 	sign_check   \
 	synth_check  \
 	terms_check  \
 	eval_checks  \
 	html_checks
+clean_checks:
+	rm -f *_check.txt *_check.htm*
 eval_checks:
 	cat *check.txt \
 	| grep -E "^A[0-9]" \
@@ -702,36 +742,34 @@ draft_load:
 #--------
 history: # Fetch new or recently changed JSONs
 	make -s history1 DIR=bulk.`date +%Y-%m-%d.%H`
-	make -s history3 DIR=bulk.`date +%Y-%m-%d.%H`
+	make -s history4 DIR=bulk.`date +%Y-%m-%d.%H`
 history1:
     # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=50
     # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=150
-	make history2 KEYWORD=new     MAX=100
-	make history2 KEYWORD=changed MAX=300
-	make hist_split
+	make history2 KEYWORD=new     MAX=500
+	make history2 KEYWORD=changed MAX=1000
+	make history3
 history2: # parameter KEYWORD, DIR, MAX
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
 	ls -al $(DIR) | head -n 8
 	ls -1  $(DIR) | wc -l
-history3:
-	mkdir                     $(DIR)/ajson || :
-	cp -pv temp/ajson/A*.json $(DIR)/ajson/
-	cp -pv temp/ajson/A*.json                     ./ajson/
-	make bulkb1      LIST=bfdir_check.txt
-	cp -pv                    $(DIR)/bfile/b*.txt ./bfile  
-hist_split: # parameter DIR
+history3: # parameter DIR
 	rm -rf temp
 	mkdir temp
 	mkdir temp/ajson
 	find  $(DIR) -type f -iname "*.json" \
 	| xargs -l -i{} perl split_json.pl  -o temp {}
-resplit:
-	# rm -rf temp
-	# mkdir temp
-	# mkdir temp/ajson
-	# mkdir temp/bfile
-	find  hist.2019-02-01 -type f -iname "*.json" \
-	| xargs -l -i{} perl split_json.pl -o temp {}
+history4: # parameter DIR
+	cp -pv temp/ajson/A*.json                     ./ajson/
+	mkdir                     $(DIR)/ajson || :
+	cp -pv temp/ajson/A*.json $(DIR)/ajson/
+	make bulkb1      LIST=bfdir_check.txt
+	cp -pv                    $(DIR)/bfile/b*.txt ./bfile  
+---------------------
+infos: 
+	time make infos1 DIR=.
+infos1: asdata      asname      asinfo      bfinfo      bfdata
+loads:  asdata_load asname_load asinfo_load bfinfo_load bfdir_load checks
 #----------------------
 flinrec:
 	perl flinrec.pl $(COMMON)/stripped | tee $@.tmp

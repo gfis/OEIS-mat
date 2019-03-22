@@ -5,7 +5,7 @@
 # 2019-02-19, Georg Fischer
 #
 #:# Usage:
-#:#   perl bfsynth.pl -s substrip -o outputdir infile
+#:#   perl bfsynth.pl [-s substrip] -o outputdir infile
 #:#       -s  subset of stripped file
 #:#       -o  directory where to write synthesized b-files
 #:#       infile: lines with aseqno tab offset1
@@ -86,7 +86,7 @@ sub output {
     open(OUT, ">", $bfname) or die "cannot write \"$bfname\"\n";
 #   print OUT "# $aseqno (b-file synthesized from sequence entry)\n";
     print OUT "# $aseqno (b-file synthesized from seq bfsynth.pl)\n"; 
-    #                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    #                                                ^^^^^^^^^^^
     # caution, extract_info.pl relies on this       |
     my $ind = $offset1;
     foreach my $term (split(/\,/, $param)) {
