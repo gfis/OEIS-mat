@@ -159,7 +159,7 @@ asname: # parameter: DIR
 	wc -l $@.txt
 #----
 asinfo: # parameter: DIR
-	make asinfo_extract
+	make asinfo_extract 
 asinfo_extract:
 	perl extract_info.pl -jr $(DIR)/ajson | grep -v "notexist" > asinfo.txt
 	# cp asinfo.txt asinfo.`date +%Y-%m-%d.%H_%M`.txt
@@ -177,6 +177,18 @@ asinfo_update:
 	$(DBAT) -m csv -s "\t" -r   asinfo < $(INFO)
 	$(DBAT) -4                  asinfo
 	$(DBAT) -n                  asinfo
+#----
+asxref: # parameter: DIR
+	make asxref_extract 
+asxref_extract:
+	perl extract_info.pl -jxr $(DIR)/ajson > asxref.txt
+	wc -l asxref.txt
+asxref_load:
+	perl extract_info.pl -jxc -t asxref | tee asxref.create.sql
+	$(DBAT) -f asxref.create.sql
+	$(DBAT) -m csv -s "\t" -r   asxref  < asxref.txt
+	$(DBAT) -4                  asxref
+	$(DBAT) -n                  asxref
 #--------------
 asdata_load: # Load table <em>asdata</em>
 	$(DBAT) -f                  asdata.create.sql
@@ -206,7 +218,7 @@ bfdata_check: # Compare <em>stripped</em> file with terms extracted from local b
 	| cut -b 9- \
 	| perl comp_terms.pl \
 	| grep -vf $(COMMON)/draft_load.tmp \
-	>> $@.txt
+	>> $@.txt || :
 	wc -l $@.txt
 #------
 bfinfo: # parameter: DIR
@@ -356,10 +368,10 @@ asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 	> x.tmp
 	echo -e "A-Number\tName" > $@.txt
 	sort x.tmp asdata.txt | uniq -c | grep -vE "^  *2 " \
-	| grep -E "," \
-	| cut -b 9- \
-	| grep -vf $(PULL)/draft_load.tmp \
-	>> $@.txt
+	| grep -E "\," \
+	| cut -b 9- | grep -vf $(PULL)/draft_load.tmp \
+	>> $@.txt || :
+	rm -f asd.?.tmp
 	wc -l $@.txt
 asdir_check: # b-file is newer than sequence 
 	$(DBAT) "SELECT d.aseqno \
@@ -383,7 +395,7 @@ asname_check: # Name in sequence and entry in <em>names</em> file differ
 	| grep -E "[a-zB-Z]" \
 	| cut -b 9- \
 	| grep -vf $(PULL)/draft_load.tmp \
-	>> $@.txt
+	>> $@.txt || :
 	wc -l $@.txt
 bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (maybe for draft)
 	$(DBAT) "SELECT d.aseqno \
@@ -398,8 +410,8 @@ bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (maybe for dra
 #		, d.filesize - b.filesize \
 #	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) 
 #---------------------------
-bfsynth: # Synthesize temp2/bfiles.txt for all in synthe_check.txt
-	cut -b1-7 synthe_check.txt > $@.1.tmp
+bfsynth: # Synthesize temp2/bfiles.txt for all in $(LIST)
+	cut -b1-7 $(LIST) | sort | uniq > $@.1.tmp
 	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp
 	wc -l $@.2.tmp
 	make seq INFO=$@.1.tmp
@@ -409,10 +421,12 @@ bfsynth: # Synthesize temp2/bfiles.txt for all in synthe_check.txt
 	ORDER BY 1" \
 	> $@.3.tmp
 	wc -l $@.3.tmp
-	rm -rf temp2
-	mkdir  temp2
+	# rm -rf temp2
+	mkdir  temp2 || :
 	perl bfsynth.pl -s $@.2.tmp -o temp2 $@.3.tmp
 	find   temp2 -iname "*.txt" | wc -l
+	rm -f temp2.zip
+	zip -r temp2.zip temp2
 #-------
 mvsynth:
 	echo "mkdir -f bsynth" > $@.tmp
@@ -746,8 +760,8 @@ history: # Fetch new or recently changed JSONs
 history1:
     # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=50
     # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=150
-	make history2 KEYWORD=new     MAX=500
-	make history2 KEYWORD=changed MAX=1000
+	make history2 KEYWORD=new     MAX=150
+	make history2 KEYWORD=changed MAX=450
 	make history3
 history2: # parameter KEYWORD, DIR, MAX
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
@@ -765,7 +779,7 @@ history4: # parameter DIR
 	cp -pv temp/ajson/A*.json $(DIR)/ajson/
 	make bulkb1      LIST=bfdir_check.txt
 	cp -pv                    $(DIR)/bfile/b*.txt ./bfile  
----------------------
+#---------------------
 infos: 
 	time make infos1 DIR=.
 infos1: asdata      asname      asinfo      bfinfo      bfdata

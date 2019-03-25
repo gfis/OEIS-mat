@@ -11,72 +11,92 @@ HEAD=8
 PULL=../pull
 COMMON=../common
 D=0
-G=n
-RMIN=64
-all:
+RMIN=128
+TOMC=c:/var/lib/tomcat/webapps/dbat
+PROJECT=mine
+DBAD=../../dbat
+DBAW=java -jar $(DBAD)/dist/dbat.jar -c worddb  -e UTF-8
+SRC=src/main/java/org/teherba/dbat
+METHOD=get
+TAB=milong
+
+
+all: bflong
 	# targets: 
 	grep -E "^[a-z]" makefile
 #======================
-bflong: bflong1 bflong2
+bflong: bflong_sort bflong_thin 
+bfmine:	mine_bflong mine_uniq
 bflong0:
 	$(DBAT) "SELECT aseqno FROM bfinfo WHERE maxlen >= $(RMIN) ORDER BY 1" \
-	> bflong_select.tmp
+	>     bflong_select.tmp
+	wc -l bflong_select.tmp
 bflong1:
 	wc -l  $@.tmp
 	ls -al $@.tmp
 	time perl extract_bflong.pl -r $(RMIN) -f bflong_select.tmp $(COMMON)/bfile \
-	 >        bflong.txt
-bflong2:
+	>         bflong.txt
+	wc -l     bflong.txt
+	ls -al    bflong*
 	head -n4  bflong.txt
 bflong_sort:
 	time sort bflong.txt \
-	>      $@.tmp
+	| uniq >  $@.tmp
 	wc -l  $@.tmp
 	ls -al $@.tmp
 bflong_thin:
 	cat  bflong_sort.tmp \
-	| grep -v "000000000000000000000000000000000000000000000000" \
-	| grep -v "111111111111111111111111111111111111111111111111" \
-	| grep -v "222222222222222222222222222222222222222222222222" \
-	| grep -v "333333333333333333333333333333333333333333333333" \
-	| grep -v "444444444444444444444444444444444444444444444444" \
-	| grep -v "555555555555555555555555555555555555555555555555" \
-	| grep -v "666666666666666666666666666666666666666666666666" \
-	| grep -v "777777777777777777777777777777777777777777777777" \
-	| grep -v "888888888888888888888888888888888888888888888888" \
-	| grep -v "999999999999999999999999999999999999999999999999" \
-	>      $@.tmp            
-	wc -l  $@.tmp
-	ls -al $@.tmp
+	| grep -v "0000000000000000000000000000000000000000000000000000000000000000" \
+	| grep -v "1111111111111111111111111111111111111111111111111111111111111111" \
+	| grep -v "2222222222222222222222222222222222222222222222222222222222222222" \
+	| grep -v "3333333333333333333333333333333333333333333333333333333333333333" \
+	| grep -v "4444444444444444444444444444444444444444444444444444444444444444" \
+	| grep -v "5555555555555555555555555555555555555555555555555555555555555555" \
+	| grep -v "6666666666666666666666666666666666666666666666666666666666666666" \
+	| grep -v "7777777777777777777777777777777777777777777777777777777777777777" \
+	| grep -v "8888888888888888888888888888888888888888888888888888888888888888" \
+	| grep -v "9999999999999999999999999999999999999999999999999999999999999999" \
+	>      $@.1.tmp            
+	# grep -vE "A000079" $@.1.tmp > $@.tmp
+	mv -v $@.1.tmp  $@.tm
+	# powers of 2
+	wc -l  $@.*tmp
+	ls -al $@.*tmp
+known10:
+	$(DBAT) -x -f miknown.xml -p minocc=914 -m tsv \
+	| grep -E "^A[0-9]" \
+	| tee $@.txt
+	wc -l $@.txt
 mine_bflong:
-	perl mine_bflong.pl bflong_thin.tmp \
+	perl mine_bflong.pl -k known10.txt bflong_thin.tmp \
 	>      $@.tmp
 	wc -l  $@.tmp
 	ls -al $@.tmp
-	sort   -k1 -k2n -k3n $@.tmp > $@.txt
+	sort   $@.tmp > $@.txt
 mine_uniq:
-	cut -f1,3 mine_bflong.txt | sort | uniq -c \
-	>      $@.tmp
+	uniq -c mine_bflong.txt \
+	| sort -k1rn -k2 > $@.tmp
 	wc -l  $@.tmp
 #--------------
-fetch_list:
-	cut -b1-7 fetch_list.man \
-	| grep -E "^A" | sort | uniq > $@.txt
-	wc -l $@.*
+milong: milong_load milong_html
+milong_load:
+	$(DBAT) -f milong.create.sql
+	grep -nE "^"  mine_uniq.tmp \
+	| sed -e "s/:/ /" -e "s/  */\t/g" \
+	| $(DBAT) -s "\t" -m csv -r milong 
+	$(DBAT) -x "DELETE FROM milong WHERE nsame < 256"
+	$(DBAT) -4 milong
+	$(DBAT) -n milong
+milong_html:
+	$(DBAT) -f milong.xml \
+	> milong.html
+miknown_html:
+	$(DBAT) -f miknown.xml \
+	> miknown.html
 #--------------
-bfile_extract: bfdata bfinfo 
-bfdata: # parameter: DIR
-	perl extract_info.pl -btr $(DIR)/bfile > $@.txt
-	wc -l $@.txt
-#--
-bfdata_check: # Compare <code>stripped</code> file with terms extracted from local b-files
-	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
-	> x.tmp
-	echo -e "A-Number\tTerms" > $@.txt
-	sort x.tmp bfdata.txt | uniq -c | grep -vE "^ +2 +" \
-	| grep -E "," \
-	| cut -b 9- \
-	| perl comp_terms.pl \
-	| grep -vf $(COMMON)/draft_load.tmp \
-	>> $@.txt
-	wc -l $@.txt
+deploy:
+	mkdir -p                    $(TOMC)/spec/$(PROJECT)
+	mkdir -p                    $(DBAD)/web/spec/$(PROJECT)
+	cp -v *.xml *.xinc *.css    $(TOMC)/spec/$(PROJECT)
+	cp -v *.xml *.xinc *.css    $(DBAD)/web/spec/$(PROJECT)
+	

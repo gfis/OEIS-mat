@@ -49,21 +49,15 @@ prep4:
 #	sleep $(SLEEP)
 #=================================
 bfdir_load: # Load the <code>bfilelist</code> into a db table
-	perl $(COMMON)/bfdir.pl -c > bfdir.create.sql
-	$(DBAT) -f                   bfdir.create.sql
-	$(DBAT) -m csv -s "\t" -r    bfdir < $(COMMON)/bfdir.tmp
-	$(DBAT) -4                   bfdir
-	$(DBAT) -n                   bfdir
+	cd $(COMMON) ; make bfdir_load
+#	perl $(COMMON)/bfdir.pl -c > bfdir.create.sql
+#	$(DBAT) -f                   bfdir.create.sql
+#	$(DBAT) -m csv -s "\t" -r    bfdir < $(COMMON)/bfdir.tmp
+#	$(DBAT) -4                   bfdir
+#	$(DBAT) -n                   bfdir
 #----------
 bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for draft)
-	$(DBAT) "SELECT d.aseqno \
-		, substr(d.created, 1, 16) AS oeis_time, substr(b.access, 1, 16) as local_time \
-		, d.filesize AS oeis_size,  b.filesize AS local_size, b.message \
-		FROM  bfdir d LEFT JOIN bfinfo b ON d.aseqno = b.aseqno  \
-		WHERE d.filesize <> COALESCE(b.filesize, 1) \
-		ORDER BY 1" \
-	>     $(COMMON)/$@.txt
-	wc -l $(COMMON)/$@.txt
+	cd $(COMMON) ; make bfdir_check html_checks
 #=================================
 cat25: # Fetch the CAT25 file (internal format of all sequences). 
 	# Replace the server filename in next line

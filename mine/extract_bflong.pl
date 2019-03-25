@@ -18,7 +18,7 @@ my $utc_stamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\z"
 
 # get options
 my $debug      =  0; # 0 (none), 1 (some), 2 (more)
-my $rmin       =  32;
+my $rmin       =  128;
 my $rmax       =  65536; # indefinite
 my $listname   = "bflong.txt";
 my $read_len_max = 100000000; # 100 MB
@@ -35,11 +35,11 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     } elsif ($opt =~ m{\-r}) {
         my $range = shift(@ARGV);
         if ($range =~ m{\A(\d+)\D(\d+)\Z}) {
-        	$rmin = $1;
-        	$rmax = $2;
+            $rmin = $1;
+            $rmax = $2;
         } else {
-        	$rmin = $range;
-        	$rmax = 65536;
+            $rmin = $range;
+            $rmax = 65536;
         }
     } elsif ($opt =~ m{\-f}) {
         $listname = shift(@ARGV);
@@ -49,20 +49,20 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 } # while ARGV
 my $inputdir = "./bfile/";
 if (scalar(@ARGV) > 0) {
-	$inputdir = shift(@ARGV);
+    $inputdir = shift(@ARGV);
 }
 
 my $buffer; # contains the whole file
 #----------------------------------------------
 open(LIST, "<", $listname) or die "cannot read \"$listname\"";
 while (<LIST>) {
-	s/\s+\Z//; # chompr
-	if (m{\A[Ab]?(\d+)}i) {
-		my $seqno  = "$1";
-		my $aseqno = "A$seqno";
-		my $file   = "$inputdir/b$1.txt";
-		&extract_from_bfile($aseqno, $file);
-	} # match
+    s/\s+\Z//; # chompr
+    if (m{\A[Ab]?(\d+)}i) {
+        my $seqno  = "$1";
+        my $aseqno = "A$seqno";
+        my $file   = "$inputdir/b$1.txt";
+        &extract_from_bfile($aseqno, $file);
+    } # match
 } # while LIST
 close(LIST);
 #---------------------------
@@ -79,7 +79,7 @@ sub extract_from_bfile {
             ($index, $term) = ($1, $2);
             my $term_len = length($term);
             if ($rmin <= $term_len and $term_len < $rmax) {
-            	print join("\t", $term, $aseqno, $index) . "\n";
+                print join("\t", $term, $aseqno, $index) . "\n";
             }
         } # if index space term
     } # foreach $line

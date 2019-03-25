@@ -1,0 +1,102 @@
+/*	stylesheet.css - Cascaded Style Sheet
+	@(#) $Id: stylesheet.css 915 2012-04-02 20:31:19Z gfis $
+	2015-01-30,	Dr. Georg Fischer: for fibu
+*/
+.grn	{ color:black   ; background-color: palegreen	}
+.red	{ color:black   ; background-color: lightsalmon	} /* or lightpink */
+.blu	{ color:black	; background-color: lightblue	}
+.gry	{ color:black	; background-color: #DCDCDC  	}
+.yel	{ color:black	; background-color:      yellow	}
+.lye	{ color:black	; background-color: lightyellow	}
+.wht	{ color:black   ; background-color: white		}
+
+.A	{ color:white   ; background-color: crimson			}
+.B	{ color:black   ; background-color: orange			}
+.J	{ color:black   ; background-color: yellow			}
+.Q	{ color:black   ; background-color: lime			}
+.X	{ color:white   ; background-color: forestgreen		}
+.F	{ color:black   ; background-color: cornflowerblue	}
+.G	{ color:white   ; background-color: darkblue		}
+.R	{ color:white   ; background-color: darkmagenta		}
+
+.nbord  
+	{ vertical-align:top; margin:0px; 
+	  padding-top:0px; padding-bottom:0px; padding-left:4px; padding-right:4px;
+	  border:none }
+.error  
+	{ color:red     ; font-family: Courier; }
+.valid
+	{ color:black   ; background-color: #dffdd1	} /* a light green */
+.invalid
+	{ color:black   ; background-color: #fdd5d1 } /* mistyrose */
+	
+.xref3, /* reference to the partner in CROSSREFERENCES and in text */
+.xref2, /* reference to the partner in CROSSREFERENCES only */
+.refp   { background-color: lightgreen;    } 
+.xref1, /* reference to the partner in text, but not in CROSSREFERENCES */
+.refn   { background-color: greenyellow;   } 
+.xref0, /* no reference to the partner at all */
+.warn   { background-color: yellow;        } 
+
+.comt   { background-color: peachpuff;     } /* lightpink; #fff0f0; a lightred like in history, for conclusion */
+.err    { background-color: red; color: white; } /* for errors */
+.more   { color:white  ; background-color: blue;      }
+.dead   { color:white  ; background-color: gray;      }
+.fini   { color:black  ; background-color: turquoise; }
+.narrow { font-size    : smaller;  }
+.prefor { font-family  : monospace; white-space: pre;
+          font-size    : large; font-weight: bold; }
+.same   { background-color:lightyellow }
+
+body,p,h1,h2,h3,h4,dl,dd,dt,ul,ol,li,div,td,th,address,blockquote,nobr,b,i,a,br,img,.normal
+	{ font-family:Verdana,Arial,sans-serif; }
+img
+	{ display:block; border:0px; margin:0px; padding:0px; }
+table
+	{ background:white; border-collapse:collapse; margin-top:3mm; }
+table.sortable thead {
+	cursor: pointer
+	}
+td,th
+	{ vertical-align:top; margin:0px; 
+	  padding-top:0px; padding-bottom: 0px;padding-left:4px; padding-right:4px; 
+	  border-top:2px solid #aaa; /* border-left:2px solid #aaa; border-right:1px solid #aaa; */ }
+.visible   
+	{ color:black; 
+	  border-left: 1px solid #aaa;
+	  border-right: 1px solid #aaa;
+	  border-top: 1px solid #aaa;
+	  border-bottom: none;
+	}
+.invisible 
+	{ color:lightyellow; 	
+	/*
+	  border-left: 1px solid #aaa;
+	  border-right: 1px solid #aaa;
+	*/
+	  border-top: none;
+	  border-bottom: none;
+	}
+.counter   
+	{ color:black; background:white;
+	  border-left: 1px solid #aaa;
+	  border-right: none;
+	  border-top: 1px solid #aaa;
+	  border-bottom: none;
+	}
+.bold	
+	{ font-weight:bold; }
+dt	
+	{ font-weight:bold; }
+tr
+	{ background: white } /* or mintcream, whitesmoke, lightyellow, lemonchiffon} */
+tt
+	{ font-family:Courier; }
+th, .th
+	{ background-color: lemonchiffon; color: black; } /* or lightcyan, lightgreen, #ffe16a */
+/*
+.th
+	{ background-color: lemonchiffon; color: black; font-weight: bold;  } /* or lightcyan, lightgreen, #ffe16a */
+*/
+body
+	{ background-color:white; }

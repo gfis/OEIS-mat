@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2019-03-22: -ax
 # 2019-03-16: bfinfo keywords with line numbers only for hard errors
 # 2019-01-25: $filesize
 # 2019-01-22, Georg Fischer: copied from ../bfcheck/bfanalyze.pl
@@ -13,6 +14,7 @@
 #:#           j   for sequence JSON
 #:#           n   only extract names from JSON 
 #:#           s   only extract data  from JSON 
+#:#           x   only extract xrefs from JSON 
 #:#           b   for bfile
 #:#           r   TSV for Dbat -r,
 #:#           c   generate CREATE SQL
@@ -74,9 +76,11 @@ if (length($tabname) > 0) {
 } elsif ($action =~ m{[aj]}) {
     $tabname = "asinfo";
 } elsif ($action =~ m{n}) {
-    $tabname = "names";
+    $tabname = "asname";
 } elsif ($action =~ m{s}) {
-    $tabname = "data";
+    $tabname = "asdata";
+} elsif ($action =~ m{x}) {
+    $tabname = "asxref";
 }
 my $access = "1900-01-01 00:00:00"; # modification timestamp from the file
 my $buffer; # contains the whole file
@@ -88,7 +92,7 @@ if (0) {
     if (0) {
     } elsif ($action =~ m{r}) {
         foreach my $file (glob("$inputdir/*")) {
-            print join("\t", &extract_from_bfile($file)) . "\n";
+            &extract_from_bfile($file);
         } # foreach $file
     } elsif ($action =~ m{c}) {
         &print_create_bfinfo();
@@ -100,15 +104,20 @@ if (0) {
         die "invalid action \"$action\"\n";
     }
 #--------------------------
-} elsif ($action =~ m{[ajns]}) {
+} elsif ($action =~ m{[ajnsx]}) {
     if (0) {
     } elsif ($action =~ m{r}) {
         foreach my $file (glob("$inputdir/*")) {
-            print join("\t", &extract_from_json($file)) . "\n";
+            &extract_from_json($file);
         } # foreach $file
-    } elsif ($action =~ m{c}) {
-        &print_create_asinfo();
-    } elsif ($action =~ m{i}) {
+    } elsif ($action =~ m{c}) { # create SQL
+        if ($action =~ m{x}) {
+            $tabname = "asxref";
+            &print_create_asxref();
+        } else {
+            &print_create_asinfo();
+        }
+    } elsif ($action =~ m{i}) { 
         die "action $action not yet implementen\n";
     } elsif ($action =~ m{u}) {
         die "action $action not yet implementen\n";
@@ -134,6 +143,7 @@ sub read_file { # returns in global $access, $buffer, $filesize
 } # read_file
 #-------------------------------------------------
 sub extract_from_json { # read JSON of 1  sequence
+    my $result = "";
     my ($filename) = @_;
     &read_file($filename, $read_len_max); # sets $access, $buffer
     $filename =~ m{(A\d{6})\.json}i; # extract seqno
@@ -143,7 +153,7 @@ sub extract_from_json { # read JSON of 1  sequence
     my $offset1  = 1;
     my $offset2  = 1;
     my $terms    = "";
-	my $datalen  = 0;
+    my $datalen  = 0;
     my $keyword  = "nokeyword";
     my $author   = "";
     my $revision = 0;
@@ -161,9 +171,13 @@ sub extract_from_json { # read JSON of 1  sequence
     my $value;
     my $synth = "synth";
     my $seqno = 0;
+    my %xhash = (); # bits 1: in xref, bit 0: elsewhere
+    my $in_xref; # whether in "xref" property
     foreach my $line (split(/\n/, $buffer)) {
-        if ($line !~ m{\A\s*\"}) { # ignore
-        } elsif ($line =~ m{\A\s*\"number\"\:\s*(\d+)}) {
+        if ($line !~ m{\A\s*\"}) { # ignore closing brackets
+            $in_xref = 0;
+        # now the JSON properties   
+        } elsif ($line =~   m{\A\s*\"number\"\:\s*(\d+)}) {
             $value = $1;
             $seqno = sprintf("%06d", $value);
             $aseqno = "A$seqno";
@@ -173,65 +187,83 @@ sub extract_from_json { # read JSON of 1  sequence
                 print STDERR "# filename \"$filename\": fseqno \"$fseqno\" ne aseqno \"$aseqno\"\n";
             }
             $aseqno = $fseqno;
-        } elsif ($line =~ m{\A\s*\"data\"\:\s*\"([^\"]*)\"}) {
+        } elsif ($line =~   m{\A\s*\"data\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             $data  = $value;
             $datalen = length($data);
-            $terms = &get_terms8($value);
-        } elsif ($line =~ m{\A\s*\"name\"\:\s*\"(.*)}) {
+            $terms = &terms8($value);
+        } elsif ($line =~   m{\A\s*\"name\"\:\s*\"(.*)}) {
             $value = $1;
             $value =~ s{\"\,\Z}{};
             # $value =~ s{\\u003c}{\<}g;
             # $value =~ s{\\u003e}{\>}g;
             $name  = $value;
-        } elsif ($line =~ m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
+        } elsif ($line =~   m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
             $keyword = $1;
-        } elsif ($line =~ m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
+        } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             ($offset1, $offset2) = split(/\,/, $value);
             if (length($offset2) == 0) {
                 $offset2 = 1;
             }
-        } elsif ($line =~ m{\A\s*\"author\"\:\s*\"([^\"]*)\"}) {
+        } elsif ($line =~   m{\A\s*\"author\"\:\s*\"([^\"]*)\"}) {
             $author = $1;
-        } elsif ($line =~ m{\A\s*\"revision\"\:\s*(\d+)}) {
+        } elsif ($line =~   m{\A\s*\"revision\"\:\s*(\d+)}) {
             $revision = $1;
-        } elsif ($line =~ m{\A\s*\"time\"\:\s*\"([^\"]*)\"}) {
+        } elsif ($line =~   m{\A\s*\"time\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
-            $access  = &get_utc_timestamp($value);
-        } elsif ($line =~ m{\A\s*\"created\"\:\s*\"([^\"]*)\"}) {
+            $access  = &utc($value);
+        } elsif ($line =~   m{\A\s*\"created\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
-            $created = &get_utc_timestamp($value);
-        } elsif ($line =~ m{\A\s*\"results\"\:\s*null}) {
+            $created = &utc($value);
+        } elsif ($line =~   m{\A\s*\"results\"\:\s*null}) {
             $keyword = "notexist";
-        } elsif ($line =~ m{\/$aseqno\/b$seqno\.txt}) {
-            $synth = ""; # not synthesized
+        } elsif ($line =~   m{\A\s*\"xref\"\:}) {
+            $in_xref = 1;
+            
+        } else {
+            if ($line =~    m{\/$aseqno\/b$seqno\.txt}) { # link to b-file
+                $synth = ""; # not synthesized
+            }   
+            foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
+                if ($aref eq $aseqno) {
+                    # ignore own
+                } elsif (! defined($xhash{$aref})) {
+                    $xhash{$aref}  = ($in_xref == 1 ? 2 : 1);
+                } else {
+                    $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
+                }
+            } # foreach
         }
     } # foreach $line
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
     if (0) {
     } elsif ($action =~ m{n}) {
-        return ($aseqno, $name);
+        print join("\t", ($aseqno, $name)) . "\n";
     } elsif ($action =~ m{s}) {
-        return ($aseqno, $data);
+        print join("\t", ($aseqno, $data)) . "\n";
+    } elsif ($action =~ m{x}) {
+        foreach my $key (keys(%xhash)) {
+        print join("\t", ($aseqno, $key, $xhash{$key})) . "\n";
+        } # foreach
     } else {
-        return
+        print join("\t", 
         ( $aseqno
         , $offset1, $offset2
         , $terms
-		, $datalen
+        , $datalen
         , substr($keyword, 0, 64)
         , substr($author , 0, 64)
         , $revision
         , $created
         , $access
-        );
+        )) . "\n";
     }
 } # extract_from_json
 #-----------------------
 sub print_create_asinfo {
     print <<"GFis";
---  Table for OEIS - basic information about b-files
+--  Table for OEIS - basic information about sequences
 --  @(#) \$Id\$
 --  $utc_stamp: Georg Fischer - generated by extract_info.pl $action, do not edit here!
 --
@@ -252,8 +284,31 @@ CREATE  TABLE            $tabname
 COMMIT;
 GFis
 } # print_create_asinfo
+#-----------------------
+sub print_create_asxref {
+    print <<"GFis";
+--  Table for OEIS - information about CROSSREFS in sequences
+--  @(#) \$Id\$
+--  $utc_stamp: Georg Fischer - generated by extract_info.pl $action, do not edit here!
+--
+DROP    TABLE  IF EXISTS $tabname;
+CREATE  TABLE            $tabname
+    ( aseqno    VARCHAR(10)   -- A322469
+    , rseqno    VARCHAR(10)   -- referenced A-number
+    , mask      INT           -- bit 1: in "xref", bit 0: in other properties
+    , PRIMARY KEY(aseqno, rseqno, mask)
+    );
+CREATE  INDEX  ${tabname}a ON $tabname
+	(aseqno		ASC
+	);
+CREATE  INDEX  ${tabname}r ON $tabname
+	(rseqno		ASC
+	);
+COMMIT;
+GFis
+} # print_create_asinfo
 #----
-sub get_terms8 { # keep in sync with code in extract_from_bfile !!!
+sub terms8 { # keep in sync with code in extract_from_bfile !!!
     my ($value) = @_;
     my @valarray = split(/\,/, $value);
     my $iterm = 0;
@@ -269,9 +324,9 @@ sub get_terms8 { # keep in sync with code in extract_from_bfile !!!
         $iterm ++;
     } # while $iterm
     return substr($terms, 1); # remove first comma
-} # get_terms8
+} # terms8
 #----
-sub get_utc_timestamp { # keep in sync with code in extract_from_bfile !!!
+sub utc { # keep in sync with code in extract_from_bfile !!!
     my ($value) = @_;
 #   2011-11-13T12:40:47-05:00
     $value =~ m{\A(\d+)\D(\d+)\D(\d+)\D(\d+)\D(\d+)(\D)(\d+)\D(\d+)\D(\d+)};
@@ -327,7 +382,7 @@ sub get_utc_timestamp { # keep in sync with code in extract_from_bfile !!!
     }
     return sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year, $month, $day, $hour, $min, $sec);
-} # get_utc_timestamp
+} # utc
 #----
 sub feb_last {
     my ($year) = @_;
@@ -336,6 +391,7 @@ sub feb_last {
 } # feb_last
 #---------------------------
 sub extract_from_bfile {
+    my $result = "";
     my ($filename) = @_;
     my $width      = $terms_width;
     my $state_lead = $lead;
@@ -362,7 +418,7 @@ sub extract_from_bfile {
     my $old_term;
     my $state   = 0;
     if (substr($buffer, -1) ne "\n") {
-    	$mess{"neof"} = ""; # ord(substr($buffer, -1));
+        $mess{"neof"} = ""; # ord(substr($buffer, -1));
     }
     foreach my $line (split(/\n/, $buffer)) {
         if ($line =~ m{\A(\-?\d+)\s(\-?\d+)\Z}o) { # index space term
@@ -374,13 +430,13 @@ sub extract_from_bfile {
                 $mess{"nxinc"} = ($iline + 1); # hard error
                 # not increasing
             } else {
-            #	if ($term <= $old_term) {
-            #		$isgt = 0;
-            #	}
-            #	if ($term >  $old_term) {
-            #		$isge = 0;
-            #	}
-            #	$old_term = $term;
+            #   if ($term <= $old_term) {
+            #       $isgt = 0;
+            #   }
+            #   if ($term >  $old_term) {
+            #       $isge = 0;
+            #   }
+            #   $old_term = $term;
             }
             if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
                 $terms .= ",$term";
@@ -400,7 +456,7 @@ sub extract_from_bfile {
             # line with parseable term
             my $curlen = length($term);
             if ($curlen > $maxlen) {
-            	$maxlen = $curlen;
+                $maxlen = $curlen;
             }
             
         } elsif ($line =~ m{\A\#.*}) { # comment

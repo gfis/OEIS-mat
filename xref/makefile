@@ -21,3 +21,27 @@ asxref1:
 	perl $(COMMON)/extract_info.pl -ax ./ajson > asxref.txt
 asxref2:
 	head -n4 asxref.txt
+	
+#---------------------
+many: refers_many referred_many
+refers_many:
+	$(DBAT) -256 \
+	"SELECT x.aseqno, COUNT(x.rseqno) \
+		, n.name, i.author, SUBSTR(created, 1, 10) AS created \
+		FROM  asxref x, asname n, asinfo i \
+		WHERE x.aseqno = n.aseqno \
+		  AND x.aseqno = i.aseqno \
+		GROUP BY x.aseqno, n.name, i.author, SUBSTR(created, 1, 10) \
+		ORDER BY 2 DESC" \
+	| tee $@.txt
+referred_many:
+	$(DBAT) -256 \
+	"SELECT x.rseqno, COUNT(x.aseqno) \
+		, n.name, i.author, SUBSTR(created, 1, 10) AS created \
+		FROM  asxref x, asname n, asinfo i \
+		WHERE x.rseqno = n.aseqno \
+		  AND x.rseqno = i.aseqno \
+		GROUP BY x.rseqno, n.name, i.author, SUBSTR(created, 1, 10) \
+		ORDER BY 2 DESC" \
+	| tee $@.txt
+

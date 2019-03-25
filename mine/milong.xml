@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    @(#) $Id
+    2019-03-23: Georg Fischer: copied from spec/broken_link
+-->
+<dbat encoding="UTF-8"
+    conn="worddb"
+    lang="en"
+    xmlns   ="http://www.teherba.org/2007/dbat"
+    xmlns:ht="http://www.w3.org/1999/xhtml"
+    target="_blank" 
+    javascript="../javascript.js"
+    title="milong"
+    >
+    <comment lang="de">Mine coincidences of long terms</comment>
+
+    <ht:h3><ht:a href="servlet?spec=mine.index">Mine</ht:a> -
+        Coincidences of long terms
+    </ht:h3>
+
+    <select>
+        <col pseudo="style">CASE WHEN step > 0 THEN 'invisible' ELSE '' END</col>
+        <col label="Id" align="right">id        </col>
+        <col pseudo="style">CASE WHEN step = 0 THEN '' ELSE 'nbord' END</col>
+        <col label="# Occ." align="right">nsame     </col>
+        <col pseudo="style">CASE WHEN step = 0 THEN '' ELSE 'nbord' END</col>
+        <col label="A-number" sep="*" wrap="javascript">
+            'url*' || (CASE WHEN step = 0 OR step = 5 THEN 'https://oeis.org/' || aseqno ELSE '' END)
+            || '*' || aseqno
+            || (CASE WHEN step = 0 OR step = 5 THEN '**' || color ELSE '' END)
+        </col>
+        <col pseudo="style">CASE WHEN step = 0 THEN '' ELSE 'nbord' END</col>
+        <col label="Sequence"        >content   </col>
+        <from>( 
+            (
+              SELECT  m.id, 0 AS step,     m.nsame, m.aseqno AS aseqno
+                    , 'xref' || COALESCE(
+                      ( SELECT mask FROM asxref x 
+                        WHERE  x.aseqno = m.aseqno
+                          AND  x.rseqno = m.bseqno)
+                      , 0)                                   AS color
+                    , a.name                                 AS content
+              FROM    milong m, asname a
+              WHERE   m.aseqno = a.aseqno
+            ) UNION (
+              SELECT  m.id, 1 AS step, '' AS nsame, ''       AS aseqno
+                    , ''                                     AS color
+                    , a.keyword || ' ' || a.author           AS content
+              FROM    milong m, asinfo a
+              WHERE   m.aseqno = a.aseqno
+            ) UNION (
+              SELECT  m.id, 5 AS step, '' AS nsame, m.bseqno AS aseqno
+                    , 'xref' || COALESCE(
+                      ( SELECT mask FROM asxref x 
+                        WHERE  x.rseqno = m.aseqno
+                          AND  x.aseqno = m.bseqno)
+                      , 0)                                   AS color
+                    , a.name                                 AS content
+              FROM    milong m, asname a
+              WHERE   m.bseqno = a.aseqno
+            ) UNION (
+              SELECT  m.id, 6 AS step, '' AS nsame, ''       AS aseqno
+                    , ''                                     AS color
+                    , a.keyword || ' ' || a.author           AS content
+              FROM    milong m, asinfo a
+              WHERE   m.bseqno = a.aseqno
+            )
+        ) AS sub2
+        </from>
+        <order by="id, step" />
+        <counter desc="Row,s" />
+    </select>
+    <trailer/>
+</dbat>

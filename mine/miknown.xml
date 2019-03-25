@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    @(#) $Id
+    2019-03-23: Georg Fischer: copied from milong.xml
+-->
+<dbat encoding="UTF-8"
+    conn="worddb"
+    lang="en"
+    xmlns   ="http://www.teherba.org/2007/dbat"
+    xmlns:ht="http://www.w3.org/1999/xhtml"
+    target="_blank" 
+    javascript="../javascript.js"
+    title="miknown"
+    >
+    <comment lang="de">Well-known sequences with long terms</comment>
+
+    <ht:h3><ht:a href="servlet?spec=mine.index">Mine</ht:a> -
+        Well-known sequences with long terms
+    </ht:h3>
+
+    <select>
+       <col label="A-number" sep="*" wrap="javascript">
+            'url*https://oeis.org/' || aseqno 
+            || '*' || aseqno
+        </col>
+        <col label="# Occ." align="right">nocc      </col>
+         <col label="Name">name</col>
+        <col label="Created - Author, keywords">info</col>
+        <from>( 
+            (
+              SELECT    x.rseqno                AS aseqno
+                      , COUNT(x.aseqno)         AS nocc
+                      , n.name                  AS name
+                      , SUBSTR(i.created, 1, 10) || ' - ' || i.author || ', ' || i.keyword 
+                                                AS info
+              FROM      asxref x, asname n, asinfo i, bfinfo b 
+              WHERE     x.rseqno = n.aseqno 
+                AND     x.rseqno = i.aseqno 
+                AND     x.rseqno = b.aseqno
+                AND     b.maxlen >= 128
+              GROUP BY  x.rseqno, n.name
+                      , SUBSTR(i.created, 1, 10) || ' - ' || i.author || ', ' || i.keyword 
+            )
+        ) AS sub2
+        </from>
+        <where> nocc &gt;= <parm name="minocc" init="914" />
+        </where>
+        <order by="nocc DESC, aseqno" />
+        <counter desc="Sequence,s" />
+    </select>
+    <trailer/>
+</dbat>
