@@ -17,7 +17,8 @@
     <ht:h3><ht:a href="servlet?spec=mine.index">Mine</ht:a> -
         Coincidences of long terms
     </ht:h3>
-
+	<ht:p>Codes: "." same term, "{" term in upper, "}" in lower sequence only, "|" term differs
+	</ht:p>
     <select>
         <col pseudo="style">CASE WHEN step > 0 THEN 'invisible' ELSE '' END</col>
         <col label="Id" align="right">id        </col>
@@ -40,14 +41,28 @@
                           AND  x.rseqno = m.bseqno)
                       , 0)                                   AS color
                     , a.name                                 AS content
-              FROM    milong m, asname a
+              FROM    milong_view m, asname a
               WHERE   m.aseqno = a.aseqno
             ) UNION (
               SELECT  m.id, 1 AS step, '' AS nsame, ''       AS aseqno
                     , ''                                     AS color
-                    , a.keyword || ' ' || a.author           AS content
-              FROM    milong m, asinfo a
+                    , a.keyword    || ' ' || a.author || ' - '          
+            <!--
+                      || m.nsame   || 'S,' 
+            -->
+                      || m.ntotal  || '&#x2211; ' 
+                      || m.nequal  || '. ' 
+                      || m.nleft   || '{ ' 
+                      || m.nright  || '} ' 
+                      || m.ndiffer || '|' 
+                                                             AS content
+              FROM    milong_view m, asinfo a
               WHERE   m.aseqno = a.aseqno
+            ) UNION (
+              SELECT  m.id, 4 AS step, '' AS nsame, ''       AS aseqno
+                    , 'gry'                                  AS color
+                    , m.signature                            AS content
+              FROM    milong_view m             
             ) UNION (
               SELECT  m.id, 5 AS step, '' AS nsame, m.bseqno AS aseqno
                     , 'xref' || COALESCE(
@@ -56,13 +71,13 @@
                           AND  x.aseqno = m.bseqno)
                       , 0)                                   AS color
                     , a.name                                 AS content
-              FROM    milong m, asname a
+              FROM    milong_view m, asname a
               WHERE   m.bseqno = a.aseqno
             ) UNION (
               SELECT  m.id, 6 AS step, '' AS nsame, ''       AS aseqno
                     , ''                                     AS color
                     , a.keyword || ' ' || a.author           AS content
-              FROM    milong m, asinfo a
+              FROM    milong_view m, asinfo a
               WHERE   m.bseqno = a.aseqno
             )
         ) AS sub2

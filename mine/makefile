@@ -77,13 +77,18 @@ mine_uniq:
 	uniq -c mine_bflong.txt \
 	| sort -k1rn -k2 > $@.tmp
 	wc -l  $@.tmp
+mine_sign:
+	head -n 5000 mine_uniq.tmp \
+	| perl bfdiff.pl -f - > $@.tmp
 #--------------
 milong: milong_load milong_html
 milong_load:
-	$(DBAT) -f milong.create.sql
-	grep -nE "^"  mine_uniq.tmp \
+	perl bfdiff.pl -c | tee milong.create.sql
+	$(DBAT) -f              milong.create.sql
+	grep -nE "^"  mine_sign.tmp \
 	| sed -e "s/:/ /" -e "s/  */\t/g" \
-	| $(DBAT) -s "\t" -m csv -r milong 
+	> $@.tmp
+	$(DBAT) -s "\t" -m csv -r milong < $@.tmp
 	$(DBAT) -x "DELETE FROM milong WHERE nsame < 256"
 	$(DBAT) -4 milong
 	$(DBAT) -n milong
@@ -99,4 +104,4 @@ deploy:
 	mkdir -p                    $(DBAD)/web/spec/$(PROJECT)
 	cp -v *.xml *.xinc *.css    $(TOMC)/spec/$(PROJECT)
 	cp -v *.xml *.xinc *.css    $(DBAD)/web/spec/$(PROJECT)
-	
+	scp milong.html stylesheet.css gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat
