@@ -2,6 +2,7 @@
 
 # OEIS-mat/linrec - linear recurrences and index
 # @(#) $Id$
+# 2019-03-29: revisited for joeis
 # 2019-02-19: HTMLIZE
 # 2019-01-22: unpacking from ../dumps
 # 2019-01-17: Georg Fischer

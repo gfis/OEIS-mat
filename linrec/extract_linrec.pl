@@ -2,6 +2,7 @@
 
 # Extract linear recurrence signatures (and initial terms) from JSON grep
 # @(#) $Id$
+# 2019-03-29: revisited
 # 2019-02-28: formula
 # 2019-02-25: write also lrindx_spec.txt
 # 2019-02-22: tables 'lrindx' and 'lrlink'

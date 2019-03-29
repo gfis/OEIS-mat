@@ -47,6 +47,9 @@ my $lead       =  8; # so many initial terms are printed
 my $tail_width =  8; # length of last digits in last term
 my $terms_width= 64;
 my $tabname    = "";
+my %xhash;           # for &extract_aseqnos
+my $in_xref;         # whether in "xref" property
+my $do_xref = 0;     # whether in action -ax
 my $read_len_max = 100000000; # 100 MB
 my $read_len_min =      8000; # stripped has about 960 max.
 if (scalar(@ARGV) == 0) {
@@ -73,6 +76,7 @@ if (length($tabname) > 0) {
     # believe this one
 } elsif ($action =~ m{b}) {
     $tabname = "bfinfo";
+    
 } elsif ($action =~ m{[aj]}) {
     $tabname = "asinfo";
 } elsif ($action =~ m{n}) {
@@ -81,6 +85,7 @@ if (length($tabname) > 0) {
     $tabname = "asdata";
 } elsif ($action =~ m{x}) {
     $tabname = "asxref";
+    $do_xref = 1;
 }
 my $access = "1900-01-01 00:00:00"; # modification timestamp from the file
 my $buffer; # contains the whole file
@@ -96,10 +101,6 @@ if (0) {
         } # foreach $file
     } elsif ($action =~ m{c}) {
         &print_create_bfinfo();
-    } elsif ($action =~ m{i}) {
-        die "action $action not yet implementen\n";
-    } elsif ($action =~ m{u}) {
-        die "action $action not yet implementen\n";
     } else {
         die "invalid action \"$action\"\n";
     }
@@ -117,10 +118,6 @@ if (0) {
         } else {
             &print_create_asinfo();
         }
-    } elsif ($action =~ m{i}) { 
-        die "action $action not yet implementen\n";
-    } elsif ($action =~ m{u}) {
-        die "action $action not yet implementen\n";
     } else {
         die "invalid action \"$action\"\n";
     }
@@ -131,6 +128,9 @@ if (0) {
 #----------------------
 sub read_file { # returns in global $access, $buffer, $filesize
     my ($filename, $read_len) = @_;
+    if ($debug > 0) {
+        print STDERR "read_file \"$filename\", $read_len bytes\n";
+    }
     open(FIL, "<", $filename) or die "cannot read $filename\n";
     my ($dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size, $atime
         , $mtime, $ctime, $blksize, $blocks) = stat(FIL);
@@ -159,6 +159,7 @@ sub extract_from_json { # read JSON of 1  sequence
     my $revision = 0;
     my $created  = "1974-01-01 00:00:00";
     $access      = $created;
+#           "name": "Number of 0..n arrays x(0..4) of 5 elements with zero 3rd differences.",
 #           "number": 200083,
 #           "data": "2,3,8,17,26,43,64,89,122,163,208,269,334,407,496,597,702,831,968,1117,1286,1471,1664,1889,2122,2371,2648,2945,3250,3595,3952,4329,4738,5171,5616,6109,6614,7143,7712,8309,8918,9583,10264,10973,11726,12511,13312",
 #           "keyword": "nonn",
@@ -171,11 +172,10 @@ sub extract_from_json { # read JSON of 1  sequence
     my $value;
     my $synth = "synth";
     my $seqno = 0;
-    my %xhash = (); # bits 1: in xref, bit 0: elsewhere
-    my $in_xref; # whether in "xref" property
+    %xhash = (); # bits 1: in xref, bit 0: elsewhere
     foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\A\s*\"}) { # ignore closing brackets
-            $in_xref = 0;
+            $in_xref = 0; # but terminate xref mode
         # now the JSON properties   
         } elsif ($line =~   m{\A\s*\"number\"\:\s*(\d+)}) {
             $value = $1;
@@ -198,6 +198,9 @@ sub extract_from_json { # read JSON of 1  sequence
             # $value =~ s{\\u003c}{\<}g;
             # $value =~ s{\\u003e}{\>}g;
             $name  = $value;
+            if ($do_xref == 1) {
+                &extract_aseqnos($aseqno, $line);
+            }
         } elsif ($line =~   m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
             $keyword = $1;
         } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
@@ -219,21 +222,15 @@ sub extract_from_json { # read JSON of 1  sequence
         } elsif ($line =~   m{\A\s*\"results\"\:\s*null}) {
             $keyword = "notexist";
         } elsif ($line =~   m{\A\s*\"xref\"\:}) {
-            $in_xref = 1;
+            $in_xref = 1; # start xref mode
             
         } else {
             if ($line =~    m{\/$aseqno\/b$seqno\.txt}) { # link to b-file
                 $synth = ""; # not synthesized
             }   
-            foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
-                if ($aref eq $aseqno) {
-                    # ignore own
-                } elsif (! defined($xhash{$aref})) {
-                    $xhash{$aref}  = ($in_xref == 1 ? 2 : 1);
-                } else {
-                    $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
-                }
-            } # foreach
+            if ($do_xref == 1) {
+                &extract_aseqnos($aseqno, $line);
+            }
         }
     } # foreach $line
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
@@ -244,7 +241,9 @@ sub extract_from_json { # read JSON of 1  sequence
         print join("\t", ($aseqno, $data)) . "\n";
     } elsif ($action =~ m{x}) {
         foreach my $key (keys(%xhash)) {
-        print join("\t", ($aseqno, $key, $xhash{$key})) . "\n";
+            print join("\t", 
+            ($aseqno, $key, $xhash{$key}
+            )) . "\n";
         } # foreach
     } else {
         print join("\t", 
@@ -260,6 +259,18 @@ sub extract_from_json { # read JSON of 1  sequence
         )) . "\n";
     }
 } # extract_from_json
+#-----------------------
+sub extract_aseqnos {
+    my ($aseqno, $line) = @_;
+    foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
+        if ($aref eq $aseqno) { # ignore reference to own
+        } elsif (! defined($xhash{$aref})) {
+            $xhash{$aref}  = ($in_xref == 1 ? 2 : 1);
+        } else {
+            $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
+        }
+    } # foreach
+} # extract_aseqnos;
 #-----------------------
 sub print_create_asinfo {
     print <<"GFis";
@@ -299,11 +310,11 @@ CREATE  TABLE            $tabname
     , PRIMARY KEY(aseqno, rseqno, mask)
     );
 CREATE  INDEX  ${tabname}a ON $tabname
-	(aseqno		ASC
-	);
+    (aseqno     ASC
+    );
 CREATE  INDEX  ${tabname}r ON $tabname
-	(rseqno		ASC
-	);
+    (rseqno     ASC
+    );
 COMMIT;
 GFis
 } # print_create_asinfo
@@ -512,11 +523,12 @@ sub extract_from_bfile {
         print STDERR "# $filename: $aseqno\t$message\n";
     }
     if ($action =~ m{t}) { # bfdata
-        return ($aseqno
+        print join("\t",
+        ($aseqno
         , substr($terms,   1) # remove 1st comma
-        );
+        )) . "\n";
     } else { # normal bfinfo
-        return 
+        print join("\t",  
         ( $aseqno
         , $bfimin
         , $bfimax
@@ -527,7 +539,7 @@ sub extract_from_bfile {
         , $maxlen
         , substr($message, 1) # remove 1st comma
         , $access
-        );
+        )) . "\n";
     }
 } # extract_from_bfile
 #-----------------------
@@ -597,40 +609,3 @@ __DATA__
         }
     ]
 }
-
-    foreach my $line (split(/\n/, $buffer)) {
-        if ($iline == 0 and ($line =~ m{\A\# A\d{6} \(b\-file synthesized from sequence entry\)\s*\Z})) {
-            $mess{"synth"} = "";
-        }
-        $line  =~ s{\A\s*(\#.*)?}{}o; # remove leading whitespace and comments
-        if ($line =~ m{\A(-?\d+)\s+(\-?\d{1,})\s*(\#.*)?\Z}o) {
-            # loose    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  format "index term #?"
-            ($index, $term) = ($1, $2);
-            if ($iline == 0) {
-                $bfimin = $index;
-            } elsif ($index != $bfimax + 1) { # check for increasing index
-                $mess{"ninc"} = ($iline + 1);
-            } # not increasing
-            if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
-                $terms .= ",$term";
-            } else {
-                $state_lead = 0; # never try it again
-                last if $width == $long_width;
-            }
-            if (substr($term, 0, 1) eq "-") { # sign applies to terms only
-                $mess{"sign"} = "";
-            }
-            $bfimax = $index;
-            $iline ++;
-            if ($busyof2 == 1 and ($term !~ m{\A\-?[01]{1}\Z}o)) {
-                $offset2 = $iline;
-                $busyof2 = 0;
-            }
-            # line with parseable term
-        } elsif (length($line) == 0) {
-            # was comment or whitespace
-        } else { # bad
-            $iline ++;
-            $mess{"ndig"} = $iline;
-        }
-    } # foreach $line

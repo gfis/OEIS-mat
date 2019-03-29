@@ -242,7 +242,7 @@ bfinfo_update:
 	$(DBAT) -n                bfinfo
 #--------------------------------
 bulk_lists:
-	cat asname_check.txt asdata_check.txt bfdata_check.txt offset_check.txt terms_check.txt \
+	cat asname_check.txt asdata_check.txt bfdata_check.txt offset_check.txt terms_check.txt synth?_check.txt \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulka.txt
 	wc -l bulka.txt
@@ -760,8 +760,8 @@ history: # Fetch new or recently changed JSONs
 history1:
     # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=50
     # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=150
-	make history2 KEYWORD=new     MAX=150
-	make history2 KEYWORD=changed MAX=450
+	make history2 KEYWORD=new     MAX=250
+	make history2 KEYWORD=changed MAX=500
 	make history3
 history2: # parameter KEYWORD, DIR, MAX
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
@@ -782,8 +782,8 @@ history4: # parameter DIR
 #---------------------
 infos: 
 	time make infos1 DIR=.
-infos1: asdata      asname      asinfo      bfinfo      bfdata
-loads:  asdata_load asname_load asinfo_load bfinfo_load bfdir_load checks
+infos1: asdata      asname      asinfo      asxref      bfinfo      bfdata
+loads:  asdata_load asname_load asinfo_load asxref_load bfinfo_load bfdir_load checks
 #----------------------
 flinrec:
 	perl flinrec.pl $(COMMON)/stripped | tee $@.tmp
