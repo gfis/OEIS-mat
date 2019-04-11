@@ -10,15 +10,15 @@
 #
 #:# Usage:
 #:#   perl extract_linrec.pl -m mode [-f spec_file] [-d debug] infile > outfile
-#:#   -m  index    parse https://oeis.org/w/index.php?title=Index_to_OEIS:_Section_Rec?action=raw
-#:#                and write lrindx.txt, lrindx_spec.txt
-#:#       wrindx   read merged file and lrindx_spec.txt and regenerate the index raw wiki file
-#:#       mmacall  parse Mathematica calls: LinearRecurrence[{1, 0, 1, -1}, {2, 3, 5, 10}, 50]
-#:#       link     parse links in JSON: "\u003ca href=\"/index/Rec#order_02\"\u003eIndex entries for linear recurrences with constant coefficients\u003c/a\u003e, signature (7,-1)"
-#:#                and write lrlink.txt
-#:#       lrindx   write CREATE SQL for table 'lrindx'
-#:#       lrlink   write CREATE SQL for table 'lrlink'
-#:#   -m  formula  scan grepped JSON formulas "a(n) = ..." for lin.rec. syntax
+#:#   -m  index     parse https://oeis.org/w/index.php?title=Index_to_OEIS:_Section_Rec?action=raw
+#:#                 and write lrindx.txt, lrindx_spec.txt
+#:#       wrindx    read merged file and lrindx_spec.txt and regenerate the index raw wiki file
+#:#       mma[call] parse Mathematica calls: LinearRecurrence[{1, 0, 1, -1}, {2, 3, 5, 10}, 50]
+#:#       link      parse links in JSON: "\u003ca href=\"/index/Rec#order_02\"\u003eIndex entries for linear recurrences with constant coefficients\u003c/a\u003e, signature (7,-1)"
+#:#                 and write lrlink.txt
+#:#       lrindx    write CREATE SQL for table 'lrindx'
+#:#       lrlink    write CREATE SQL for table 'lrlink'
+#:#   -m  formula   scan grepped JSON formulas "a(n) = ..." for lin.rec. syntax
 #
 # lrindx_spec.txt has the following records:
 # fil   0       header
@@ -260,34 +260,61 @@ if (0) { # switch for $mode
     close(SPEC);
 
 } else { # other extraction modes
+    my $old_aseqno = "";
     while (<>) {
         s/\s+\Z//; # chompr
         $line = $_;
         if (0) {
-        } elsif ($mode =~ m{link|mmacall}) {
-            if ($line =~ m{(A\d{6})\.json\:}) { # link, mmacall
+        } elsif ($mode =~ m{link}) {
+            if ($line =~ m{(A\d{6})\.json\:}) { # link
                 $aseqno    = $1;
                 $initerm   = "";
                 $termno    = 0;
                 $signature = $void_sig;
                 $lorder    = $void_ord;
-                if (0) {
-                } elsif ($mode eq "link") {
-                    if ($line =~ m{signature\s*\(([^\)]+)}i) {
-                        $signature = $1;
-                    }
-                    if ($line =~ m{\#order\D*(\d+)}) {
-                        $lorder    = $1;
-                    }
-                    &output;
-                } elsif ($mode eq "mmacall") {
-                    if ($line =~ m{LinearRecurrence\s*\[\s*\{([^\}]+)\}\s*\,\s*\{([^\}]+)\}\s*\,\s*(\d+)\s*\]}i) {
-                        $signature = $1;
-                        $initerm   = $2;
-                        $termno    = $3;
-                        &output;
-                    }
+                if ($line =~ m{signature\s*\(([^\)]+)}i) {
+                    $signature = $1;
                 }
+                if ($line =~ m{\#order\D*(\d+)}) {
+                    $lorder    = $1;
+                }
+                &output;
+            } # Annnnnn.json
+        } elsif ($mode =~ m{mma}) {
+            if ($line =~ m{(A\d{6})\.json\:}) { # mmacall
+                $aseqno    = $1;
+                $initerm   = "";
+                $termno    = 0;
+                $signature = $void_sig;
+                $lorder    = $void_ord;
+                if (($line =~ m{LinearRecurrence\s*\[\s*\{([^\}]+)\}\s*\,\s*\{([^\}]+)\}\s*\,\s*(\d+)\s*\]})
+                    and ($old_aseqno ne $aseqno) # avoid duplicates
+                    ) {
+                    $signature = $1;
+                    $initerm   = $2;
+                    $termno    = $3;
+                    $signature =~ s{\s}{}g;
+                    $initerm   =~ s{\s}{}g;
+                    if ($line =~ m{Join\s*\[\s*\{([^\}]+)\}\s*\,\s*LinearRecurrence}) { # prefix initial terms and increase $termno
+                        my $jointerm = $1;
+                        $jointerm =~ s{\s}{}g;
+                        my @jointerms = split(/\,/, $jointerm);
+                        $termno += scalar(@jointerms);
+                        $initerm = "$jointerm,$initerm";
+                        if ($debug >= 1) {
+                            print STDERR "# $aseqno Join[\{$jointerm\},LinearRecurrence ...\n";
+                        }
+                    } # prefix Join
+                    # print join("\t", $aseqno, join(" ", $signature, $initerm, $termno)) . "\n";
+                    if ($signature !~ m{[^\,\-0-9]}) { # does not match letters, "(" etc.
+                    		@signatures = split(/\,/, $signature);
+                    		@initerms   = split(/\,/, $initerm  );
+                    		$sigorder   = scalar(@signatures);
+                    		$termno     = scalar(@initerms  );
+	                      &output();
+	                  }
+                }
+                $old_aseqno = $aseqno;
             } # Annnnnn.json
         } elsif ($mode =~ m{xtract}) {
             if ($line =~ m{\A(A\d{6})\t([^\t]+)\t([^\t]+)}) { # xtract
@@ -316,9 +343,9 @@ if (0) { # switch for $mode
                 $aseqno     = $1;
                 my $formula = $2;
                 if ($formula =~ m{a\(n\-\d+\)\Z}) {
-	                $sigorder   = ($formula =~ s{\)}{\)}g) - 1;
-    	            print join("\t", $aseqno, $sigorder, $formula) . "\n";
-    	        }
+                    $sigorder   = ($formula =~ s{\)}{\)}g) - 1;
+                    print join("\t", $aseqno, $sigorder, $formula) . "\n";
+                }
             }
         } # modes
     } # while <>
@@ -400,7 +427,7 @@ sub index_output {
 #----------
 sub output {
     $initerm     =~ s{[^\,\-\d]}{}g; # remove letters
-    @initerms    = split(/\,/, $initerm  );
+    @initerms    = split(/\,/, $initerm);
     my ($sigorder, $compsig) = &compress_signature($signature);
     print join("\t"
         , $lorder + 0
@@ -453,7 +480,7 @@ CREATE  TABLE            $tabname
     , seqno     VARCHAR(8)  NOT NULL  -- 322469 without 'A'
     , sigorder  INT                   -- number of signature elements
     , signature VARCHAR(1020)         -- comma separated, without "( )"
-    , comment   VARCHAR(1020)         -- behind isgnature, aseqno
+    , comment   VARCHAR(1020)         -- behind signature, aseqno
     , PRIMARY KEY(lorder, compsig, seqno, sigorder)
     );
 COMMIT;

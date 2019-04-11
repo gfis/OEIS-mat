@@ -55,11 +55,11 @@ html_check1:
 deploy_checks:
 	scp *check*.html gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/common/
 #----------------
-seq: # parameter: $(INFO)
-	$(DBAT) -f seq.create.sql
-	cut -b1-7 $(INFO) | grep -E "^A" | $(DBAT) -m csv -r seq
+seq: # parameter: $(LIST)
+	$(DBAT) -f $(COMMON)/seq.create.sql
+	cut -b1-7 $(LIST) | grep -E "^A" | $(DBAT) -m csv -r seq
 	$(DBAT) -n seq
-delseq: seq # parameters: $(TAB) $(INFO)
+delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #----------------------
 flinrec:
@@ -75,8 +75,10 @@ linrec: lrlink lrindx lrload
 #--
 lrlink: lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
 lrlink0:
-	find ajson -iname "*.json" | sort | xargs -l grep -H \
+	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
 	"Index entries for linear recurrence" > lrlink1.tmp || :
+	head -n4 lrlink1.tmp
+	wc   -l  lrlink1.tmp
 lrlink2:
 	perl extract_linrec.pl -m link          lrlink1.tmp \
 	| $(SORTALLN) \
@@ -107,7 +109,44 @@ lrlink_check: # Lin. rec. link, but no index entry
 	>       $@.txt
 	head -4 $@.txt	
 	wc -l   $@.txt
-#----
+#-------------
+lrmmac: lrmmac1 lrmmac2 lrmmac3
+lrmmac1: # extract MMA LinearRecurrence calls from ./ajson 
+	rm -f $@.tmp
+	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
+	"LinearRecurrence" \
+	>> $@.tmp || :
+lrmmac2: # extract parameters, eventually modified by Join parameters
+	perl extract_linrec.pl -m mmac lrmmac1.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+lrmmac3: # create table lrmmac
+	perl extract_linrec.pl -m lrlink 9678kk\
+	| sed -e "s/lrlink/lrmmac/g" | tee lrmmac.create.sql
+	$(DBAT) -f                         lrmmac.create.sql
+	$(DBAT) -m csv -s "\t" -r          lrmmac < lrmmac2.tmp
+	$(DBAT) -4 lrmmac
+	$(DBAT) -n lrmmac
+#-------------
+mmac_joeis:
+	$(DBAT) "SELECT 'A' || seqno, signature, initerms, termno FROM lrmmac \
+		WHERE 'A' || seqno NOT IN \
+		(SELECT aseqno FROM joeis WHERE superclass LIKE 'Linear%') \
+		ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+mmac_err02:
+	make seq LIST=errors-2019-04-02.txt
+	$(DBAT) -x "SELECT 'A' || seqno \
+	  , (CASE WHEN sigorder = termno THEN 'LinearRecurrence2' ELSE 'LinearRecurrence3' END) \
+	  , signature, initerms, termno FROM lrmmac \
+		WHERE 'A' || seqno IN (SELECT aseqno FROM seq) \
+		ORDER BY 1" \
+		>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#---------------
 lrlord_check: # Compare orders in lin. rec. links
 	# Link was to wrong order.
 	$(DBAT) "SELECT 'A' || seqno AS aseqno, lorder, sigorder, signature \
@@ -122,7 +161,7 @@ lrlord_check: # Compare orders in lin. rec. links
 	wc -l   $@.txt
 lrlord_patch:
 	$(DBAT) -v "UPDATE lrlink SET sigorder = lorder WHERE seqno = '322829';"
-	make seq INFO=lrlord_check.man
+	make seq LIST=lrlord_check.man
 	$(DBAT) -v "UPDATE lrlink SET lorder = sigorder WHERE 'A' || seqno IN \
 		(SELECT aseqno FROM seq);"
 lriord_check: # Compare orders in lin. rec. index
@@ -149,16 +188,11 @@ lrlink_insert1:
 lrlink_insert2:
 	$(DBAT) -n lrindx
 	$(DBAT) -m csv -s "\t" -r lrindx < lrlink_insert1.txt
+	$(DBAT) -4 lrindx
 	$(DBAT) -n lrindx
-#-------------
-lrlink_mmacall:
-	find ajson -iname "*.json" | xargs -l grep -iH \
-	"LinearRecurrence" \
-	> $@.1.tmp || :
-	perl extract_linrec.pl -m mmacall $@.tmp > $@.1.tmp
 #-----
 lrperiod:
-	find ajson -iname "*.json" | sort | xargs -l grep -H \
+	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
 	"Index entries for periodic sequences with large period" \
 	> $@.tmp
 #----------------------
@@ -245,6 +279,28 @@ lrsign_check: # Differences in lin. rec. signatures
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	
+#--	
+lrstrip_check: # Whether there are not sufficiently many initial terms in file stripped
+	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, i.signature \
+	FROM lrindx i, asinfo a \
+	WHERE 'A' || i.seqno = a.aseqno \
+	  AND i.sigorder    >= a.termno \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+#--
+lrmorest_check: # Whether there are more initial terms in file stripped
+	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, i.signature \
+	FROM lrindx i, asinfo a \
+	WHERE 'A' || i.seqno  = a.aseqno \
+	  AND i.sigorder + 1 <= a.termno \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+dummy2:
+	echo " \
+	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	"	
 #---------------------
 lrsigadd_check: # Additional signatures in links
 	$(DBAT) "SELECT DISTINCT a.signature \
@@ -304,5 +360,7 @@ form:
 	perl extract_linrec.pl -m form form1.tmp \
 	> $@.tmp
 	wc -l $@.tmp 
+#-------------------
+
 	
 	

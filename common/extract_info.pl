@@ -2,6 +2,8 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2019-04-10: termno in asdata
+# 2019-04-08: evaluate -a x separately
 # 2019-03-22: -ax
 # 2019-03-16: bfinfo keywords with line numbers only for hard errors
 # 2019-01-25: $filesize
@@ -79,6 +81,8 @@ if (length($tabname) > 0) {
     
 } elsif ($action =~ m{[aj]}) {
     $tabname = "asinfo";
+}
+if (0) {
 } elsif ($action =~ m{n}) {
     $tabname = "asname";
 } elsif ($action =~ m{s}) {
@@ -154,6 +158,7 @@ sub extract_from_json { # read JSON of 1  sequence
     my $offset2  = 1;
     my $terms    = "";
     my $datalen  = 0;
+    my $termno   = 0;
     my $keyword  = "nokeyword";
     my $author   = "";
     my $revision = 0;
@@ -191,7 +196,7 @@ sub extract_from_json { # read JSON of 1  sequence
             $value = $1;
             $data  = $value;
             $datalen = length($data);
-            $terms = &terms8($value);
+            ($termno, $terms) = &terms8($value);
         } elsif ($line =~   m{\A\s*\"name\"\:\s*\"(.*)}) {
             $value = $1;
             $value =~ s{\"\,\Z}{};
@@ -236,27 +241,29 @@ sub extract_from_json { # read JSON of 1  sequence
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
     if (0) {
     } elsif ($action =~ m{n}) {
-        print join("\t", ($aseqno, $name)) . "\n";
+        print join("\t", ($aseqno
+            , $name         )) . "\n";
     } elsif ($action =~ m{s}) {
-        print join("\t", ($aseqno, $data)) . "\n";
+        print join("\t", ($aseqno
+            , $termno
+            , $data         )) . "\n";
     } elsif ($action =~ m{x}) {
         foreach my $key (keys(%xhash)) {
-            print join("\t", 
-            ($aseqno, $key, $xhash{$key}
-            )) . "\n";
+        print join("\t", ($aseqno
+            , $key
+            , $xhash{$key}  )) . "\n";
         } # foreach
     } else {
-        print join("\t", 
-        ( $aseqno
-        , $offset1, $offset2
-        , $terms
-        , $datalen
-        , substr($keyword, 0, 64)
-        , substr($author , 0, 64)
-        , $revision
-        , $created
-        , $access
-        )) . "\n";
+        print join("\t", ($aseqno
+            , $offset1, $offset2
+            , $terms
+            , $termno
+            , $datalen
+            , substr($keyword, 0, 64)
+            , substr($author , 0, 64)
+            , $revision
+            , $created
+            , $access       )) . "\n";
     }
 } # extract_from_json
 #-----------------------
@@ -284,6 +291,7 @@ CREATE  TABLE            $tabname
     , offset1   BIGINT        -- index of first term, cf. OEIS definition
     , offset2   BIGINT        -- sequential number of first term with abs() > 1, or 1
     , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
+    , termno    INT           -- number of terms in DATA section
     , datalen   INT           -- length of DATA section
     , keyword   VARCHAR(64)   -- "hard,nice,more" etc.
     , author    VARCHAR(80)   -- of the sequence; allow for apostrophes
@@ -322,6 +330,7 @@ GFis
 sub terms8 { # keep in sync with code in extract_from_bfile !!!
     my ($value) = @_;
     my @valarray = split(/\,/, $value);
+    my $termno = scalar(@valarray);
     my $iterm = 0;
     my $terms = "";
     my $state_lead = $lead;
@@ -334,10 +343,10 @@ sub terms8 { # keep in sync with code in extract_from_bfile !!!
         }
         $iterm ++;
     } # while $iterm
-    return substr($terms, 1); # remove first comma
+    return ($termno, substr($terms, 1)); # remove first comma
 } # terms8
 #----
-sub utc { # keep in sync with code in extract_from_bfile !!!
+sub utc { 
     my ($value) = @_;
 #   2011-11-13T12:40:47-05:00
     $value =~ m{\A(\d+)\D(\d+)\D(\d+)\D(\d+)\D(\d+)(\D)(\d+)\D(\d+)\D(\d+)};

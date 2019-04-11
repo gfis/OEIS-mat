@@ -50,14 +50,9 @@ prep4:
 #=================================
 bfdir_load: # Load the <code>bfilelist</code> into a db table
 	cd $(COMMON) ; make bfdir_load
-#	perl $(COMMON)/bfdir.pl -c > bfdir.create.sql
-#	$(DBAT) -f                   bfdir.create.sql
-#	$(DBAT) -m csv -s "\t" -r    bfdir < $(COMMON)/bfdir.tmp
-#	$(DBAT) -4                   bfdir
-#	$(DBAT) -n                   bfdir
-#----------
+#--
 bfdir_check: # Compare <code>bfilelist</code> with local b-file sizes (maybe for draft)
-	cd $(COMMON) ; make bfdir_check html_checks
+	cd $(COMMON) ; make -f checks.make bfdir_check html_checks
 #=================================
 cat25: # Fetch the CAT25 file (internal format of all sequences). 
 	# Replace the server filename in next line

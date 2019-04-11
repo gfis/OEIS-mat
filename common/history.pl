@@ -92,7 +92,7 @@ if (0) {
         if ($status ne "200") {
             die "bad status $status\n";
         }
-        my $outname = sprintf("$outdir/${keyword}_%04d\.$type", $start);
+        my $outname = sprintf("$outdir/block_${keyword}_%04d\.$type", $start);
         open (OUT, ">", $outname) || die "cannot write \"$outname\"\n";
         print OUT "$page\n";
         close(OUT);
