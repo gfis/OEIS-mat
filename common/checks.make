@@ -6,10 +6,8 @@
 #---------------------------------
 GITS=../..
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-SLEEP=16
 DUMPS=../dumps
-HEAD=8
-PULL=../pull
+HEAD=4
 COMMON=$(GITS)/OEIS-mat/common
 JOEIS=../$(GITS)/gitups/joeis
 LITE=$(GITS)/joeis
@@ -22,7 +20,9 @@ all:
 	# targets: 
 help:
 	grep -E "^[a-z]" checks.make
-#======================
+#================
+# general targets
+
 checks: \
 			asdata_check \
 			asdir_check  \
@@ -64,6 +64,8 @@ html_check1:
 deploy_checks:
 	scp *check*.html gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/common/
 #----------------
+## use the ones in makefile:
+##
 ## seq: # parameter: $(LIST)
 ## 	$(DBAT) -f $(COMMON)/seq.create.sql
 ## 	cut -b1-7 $(LIST) | grep -E "^A" | sort | uniq > seq.tmp
@@ -77,7 +79,9 @@ deploy_checks:
 ## 	$(DBAT) -n seq2
 ## delseq: seq # parameters: $(TAB) $(LIST)
 ## 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
-#================================-
+#================
+# check targets alphabetically from here
+
 asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
@@ -199,6 +203,13 @@ full_check: # Keyword "full" and not "synth"
 	wc -l $@.txt
 #---------------------------
 joeis09_check: # jOEIS linr.rec. differences 2019-04-09
+	echo "A_Number	Test_comparision	Values" > $@.txt
+	sed -e "s/FAILED, //" -e "s/=/<br \/>computed by joeis\t/" -e "s/\tcomputed: /<br \/>/" err.2019-04-09.19.log \
+	>>       $@.txt
+	wc -l    $@.txt
+	make -f checks.make html_check1 FILE=$@
+#---------------------------
+joeis_check: # jOEIS linr.rec. differences 2019-04-09
 	echo "A_Number	Test_comparision	Values" > $@.txt
 	sed -e "s/FAILED, //" -e "s/=/<br \/>computed by joeis\t/" -e "s/\tcomputed: /<br \/>/" err.2019-04-09.19.log \
 	>>       $@.txt

@@ -43,12 +43,23 @@ delseq: seq # parameters: $(TAB) $(LIST)
 #==============================
 bulk_lists:
 	cat asdata_check.txt asdir_check.txt asname_check.txt bfdata_check.txt bfdir_check.txt \
-		offset_check.txt synth*_check.txt terms_check.txt  \
+		offset_check.txt \
+		syntha_check.txt \
+		synthb_check.txt \
+		synthc_check.txt \
+		synthd_check.txt \
+		synthe_check.txt \
+		terms_check.txt  \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulka.txt
 	wc -l bulka.txt
 	cat asdata_check.txt                 asname_check.txt bfdata_check.txt bfdir_check.txt \
-		offset_check.txt synth*_check.txt terms_check.txt  \
+		offset_check.txt \
+		syntha_check.txt \
+		synthb_check.txt \
+		synthc_check.txt \
+		synthd_check.txt \
+		terms_check.txt  \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulkb.txt
 	wc -l bulkb.txt
@@ -61,9 +72,9 @@ history: # Fetch new or recently changed JSONs
 	mkdir   bulk/ajson
 	cp -pv  bulka.txt bulk/ajson
 	cp -pv  bulkb.txt bulk/bfile
-	make    history2 KEYWORD=new     MAX=$(NMAX)
-	make    history2 KEYWORD=changed MAX=$(CMAX)
-	make    history3
+	make    history2  DIR=bulk KEYWORD=new     MAX=$(NMAX) 
+	make    history2  DIR=bulk KEYWORD=changed MAX=$(CMAX) 
+	make    history3  DIR=bulk
 	make    bulk_type DIR=bulk TYPE=bfile LIST=bulkb.txt
 	make    history4  DIR=bulk
 #--
