@@ -21,24 +21,25 @@ RALEN=350
 all:
 	# targets: 
 help:
-	grep -E "^[a-z]" makefile
+	grep -E "^[a-z]" checks.make
 #======================
 checks: \
-	asdata_check \
-	asdir_check  \
-	asname_check \
-	bfdata_check \
-	bfdir_check  \
-	cons_check   \
-	denom_check  \
-	offset_check \
-	radata_check \
-	rbdata_check \
-	sign_check   \
-	synth_check  \
-	terms_check  \
-	eval_checks  \
-	html_checks
+			asdata_check \
+			asdir_check  \
+			asname_check \
+			bfdata_check \
+			bfdir_check  \
+			cons_check   \
+			denom_check  \
+			offset_check \
+			radata_check \
+			rbdata_check \
+			sign_check   \
+			synth_check  \
+			terms_check  \
+			eval_checks  \
+			html_checks
+	
 clean_checks:
 	rm -f *_check.txt *_check.htm*
 eval_checks:
@@ -54,34 +55,35 @@ eval_checks:
 	cp  $@.`date +%Y-%m-%d.%H_%M`.log $@.log
 	head -n 999999 *_check.txt > $@.lst
 html_checks:
-	perl ../bfcheck/tsv_html.pl -m init eval_checks.lst >  check_index.html
+	perl html_checks.pl -init eval_checks.lst >  check_index.html
 	ls -1 *_check.txt | sed -e "s/.txt//" \
-	| xargs -l -i{} make -s html_check1 FILE={}
-	perl ../bfcheck/tsv_html.pl -m term eval_checks.lst >> check_index.html
+	| xargs -l -i{} make -f checks.make -s html_check1 FILE={}
+	perl html_checks.pl -term eval_checks.lst >> check_index.html
 html_check1:
-	perl ../bfcheck/tsv_html.pl -m var $(FILE).txt > $(FILE).html
+	perl html_checks.pl -m checks.make $(FILE).txt > $(FILE).html
 deploy_checks:
 	scp *check*.html gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/common/
 #----------------
-seq: # parameter: $(LIST)
-	$(DBAT) -f $(COMMON)/seq.create.sql
-	cut -b1-7 $(LIST) | grep -E "^A" | sort | uniq > seq.tmp
-	$(DBAT) -m csv -r seq < seq.tmp
-	$(DBAT) -n seq
-seq2: # parameter: $(LIST)
-	$(DBAT) -f $(COMMON)/seq2.create.sql
-	cat $(LIST) | grep -E "^A" | sort | uniq > seq2.tmp
-	$(DBAT) -m csv -r seq2 < seq2.tmp
-	$(DBAT) -4 seq2
-	$(DBAT) -n seq2
-delseq: seq # parameters: $(TAB) $(LIST)
-	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
+## seq: # parameter: $(LIST)
+## 	$(DBAT) -f $(COMMON)/seq.create.sql
+## 	cut -b1-7 $(LIST) | grep -E "^A" | sort | uniq > seq.tmp
+## 	$(DBAT) -m csv -r seq < seq.tmp
+## 	$(DBAT) -n seq
+## seq2: # parameter: $(LIST)
+## 	$(DBAT) -f $(COMMON)/seq2.create.sql
+## 	cat $(LIST) | grep -E "^A" | sort | uniq > seq2.tmp
+## 	$(DBAT) -m csv -r seq2 < seq2.tmp
+## 	$(DBAT) -4 seq2
+## 	$(DBAT) -n seq2
+## delseq: seq # parameters: $(TAB) $(LIST)
+## 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #================================-
 asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
+	cut -f1,3 asdata.txt > asdata.tmp
 	echo -e "A-Number\tName" > $@.txt
-	sort x.tmp asdata.txt | uniq -c | grep -vE "^  *2 " \
+	sort x.tmp asdata.tmp | uniq -c | grep -vE "^  *2 " \
 	| grep -E "\," \
 	| cut -b 9- | grep -vf $(PULL)/draft_load.tmp \
 	>> $@.txt || :
@@ -201,7 +203,7 @@ joeis09_check: # jOEIS linr.rec. differences 2019-04-09
 	sed -e "s/FAILED, //" -e "s/=/<br \/>computed by joeis\t/" -e "s/\tcomputed: /<br \/>/" err.2019-04-09.19.log \
 	>>       $@.txt
 	wc -l    $@.txt
-	make html_check1 FILE=$@
+	make -f checks.make html_check1 FILE=$@
 #--------------------------------
 keyword_check: # Forbidden combinations of keywords
 	$(DBAT) "SELECT aseqno, keyword \
@@ -223,7 +225,7 @@ keyword_check: # Forbidden combinations of keywords
 	wc -l $@.txt
 #---------------------------
 mma_check: # Terms in sequence differ from first terms in MMA Lin.Rec. call
-	make seq2 LIST=$(FISCHER)/mmacheck.tmp
+	make -f makefile seq2 LIST=$(FISCHER)/mmacheck.tmp
 	$(DBAT)  "SELECT a.aseqno, SUBSTR(a.data, 1, LENGTH(s.info)*2) as data, s.info \
 		FROM  asdata a, seq2 s \
 		WHERE a.aseqno = s.aseqno \
@@ -231,7 +233,7 @@ mma_check: # Terms in sequence differ from first terms in MMA Lin.Rec. call
 		ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-	make html_checks
+	make -f checks.make html_checks
 #--------------------------------
 neof_check: # b-files with no LF behind the last term
 	$(DBAT) "SELECT 'b' || substr(aseqno, 2, 6) || '.txt' FROM bfinfo WHERE message LIKE '%neof%' ORDER BY 1" \
@@ -285,7 +287,7 @@ rbdata_check: # b-file and term list is longer than $(RALEN) characters - candid
 sean402_check: # errors in generated joeis Lin.Rec. classes 
 	echo aseqno	mma_call                  > $@.txt
 	cat $(FISCHER)/errors-2019-04-02.txt >> $@.txt	
-	make html_checks
+	make -f checks.make html_checks
 #--------------------------------
 sign_check: signa_check signb_check
 signa_check: # Sequence has keyword <em>sign</em> and no negative terms in b-file
@@ -397,7 +399,7 @@ synthf_check: # b-files with fake comment "synthesized from ..."
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	make seq LIST=$@.tmp
+	make -f makefile seq LIST=$@.tmp
 	$(DBAT) "SELECT s.aseqno, a.keyword, SUBSTR(a.access, 1, 10) AS Date \
 	  FROM  seq s, asinfo a \
 		WHERE s.aseqno = a.aseqno \
@@ -429,9 +431,9 @@ bfdel:
 	$(WWW_TEO)/gf5.txt \
 	$(WWW_TEO)/gf9.txt \
 	> $@.tmp
-	make seq LIST=$@.tmp
+	make -f makefile seq LIST=$@.tmp
 bfdel_check: bfdel
-	make bfdela_check bfdelb_check
+	make -f checks.make bfdela_check bfdelb_check
 bfdela_check:
 	$(DBAT) "SELECT s.aseqno, substr(a.access, 1, 16), a.keyword \
 		FROM  seq s, asinfo a \

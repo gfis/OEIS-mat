@@ -2,7 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
-# 2019-04-10: termno in asdata
+# 2019-04-12: termno in asdata and in bfdata
 # 2019-04-08: evaluate -a x separately
 # 2019-03-22: -ax
 # 2019-03-16: bfinfo keywords with line numbers only for hard errors
@@ -424,6 +424,7 @@ sub extract_from_bfile {
         &read_file($filename, $read_len_max); # sets $access, $buffer, $filesize
     }
     my $terms   = "";
+    my $termno  = 0;
     my $bfimin  = 0;
     my $bfimax  = 0;
     my $offset2 = 1;
@@ -459,6 +460,7 @@ sub extract_from_bfile {
             #   $old_term = $term;
             }
             if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
+                $termno ++;
                 $terms .= ",$term";
             } else {
                 $state_lead = 0; # never try it again
@@ -534,6 +536,7 @@ sub extract_from_bfile {
     if ($action =~ m{t}) { # bfdata
         print join("\t",
         ($aseqno
+				, $termno
         , substr($terms,   1) # remove 1st comma
         )) . "\n";
     } else { # normal bfinfo

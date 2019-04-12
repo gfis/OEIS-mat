@@ -27,7 +27,6 @@ all:
 help:
 	grep -E "^[a-z]" makefile
 #======================
-#----------------
 seq: # parameter: $(LIST)
 	$(DBAT) -f $(COMMON)/seq.create.sql
 	cut -b1-7 $(LIST) | grep -E "^A" | sort | uniq > seq.tmp
@@ -103,18 +102,35 @@ bulk_bfile1:
 	wget   $(PARM)
 	sleep  $(SLEEP)
 #==============================
-infos: ainfos binfos
+infos:  ainfos binfos
 #----
-ainfos: asinfo asname asdata
+ainfos: asdata asinfo asname asxref
+binfos: bfdata bfinfo 
 #----
+loads:  aloads bloads checks
+aloads: asdata_load asinfo_load asname_load asxref_load 
+bloads: bfdata_load bfinfo_load bfdir_load 
+#--------
 asdata: # parameter: DIR
 	perl extract_info.pl -asr $(DIR)/ajson > $@.txt
 	wc -l $@.txt
-#----
+asdata_load: # Load table <em>asdata</em>
+	$(DBAT) -f                  asdata.create.sql
+	cat asdata.txt \
+	| $(DBAT) -m csv -s "\t" -r asdata
+	$(DBAT) -4                  asdata
+	$(DBAT) -n                  asdata
+#--------
 asname: # parameter: DIR
 	perl extract_info.pl -anr $(DIR)/ajson > $@.txt
 	wc -l $@.txt
-#----
+asname_load: # Load table <em>asname</em>
+	$(DBAT) -f                  asname.create.sql
+	perl uncode.pl asname.txt \
+	| $(DBAT) -m csv -s "\t" -r asname
+	$(DBAT) -4                  asname
+	$(DBAT) -n                  asname
+#--------
 asinfo: # parameter DIR: table for basic sequence data from JSONs
 	make asinfo_extract DIR=.
 asinfo_extract:
@@ -134,7 +150,7 @@ asinfo_update:
 	$(DBAT) -m csv -s "\t" -r   asinfo < $(LIST)
 	$(DBAT) -4                  asinfo
 	$(DBAT) -n                  asinfo
-#----
+#--------
 asxref: # parameter DIR: table for crossreferences
 	make asxref_extract DIR=.
 asxref_extract:
@@ -146,26 +162,17 @@ asxref_load:
 	$(DBAT) -m csv -s "\t" -r   asxref  < asxref.txt
 	$(DBAT) -4                  asxref
 	$(DBAT) -n                  asxref
-#--------------
-asdata_load: # Load table <em>asdata</em>
-	$(DBAT) -f                  asdata.create.sql
-	cat asdata.txt \
-	| $(DBAT) -m csv -s "\t" -r asdata
-	$(DBAT) -4                  asdata
-	$(DBAT) -n                  asdata
-#--------------
-asname_load: # Load table <em>asname</em>
-	$(DBAT) -f                  asname.create.sql
-	perl uncode.pl asname.txt \
-	| $(DBAT) -m csv -s "\t" -r asname
-	$(DBAT) -4                  asname
-	$(DBAT) -n                  asname
-#--------------
-binfos: bfdata bfinfo 
-#----
+#--------------------------------
 bfdata: # parameter: DIR
 	perl extract_info.pl -btr $(DIR)/bfile > $@.txt
 	wc -l $@.txt
+bfdata_load: # Load table <em>bfdata</em>
+	sed -e "s/asdata/bfdata/g"  asdata.create.sql > bfdata.create.sql
+	$(DBAT) -f                  bfdata.create.sql
+	cat bfdata.txt \
+	| $(DBAT) -m csv -s "\t" -r bfdata
+	$(DBAT) -4                  bfdata
+	$(DBAT) -n                  bfdata
 #----
 bfinfo: # parameter: DIR
 	make bfinfo_extract DIR=.
@@ -186,21 +193,7 @@ bfinfo_update:
 	$(DBAT) -m csv -s "\t" -r bfinfo < $(LIST)
 	$(DBAT) -4                bfinfo
 	$(DBAT) -n                bfinfo
-#--------------------------------
-bulk_old: 
-	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H` 
-bulk_all:
-	mkdir  $(DIR)               || :
-	wc -l  bulk?.txt
-	cp     bulk?.txt      $(DIR)
-	cp     fetch_list.man $(DIR)
-	mkdir          $(DIR)/ajson || :
-	mkdir          $(DIR)/bfile || :
-	make   bulk_type TYPE=ajson LIST=bulka.txt
-	make   bulk_type TYPE=bfile LIST=bulkb.txt
-	make   bulk_tar 
-	make   bulk_extract 
-#-------------------
+#----
 bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	perl bfdir.pl -c > bfdir.create.sql
 	$(DBAT) -f         bfdir.create.sql
@@ -209,7 +202,23 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
-#---------------------------
+#--------------------------------
+checks:
+	make -f checks.make $@
+html_checks:
+	make -f checks.make $@
+#================================
+bfsubset: # parameter LIST: creates a subset of bfiles in ./bfsub
+	make bfsubset1 LIST=err.tmp
+bfsubset1:
+	rm -rf bfsub
+	mkdir  bfsub
+	cat $(LIST) | grep -E "^A" \
+	| grep FA \
+	| cut -b 2-7 \
+	| xargs -l -i{} cp -v ./bfile/b{}.txt ./bfsub/
+	ls -1 bfsub | wc -l
+#-------
 bfsynth: # Synthesize temp2/bfiles.txt for all in $(LIST)
 	cut -b1-7 $(LIST) | sort | uniq > $@.1.tmp
 	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp
@@ -227,7 +236,7 @@ bfsynth: # Synthesize temp2/bfiles.txt for all in $(LIST)
 	find   temp2 -iname "*.txt" | wc -l
 	rm -f temp2.zip
 	zip -r temp2.zip temp2
-#-------
+#----
 mvsynth:
 	echo "mkdir -f bsynth" > $@.tmp
 	$(DBAT) -x "SELECT 'mv bfile/b' || SUBSTR(i.aseqno, 2, 6) || '.txt bsynth/' \
@@ -235,21 +244,6 @@ mvsynth:
 	>> $@.tmp
 	sed -e "s/\r//" $@.tmp > $@.sh
 	wc -l $@.sh
-#-----------------
-isin_joeis:
-	sed -s "s/^\(A[0-9]*\) /\1\t/" $(LIST) > $@.1.tmp
-	make seq2 LIST=$@.1.tmp
-	$(DBAT) -x "SELECT j.aseqno, j.superclass, s.info \
-		FROM joeis j, seq2 s \
-		WHERE j.aseqno = s.aseqno \
-		ORDER BY 1" \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-#---------------------
-infos: 
-	time make infos1 DIR=.
-infos1: asdata      asname      asinfo      asxref      bfinfo      bfdata
-loads:  asdata_load asname_load asinfo_load asxref_load bfinfo_load bfdir_load checks
 #----------------------------
 uncat_diff:
 	perl -w uncat25.pl -m comp -o ./ajson cat25.txt \
@@ -404,3 +398,17 @@ bulka1:
 	mkdir          $(DIR)/bfile || :
 	make   bulk_type TYPE=ajson
 	make   bulk_tar 
+#--------------------------------
+bulk_old: 
+	make   bulk_all DIR=bulk.`date +%Y-%m-%d.%H` 
+bulk_all:
+	mkdir  $(DIR)               || :
+	wc -l  bulk?.txt
+	cp     bulk?.txt      $(DIR)
+	cp     fetch_list.man $(DIR)
+	mkdir          $(DIR)/ajson || :
+	mkdir          $(DIR)/bfile || :
+	make   bulk_type TYPE=ajson LIST=bulka.txt
+	make   bulk_type TYPE=bfile LIST=bulkb.txt
+	make   bulk_tar 
+	make   bulk_extract 
