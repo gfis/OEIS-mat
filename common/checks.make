@@ -27,8 +27,8 @@ checks: \
 			asdata_check \
 			asdir_check  \
 			asname_check \
-			bfdata_check \
 			bfdir_check  \
+			brol_check   \
 			cons_check   \
 			denom_check  \
 			offset_check \
@@ -39,7 +39,9 @@ checks: \
 			terms_check  \
 			eval_checks  \
 			html_checks
-	
+#
+#		bfdata_check \
+#
 clean_checks:
 	rm -f *_check.txt *_check.htm*
 eval_checks:
@@ -267,6 +269,15 @@ offset_check: # Sequence offset differs from first index in b-file
 	      AND a.keyword NOT LIKE '%allocated%'  \
 	      AND a.keyword NOT LIKE '%recycled%'  \
 	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#----
+pass_check: # Check whether test result counts equals number of terms in b-files
+	$(DBAT) "SELECT s.aseqno, s.info as testcount, b.bfimax - b.bfimin  + 1 AS bfcount \
+	    FROM seq2 s, bfinfo b \
+	    WHERE s.aseqno = b.aseqno \
+	      AND CAST(s.info AS INT) <> b.bfimax - b.bfimin + 1 \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt

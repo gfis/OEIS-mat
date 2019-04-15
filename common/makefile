@@ -4,7 +4,7 @@
 # @(#) $Id$
 # 2019-04-11: checks exported to ./checks.make
 # 2019-02-19: HTMLIZE
-# 2019-01-22: unpacking from ../dumps
+# 2019-01-22: old_unpacking from ../dumps
 # 2019-01-17: Georg Fischer
 #---------------------------------
 GITS=../..
@@ -19,8 +19,8 @@ LITE=$(GITS)/joeis
 FISCHER=$(LITE)/internal/fischer
 D=0
 G=n
-NMAX=150
-CMAX=450
+NMAX=200
+CMAX=500
 #-------------
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -42,7 +42,8 @@ delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #==============================
 bulk_lists:
-	cat asdata_check.txt asdir_check.txt asname_check.txt bfdata_check.txt bfdir_check.txt \
+	cat asdata_check.txt asdir_check.txt asname_check.txt bfdata_check.txt \
+		bfdir_check.txt \
 		offset_check.txt \
 		syntha_check.txt \
 		synthb_check.txt \
@@ -50,20 +51,26 @@ bulk_lists:
 		synthd_check.txt \
 		synthe_check.txt \
 		terms_check.txt  \
+		fetch_list.man   \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulka.txt
 	wc -l bulka.txt
-	cat asdata_check.txt                 asname_check.txt bfdata_check.txt bfdir_check.txt \
+	cat asdata_check.txt                 asname_check.txt bfdata_check.txt \
+		bfdir_check.txt \
 		offset_check.txt \
 		syntha_check.txt \
 		synthb_check.txt \
 		synthc_check.txt \
 		synthd_check.txt \
 		terms_check.txt  \
+		fetch_list.man   \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulkb.txt
 	wc -l bulkb.txt
-	# copy bulk?.txt to the Unix machine
+	echo '#### with fetch_list: ???'
+	cat fetch_list.man
+	wc -l bulk?.txt
+	#### now copy bulk?.txt to the Linux machine
 #---------
 history: # Fetch new or recently changed JSONs
 	rm -rf  bulk
@@ -77,10 +84,13 @@ history: # Fetch new or recently changed JSONs
 	make    history3  DIR=bulk
 	make    bulk_type DIR=bulk TYPE=bfile LIST=bulkb.txt
 	make    history4  DIR=bulk
+	make    history5  DIR=bulk
 #--
-history1: # get new and changed JSONs, expand blocks, and get b-files
-    # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=50
-    # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=150
+history0: # get new and changed JSONs, expand blocks, and get b-files
+	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
+	| grep -E "\"time\"" | sort 
+	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \
+	| grep -E "\"time\"" | sort 
 history2: # parameter KEYWORD, DIR, MAX: write blocks of new or changed JSONs into $(DIR)
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
 	ls -al $(DIR) | head -n 8
@@ -94,9 +104,15 @@ history3: # parameter DIR: unpack all blocks into $(DIR)/ajson
 	head -n4 $(DIR)/alist.tmp
 	wc -l    $(DIR)/alist.tmp
 history4:
-	make     bulk_tar  DIR=bulk
+	grep -v  bulk/alist.tmp bulka.txt | grep -E "^A[0-9]" | sort | uniq \
+	>        bulka2.txt
+	wc -l    bulka2.txt
+	cp -pv   bulka.txt bulk/ajson
+	make bulk_type DIR=bulk TYPE=ajson LIST=bulka2.txt
+history5:
 	cp -pv   $(DIR)/ajson/A*.json ./ajson
 	cp -pv   $(DIR)/bfile/b*.txt  ./bfile
+	make     bulk_tar  DIR=bulk
 #------------------------
 bulk_tar:
 	ls -lR  $(DIR) | wc -l
@@ -113,7 +129,9 @@ bulk_bfile1:
 	wget   $(PARM)
 	sleep  $(SLEEP)
 #==============================
-infos:  ainfos binfos
+infos:  
+	make ainfos DIR=.
+	make binfos DIR=.
 #----
 ainfos: asdata asinfo asname asxref
 binfos: bfdata bfinfo 
@@ -230,10 +248,16 @@ bfsubset1:
 	| xargs -l -i{} cp -v ./bfile/b{}.txt ./bfsub/
 	ls -1 bfsub | wc -l
 #-------
+prep_linux: # prepare synthesized b-files and fetch lists for the Linux machine
+	make    bfsynth LIST=synthe_check.txt
+	rm -f   bfsynth.zip
+	zip -rq bfsynth.zip bfsynth bulk?.txt
+	scp     bfsynth.zip gfis@atair:~/work/gits/OEIS-mat/common
+	#### make unpack_bfsynth on the Linux machine
 bfsynth: # Synthesize temp2/bfiles.txt for all in $(LIST)
 	cut -b1-7 $(LIST) | sort | uniq > $@.1.tmp
 	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp
-	wc -l $@.2.tmp
+	wc -l   $@.2.tmp
 	make seq LIST=$@.1.tmp
 	$(DBAT) -x "SELECT aseqno, offset1 FROM asinfo \
 	WHERE aseqno IN (SELECT aseqno FROM seq) \
@@ -241,12 +265,16 @@ bfsynth: # Synthesize temp2/bfiles.txt for all in $(LIST)
 	ORDER BY 1" \
 	> $@.3.tmp
 	wc -l $@.3.tmp
-	# rm -rf temp2
-	mkdir  temp2 || :
-	perl bfsynth.pl -s $@.2.tmp -o temp2 $@.3.tmp
-	find   temp2 -iname "*.txt" | wc -l
-	rm -f temp2.zip
-	zip -r temp2.zip temp2
+	rm -rf  bfsynth/
+	mkdir   bfsynth || :
+	perl    bfsynth.pl -s $@.2.tmp -o bfsynth $@.3.tmp
+	find    bfsynth -iname "*.txt" | wc -l
+unpack_bfsynth: # Unpack synthesized b-files and fetch lists on the Linux machine
+	rm -rf  bfsynth/
+	unzip  -o bfsynth.zip
+	cp -pv  bfsynth/b*.txt  bfile/ || :
+	cp -pv  bfsynth/A*.json ajson/ || :
+	wc -l   bulk?.txt
 #----
 mvsynth:
 	echo "mkdir -f bsynth" > $@.tmp
@@ -269,15 +297,15 @@ list_dumps:
 	tar -tjvf $(DUMPS)/oeis-json.tar.bz2       | head -$(HEAD)  # 2019-01-20
 	tar -tjvf $(DUMPS)/2019-01-21.tar.xz       | head -$(HEAD)  # 2019-01-21
 #================================
-unpack: 
-	make -i unpack0 ECHO= 2>&1 > unpack.log
-unpack0: 
-	make unpack_start 
-	make unpack_tusk
-	make unpack_gfis
-	make unpack_bulks
-	make unpack_extract
-unpack_start:
+old_unpack: 
+	make -i old_unpack0 ECHO= 2>&1 > old_unpack.log
+old_unpack0: 
+	make old_unpack_start 
+	make old_unpack_tusk
+	make old_unpack_gfis
+	make old_unpack_bulks
+	make old_unpack_extract
+old_unpack_start:
 	$(ECHO) rm -rf ajson
 	$(ECHO) rm -rf bfile
 	mkdir ajson
@@ -286,42 +314,42 @@ extract:
 	make ajson_extract DIR=.
 	make bfile_extract DIR=.
 #--------------
-unpack_tusk: \
+old_unpack_tusk: \
 	2019-01-05 \
 	2019-01-06 \
 	2019-01-20 \
 	2019-01-21
 2019-01-05:
-	$(ECHO) rm -rf unpack.$@
-	mkdir  unpack.$@
-	mkdir  unpack.$@/bfile
-	$(ECHO) tar -C unpack.$@/bfile --strip-components=0 -xzf $(DUMPS)/b000001-b321800.tar.gz
-	find   unpack.$@/bfile -type f | xargs -l -i{} cp -p   {} bfile/
+	$(ECHO) rm -rf old_unpack.$@
+	mkdir  old_unpack.$@
+	mkdir  old_unpack.$@/bfile
+	$(ECHO) tar -C old_unpack.$@/bfile --strip-components=0 -xzf $(DUMPS)/b000001-b321800.tar.gz
+	find   old_unpack.$@/bfile -type f | xargs -l -i{} cp -p   {} bfile/
 2019-01-06: 
 	echo these are cleaned - do not use them
-	# $(ECHO) rm -rf unpack.$@
-	# mkdir  unpack.$@
-	# mkdir  unpack.$@/bfile
-	# $(ECHO) tar -C unpack.$@/bfile --strip-components=2 -xjf $(DUMPS)/bfiles-cleaned.tar.bz2
-	# find   unpack.$@/bfile -type f | xargs -l -i{} cp -up  {} bfile/
+	# $(ECHO) rm -rf old_unpack.$@
+	# mkdir  old_unpack.$@
+	# mkdir  old_unpack.$@/bfile
+	# $(ECHO) tar -C old_unpack.$@/bfile --strip-components=2 -xjf $(DUMPS)/bfiles-cleaned.tar.bz2
+	# find   old_unpack.$@/bfile -type f | xargs -l -i{} cp -up  {} bfile/
 2019-01-20:
-	$(ECHO) rm -rf unpack.$@
-	mkdir  unpack.$@
-	mkdir  unpack.$@/ajson
-	$(ECHO) tar -C unpack.$@/ajson --strip-components=2 -xjf $(DUMPS)/oeis-json.tar.bz2
-	find   unpack.$@/ajson -type f | xargs -l -i{} cp -p   {} ajson/
+	$(ECHO) rm -rf old_unpack.$@
+	mkdir  old_unpack.$@
+	mkdir  old_unpack.$@/ajson
+	$(ECHO) tar -C old_unpack.$@/ajson --strip-components=2 -xjf $(DUMPS)/oeis-json.tar.bz2
+	find   old_unpack.$@/ajson -type f | xargs -l -i{} cp -p   {} ajson/
 2019-01-21:
-	$(ECHO) rm -rf unpack.$@
-	mkdir  unpack.$@
-	mkdir  unpack.$@/ajson
-	mkdir  unpack.$@/bfile
-	$(ECHO) tar -C unpack.$@/ajson --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.bz2 "update/*/json/*"
-	$(ECHO) tar -C unpack.$@/bfile --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.bz2 "update/*/bfile/*"
-	cd unpack.$@/bfile | ls -1 B* | cut -b 2-11 | xargs -l -i{} mv B{} b{}
-	find   unpack.$@/ajson -type f | xargs -l -i{} cp -upv {} ajson/
-	find   unpack.$@/bfile -type f | xargs -l -i{} cp -upv {} bfile/
+	$(ECHO) rm -rf old_unpack.$@
+	mkdir  old_unpack.$@
+	mkdir  old_unpack.$@/ajson
+	mkdir  old_unpack.$@/bfile
+	$(ECHO) tar -C old_unpack.$@/ajson --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.bz2 "update/*/json/*"
+	$(ECHO) tar -C old_unpack.$@/bfile --wildcards --strip-components=3 -xjf $(DUMPS)/2019-01-21.tar.bz2 "update/*/bfile/*"
+	cd old_unpack.$@/bfile | ls -1 B* | cut -b 2-11 | xargs -l -i{} mv B{} b{}
+	find   old_unpack.$@/ajson -type f | xargs -l -i{} cp -upv {} ajson/
+	find   old_unpack.$@/bfile -type f | xargs -l -i{} cp -upv {} bfile/
 #----------------
-unpack_gfis: \
+old_unpack_gfis: \
 	2019-01-17 \
 	2019-01-22 \
 	2019-01-23 \
@@ -329,41 +357,41 @@ unpack_gfis: \
 	2019-01-24.21 \
 	2019-01-25
 2019-01-17:
-	make unpack_bulk2 DATE=$@
+	make old_unpack_bulk2 DATE=$@
 2019-01-22:
-	make unpack_bulk1 DATE=$@
+	make old_unpack_bulk1 DATE=$@
 2019-01-23:
-	make unpack_bulk1 DATE=$@
+	make old_unpack_bulk1 DATE=$@
 2019-01-24.07:
-	make unpack_bulk1 DATE=$@
+	make old_unpack_bulk1 DATE=$@
 2019-01-24.21:
-	make unpack_bulk1 DATE=$@
+	make old_unpack_bulk1 DATE=$@
 2019-01-25:
-	make unpack_bulk2 DATE=$@
-unpack_bulks:
-	make unpack_bulk2 DATE=2019-01-27
-	make unpack_bulk2 DATE=2019-01-28
-	make unpack_bulk2 DATE=2019-01-28.17
+	make old_unpack_bulk2 DATE=$@
+old_unpack_bulks:
+	make old_unpack_bulk2 DATE=2019-01-27
+	make old_unpack_bulk2 DATE=2019-01-28
+	make old_unpack_bulk2 DATE=2019-01-28.17
 #----
-unpack_bulk1:
-	$(ECHO) rm -rf unpack.$(DATE)
-	mkdir  unpack.$(DATE)
-	mkdir  unpack.$(DATE)/ajson
-	mkdir  unpack.$(DATE)/bfile
-	$(ECHO) tar -C unpack.$(DATE)/ajson --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/json/*"
-	$(ECHO) tar -C unpack.$(DATE)/bfile --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/bfile/*"
-	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
-	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
-unpack_bulk2:
-	$(ECHO) rm -rf unpack.$(DATE)
+old_unpack_bulk1:
+	$(ECHO) rm -rf old_unpack.$(DATE)
+	mkdir  old_unpack.$(DATE)
+	mkdir  old_unpack.$(DATE)/ajson
+	mkdir  old_unpack.$(DATE)/bfile
+	$(ECHO) tar -C old_unpack.$(DATE)/ajson --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/json/*"
+	$(ECHO) tar -C old_unpack.$(DATE)/bfile --wildcards --strip-components=2 -xjf $(DUMPS)/bulk.$(DATE).tar.bz2 "temp/bfile/*"
+	find   old_unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
+	find   old_unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
+old_unpack_bulk2:
+	$(ECHO) rm -rf old_unpack.$(DATE)
 	$(ECHO) tar    -xjf $(DUMPS)/bulk.$(DATE).tar.bz2
-	$(ECHO) mv     bulk.$(DATE) unpack.$(DATE)
-	find   unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
-	find   unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
+	$(ECHO) mv     bulk.$(DATE) old_unpack.$(DATE)
+	find   old_unpack.$(DATE)/ajson -type f | xargs -l -i{} cp -pv {} ajson/
+	find   old_unpack.$(DATE)/bfile -type f | xargs -l -i{} cp -pv {} bfile/
 #--------------
-unpack_list:
-	find . -type d -iname "unpack.*" | xargs -l -i{} make unpack_list1 DIR={}	
-unpack_list1:
+old_unpack_list:
+	find . -type d -iname "old_unpack.*" | xargs -l -i{} make old_unpack_list1 DIR={}	
+old_unpack_list1:
 	find $(DIR)/ajson -type f -ls | head -n 4
 	find $(DIR)/ajson -type f -ls | tail -n 4
 	find $(DIR)/bfile -type f -ls | head -n 4
