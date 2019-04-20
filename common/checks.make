@@ -147,6 +147,8 @@ bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (maybe for dra
 #		, d.filesize - b.filesize \
 #	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) 
 #--------------------------------
+brol_check: joeis_check
+#--------------------------------
 cons_check: consa_check consb_check consc_check
 consa_check: # Keyword "cons" and more than one digit in a term
 	$(DBAT) "SELECT a.aseqno, b.maxlen, b.terms, b.tail \

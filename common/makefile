@@ -249,6 +249,7 @@ bfsubset1:
 	ls -1 bfsub | wc -l
 #-------
 prep_linux: # prepare synthesized b-files and fetch lists for the Linux machine
+	rm -rf  bfsynth
 	make    bfsynth LIST=synthe_check.txt
 	rm -f   bfsynth.zip
 	zip -rq bfsynth.zip bfsynth bulk?.txt
