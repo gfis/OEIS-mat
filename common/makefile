@@ -6,6 +6,7 @@
 # 2019-02-19: HTMLIZE
 # 2019-01-22: old_unpacking from ../dumps
 # 2019-01-17: Georg Fischer
+# [^\w\s\.\,\;\:\(\)\[\]\{\}\<\>\!\"\$\%\&\/\+\^\-\*\=\'\#\\\?\|\~\`öńáőωŁéü°øå≀è\@…\´ä\’∈î]
 #---------------------------------
 GITS=../..
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
@@ -15,7 +16,7 @@ HEAD=8
 PULL=../pull
 COMMON=$(GITS)/OEIS-mat/common
 JOEIS=../$(GITS)/gitups/joeis
-LITE=$(GITS)/joeis
+LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
 G=n
