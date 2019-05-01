@@ -7,7 +7,9 @@
 # 2019-01-22: unpacking from ../dumps
 # 2019-01-17: Georg Fischer
 #---------------------------------
-DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
+GITS=../..
+DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
+RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar 
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
@@ -28,6 +30,55 @@ all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 #--------------------
+gf1:
+	grep -E "F A[0-9]* G\. *f\." $(COMMON)/cat25.txt  > gf1.tmp
+	wc -l gf1.tmp
+gf2:
+	cut -b4- gf1.tmp | sed -e "s/ /\t/" | sort | uniq \
+	| sed -e "s/\.//g" -e "s/G *f: *//" \
+	| grep -vE "A[^0-9]" \
+	| grep -vE "[B-Z]" \
+	| grep -vE "[a-zA-Z][a-zA-Z]" \
+	| grep -vE "^.......*[0-9][0-9][0-9][0-9]" \
+	| grep -E "\/" \
+	>        gf2.tmp
+	head -n4 gf2.tmp
+	wc -l    gf2.tmp
+	cut -b 1-7 gf2.tmp | sort | uniq -c | grep -v " 1 " | cut -b 9- > gf2.dupl.tmp
+	grep -vf gf2.dupl.tmp gf2.tmp > gf2.single.tmp
+gf3:
+	make -f $(COMMON)/makefile seq2 LIST=gf2.single.tmp
+	$(DBAT) "SELECT aseqno, info \
+		FROM seq2 \
+		WHERE aseqno NOT IN (SELECT aseqno from joeis) \
+		ORDER BY 1 " \
+	>        gf3.tmp
+	head -n4 gf3.tmp
+	wc -l    gf3.tmp
+#--------
+elu1:
+	grep "def " generatingFunctions.txt \
+	| cut -b5-11 \
+	>		$@.tmp
+	wc -l   $@.tmp
+	make -f $(COMMON)/makefile seq LIST=$@.tmp
+	$(DBAT) "SELECT aseqno \
+		FROM seq \
+		WHERE aseqno NOT IN (SELECT aseqno from joeis) \
+		ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+elu2:
+	perl extract_sage.pl generatingFunctions.txt \
+	| grep -vE "^#" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+elu3:
+	$(RAMATH) org.teherba.ramath.symbolic.PolyFraction -n 16 -f elu2.tmp \
+	>        $@.tmp
+#--------
 checks:          \
 	lr_checks    \
 	eval_checks  \
