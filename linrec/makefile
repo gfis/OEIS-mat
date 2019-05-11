@@ -9,7 +9,7 @@
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar 
+RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.symbolic.PolyFraction
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
@@ -55,6 +55,29 @@ gf3:
 	>        gf3.tmp
 	head -n4 gf3.tmp
 	wc -l    gf3.tmp
+#----------------
+# Generating functions from cat25 file
+catgf: catgf0 catgf2
+# %F A000032 G.f.: (2 - x)/(1 - x - x^2).
+# 1234567890123456789
+catgf0:
+	perl extract_catgf.pl -d 0 $(COMMON)/cat25.txt \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+catgf1:
+	grep -E " G\. *f\." $(COMMON)/cat25.txt | grep -E "/" \
+	> x.tmp
+	cat x.tmp | perl extract_catgf.pl -d 0 \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+catgf2:
+	$(RAMATH) -f catgf0.tmp \
+	| grep -vP "\d{16}" \
+	> $@.txt
+	tail -4 $@.txt
+	wc -l   $@.txt
 #--------
 elu1:
 	grep "def " generatingFunctions.txt \
@@ -71,14 +94,86 @@ elu1:
 	wc -l    $@.tmp
 elu2:
 	perl extract_sage.pl generatingFunctions.txt \
-	| grep -vE "^#" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 elu3:
-	$(RAMATH) org.teherba.ramath.symbolic.PolyFraction -n 16 -f elu2.tmp \
+	$(RAMATH) -n 16 -f elu2.tmp \
 	>        $@.tmp
-#--------
+elu4:
+	grep -E "coef" elu3.tmp | sed -e "s/coef\t16\t\[//" -e "s/\]//" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, s.info \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.info   = SUBSTR(d.data, 1, LENGTH(s.info)) \
+		ORDER BY 1" \
+	> 		 $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+elu5:
+	$(DBAT) -x "(SELECT s.aseqno, 'coef', s.info \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.info   <> SUBSTR(d.data, 1, LENGTH(s.info)) \
+		  AND d.data LIKE '%' || s.info || '%') \
+	    UNION   (SELECT s.aseqno, 'term', d.data \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.info   <> SUBSTR(d.data, 1, LENGTH(s.info)) \
+		  AND d.data LIKE '%' || s.info || '%') \
+		ORDER BY 1, 2" \
+	> 		 $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+gf_check:
+	$(DBAT) -x "(SELECT s.aseqno, 'coef', s.info \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND d.data NOT LIKE '%' || SUBSTR(s.info, 31, 32) || '%') \
+	    UNION   (SELECT s.aseqno, 'term', d.data \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND d.data NOT LIKE '%' || SUBSTR(s.info, 31, 32) || '%') \
+		ORDER BY 1, 2" \
+	> 		 $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+#----
+cox: coxgn1 coxf1 coxf2
+coxgn1: # get Coxeter sequence names
+	# rm -f coxg*.tmp
+	grep "Number of reduced words of length n in Coxeter group " $(COMMON)/names \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+coxf1: # get coxG calls from 'names' subset
+	perl -ne 'm{^(A\d+)\D+(\d+)\D+(\d+)\D+(\d+)}; print "$$1\tcoxf\t$$4\t$$2\n"' \
+	coxgn1.tmp | sort > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	$(RAMATH) -n 24 -f $@.tmp > $@.txt
+	make -f $(COMMON)/makefile seq2 LIST=$@.txt
+coxf2:
+	$(DBAT) -x "(SELECT s.aseqno, 'coxf', s.info \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND d.data NOT LIKE s.info || '%' \
+		  AND s.info NOT LIKE d.data || '%' \
+	    ) UNION (SELECT s.aseqno, 'term', d.data \
+		FROM  seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND d.data NOT LIKE s.info || '%' \
+		  AND s.info NOT LIKE d.data || '%' \
+		) ORDER BY 1, 2" \
+	> 	  	 $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+#----
 checks:          \
 	lr_checks    \
 	eval_checks  \

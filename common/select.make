@@ -12,6 +12,7 @@ COMMON=$(GITS)/OEIS-mat/common
 JOEIS=../$(GITS)/gitups/joeis
 LITE=$(GITS)/joeis
 FISCHER=$(LITE)/internal/fischer
+RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.symbolic.PolyFraction 
 D=0
 #----------------
 all:
@@ -29,7 +30,7 @@ isin_joeis:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #-----------------
-coxg: coxgn1 coxgn2 coxgj3 coxgj4
+coxg: coxgn1 coxf coxgj3 coxgj4
 coxgn1: # get Coxeter sequence names
 	# rm -f coxg*.tmp
 	grep "Number of reduced words of length n in Coxeter group " names \
@@ -37,14 +38,17 @@ coxgn1: # get Coxeter sequence names
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	sed -e "s/ .*/\t________/" $@.tmp > coxg_separ.tmp
-coxgn2: # get coxG calls from 'names' subset
-	perl -ne 'm{^(A\d+)\D+(\d+)\D+(\d+)\D+(\d+)}; print "$$1\tcoxG\[$$2,$$3,$$4\]\n"' \
+#----
+coxf: # get coxG calls from 'names' subset
+	perl -ne 'm{^(A\d+)\D+(\d+)\D+(\d+)\D+(\d+)}; print "$$1\tcoxf\t$$4 $$2\n"' \
 	coxgn1.tmp | sort > $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+	$(RAMATH) -f $@.tmp > $@.txt
+#----
 coxgj3: # get coxG calls from JSONs
 	rm -f $@.tmp
-	find ajson -name "A*.json" | xargs -l grep -iHE "\"coxG" >> $@.tmp
+	find ajson -name "A*.json" | xargs -l grep -iHE "\"coxg" >> $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp	
 coxg_joeis:
@@ -68,5 +72,5 @@ coxg_terms:
 	>    $@.tmp
 coxg_sort: 
 	sed -e "s/^ajson\///" -e "s/.json:\t*\"/ /" coxgj3.tmp > $@.1.tmp
-	sort err.2019-04-09.19.log coxg_separ.tmp coxg_joeis.tmp coxg_lrindx.tmp coxg_terms.tmp $@.1.tmp coxgn2.tmp > $@.tmp
+	sort err.2019-04-09.19.log coxg_separ.tmp coxg_joeis.tmp coxg_lrindx.tmp coxg_terms.tmp $@.1.tmp coxf.tmp > $@.tmp
 #----------------
