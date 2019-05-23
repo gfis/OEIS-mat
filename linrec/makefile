@@ -57,7 +57,7 @@ gf3:
 	wc -l    gf3.tmp
 #----------------
 # Generating functions from cat25 file
-catgf: catgf0 catgf2
+catgf: catgf0 catgf1 catgf2
 # %F A000032 G.f.: (2 - x)/(1 - x - x^2).
 # 1234567890123456789
 catgf0:
@@ -66,16 +66,11 @@ catgf0:
 	head -4 $@.tmp
 	wc -l   $@.tmp
 catgf1:
-	grep -E " G\. *f\." $(COMMON)/cat25.txt | grep -E "/" \
-	> x.tmp
-	cat x.tmp | perl extract_catgf.pl -d 0 \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
+	$(RAMATH) -f   catgf0.tmp > $@.tmp
 catgf2:
-	$(RAMATH) -f catgf0.tmp \
-	| grep -vP "\d{16}" \
-	> $@.txt
+	grep -E "orgf" catgf1.tmp \
+	| grep -vP '\d{16}' \
+	>       $@.txt
 	tail -4 $@.txt
 	wc -l   $@.txt
 #--------

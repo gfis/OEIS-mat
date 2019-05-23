@@ -31,14 +31,12 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 
 my $line;
 my $aseqno;
-my $oseqno  = ""; # old $aseqno
-my $offset1 = "";
-my $fraction;
+my $oseqno   = ""; # old $aseqno
+my $offset1  = "";
+my $fraction = "";
 my $code;
-my $comt;
+my $comt     = "";
 my $content;
-my $num;
-my $den;
 my @dens;
 while (<>) {
     $line = $_;
@@ -50,57 +48,52 @@ while (<>) {
     if (0) {
     } elsif ($code eq "S") { # DATA
         $comt = "";
-        $num  = "";
-        $den  = "";
     } elsif ($code eq "O") { # OFFSET
-        $content =~ m{(\d+)(\,\d*)?};
+        $content =~ m{(\-?\d+)(\,\d*)?};
         $offset1 = $1 || "0";
-        if (length($num) + length($den) > 0) { 
+        if (length($fraction) > 0) { 
             $comt = length($comt) > 0 ? "# $aseqno $comt" : "$aseqno";
-            $num =~ s{\s}{}g;
-            $den =~ s{\s}{}g;
-            print join("\t", $comt, "poly", $offset1, $num, $den) . "\n";
+            print join("\t", $comt, "fract", $offset1, $fraction) . "\n";
             $oseqno = $aseqno;
         }
-    } elsif ($content =~ m{^(O\. *|Expansion +of +| *)(G\.) *(f\.) *\:?(.*)}i) {
-        $fraction = $4 || "";
+        $fraction = "";
+    } elsif ( ($code eq 'F' or $code eq 'N') 
+              and # FORMULA and NAME
+              (   ($content =~ m{^(O\.|Expansion\s+of\s+|)\s*G\.\s*f\.\s*[\=\:]?\s*(.*)}i)
+              or  ($content =~ m{^(Expansion\s+of)\s*(.*)}i)
+              )
+            ) {
+        $fraction = $2 || "";
         $fraction =~ s{^[AFGH]\([t-z]\) *[\=\:] *}{};
-        $fraction =~ s{[\.\;].*}{}; # remove all after first dot or semicolon
+        $fraction =~ s{[\.\;\,].*}{}; # remove all behind first dot or semicolon
+        $fraction =~ s{\s}{}g;
         $fraction =~ s{\*\*}{\^}g; # exponentiation
         $fraction =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
         $fraction =~ s{\s+\Z}{}; # remove trailing spaces
-        ($num, @dens) = split(/\//, $fraction);
         $comt = "";
-        $den  = "";
         if ($oseqno eq $aseqno) {
-            $comt = "?=id?";
+            $comt = "?multi?";
         }
-        if (! defined($num)) {
-            $comt = "???";
-            $num = "";
+        if ($fraction !~ m{\/}) {
+            $comt = "?nodiv?";
         }
-        if (0) {
-        } elsif (scalar(@dens) == 0) {
-            $comt = "?/?";
-            $den = "";
-        } elsif (scalar(@dens) > 1) {
-            $comt = "?//? ";
-            $den = "(" . join("/", @dens) . ")";
-        } else {
-            $den = $dens[0];
+        if (&nesting_diff($fraction) != 0) {
+            $comt = "?unbal?";
         }
-        if (&nesting_diff($num) == 1 and &nesting_diff($den) == -1 and ($num =~ m{^\-})) {
-            $num .= ")";
-            $den =~ s{\)\Z}{};
+        if ($fraction =~ m{[a-qA-Z\<\>\=]}) { # sqrt
+            $comt = "?letrs?";
         }
-        if (($fraction =~ m{[a-wyzA-Z]}) or ($fraction =~ m[\d{8}])) {
-            $comt = "?E?5? ";
+        if ($fraction =~ m{[a-zA-Z][a-zA-Z]}) { # at least 2 letters
+            $comt = "?funct?";
+        }
+        if ($fraction =~ m[\d{8}]) {
+            $comt = "?digt8?";
+        }
+        if ($fraction =~ m[\^\d{4}]) {
+            $comt = "powg4";
         }
         if ($fraction =~ m{\^\(}) {
-            $comt = "?^(? ";
-        }
-        if (&nesting_diff($num) != 0 or &nesting_diff($den) != 0) {
-            $comt = "?()? ";
+            $comt = "?popen?";
         }
     } else {
         # ignore
@@ -220,3 +213,45 @@ __DATA__
 %I A000002 M0190 N0070
 %S A000002 1,2,2,1,1,2,1,2,2,1,2,2,1,1,2,1,1,2,2,1,2,1,1,2,1,2,2,1,1,2,1,1,2,1,
 %T A000002 2,2,1,2,2,1,1,2,1,2,2,1,2,1,1,2,1,1,2,2,1,2,2,1,1,2,1,2,2,1,2,2,1,1,
+
+
+        ($num, @dens) = split(/\//, $fraction);
+        $comt = "";
+        $den  = "";
+        if ($oseqno eq $aseqno) {
+            $comt = "?=id?";
+        }
+        if (! defined($num)) {
+            $comt = "???";
+            $num = "";
+        }
+    #   if (($num !~ m{\)\Z}) && ($num =~ m{[\+\-]})) {
+    #       $comt = "?/(?";
+    #       $den  = "";
+    #   }
+        if (0) {
+        } elsif (scalar(@dens) == 0) {
+            $comt = "?/?";
+            $den = "";
+        } elsif (scalar(@dens) > 1) {
+            $comt = "?//? ";
+            $den = "(" . join("/", @dens) . ")";
+        } else {
+            $den = $dens[0];
+        }
+        if (&nesting_diff($num) == 1 and &nesting_diff($den) == -1 and ($num =~ m{^\-})) {
+            $num .= ")";
+            $den =~ s{\)\Z}{};
+        }
+        if ($fraction =~ m{[a-mA-Z]}) {
+            $comt = "?let? ";
+        }
+        if ($fraction =~ m[\d{8}]) {
+            $comt = "?d8? ";
+        }
+        if ($fraction =~ m{\^\(}) {
+            $comt = "?^(? ";
+        }
+        if (&nesting_diff($num) != 0 or &nesting_diff($den) != 0) {
+            $comt = "?()? ";
+        }

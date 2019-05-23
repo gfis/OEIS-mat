@@ -10,7 +10,7 @@ DUMPS=../dumps
 HEAD=4
 COMMON=$(GITS)/OEIS-mat/common
 JOEIS=../$(GITS)/gitups/joeis
-LITE=$(GITS)/joeis
+LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
 RALEN=350
@@ -27,6 +27,7 @@ checks: \
 			asdata_check \
 			asdir_check  \
 			asname_check \
+			bad_check    \
 			bfdir_check  \
 			brol_check   \
 			cons_check   \
@@ -122,6 +123,12 @@ asname_check: # Name in sequence and entry in <em>names</em> file differ
 	>> $@.txt || :
 	wc -l $@.txt
 #----
+bad_check: # Check b-files for bad format
+	echo -e "A-Number\tbfimin\tbfimax\toffset2\tterms\ttail\tfilesize\tmaxlen\tMessage" > $@.txt
+	grep -E "bad" $(COMMON)/bfinfo.txt \
+	>>    $@.txt || :
+	wc -l $@.txt
+##----
 bfdata_check: # Compare <em>stripped</em> file with terms extracted from local b-files
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
@@ -206,16 +213,10 @@ full_check: # Keyword "full" and not "synth"
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------
-joeis09_check: # jOEIS linr.rec. differences 2019-04-09
-	echo "A_Number	Test_comparision	Values" > $@.txt
-	sed -e "s/FAILED, //" -e "s/=/<br \/>computed by joeis\t/" -e "s/\tcomputed: /<br \/>/" err.2019-04-09.19.log \
-	>>       $@.txt
-	wc -l    $@.txt
-	make -f checks.make html_check1 FILE=$@
-#---------------------------
-joeis_check: # jOEIS linr.rec. differences 2019-04-09
-	echo "A_Number	Test_comparision	Values" > $@.txt
-	sed -e "s/FAILED, //" -e "s/=/<br \/>computed by joeis\t/" -e "s/\tcomputed: /<br \/>/" err.2019-04-09.19.log \
+joeis_check: # jOEIS G.f. differences 2019-05-19
+	echo "A_Number	Message	Expected	Computed" > $@.txt
+	gawk -e '{ print $$1 "\t" $$2 "\t" substr($$3,0,8) "\t" substr($$4,0,32) "...\t" substr($$6,0,32) }' \
+		$(FISCHER)/fail.log \
 	>>       $@.txt
 	wc -l    $@.txt
 	make -f checks.make html_check1 FILE=$@
@@ -249,6 +250,17 @@ mma_check: # Terms in sequence differ from first terms in MMA Lin.Rec. call
 	>     $@.txt
 	wc -l $@.txt
 	make -f checks.make html_checks
+#---------------------------
+more_check: # Keyword "more" and more than 32 terms
+	$(DBAT)  "SELECT a.aseqno, b.bfimax - b.bfimin + 1 AS nterms, a.keyword, n.name \
+		FROM  asinfo a, bfinfo b, asname n \
+		WHERE a.aseqno = b.aseqno \
+		  AND b.aseqno = n.aseqno \
+		  AND a.keyword LIKE '%more%' \
+		  AND b.bfimax - b.bfimin + 1 > 32 \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
 #--------------------------------
 neof_check: # b-files with no LF behind the last term
 	$(DBAT) "SELECT 'b' || substr(aseqno, 2, 6) || '.txt' FROM bfinfo WHERE message LIKE '%neof%' ORDER BY 1" \

@@ -43,8 +43,10 @@ delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #==============================
 bulk_lists:
-	cat asdata_check.txt asdir_check.txt asname_check.txt bfdata_check.txt \
-		bfdir_check.txt \
+	cat asdata_check.txt asdir_check.txt asname_check.txt \
+		bad_check.txt    \
+		bfdata_check.txt \
+		bfdir_check.txt  \
 		offset_check.txt \
 		syntha_check.txt \
 		synthb_check.txt \
@@ -56,8 +58,10 @@ bulk_lists:
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulka.txt
 	wc -l bulka.txt
-	cat asdata_check.txt                 asname_check.txt bfdata_check.txt \
-		bfdir_check.txt \
+	cat asdata_check.txt                 asname_check.txt \
+		bad_check.txt    \
+		bfdata_check.txt \
+		bfdir_check.txt  \
 		offset_check.txt \
 		syntha_check.txt \
 		synthb_check.txt \

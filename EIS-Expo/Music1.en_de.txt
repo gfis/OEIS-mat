@@ -67,7 +67,7 @@ Title: Steps to reach 1 in 3x+1 problem
 Titel: Im 3x+1-Problem die Anzahl der Schritte bis 1 erreicht wird.
 Terms: 0, 1, 7, 2, 5, 8, 16, 3, 19, 6, 14, 9, 9, 17, 17, 4, 12, 20, 20, 7, 7, 15, 15, ...
 Comment: If even, divide by 2; if odd, multiply by 3 and add 1. Does it always reach 1? No one knows!
-Kommentar: Gerade Zahlen werden durch 2 dividiert, ungerade mit 3 mutlipliziert und um 1 erh&ouml;ht. Erreicht diese Folge immer? Bis heute ungel&ouml;st.
+Kommentar: Gerade Zahlen werden durch 2 dividiert, ungerade mit 3 multipliziert und um 1 erh&ouml;ht. Erreicht diese Folge immer 1? Bis heute ungel&ouml;st.
 
 A007318
 Title: Pascal's triangle
