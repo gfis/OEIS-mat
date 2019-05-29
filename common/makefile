@@ -77,6 +77,8 @@ bulk_lists:
 	wc -l bulk?.txt
 	#### now copy bulk?.txt to the Linux machine
 #---------
+daily:
+	time make unpack_bfsynth history infos
 history: # Fetch new or recently changed JSONs
 	rm -rf  bulk
 	mkdir   bulk
@@ -253,7 +255,7 @@ bfsubset1:
 	| xargs -l -i{} cp -v ./bfile/b{}.txt ./bfsub/
 	ls -1 bfsub | wc -l
 #-------
-prep_linux: # prepare synthesized b-files and fetch lists for the Linux machine
+linux: bulk_lists # prepare synthesized b-files and fetch lists for the Linux machine
 	rm -rf  bfsynth
 	make    bfsynth LIST=synthe_check.txt
 	rm -f   bfsynth.zip

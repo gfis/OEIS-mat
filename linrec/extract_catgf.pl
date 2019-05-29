@@ -90,7 +90,7 @@ while (<>) {
             $comt = "?digt8?";
         }
         if ($fraction =~ m[\^\d{4}]) {
-            $comt = "powg4";
+            $comt = "?powg4?";
         }
         if ($fraction =~ m{\^\(}) {
             $comt = "?popen?";

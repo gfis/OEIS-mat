@@ -99,11 +99,11 @@ asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 #----
 asdir_check: # b-file is newer than sequence 
 	$(DBAT) "SELECT d.aseqno \
-		, substr(d.access , 1, 16) AS oeis_time \
-		, substr(b.created, 1, 16) as local_time \
+		, substr(b.created, 1, 16) as bfile_time \
+		, substr(d.access , 1, 16) AS seq_time \
 		FROM  asinfo d, bfdir b \
 		WHERE d.aseqno = b.aseqno  \
-		  AND d.access < b.created \
+		  AND TIMESTAMPDIFF(HOUR, b.created, d.access) < -5 \
 		  AND b.created > '2019-02-01 00:00:00' \
 	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 		ORDER BY 1" \
