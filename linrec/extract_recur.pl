@@ -1,11 +1,11 @@
 #!perl
 
-# Extract the numerators and denominators of generating functions  from a cat25 file
+# Extract the linear or polynomial recurrence formulas from cat25 file
 # @(#) $Id$
-# 2019-05-10, Georg Fischer
+# 2019-05-31, Georg Fischer
 #
 #:# Usage:
-#:#   perl extract_catgf.pl [-d debug] cat25.txt > outfile
+#:#   perl extract_recur.pl [-d debug] cat25.txt > outfile
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -33,10 +33,11 @@ my $line;
 my $aseqno;
 my $oseqno   = ""; # old $aseqno
 my $offset1  = "";
-my $fraction = "";
+my $form     = "";
 my $code;
 my $comt     = "";
 my $content;
+my $conj;
 my @dens;
 while (<>) {
     $line = $_;
@@ -51,60 +52,44 @@ while (<>) {
     } elsif ($code eq "O") { # OFFSET
         $content =~ m{(\-?\d+)(\,\d*)?};
         $offset1 = $1 || "0";
-        my $suffix = "";
-        if (length($fraction) > 0) { 
-            if (length($comt) > 0) {
-                $comt = "# $aseqno $comt";
-            } else {
-                $comt = "$aseqno";
-                my %hash = ();
-                map {
-                    $hash{$_} = 1;
-                    } $fraction =~ m{[a-z]}g;
-                $suffix = scalar(keys(%hash));
-            }
-            print join("\t", $comt, "fract$suffix", $offset1, $fraction) . "\n";
+        my $form2 = $form;
+        $form2 =~ s{a\(n([\+\-]\d+)?\)}{\#}g;
+        my @factors = split(/\#/, $form2);
+        if (scalar(grep {m{n}} @factors) >= 3 # and length($comt) == 0
+        		) { 
+            $comt = length($comt) > 0 ? "# $aseqno $comt" : "$aseqno";
+            print join("\t", $comt, "re$conj", $offset1, $form) . "\n";
             $oseqno = $aseqno;
         }
-        $fraction = "";
-    } elsif ( ($code eq 'F' or $code eq 'N') 
-              and # FORMULA and NAME
-              (   ($content =~ m{^(O\.|Expansion\s+of\s+|)\s*[Gg]\.\s*[Ff]\.\s*(for\s+\w\([a-z\,]*\)\s*)?([\=\:]\s*)?(.*)}i)
-              or  ($content =~ m{^(Expansion\s+of)\s*(.*)}i)
-              )
+        $form = "";
+    } elsif ( ($code =~ m{[FN]}) # FORMULA, NAME
+              and ($content =~ m{^([Cc]onjecture\s*\:)?\s*([0-9an\[\]\(\)\=\+\-\*\/\^ ]+)\.})
             ) {
-        $fraction = $4 || "";
-        $fraction =~ s{^[AFGH]\([t-z]\) *[\=\:] *}{};
-        $fraction =~ s{[\.\;\,].*}{}; # remove all behind first dot or semicolon
-        $fraction =~ s{\s}{}g;
-        $fraction =~ s{\*\*}{\^}g; # exponentiation
-        $fraction =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
-        $fraction =~ s{\s+\Z}{}; # remove trailing spaces
+        $conj = $1 || "cur";
+        $form = $2 || "";
+        $conj =~ s{Conjecture\s*\:}{conj}i;
+        $form =~ s{\s}{}g;
+        $form =~ s{\*\*}{\^}g; # exponentiation
+        $form =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
         $comt = "";
+        if (($form =~ s{\=}{\=}g) > 1) {
+        	$comt = "?2equal?";
+        }
+        if ($form =~ m{\/}) {
+        	$comt = "?div?";
+        }
         if ($oseqno eq $aseqno) {
             $comt = "?multi?";
         }
-        if ($fraction !~ m{\/}) {
-            $comt = "?nodiv?";
+        if ($form !~ m{\(n[\-\+]\d+\)}) {
+            $comt = "?norec?";
         }
-        if (&nesting_diff($fraction) != 0) {
+        if (&nesting_diff($form) != 0) {
             $comt = "?unbal?";
         }
-        if ($fraction =~ m{[a-hA-Z\<\>\=]}) { 
-            $comt = "?letrs?";
-        }
-        if ($fraction =~ m{[a-zA-Z][a-zA-Z]}) { # at least 2 letters, sqrt ...
-            $comt = "?funct?";
-        }
-        if ($fraction =~ m[\d{8}]) {
-            $comt = "?digt8?";
-        }
-        if ($fraction =~ m[\^\d{4}]) {
+        if ($form =~ m[\^\d{4}]) {
             $comt = "?powg4?";
-        }
-        if ($fraction =~ m{\^\(}) {
-            $comt = "?popen?";
-        }
+        }	 
     } else {
         # ignore
     }
@@ -225,7 +210,7 @@ __DATA__
 %T A000002 2,2,1,2,2,1,1,2,1,2,2,1,2,1,1,2,1,1,2,2,1,2,2,1,1,2,1,2,2,1,2,2,1,1,
 
 
-        ($num, @dens) = split(/\//, $fraction);
+        ($num, @dens) = split(/\//, $form);
         $comt = "";
         $den  = "";
         if ($oseqno eq $aseqno) {
@@ -253,13 +238,13 @@ __DATA__
             $num .= ")";
             $den =~ s{\)\Z}{};
         }
-        if ($fraction =~ m{[a-mA-Z]}) {
+        if ($form =~ m{[a-mA-Z]}) {
             $comt = "?let? ";
         }
-        if ($fraction =~ m[\d{8}]) {
+        if ($form =~ m[\d{8}]) {
             $comt = "?d8? ";
         }
-        if ($fraction =~ m{\^\(}) {
+        if ($form =~ m{\^\(}) {
             $comt = "?^(? ";
         }
         if (&nesting_diff($num) != 0 or &nesting_diff($den) != 0) {

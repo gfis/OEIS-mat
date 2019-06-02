@@ -73,6 +73,31 @@ catgf2:
 	>       $@.txt
 	tail -4 $@.txt
 	wc -l   $@.txt
+catgf3:
+	grep -vE "^#" catgf0.tmp | sed -e "s/fract/x/" \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+catgf4:
+	cat catgf0.tmp | sed -e "s/fract/x/" | grep -E "sqrt" \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+#	| grep -E "Conjecture:" 
+gfmatconj:
+	grep Mathar $(COMMON)/cat25.txt \
+	| grep -E '^%F ' \
+	| grep -vi Sum  \
+	| grep -E "a\(n\)" \
+	| grep -E "= *0" \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+recur:
+	perl extract_recur.pl $(COMMON)/cat25.txt \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp 
 #--------
 elu1:
 	grep "def " generatingFunctions.txt \
