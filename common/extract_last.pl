@@ -79,23 +79,23 @@ sub extract_text { # read (many) sequences in internal text format
     my ($filename) = @_;
     open(INP, "<", $filename) || die "cannot read $filename\n";
     $filename =~ m{(A\d{6})\.json}i; # extract seqno
-    my $oseqno   = "A000000";
-    my $nseqno   = "A000000";
+    my $oseqno   = "A000001";
+    my $nseqno   = $oseqno;
     my $lastdate = $defaultdate; # default - undefined
     while (<INP>) {
         my $line = $_;
+        if ($line =~ m{^\%\w (A\d+)}) {
+            $nseqno = $1;
+            if ($nseqno ne $oseqno) {
+                print join("\t", $oseqno, $lastdate) . "\n";
+                $lastdate = $defaultdate; # default - undefined
+                $oseqno = $nseqno;
+            }
+        }
         if ($line =~ m{(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d\d) (19\d\d|20\d\d)}) {
             my $date   = "$3-$months{$1}-$2";
             if ($date gt $lastdate) {
                 $lastdate = $date;
-            }
-        }
-        if ($line =~ m{^...(\w+)}) {
-        	$nseqno = $1;
-        	if ($nseqno ne $oseqno) {
-            	print join("\t", $oseqno, $lastdate) . "\n";
-            	$lastdate = $defaultdate; # default - undefined
-            	$oseqno = $nseqno;
             }
         }
     } # while <INP>

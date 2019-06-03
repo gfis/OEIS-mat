@@ -68,7 +68,6 @@ bulk_lists:
 		synthc_check.txt \
 		synthd_check.txt \
 		terms_check.txt  \
-		fetch_list.man   \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulkb.txt
 	wc -l bulkb.txt
@@ -156,6 +155,15 @@ asdata_load: # Load table <em>asdata</em>
 	| $(DBAT) -m csv -s "\t" -r asdata
 	$(DBAT) -4                  asdata
 	$(DBAT) -n                  asdata
+#--------
+aslast:
+	perl extract_last.pl -text cat25.txt | sort > calast.txt
+	perl extract_last.pl -json ajson     | sort > aslast.txt
+	diff -y --suppress-common-lines --width=48    calast.txt aslast.txt \
+	| tee dilast.txt
+aslast2:
+	grep -v '2019-06' dilast.txt \
+	| grep -E "^A" > $@.tmp
 #--------
 asname: # parameter: DIR
 	perl extract_info.pl -anr $(DIR)/ajson > $@.txt
