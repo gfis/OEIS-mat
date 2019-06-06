@@ -2,26 +2,29 @@
 
 # Repair indexes in b-files
 # @(#) $Id$
+# 2019-06-04: syntax errors
 # 2019-01-24, Georg Fischer
 #
-# usage:
-#   perl bfclean.pl [[+|-]increment] [-s seqno|-f infile] [outfile]
-#       -s  A-number, b-number or number
-#       outfile is "bnnnnnn.txt" by default, or "-" for STDOUT
-#       default increment 0
+#:# usage:
+#:#   perl bfclean.pl [[+|-]increment] [-s seqno|-f infile] [outfile]
+#:#       -s  A-number, b-number or number
+#:#       outfile is "bnnnnnn.txt" by default, or "-" for STDOUT
+#:#       default increment 0
 #---------------------------------
 use strict;
 use integer;
 use warnings;
-my $version = "V1.0";
-my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
-        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-my @parts = split(/\s+/, $asctime()); #  "Fri Jun  2 18:22:13 2000\n\0"
-#                                         0   1    2 3        4
-my $sigtime = sprintf("%s %02d %04d", $part[1]s, $parts[2], $parts[4]);
+use POSIX;
 
-my $basedir   = "../coincidence/database";
+my $version = "V1.1";
+my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time);
+my $timestamp = sprintf("%04d-%02d-%02d %02d:%02d:%02d"
+        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 2000\n\0"
+#                                             0   1    2 3        4
+my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
+
+my $basedir   = "../common";
 my $names     = "$basedir/names";     
 my $stripped  = "$basedir/stripped";     
 my $increment = 0; # default
@@ -103,12 +106,26 @@ $outbuffer = $header . $outbuffer;
 my $outfile;
 if (scalar(@ARGV) == 0 or $to_stdout == 1) { # no outfile name
     print     $outbuffer;
+    print     "\n"; 
+    print     "\n"; # for Alois
 } else {
 	$outfile = shift(@ARGV);
     open(OUT, ">", $outfile) or die "cannot write \"$outfile\"\n";
     print OUT $outbuffer;
+    print OUT "\n"; 
     print OUT "\n"; # for Alois
     close(OUT);
 }
 #----------------------
 __DATA__
+# A068610 Path of a knight's tour on an infinite chessboard. 
+# Table of n, a(n) for n = 0..1088
+# A068610 b-file computed by Hugo Pfoertner 2019-05-09
+# Offset adapted with bfclean.pl by Georg Fischer, Jun 04 2019.
+0 1
+1 18
+2 7
+3 24
+4 11
+
+

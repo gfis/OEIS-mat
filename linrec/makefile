@@ -236,10 +236,11 @@ linhrec:
 	cp -v ../../linhrec/dist/linhrec.jar .
 	java -jar linhrec.jar -f $(COMMON)/stripped
 #======================================================
-linrec: lrlink lrindx lrload
+linrec: lrlink lrindx 
+# lrload ???
 # linrec_link linrec_mmacall linrec_wget linrec_index
 #--
-lrlink: lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
+lrlink: lrlink0 lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
 lrlink0:
 	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
 	"Index entries for linear recurrence" > lrlink1.tmp || :
@@ -362,8 +363,9 @@ lrperiod:
 	"Index entries for periodic sequences with large period" \
 	> $@.tmp
 #----------------------
-lrindx: lrindx1 lrindx2 lrindx3 lrindx4 lrindx5
+lrindx: lrindx0 lrindx1 lrindx2 lrindx3 lrindx4 lrindx5
 lrindx0:
+	rm -f lrindx.raw
 	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
 lrindx1:
 	# sed -e "s/:signature */:/" -e "s/=====/====/g" lrindx.raw \

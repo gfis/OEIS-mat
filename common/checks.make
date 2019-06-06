@@ -92,7 +92,7 @@ asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 	echo -e "A-Number\tName" > $@.txt
 	sort x.tmp asdata.tmp | uniq -c | grep -vE "^  *2 " \
 	| grep -E "\," \
-	| cut -b 9- | grep -vf $(PULL)/draft_load.tmp \
+	| cut -b 9- \
 	>> $@.txt || :
 	rm -f asd.?.tmp
 	wc -l $@.txt
@@ -216,7 +216,7 @@ full_check: # Keyword "full" and not "synth"
 joeis_check: # jOEIS G.f. differences 2019-05-19
 	echo "A_Number	Message	Expected	Computed" > $@.txt
 	gawk -e '{ print $$1 "\t" $$2 "\t" substr($$3,0,8) "\t" substr($$4,0,32) "...\t" substr($$6,0,32) }' \
-		$(FISCHER)/fail.log \
+		computed.log \
 	>>       $@.txt
 	wc -l    $@.txt
 	make -f checks.make html_check1 FILE=$@
@@ -350,7 +350,7 @@ signb_check: # Sequence has no keyword <em>sign</em> and b-file has negative ter
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------
-synth_check: syntha_check synthb_check synthc_check synthd_check synthe_check
+synth_check: syntha_check synthb_check synthc_check synthd_check synthe_check synthf_check synthg_check
 #--
 syntha_check: # Sequence (no draft) does not link to a b-file, but there is one in <em>bfilelist</em>
 	$(DBAT) "SELECT a.aseqno \
@@ -444,6 +444,21 @@ synthf_check: # b-files with fake comment "synthesized from ..."
 		ORDER BY 1 " \
 	| sed -e "s/\r//" > $@.txt
 	head -n 4 $@.txt
+	wc -l $@.txt
+#----
+synthg_check: # "synth" and JSON is newer than b-file
+	$(DBAT) "SELECT a.aseqno \
+		, substr(a.access, 1, 16) AS ajson_time \
+		, substr(b.access, 1, 16) AS bfile_time \
+		, b.filesize, b.bfimin || ':' || b.bfimax \
+		, a.keyword \
+	    FROM asinfo a, bfinfo b \
+	    WHERE a.aseqno = b.aseqno \
+	      AND a.keyword      LIKE '%synth%' \
+	      AND a.access > b.access \
+	      AND a.aseqno NOT IN (SELECT aseqno FROM bfdir) \
+	    ORDER BY 1" \
+	>     $@.txt
 	wc -l $@.txt
 #-----------------------------
 terms_check: # The first few terms differ from the b-file, and that is not synthesized and no draft
