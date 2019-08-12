@@ -1,7 +1,8 @@
 #!perl
 
-# Extract the numerators and denominators of generating functions  from a cat25 file
+# Extract the numerators and denominators of generating functions from a cat25 file
 # @(#) $Id$
+# 2019-06-07: remove author
 # 2019-05-10, Georg Fischer
 #
 #:# Usage:
@@ -51,19 +52,23 @@ while (<>) {
     } elsif ($code eq "O") { # OFFSET
         $content =~ m{(\-?\d+)(\,\d*)?};
         $offset1 = $1 || "0";
-        my $suffix = "";
+        my $nvars = "";
         if (length($fraction) > 0) { 
             if (length($comt) > 0) {
                 $comt = "# $aseqno $comt";
             } else {
                 $comt = "$aseqno";
                 my %hash = ();
-                map {
-                    $hash{$_} = 1;
-                    } $fraction =~ m{[a-z]}g;
-                $suffix = scalar(keys(%hash));
+                map { $hash{$_} = 1; } $fraction =~ m{[a-z]}g;
+                $nvars = scalar(keys(%hash));
+                my $uvar = $nvars <= 3 ? "X" : chr(ord("X" - ($nvars - 3)));
+                foreach my $key (sort(keys(%hash))) {
+                    $fraction =~ s{$key}{$uvar}g;
+                    $uvar = chr(ord($uvar) + 1);
+                } # foreach $key
+                $fraction = lc($fraction);
             }
-            print join("\t", $comt, "fract$suffix", $offset1, $fraction) . "\n";
+            print join("\t", $comt, "fract$nvars", $offset1, $fraction) . "\n";
             $oseqno = $aseqno;
         }
         $fraction = "";
@@ -74,9 +79,11 @@ while (<>) {
               )
             ) {
         $fraction = $4 || "";
-        $fraction =~ s{^[AFGH]\([t-z]\) *[\=\:] *}{};
-        $fraction =~ s{[\.\;\,].*}{}; # remove all behind first dot or semicolon
+        $fraction =~ s{^[A-Z]\([a-z]\) *[\=\:] *}{};
+        $fraction =~ s{[\.\;\,\=].*}{}; # remove all behind first dot or semicolon
+        $fraction =~ s{[\(\[]?(From |Correc|Amdended |_).*}{}i; # author etc.
         $fraction =~ s{\s}{}g;
+        $fraction =~ s{a\(n\)\Z}{}; # following recurrence
         $fraction =~ s{\*\*}{\^}g; # exponentiation
         $fraction =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
         $fraction =~ s{\s+\Z}{}; # remove trailing spaces
@@ -93,8 +100,11 @@ while (<>) {
         if ($fraction =~ m{[a-hA-Z\<\>\=]}) { 
             $comt = "?letrs?";
         }
-        if ($fraction =~ m{[a-zA-Z][a-zA-Z]}) { # at least 2 letters, sqrt ...
+        if ($fraction =~ m{[a-zA-Z]\([a-z]\)}) { # A(x)
             $comt = "?funct?";
+        }
+        if ($fraction =~ m{[a-zA-Z][a-zA-Z]}) { # at least 2 letters, sqrt ...
+            $comt = "?stdf?";
         }
         if ($fraction =~ m[\d{8}]) {
             $comt = "?digt8?";

@@ -2,6 +2,7 @@
 
 # OEIS-mat/common - scripts and data common to all subprojects
 # @(#) $Id$
+# 2019-07-16: joeis parallel to joeis-lite
 # 2019-04-11: checks exported to ./checks.make
 # 2019-02-19: HTMLIZE
 # 2019-01-22: old_unpacking from ../dumps
@@ -15,7 +16,7 @@ DUMPS=../dumps
 HEAD=8
 PULL=../pull
 COMMON=$(GITS)/OEIS-mat/common
-JOEIS=../$(GITS)/gitups/joeis
+JOEIS=$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
@@ -76,8 +77,6 @@ bulk_lists:
 	wc -l bulk?.txt
 	#### now copy bulk?.txt to the Linux machine
 #---------
-daily:
-	time make unpack_bfsynth history infos
 history: # Fetch new or recently changed JSONs
 	rm -rf  bulk
 	mkdir   bulk
@@ -135,6 +134,22 @@ bulk_bfile1:
 	wget   $(PARM)
 	sleep  $(SLEEP)
 #==============================
+# copy to Linux
+hinlin: 
+	cd ../pull ; make
+	make bulk_lists # prepare synthesized b-files and fetch lists for the Linux machine
+	rm -rf  bfsynth
+	cat     synthg_check.txt >> synthe_check.txt
+	make    bfsynth LIST=synthe_check.txt
+	rm -f   bfsynth.zip
+	zip -rq bfsynth.zip bfsynth bulk?.txt
+	scp     bfsynth.zip gfis@atair:~/work/gits/OEIS-mat/common
+	#### make unpack_bfsynth on the Linux machine
+	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; time make daily NMAX=$(NMAX) CMAX=$(CMAX)'
+	make herlin
+daily:
+	time make unpack_bfsynth history infos
+#--
 infos:  
 	make ainfos DIR=.
 	make binfos DIR=.
@@ -142,7 +157,10 @@ infos:
 ainfos: asdata asinfo asname asxref
 binfos: bfdata bfinfo 
 #----
-loads:  aloads bloads checks
+# process after data extraction on Linux
+herlin: herscp aloads bloads checks
+herscp: 
+	scp gfis@atair:/home/gfis/work/gits/OEIS-mat/common/??????.txt .
 aloads: asdata_load asinfo_load asname_load asxref_load 
 bloads: bfdata_load bfinfo_load bfdir_load 
 #--------
@@ -246,6 +264,25 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
+#----
+joeis_list:
+	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list'
+	scp gfis@atair:work/gits/joeis/joeis_list.txt .
+	make joeis_load
+joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
+	$(DBAT) -f joeis.create.sql
+	cat joeis_list.txt \
+	| $(DBAT) -m csv -r joeis
+	$(DBAT) -4 joeis
+	$(DBAT) -n joeis
+	make jnames
+jnames:
+	$(DBAT) "SELECT n.aseqno, substr(j.superclass, 1, 8), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
+	FROM  asinfo a, asname n , bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
+	WHERE a.aseqno = n.aseqno \
+	  and a.aseqno = b.aseqno \
+	ORDER BY 1" \
+	| perl -pe "s{\'\'}{\'}g" > $@.txt
 #--------------------------------
 checks:
 	make -f checks.make $@
@@ -263,16 +300,9 @@ bfsubset1:
 	| xargs -l -i{} cp -v ./bfile/b{}.txt ./bfsub/
 	ls -1 bfsub | wc -l
 #-------
-linux: bulk_lists # prepare synthesized b-files and fetch lists for the Linux machine
-	rm -rf  bfsynth
-	make    bfsynth LIST=synthe_check.txt
-	rm -f   bfsynth.zip
-	zip -rq bfsynth.zip bfsynth bulk?.txt
-	scp     bfsynth.zip gfis@atair:~/work/gits/OEIS-mat/common
-	#### make unpack_bfsynth on the Linux machine
 bfsynth: # Synthesize temp2/bfiles.txt for all in $(LIST)
 	cut -b1-7 $(LIST) | sort | uniq > $@.1.tmp
-	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp
+	grep -f $@.1.tmp $(COMMON)/stripped > $@.2.tmp || :
 	wc -l   $@.2.tmp
 	make seq LIST=$@.1.tmp
 	$(DBAT) -x "SELECT aseqno, offset1 FROM asinfo \

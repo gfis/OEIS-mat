@@ -14,6 +14,7 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
 RALEN=350
+LIST=computed.log
 #--------
 
 all:
@@ -24,22 +25,22 @@ help:
 # general targets
 
 checks: \
-			asdata_check \
-			asdir_check  \
-			asname_check \
-			bad_check    \
-			bfdir_check  \
-			brol_check   \
-			cons_check   \
-			denom_check  \
-			offset_check \
-			radata_check \
-			rbdata_check \
-			sign_check   \
-			synth_check  \
-			terms_check  \
-			eval_checks  \
-			html_checks
+	asdata_check \
+	asdir_check  \
+	asname_check \
+	bad_check    \
+	bfdir_check  \
+	brol_check   \
+	cons_check   \
+	denom_check  \
+	offset_check \
+	radata_check \
+	rbdata_check \
+	sign_check   \
+	synth_check  \
+	terms_check  \
+	eval_checks  \
+	html_checks
 #
 #		bfdata_check \
 #
@@ -141,18 +142,19 @@ bfdata_check: # Compare <em>stripped</em> file with terms extracted from local b
 	>> $@.txt || :
 	wc -l $@.txt
 #----
-bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (maybe for draft)
+bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (without drafts)
 	$(DBAT) "SELECT d.aseqno \
 		, substr(d.created, 1, 16) AS oeis_time, substr(b.access, 1, 16) as local_time \
 		, d.filesize AS oeis_size,  b.filesize AS local_size, b.message \
-		FROM  bfdir d LEFT JOIN bfinfo b ON d.aseqno = b.aseqno  \
-		WHERE d.filesize <> COALESCE(b.filesize, 1) \
+		FROM  bfdir d, bfinfo b \
+		WHERE d.filesize <> b.filesize \
+		  AND d.aseqno = b.aseqno  \
+	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 		ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
 #   	        OR substr(d.created, 1, 10)  <> substr(b.access, 1, 10)s \
 #		, d.filesize - b.filesize \
-#	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) 
 #--------------------------------
 brol_check: joeis_check
 #--------------------------------
@@ -213,10 +215,11 @@ full_check: # Keyword "full" and not "synth"
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------
-joeis_check: # jOEIS G.f. differences 2019-05-19
-	echo "A_Number	Message	Expected	Computed" > $@.txt
+joeis_check: # parameter: LOG in joeis-lite/internal/fischer
+	echo "A_Number	bfimax	Status	Expected	Computed" > $@.txt
 	gawk -e '{ print $$1 "\t" $$2 "\t" substr($$3,0,8) "\t" substr($$4,0,32) "...\t" substr($$6,0,32) }' \
-		computed.log \
+		$(FISCHER)/$(LOG).fail.log \
+	| perl -pe "s{\.\.\.}{ ms} if m{pass};" \
 	>>       $@.txt
 	wc -l    $@.txt
 	make -f checks.make html_check1 FILE=$@

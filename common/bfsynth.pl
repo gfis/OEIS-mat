@@ -2,6 +2,7 @@
 
 # Synthesize b-files from 'stripped'
 # @(#) $Id$
+# 2019-07-27: comment
 # 2019-02-19, Georg Fischer
 #
 #:# Usage:
@@ -12,18 +13,18 @@
 #
 # OEIS server writes:
 # "# A178957 (b-file synthesized from sequence entry)"
-# We write:
-# "# A178957 [b-file synthesized from sequence entry]"
+# We write instead:
+# "# A178957 (b-file synthesized from seq bfsynth.pl)"
 #---------------------------------
 use strict;
 use integer;
 use warnings;
-my $version = "V1.0";
+my $version = "V1.1";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
-my $stripped  = "../pull/stripped";     
+my $stripped  = "../common/stripped";
 my $asdata    = "asdata.txt";
 my %terms     = (); # key is aseqno
 my $outdir    = ".";
@@ -55,7 +56,7 @@ while (<STR>) {
     my $aseqno = substr($_, 0, 7);
     my $list   = substr($_, 9);
     $list =~ s{\,\Z}{};
-    $terms{$aseqno} = $list; 
+    $terms{$aseqno} = $list;
     $count ++;
 } # while <STR>
 close(STR);
@@ -66,26 +67,26 @@ while (<>) {
     s/\s+\Z//; # chompr
     ($aseqno, $offset1, @rest) = split(/\s+/);
     if ($aseqno !~ m{\AA\d{6}}) {
-    	print STDERR "# no A-number: \"$aseqno\"\n";
+        print STDERR "# no A-number: \"$aseqno\"\n";
     } elsif (defined($terms{$aseqno})) {
-    	&output($terms{$aseqno});
+        &output($terms{$aseqno});
     } else {
-    	my $line = `grep $aseqno $asdata`;
-    	if ($line =~ m{\A($aseqno)\s+(\S+)}) {
-    		my $param = $2;
-    		&output($param);
-    	} else {
-    		print STDERR "# $aseqno neither in $stripped nor in $asdata\n";
-    	}
+        my $line = `grep $aseqno $asdata`;
+        if ($line =~ m{\A($aseqno)\s+(\S+)}) {
+            my $param = $2;
+            &output($param);
+        } else {
+            print STDERR "# $aseqno neither in $stripped nor in $asdata\n";
+        }
     }
-} # while <>    
+} # while <>
 #--------------------
 sub output {
     my ($param) = @_;
     my $bfname = "${outdir}b" . substr($aseqno, 1) . ".txt";
     open(OUT, ">", $bfname) or die "cannot write \"$bfname\"\n";
 #   print OUT "# $aseqno (b-file synthesized from sequence entry)\n";
-    print OUT "# $aseqno (b-file synthesized from seq bfsynth.pl)\n"; 
+    print OUT "# $aseqno (b-file synthesized from seq bfsynth.pl)\n";
     #                                                ^^^^^^^^^^^
     # caution, extract_info.pl relies on this       |
     my $ind = $offset1;

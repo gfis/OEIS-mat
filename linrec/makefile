@@ -29,43 +29,52 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
+#--------
+njoeis: # LIST
+	make -f $(COMMON)/makefile seq 
+	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq \
+	WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
 #--------------------
-gf1:
-	grep -E "F A[0-9]* G\. *f\." $(COMMON)/cat25.txt  > gf1.tmp
-	wc -l gf1.tmp
-gf2:
-	cut -b4- gf1.tmp | sed -e "s/ /\t/" | sort | uniq \
-	| sed -e "s/\.//g" -e "s/G *f: *//" \
-	| grep -vE "A[^0-9]" \
-	| grep -vE "[B-Z]" \
-	| grep -vE "[a-zA-Z][a-zA-Z]" \
-	| grep -vE "^.......*[0-9][0-9][0-9][0-9]" \
-	| grep -E "\/" \
-	>        gf2.tmp
-	head -n4 gf2.tmp
-	wc -l    gf2.tmp
-	cut -b 1-7 gf2.tmp | sort | uniq -c | grep -v " 1 " | cut -b 9- > gf2.dupl.tmp
-	grep -vf gf2.dupl.tmp gf2.tmp > gf2.single.tmp
-gf3:
-	make -f $(COMMON)/makefile seq2 LIST=gf2.single.tmp
-	$(DBAT) "SELECT aseqno, info \
-		FROM seq2 \
-		WHERE aseqno NOT IN (SELECT aseqno from joeis) \
-		ORDER BY 1 " \
-	>        gf3.tmp
-	head -n4 gf3.tmp
-	wc -l    gf3.tmp
-#----------------
 # Generating functions from cat25 file
-catgf: catgf0 catgf1 catgf2
+catgf: catgf0 catgf1 fract
+# catgf1 catgf2 
 # %F A000032 G.f.: (2 - x)/(1 - x - x^2).
 # 1234567890123456789
 catgf0:
-	perl extract_catgf.pl -d 0 $(COMMON)/cat25.txt \
+	grep -E "\%[SOFN]" $(COMMON)/cat25.txt \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
 catgf1:
+	perl extract_catgf.pl -d 0 catgf0.tmp \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+fract: nfract fract1 fract2 fract39
+nfract:
+	grep -E "^#" catgf1.tmp \
+	| sort -k3 \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp	
+fract1:
+	grep -vE "^#" catgf1.tmp | grep fract1 \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+	make --quiet njoeis LIST=$@.tmp
+fract2:
+	grep -vE "^#" catgf1.tmp | grep -E "fract2" \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+	make --quiet njoeis LIST=$@.tmp
+fract39:
+	grep -vE "^#" catgf1.tmp | grep -E "fract[3-9]" \
+	>       $@.tmp || :
+	head -64 $@.tmp
+	wc -l   $@.tmp
+catgf111:
 	$(RAMATH) -f   catgf0.tmp > $@.tmp
 catgf2:
 	grep -E "orgf" catgf1.tmp \
@@ -83,6 +92,7 @@ catgf4:
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
+#--------
 #	| grep -E "Conjecture:" 
 gfmatconj:
 	grep Mathar $(COMMON)/cat25.txt \
@@ -98,6 +108,80 @@ recur:
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp 
+#--------------------
+# Riordan arrays
+rio: rio0 rio1
+rio0:
+	grep -iE "Riordan *array" $(COMMON)/cat25.txt \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+rio1:
+	perl extract_rio.pl $(COMMON)/cat25.txt \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+rio2:
+	grep -vE "\?" rio1.tmp \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+rio3:
+	$(RAMATH) -n 64 -f rio2.tmp
+#--------
+factabl: factabl1 factabl2
+factabl1:
+	$(DBAT) -x "SELECT i.aseqno, d.data FROM asinfo i, asdata d \
+		WHERE i.aseqno = d.aseqno \
+		  AND i.keyword LIKE '%tabl%' \
+		  AND d.data LIKE '1,2,1,%' \
+		  AND d.data LIKE '%,120,%' \
+		  AND d.data LIKE '%,720,%' \
+	    ORDER BY i.aseqno;" \
+	| perl factabl.pl \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
+	$(DBAT) -f $(COMMON)/seq.create.sql
+	cut -d "	" -f 1 $@.tmp | sort | uniq \
+	| $(DBAT) -r seq
+	$(DBAT)   -n seq
+factabl2:
+	$(DBAT) -f $(COMMON)/seq2.create.sql
+	cut -d "	" -f 1,4 catgf3.tmp \
+	| grep y \
+	| $(DBAT) -r seq2
+	$(DBAT)   -n seq2
+	$(DBAT) -x "SELECT s.aseqno, s2.info FROM seq s, seq2 s2 \
+		WHERE s.aseqno = s2.aseqno \
+	    ORDER BY s.aseqno;" \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
+#--------
+# triangles
+trigen:
+	$(DBAT) -x "SELECT i.aseqno, d.data FROM asinfo i, asdata d \
+		WHERE i.aseqno = d.aseqno \
+		  AND i.keyword LIKE '%tabl%' \
+	    ORDER BY i.aseqno;" \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
+trigen1:
+	perl extract_trigen1.pl trigen.tmp > $@.tmp  
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
+#--------
+trec:
+	perl -ne \
+	's{with |where |when |for |if }{ }g;'\
+	'if ((! m{[\!\|]|\.\.\.|ceil|floor|min|max|[Nn]umber|Pi|[Ss]um|[ATa]\d{6}\S}) and (m{^\%\w (A\d+)\s+(T\([i-n]\,\s*[i-n]\)\s*\=[^\.]*)\.}))'\
+	'{ print join("\t", $$1, "$@", 0, $$2) . "\n" }' \
+	$(COMMON)/cat25.txt \
+	| tee     $@.tmp
+	# head -n 4 $@.tmp
+	wc -l     $@.tmp  
 #--------
 elu1:
 	grep "def " generatingFunctions.txt \
@@ -529,6 +613,29 @@ form:
 	> $@.tmp
 	wc -l $@.tmp 
 #-------------------
-
-	
+oldgf1:
+	grep -E "F A[0-9]* G\. *f\." $(COMMON)/cat25.txt  > gf1.tmp
+	wc -l gf1.tmp
+oldgf2:
+	cut -b4- gf1.tmp | sed -e "s/ /\t/" | sort | uniq \
+	| sed -e "s/\.//g" -e "s/G *f: *//" \
+	| grep -vE "A[^0-9]" \
+	| grep -vE "[B-Z]" \
+	| grep -vE "[a-zA-Z][a-zA-Z]" \
+	| grep -vE "^.......*[0-9][0-9][0-9][0-9]" \
+	| grep -E "\/" \
+	>        gf2.tmp
+	head -n4 gf2.tmp
+	wc -l    gf2.tmp
+	cut -b 1-7 gf2.tmp | sort | uniq -c | grep -v " 1 " | cut -b 9- > gf2.dupl.tmp
+	grep -vf gf2.dupl.tmp gf2.tmp > gf2.single.tmp
+oldgf3:
+	make -f $(COMMON)/makefile seq2 LIST=gf2.single.tmp
+	$(DBAT) "SELECT aseqno, info \
+		FROM seq2 \
+		WHERE aseqno NOT IN (SELECT aseqno from joeis) \
+		ORDER BY 1 " \
+	>        gf3.tmp
+	head -n4 gf3.tmp
+	wc -l    gf3.tmp
 	

@@ -9,7 +9,7 @@
 #:#       -init write header  of index file
 #:#       -term write trailer of index file
 #:#       -var  write table of deviations (default)
-#:#       -m    take the comments frorm this makefile (default: checks.make, for -var only)
+#:#       -m    take the comments from this makefile (default: checks.make, for -var only)
 #:#---------------------------------
 use strict;
 use integer;
@@ -17,7 +17,7 @@ my $index_name = "check_index.html";
 my $make_name  = "checks.make";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"  #:%02d\+01:00"
-        , $year + 1900, $mon + 1, $mday, $hour);     # , $min, $sec, $isdst);
+        , $year + 1900, $mon + 1, $mday, $hour, $min); # , $sec, $isdst);
 
 my $mode = "var";
 if (scalar(@ARGV) == 0) { # print help and exit

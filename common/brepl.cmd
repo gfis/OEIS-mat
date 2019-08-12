@@ -1,0 +1,4 @@
+wget https://oeis.org/%1.txt -O bfile/%1.txt
+ls -al  bfile/%1.txt
+head -8 bfile/%1.txt
+wc -l   bfile/%1.txt

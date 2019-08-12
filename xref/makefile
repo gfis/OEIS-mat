@@ -44,4 +44,17 @@ referred_many:
 		GROUP BY x.rseqno, n.name, i.author, SUBSTR(created, 1, 10) \
 		ORDER BY 2 DESC" \
 	| tee $@.txt
+#----
+# Peter 2019-07-09
+reftabl:
+	$(DBAT) -100 \
+	"SELECT x.rseqno, COUNT(x.aseqno) \
+		                 , n.name, i.author, SUBSTR(created, 1, 10) AS created, i.keyword \
+		FROM  asxref x, asname n, asinfo i \
+		WHERE x.rseqno = n.aseqno \
+		  AND x.rseqno = i.aseqno \
+          AND i.keyword like '%tabl%' \
+		GROUP BY x.rseqno, n.name, i.author, SUBSTR(created, 1, 10), i.keyword \
+		ORDER BY 2 DESC" \
+	| perl -pe "s{\'\'}{\'}g" > $@.txt
 
