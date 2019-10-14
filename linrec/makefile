@@ -74,7 +74,7 @@ fract39:
 	>       $@.tmp || :
 	head -64 $@.tmp
 	wc -l   $@.tmp
-catgf111:
+catgf1:
 	$(RAMATH) -f   catgf0.tmp > $@.tmp
 catgf2:
 	grep -E "orgf" catgf1.tmp \
@@ -146,6 +146,7 @@ factabl1:
 	cut -d "	" -f 1 $@.tmp | sort | uniq \
 	| $(DBAT) -r seq
 	$(DBAT)   -n seq
+	perl $(COMMON)/html_checks.pl $@.tmp > $@.html
 factabl2:
 	$(DBAT) -f $(COMMON)/seq2.create.sql
 	cut -d "	" -f 1,4 catgf3.tmp \
@@ -243,6 +244,12 @@ gf_check:
 		WHERE s.aseqno = d.aseqno \
 		  AND d.data NOT LIKE '%' || SUBSTR(s.info, 31, 32) || '%') \
 		ORDER BY 1, 2" \
+	> 		 $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+#----
+expof:
+	grep -E "Expansion of " $(COMMON)/jnames.txt | grep -v "e.g.f." | grep null \
 	> 		 $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt

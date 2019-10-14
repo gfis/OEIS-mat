@@ -63,20 +63,32 @@ cat25: # Fetch the CAT25 file (internal format of all sequences).
 #=================================
 draft: draft_get draft_prep draft_load
 draft_get:
-	rm -f   draft.*.html
-	rm -f   draft1
-	# file "draft1" will be created if there are no "older changes"
-	# and the loop will be stopped
-	make -s draft1 N=000
-	make -s draft1 N=100
-	make -s draft1 N=200
-	make -s draft1 N=300
-	make -s draft1 N=400
-	make -s draft1 N=500
-	make -s draft1 N=600
-draft1:
-	wget -O              draft.$(N).html https://oeis.org/draft?start=$(N)
-	grep "older changes" draft.$(N).html > x.tmp || echo xxx: > draft1
+	rm -f   draft.*.html draftp drafte
+	# files "draft?" will be created if there are no "older changes"
+	# and makes will be skipped by the existance of that file
+	echo proposed
+	make -s draftp N=000
+	make -s draftp N=100
+	make -s draftp N=200
+	make -s draftp N=300
+	make -s draftp N=400
+	make -s draftp N=500
+	make -s draftp N=600
+	echo editing
+	make -s drafte N=000
+	make -s drafte N=100
+	make -s drafte N=200
+	make -s drafte N=300
+	make -s drafte N=400
+	make -s drafte N=500
+	make -s drafte N=600
+draftp:
+	wget -O              draft.$(N)p.html https://oeis.org/draft?start=$(N)
+	grep "older changes" draft.$(N)p.html > x.tmp || echo xxx: > draftp
+	sleep $(SLEEP)
+drafte:
+	wget -O              draft.$(N)e.html https://oeis.org/draft/editing?start=$(N)
+	grep "older changes" draft.$(N)e.html > x.tmp || echo xxx: > drafte
 	sleep $(SLEEP)
 #----------
 draft_prep:

@@ -135,8 +135,10 @@ bulk_bfile1:
 	sleep  $(SLEEP)
 #==============================
 # copy to Linux
-hinlin: 
+hinlin: hinlin1 hinlin2 hinlin3
+hinlin1:
 	cd ../pull ; make
+hinlin2: 
 	make bulk_lists # prepare synthesized b-files and fetch lists for the Linux machine
 	rm -rf  bfsynth
 	cat     synthg_check.txt >> synthe_check.txt
@@ -145,6 +147,7 @@ hinlin:
 	zip -rq bfsynth.zip bfsynth bulk?.txt
 	scp     bfsynth.zip gfis@atair:~/work/gits/OEIS-mat/common
 	#### make unpack_bfsynth on the Linux machine
+hinlin3:
 	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; time make daily NMAX=$(NMAX) CMAX=$(CMAX)'
 	make herlin
 daily:
@@ -265,24 +268,27 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
-joeis_list:
+joeis_list: joeis_pull joeis_load joeis_name joeis_count
+joeis_pull:
 	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
-	make joeis_load
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	cat joeis_list.txt \
 	| $(DBAT) -m csv -r joeis
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
-	make jnames
-jnames:
+joeis_names:
 	$(DBAT) "SELECT n.aseqno, substr(j.superclass, 1, 8), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
 	FROM  asinfo a, asname n , bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
 	ORDER BY 1" \
-	| perl -pe "s{\'\'}{\'}g" > $@.txt
+	| perl -pe "s{\'\'}{\'}g" > jnames.txt
+joeis_count:
+	$(DBAT) -x "SELECT a/b FROM ( \
+	(SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 , \
+	(SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 )" 
 #--------------------------------
 checks:
 	make -f checks.make $@

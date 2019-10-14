@@ -276,7 +276,7 @@ noef2:
 	cat  $@.1.tmp | xargs -l -i{} tail -vc32 bfile/{}.txt >> $@.2.tmp
 	wc -l $@.*
 #--------------------------------
-offset_check: # Sequence offset differs from first index in b-file
+offset_check: # Sequence offset differs from first index in b-file and no draft
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
 		, substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
 		, a.keyword, b.message \
