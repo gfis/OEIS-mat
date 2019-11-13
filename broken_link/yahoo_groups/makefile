@@ -1,17 +1,25 @@
 #!make
 
-# Cache links to Yahoo groups
+# Save Yahoo groups threads and enter links to the cached files
 # @(#) $Id$
 # 2019-11-12, Georg Fischer
 #----------------
 GITS=../../..
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
+COMMON= $(GITS)/OEIS-mat/common
 D=0
 N=22771
 #----
 
 all: extract wget
 #----
+seq3: # parameter: $(LIST)
+	$(DBAT) -f $@.create.sql
+	cut -b1-  $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
+	$(DBAT) -m csv -r $@ < $@.tmp
+	$(DBAT) -4 $@
+	$(DBAT) -n $@
+#---------------
 extract:
 	mkdir html  || :
 	mkdir text  || :
@@ -50,4 +58,41 @@ zip:
 rename:
 	find html -iname "*.html"  -printf "%f\n" | sed -e "s/.html//" \
 	| xargs -l -i{}  mv -v html/{}.html html/{}
+#==============================
+# Work lists
+yahoo_links: yal1 yal2 yal3
+yal1:
+	  sed -e "s/^done \%H */njas#/" yahoo_links.txt \
+	| sed -e "s/^\%H */\?\#/" \
+	| sed -e "s/^\%o */gfis\#/" \
+	| sed -e "s/ /\t/" \
+	| perl -pe 's{\A([^\#]+)\#(\w+)}{$$2\t$$1};' \
+	>         $@.tmp
+	wc -l     $@.tmp
+	cut -b1-7 $@.tmp | sort | uniq -c | grep -v "  1 "
+yal2:
+	make seq3 LIST=yal1.tmp
+	$(DBAT) -v "UPDATE seq3 s SET status = 'edits' WHERE \
+		(SELECT SUBSTR(i.access, 1, 9) \
+		  FROM ASINFO i \
+		  WHERE i.aseqno = s.aseqno) \
+		= '2019-11-1' \
+		AND status = '?'" 
+#----
+yal3: yahoo_check html_checks
+yahoo_check: # Work list for vanishing Yahoo group links
+	$(DBAT) "SELECT s.aseqno, s.status, substr(i.access, 1, 10) AS 'last_change'\
+		, s.info AS 'yahoo_link' \
+	FROM      seq3 s \
+	LEFT JOIN asinfo i ON s.aseqno = i.aseqno \
+	ORDER BY 1" \
+	> yahoo_check.txt
+html_checks:
+	perl $(COMMON)/html_checks.pl -init $(COMMON)/eval_checks.lst >  check_index.html
+	ls -1 *_check.txt | sed -e "s/.txt//" \
+	| xargs -l -i{} make -s html_check1 FILE={}
+	perl $(COMMON)/html_checks.pl -term $(COMMON)/eval_checks.lst >> check_index.html	
+html_check1:
+	perl $(COMMON)/html_checks.pl -m makefile $(FILE).txt > $(FILE).htm
+	perl mod_links.pl $(FILE).htm # write .html
 	

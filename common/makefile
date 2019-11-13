@@ -30,16 +30,17 @@ help:
 	grep -E "^[a-z]" makefile
 #======================
 seq: # parameter: $(LIST)
-	$(DBAT) -f $(COMMON)/seq.create.sql
-	cut -b1-7 $(LIST) | grep -E "^A" | sort | uniq > seq.tmp
-	$(DBAT) -m csv -r seq < seq.tmp
-	$(DBAT) -n seq
+	$(DBAT) -f $(COMMON)/$@.create.sql
+	cut -b1-7 $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
+	$(DBAT) -m csv -r $@ < $@.tmp
+	$(DBAT) -4 $@
+	$(DBAT) -n $@
 seq2: # parameter: $(LIST)
-	$(DBAT) -f $(COMMON)/seq2.create.sql
-	cat $(LIST) | grep -E "^A" | sort | uniq > seq2.tmp
-	$(DBAT) -m csv -r seq2 < seq2.tmp
-	$(DBAT) -4 seq2
-	$(DBAT) -n seq2
+	$(DBAT) -f $(COMMON)/$@.create.sql
+	cut -b1-  $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
+	$(DBAT) -m csv -r $@ < $@.tmp
+	$(DBAT) -4 $@
+	$(DBAT) -n $@
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #==============================

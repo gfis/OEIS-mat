@@ -29,12 +29,13 @@ my $srcfile  = shift(@ARGV);
 my $tarfile  = shift(@ARGV);
 my $state   = "init";
 my $author  = "";
+my $title   = "";
 my $msg_nof = "";
 my $date    = "";
 my $buffer  = "";
 open (SRC, "<", $srcfile) || die "cannot read  \"$srcfile\"\n";
 open (TAR, ">", $tarfile) || die "cannot write \"$tarfile\"\n";
-print "-------- $srcfile -> $tarfile --------\n"; 
+print "-------- $srcfile -> $tarfile --------\n";
 while (<SRC>) {
     s{\s+\Z}{}; # chompr
     my $line    = $_;
@@ -49,6 +50,14 @@ while (<SRC>) {
         $author = $1;
         $state = "msid1";
 
+# <h2 id="yg-msg-subject" class="fs-14 fw-600 sprite" data-subject="Eisenstein Mersenne and Fermat primes"  data-tooltip="Eisenstein Mersenne and Fermat primes">Eisenstein Mersenne and Fermat primes </h2>
+    } elsif (($state eq "init")  and ($line =~ m{\A\s*\<h2})) {
+        if ($line =~ m{ data\-subject\=\"([^\"]*)\"}) {
+            $buffer = $1;
+            &revert_entities();
+            print TAR "$buffer\n\n";
+        }
+
 # class="cur-msg hide">
 # Message 1 of 7
     } elsif (($state eq "msid1") and ($line =~ m{\Aclass\=\"cur\-msg hide})) {
@@ -56,8 +65,8 @@ while (<SRC>) {
     } elsif (($state eq "msid2") and ($line =~ m{\AMessage})) {
         $msg_nof = $line;
         $state = "date";
-        
-# class="cur-msg-dt tip" pos="bottom" data-tooltip="Message sent time">Mar 14, 2009</span>      
+
+# class="cur-msg-dt tip" pos="bottom" data-tooltip="Message sent time">Mar 14, 2009</span>
     } elsif (($state eq "date")  and ($line =~ m{\Aclass\=\"cur\-msg\-dt tip})) {
         $line =~ m{\>([^\<]+)\<};
         $date  = $1;
@@ -70,7 +79,7 @@ GFis
 $msg_nof\t$date\t$author
 GFis
         $state = "cont1";
-        
+
 # class="msg-content undoreset"><div
 # id="ygrps-yiv-1936759143">Hello all:<br/>
 # <br/>
@@ -89,8 +98,21 @@ GFis
             $buffer .= $line;
             $buffer =~ s{ *\<br\/?\> *\<br\/?\> *\<br\/?\> *}{\<br\/\><br\/\>}g;
             $buffer =~ s{\<br\/?\>}{\n}g;
-            $buffer =~ s{title\=\"ireply\"\> *}{\>}g; 
+            $buffer =~ s{title\=\"ireply\"\> *}{\>}g;
             $buffer =~ s{\<(a|span|blockquote|div|p)[^\>]*\>}{}g;
+            &revert_entities();
+            print TAR "$buffer\n";
+            $state = "init";
+        } else {
+            $buffer .= "$line";
+        }
+    } else { # nothing
+    }
+} # while <>
+close(SRC);
+close(TAR);
+#----
+sub revert_entities {
             $buffer =~ s{\<\/\w+\>}{}g;
             $buffer =~ s{\&gt\;}{\>}g;
             $buffer =~ s{\&lt\;}{\<}g;
@@ -100,16 +122,7 @@ GFis
             $buffer =~ s{\&\#39\;}{\'}g;
             $buffer =~ s{\&\#92\;}{\\}g;
             $buffer =~ s{\&\#178\;}{²}g;
-            print TAR "$buffer\n";
-            $state = "init";
-        } else {
-            $buffer .= "$line";
-        }
-    } else { # nothing
-    } 
-} # while <>
-close(SRC);
-close(TAR);
+} # revert_entities
 #--------------------
 __DATA__
 <!doctype html>
@@ -125,7 +138,7 @@ __DATA__
     </script>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <title>Yahoo! Groups</title> 
+    <title>Yahoo! Groups</title>
     <meta name="description" content=""/>
     <meta name="keywords" content=""/>
     <meta property="og:title" content="Yahoo! Groups" />
@@ -134,7 +147,7 @@ __DATA__
     <meta property="og:image" content="https://s1.yimg.com/dh/ap/default/130909/y_200_a.png" />
     <link rel="icon" sizes="any" mask href="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.svg">
     <link rel="shortcut icon" href="https://s.yimg.com/cv/apiv2/default/fp/20180826/icons/favicon_y19_32x32.ico" />
-    
+
             <link rel="dns-prefetch" href="//s.yimg.com">
         <link rel="dns-prefetch" href="//s1.yimg.com">
         <link rel="dns-prefetch" href="//xa.yimg.com">
@@ -217,7 +230,7 @@ z-index: 150;
 }
 
 body {
-margin-top: 0px !important; 
+margin-top: 0px !important;
 }
 .DarkTheme .yucs-trigger .Ycon {
 color: #fff;
@@ -296,7 +309,7 @@ padding-right: 310px;
           <div class='yg-page'>
               <div class="navbar so-homepage-header hide">
     <div class="so-homepage-header-bd">
-        <div class="so-homepage-header-mask"></div> 
+        <div class="so-homepage-header-mask"></div>
         <div class="so-homepage-header-txt groups_image fw-200">
             <h1 class="so-homepage-welcome-txt fw-200">Welcome to Yahoo Groups.</h1>
             <div class="so-homepage-welcome-txt2 fs-14">
@@ -310,18 +323,18 @@ padding-right: 310px;
         <div class="yom-mod yom-nav group-detail-navbar">
             <div id="so-homepage-header-band">
                 <ul class="nav-lt fc-gray">
-                    
+
                     <li id="sign-in"  class="yg-button bg-purple fs-16"><a role="button" href="https://login.yahoo.com/config/login;_ylt=AtI46q.M_jXQ2vBSmsjhpB.gwsEF?.src=ygrp&amp;.intl=us&amp;.lang=en-US&amp;.done=https%3A%2F%2Fgroups.yahoo.com%2Fneo%2Fgroups%2Fprimenumbers%2Fconversations%2Ftopics%2F19899" class="fc-white">Sign In</a></li>
-                    
+
                     <li class="so-header-or"><i>OR</i></li>
-                    
-                    
-                    
+
+
+
                     <li id="create-group"  class="yg-button bg-purple fs-16"><a role="button" class="fc-white" href="https://login.yahoo.com/config/login;_ylt=AtI46q.M_jXQ2vBSmsjhpB.gwsEF?.src=ygrp&amp;.intl=us&amp;.lang=en-US&amp;.done=https%3A%2F%2Fgroups.yahoo.com%2Fneo%2Fgroups%2Fprimenumbers%2Fconversations%2Ftopics%2F19899?creategroup=true"><i class="create-group yg-sprite"></i>Start a New Group</a></li>
-                    
-                    
+
+
                     <li class="sign-up-txt"><span>You must be a registered Yahoo user to start a group.</span><a class="fc-lightblue" href="https://login.yahoo.com/account/create?specId=yidreg&amp;.src=ygrp&amp;.intl=us&amp;.lang=en-US&amp;.done=https%3A%2F%2Fgroups.yahoo.com%2Fneo%2Fgroups%2Fprimenumbers%2Fconversations%2Ftopics%2F19899">&nbsp;&nbsp;Sign Up</a></li>
-                    
+
                 </ul>
             </div>
         </div>
@@ -345,20 +358,20 @@ padding-right: 310px;
                       <div class="yom-mod yom-allgroups yg-rapid" data-ylk="zone:leftnav;ct:conversations;v:allgroups;itc:0;intl:us;grp:primenumbers;pstcat:Number Theory;cat1:Science;cat2:Mathematics;grpst:RESTRICTED;" id="yg-allgroups" role="contentinfo" >
 
     <div class="browse-groups-link yom-hd fc-gray">
-       
+
          <a class="fleft" href="/neo/dir">
-        
-       Browse Groups 
-       
-         </a> 
-        
+
+       Browse Groups
+
+         </a>
+
     </div>
 
 <div class="yom-bd">
     <ul class="">
-    
+
     </ul>
-    
+
 </div>
 
 
@@ -367,42 +380,42 @@ padding-right: 310px;
 
 <div class="yom-bd">
     <ul class="ft-mcol">
-    
+
       <li  value=""><a class='terms' href="http://info.yahoo.com/legal/us/yahoo/utos/en-us/" target="_blank">Terms</a>
-        
+
     </li>
-    
+
       <li  value=""><a  href="http://info.yahoo.com/privacy/us/yahoo/groups/details.html" target="_blank">Privacy</a>
-        
+
     </li>
-    
+
       <li  value=""><a  href="http://info.yahoo.com/guidelines/us/yahoo/groups/" target="_blank">Guidelines</a>
-        
+
     </li>
-    
+
       <li  value=""><a  href="http://yahoo.uservoice.com/forums/209451" target="_blank">Feedback</a>
-        
+
     </li>
-    
+
       <li  value=""><a  href="http://help.yahoo.com/kb/index?page=product&amp;y=PROD_GRPS&amp;locale=en_US" target="_blank">Help</a>
-        
+
     </li>
-    
+
       <li  value=""><a  href="http://yahoogroups.tumblr.com/" target="_blank">Blog</a>
-        
+
     </li>
-    
+
     </ul>
-    
+
 </div>
 
 
 </div>
                     </div>
-                  </div>        
+                  </div>
                   <div class="y-col2" id="yg-main-content">
                    <div class="main-container-child ">
-                     
+
         <div id="yg-blast-msg">
             <div>
                 <b>Attention:</b> Starting December 14, 2019 Yahoo Groups will no longer host user created content on its sites. New content can no longer be uploaded after October 28, 2019.  Sending/Receiving email functionality is not going away, you can continue to communicate via any email client with your group members. <a data-ylk="slk:blast-info" href=https://help.yahoo.com/kb/index?page=content&y=PROD_GRPS&locale=en_US&id=SLN31010&actp=email target="_blank">Learn More</a>
@@ -417,20 +430,20 @@ padding-right: 310px;
         <h1 class="yg-offscreen">Prime numbers and primality testing is a Restricted Group with 1137 members.</h1>
         <ul class="group-stats stats">
         <li class="group-icon-row fw-300"><a id="yg-group-summary" class="fc-white" href="/neo/groups/primenumbers/info">Prime numbers and primality testing</a></li>
-        
+
         <li>
             <ul class="gstats">
                 <li><i class="yg-sprite restricted"></i></li>
                 <li>Restricted Group,</li>
-                
-                
+
+
                   <li>1137 members</li>
-                            
+
             </ul>
         </li>
-        
+
         </ul>
-        
+
     </div>
 </div>
 
@@ -440,39 +453,39 @@ padding-right: 310px;
                 <h2 class="yg-offscreen">Primary Navigation</h2>
         <nav style="display:inline-block" role="navigation" aria-label="Primary">
         <ul class="nav-lt icon-label" role="tablist">
-                    
+
                     <li role="tab" aria-label="Conversations" id="messagenav"><a href="/neo/groups/primenumbers/conversations/messages" ><i class="yg-sprite" data-tooltip="Conversations"></i><span>Conversations</span></a></li>
-                    
+
                     <li role="tab" aria-label="Photos" id="photosnav"><a  class="disabled" ><i class="yg-sprite" data-tooltip="Photos"></i><span>Photos</span></a></li>
-                    
+
                     <li role="tab" aria-label="Files" id="filesnav"><a  class="disabled" ><i class="yg-sprite" data-tooltip="Files"></i><span>Files</span></a></li>
-                    
+
                     <li role="tab" aria-label="Attachments" id="attachmentnav" class="newitem hide"><a href="/neo/groups/primenumbers/attachments" ><i class="yg-sprite" data-tooltip="Attachments"></i><span>Attachments</span></a></li>
-                    
+
                     <li role="tab" aria-label="Events" id="eventsnav" class="newitem hide"><a  class="disabled" ><i class="yg-sprite" data-tooltip="Events"></i><span>Events</span></a></li>
-                    
+
                     <li role="tab" aria-label="Polls" id="pollsnav" class="newitem hide"><a  class="disabled" ><i class="yg-sprite" data-tooltip="Polls"></i><span>Polls</span></a></li>
-                    
+
                     <li role="tab" aria-label="Links" id="linksnav" class="newitem hide"><a href="/neo/groups/primenumbers/links/all" ><i class="yg-sprite" data-tooltip="Links"></i><span>Links</span></a></li>
-                    
+
                     <li role="tab" aria-label="Database" id="databasenav" class="newitem hide"><a  class="disabled" ><i class="yg-sprite" data-tooltip="Database"></i><span>Database</span></a></li>
-                    
+
                     <li role="tab" aria-label="About" id="infonav" class="newitem hide"><a href="/neo/groups/primenumbers/info" ><i class="yg-sprite" data-tooltip="About"></i><span>About</span></a></li>
-                    
+
             <li id="morenav" role="button" aria-haspopup="true" aria-owns="morenav-items" aria-expanded="false" tabindex="0" aria-label="More">
             <a role="presentation" href="javascript:;" tabindex="-1"><span>More</span><i class="yg-sprite" data-tooltip=""></i></a></li>
-                                
+
         </ul>
         </nav>
-                
+
                     <h2 class="yg-offscreen">Secondary Navigation</h2>
                     <ul class="nav-rt" role="navigation" aria-label="Secondary">
-                    
-            
+
+
                     <li id="helpnav"><a href="http://groupshelp.yahoo.com/neo/groups/help" target="_blank"><i class="yg-sprite tip" data-tooltip="Help" pos="bottom">Help</i></a></li>
         </ul>
-                 
-        </div>        
+
+        </div>
     </div>
     <div id="yg-groupdetail-navbar-empty" class="bg-gray">&nbsp;</div>
 </div>
@@ -480,19 +493,19 @@ padding-right: 310px;
 
 <div id="groupdetail-navbar-moreitems">
     <ul id="morenav-items" class="hide icon-label" role="menu" tabindex="-1" aria-hidden="true" aria-labelledby="morenav" hidefocus="true">
-        
+
         <li id="attachmentnav-more" role="presentation"><a href="/neo/groups/primenumbers/attachments" class="attachmentnav" role="menuitem"><i class="yg-sprite" alt="Attachments"></i><span>Attachments</span></a></li>
-        
+
         <li id="eventsnav-more" role="presentation"><a class="eventsnav disabled" aria-disabled="true" role="menuitem"><i class="yg-sprite" alt="Events"></i><span>Events</span></a></li>
-        
+
         <li id="pollsnav-more" role="presentation"><a class="pollsnav disabled" aria-disabled="true" role="menuitem"><i class="yg-sprite" alt="Polls"></i><span>Polls</span></a></li>
-        
+
         <li id="linksnav-more" role="presentation"><a href="/neo/groups/primenumbers/links/all" class="linksnav" role="menuitem"><i class="yg-sprite" alt="Links"></i><span>Links</span></a></li>
-        
+
         <li id="databasenav-more" role="presentation"><a class="databasenav disabled" aria-disabled="true" role="menuitem"><i class="yg-sprite" alt="Database"></i><span>Database</span></a></li>
-        
+
         <li id="infonav-more" role="presentation"><a href="/neo/groups/primenumbers/info" class="infonav" role="menuitem"><i class="yg-sprite" alt="About"></i><span>About</span></a></li>
-        
+
 
     </ul>
 </div>
@@ -500,7 +513,7 @@ padding-right: 310px;
 
 <div id="yg-mem-menu-overlay" class="hide">
     <div id="yg-mem-menu-overlay-bd" role="menu" tabindex="0" aria-hidden="true" aria-labelledby="memnav" hidefocus="true">
-        
+
         <ul id="yg-member-menu" role=""menu>
             <li><a role="menuitem" class="mem-menu-item" href="/neo/groups/primenumbers/management/membership">Edit Membership</a></li>
         </ul>
@@ -511,15 +524,15 @@ padding-right: 310px;
 
 <div id="yg-profile-list" class="hide">
     <ul id="yg-profile-list-bd" role="menu">
-        
+
     </ul>
 </div>
 
 <div id="yg-msg-view">
     <div class="group-detail-view">
         <div class="yg-grid yg-clear-space topic-read" id="yg-msg-read">
-            
-            
+
+
             <div class="y-col y-col2-1">
                 <div id="yg-action-bar" class="yg-rapid" data-ylk="zone:center;ct:conversations;v:topic-read;itc:0;intl:us;grp:primenumbers;pstcat:Number Theory;cat1:Science;cat2:Mathematics;grpst:RESTRICTED;">
                     <div class="yom-mod yom-actions yg-action-bg yom-actions-small dockme" data-docktarget=".yom-bd-container">
@@ -530,51 +543,51 @@ padding-right: 310px;
                                         <a href="/neo/groups/primenumbers/conversations/topics"><i class="yg-sprite tip" data-tooltip="Back" pos="bottom">Back</i></a>
                                     </div>
                                 </li>
-                                
-                                
+
+
                                 <li class="fright yg-view-mnu yg-button btn-grey yg-left-margin" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">
                                 <a data-action="view" href="javascript:;">View</a><i class="yg-mygrplist-dd-close yg-sprite fright"></i></li>
                                 <li class="fright">
                                     <a href="/neo/groups/primenumbers/conversations/topics/19920" class="fright btn-grey  no-border-radius-left msg-read-prev-next" tabindex="0" role="button"><i class="yg-sprite tip rt-actv" data-tooltip="Next" pos="bottom">Next</i></a><a href="/neo/groups/primenumbers/conversations/topics/19915" class="btn-grey  no-border-radius-right yg-left-margin fright msg-read-prev-next" tabindex="0" role="button"><i class="tip yg-sprite lt-actv" data-tooltip="Previous" pos="bottom">Previous</i></a>
-                                </li>                                
+                                </li>
                             </ul>
                         </div>
                     </div>
-                    
+
 <div class="hide">
     <div id="yg-view-menu-options" class="optionMenu main-menu-content" tabindex="-1" role="menu" aria-hidden="true">
-    
-        
+
+
         <ul class="first" role="menu">
-          
+
           <li class="yg-topic-fold" data-action="view-mode" role="menuitem" data-href="" data-newtab="">Expand Messages</li>
-          
+
           <li class="yg-topic-fwf" data-action="view-fwf" role="menuitem" data-href="" data-newtab="">Fixed Width Font</li>
-          
+
         </ul>
-    
-    
+
+
     <div class="menu-group">
         <div class="group-title">Sort by:</div>
         <ul class="sortby-group asc" role="menu">
-        
+
         <li data-action="sort-date" role="menuitem" class="date" order="">Date</li>
-        
+
         </ul>
     </div>
-    
-    
+
+
     </div>
 </div>
 
 
                 </div>
-                
+
                 <div id="yg-iframe-container" class="yg-grid yg-rapid" data-ylk="zone:center;ct:conversations;v:topic-read;itc:0;intl:us;grp:primenumbers;pstcat:Number Theory;cat1:Science;cat2:Mathematics;grpst:RESTRICTED;">
                     <div id="yg-thread-container" data-topic-prev="/neo/groups/primenumbers/conversations/topics/19915" data-topic-next="/neo/groups/primenumbers/conversations/topics/19920" data-topic-current="/neo/groups/primenumbers/conversations/topics/19899">
                         <div class="msg-container">
                             <div class="yg-splitter"><i class="yg-sprite split-arrow" title="Hide Advertisement"></i></div>
-                            
+
                             <div class="msg-title-bar clrfix">
                                 <div class="msg-title">
                                     <h2 id="yg-msg-subject" class="fs-14 fw-600 sprite" data-subject="Integers then Equals"  data-tooltip="Integers then Equals">Integers then Equals </h2>
@@ -1098,8 +1111,8 @@ class="hover-btn">
 </span></div></div></li>
                             </ul>
                             <div class="msg-response card-margin-bottom hide">Your message has been successfully submitted and would be delivered to recipients shortly.</div>
-                               
-                        </div>                        
+
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1119,7 +1132,7 @@ class="hover-btn">
 </div>
 </div>
             </div>
-             
+
         </div>
     </div>
 </div>
@@ -1134,22 +1147,22 @@ class="hover-btn">
     <input type="hidden" id="redirect-url" value="/neo/groups/%groupName%/info?firstRunExp=1">
 
 
-    
+
 
 <script type="text/javascript">
 
-    //Following exact same config as guided here : http://twiki.corp.yahoo.com/view/AdvProdGroup/UsingSecureDARLA#Using_the_SecureDARLA_client_Jav 
+    //Following exact same config as guided here : http://twiki.corp.yahoo.com/view/AdvProdGroup/UsingSecureDARLA#Using_the_SecureDARLA_client_Jav
     var DARLA_CONFIG = {"useYAC":0,"usePE":0,"servicePath":"https:\/\/groups.yahoo.com\/sdarla\/php\/fc.php","xservicePath":"","beaconPath":"https:\/\/groups.yahoo.com\/sdarla\/php\/b.php","renderPath":"","allowFiF":false,"srenderPath":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2\/html\/r-sf.html","renderFile":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2\/html\/r-sf.html","sfbrenderPath":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2\/html\/r-sf.html","msgPath":"https:\/\/fc.yahoo.com\/unsupported-1946.html","cscPath":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2\/html\/r-csc.html","root":"sdarla","edgeRoot":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2","sedgeRoot":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2","version":"3-19-2","tpbURI":"","hostFile":"https:\/\/s.yimg.com\/rq\/darla\/3-19-2\/js\/g-r-min.js","beaconsDisabled":true,"rotationTimingDisabled":true,"fdb_locale":"What don't you like about this ad?|It's offensive|Something else|Thank you for helping us improve your Yahoo experience|It's not relevant|It's distracting|I don't like this ad|Send|Done|Why do I see ads?|Learn more about your feedback.|Want an ad-free inbox? Upgrade to Yahoo Mail Pro!|Upgrade Now","lang":"en-US"};
     DARLA_CONFIG.debug = false;
     DARLA_CONFIG.positions   = {
-          
-        "LREC": 
+
+        "LREC":
         {
            pos:   "LREC",
            w:      300,
            h:      250,
            clean:   "yom-ad-LREC",
-           
+
            dest:   "tgtLREC"
         },
 
@@ -1159,11 +1172,11 @@ class="hover-btn">
            w:      300,
            h:      600,
            clean:   "yom-ad-MON",
-           
+
            dest:   "tgtMON"
         },
 
-        "LREC2": 
+        "LREC2":
         {
            pos:   "LREC2",
            w:      300,
@@ -1172,7 +1185,7 @@ class="hover-btn">
            dest:   "tgtLREC2"
         },
 
-        "LDRB": 
+        "LDRB":
         {
            pos:   "LDRB",
            w:      728,
@@ -1181,7 +1194,7 @@ class="hover-btn">
            dest:   "tgtLDRB"
         },
 
-        "LDRB2": 
+        "LDRB2":
         {
            pos:   "LDRB2",
            w:      728,
@@ -1202,9 +1215,9 @@ class="hover-btn">
 
     var initialize_darla_config = function(){
         DARLA.config(DARLA_CONFIG);
-        
+
     };
-    
+
     var darla_event = function(position) {
         setTimeout(function () {
             DARLA.event("AdRotateEvent",{
@@ -1213,8 +1226,8 @@ class="hover-btn">
             });
         },1);
     };
-    
-    
+
+
     DARLA_CONFIG.onFailure = function(e, pos){
         if (typeof(pos) == 'object' && pos[0] == 'LREC') {
             darla_event('LREC2');
@@ -1252,7 +1265,7 @@ class="hover-btn">
                             dmRosAdHeight : "300"
                         });
                 }
-                
+
                 if(document.getElementById('yg-dmros-ad-warpper-north')){
                     adConfig.push(
                         {
@@ -1301,19 +1314,19 @@ var trackYGJSError = function(err, url, line){
     qs.push("ua="+ navigator.userAgent);
     src = src + qs.join('&');
     pixel = new Image();
-    pixel.src = src;    
+    pixel.src = src;
     return suppressErrors;
 };
 
     try {
         window.onerror = function(err, url, line) {
             return trackYGJSError(err, url, line);
-        };        
+        };
     } catch(e) { }
- 
 
 
-    var _comscore = _comscore || [];    
+
+    var _comscore = _comscore || [];
     var ygComscoreBeacon = function(spaceId){
         var pageUrl = encodeURIComponent(window.location.toString()),
         scriptUrl = (document.location.protocol == "https:" ? "https://s.yimg.com/lq" : "http://l.yimg.com/d") + "/lib/3pm/cs_0.2.js";
@@ -1324,7 +1337,7 @@ var trackYGJSError = function(err, url, line){
         c7: pageUrl
         });//console.log("comscore::"+spaceId+':::'+"1705083388");
         (function(){
-            var s = document.createElement("script"), 
+            var s = document.createElement("script"),
                 el = document.getElementsByTagName("script")[0],
                 headNode = el.parentNode;
             s.defer = true;
@@ -1333,7 +1346,7 @@ var trackYGJSError = function(err, url, line){
             if(el.src === s.src){
                 headNode.removeChild(el);
             }
-        })();        
+        })();
     };
 
 </script>
@@ -1356,7 +1369,7 @@ function showPasswordWarning() {
 </script>
 
 <div id="yg-debug-container" class="hide tip" data-tooltip="Click on the text to select and then press Ctrl+C (Windows) / Cmd+C (Mac) to copy it." pos="top" ></div>
-                  
+
           </div>
         </div>
       </div>
@@ -1413,7 +1426,7 @@ function showPasswordWarning() {
       GROUPS.YG_YID = "";
       GROUPS.YALIAS = "";
       GROUPS.YG_SIGNED_IN = "";
-      GROUPS.YG_NO_SUBSCRIPTION = "";      
+      GROUPS.YG_NO_SUBSCRIPTION = "";
       GROUPS.YG_GUID = "";
       GROUPS.LANG = "en-US";
       GROUPS.DIRECTION = "ltr";
@@ -1435,17 +1448,17 @@ function showPasswordWarning() {
       GROUPS.TIMEZONE_OFFSET = "-28800";
       GROUPS.LOGIN_URL = "https://login.yahoo.com/config/login;_ylt=AtI46q.M_jXQ2vBSmsjhpB.gwsEF?.src=ygrp&.intl=us&.lang=en-US&.done=%doneUrl%";
       GROUPS.USE_FALLBACK_LOGO = false;
-      GROUPS.TOS_URL = "http://info.yahoo.com/legal/us/yahoo/utos/en-us/";      
+      GROUPS.TOS_URL = "http://info.yahoo.com/legal/us/yahoo/utos/en-us/";
       GROUPS.MAX_FILE_UPLOAD_SIZE = 10485760;
       GROUPS.MAX_ATTACHMENT_UPLOAD_SIZE = 10485760;
-      GROUPS.MAX_PHOTO_UPLOAD_SIZE = 10485760; 
+      GROUPS.MAX_PHOTO_UPLOAD_SIZE = 10485760;
       GROUPS.STR_MONTHS = "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec";
       GROUPS.EMAIL_DOMAIN = "yahoogroups.com"; // this will not be avail in all pages - check stat call in membership model
       GROUPS.BROWSER_UNSUPPORTED = "0";
       GROUPS.LOADER_ICON_URL = "https://s.yimg.com/dh/ap/groups/loader.gif";
       GROUPS.LOADER_ICON_URL16BY16 = "https://s.yimg.com/dh/ap/groups/loading-16x16.gif";
       GROUPS.DEFAULT_GROUPS_ICON = "https://s.yimg.com/dh/ap/groups/groups-icon.png";
-      GROUPS.HTTP_PROTOCOL = "https://";      
+      GROUPS.HTTP_PROTOCOL = "https://";
       GROUPS.UNIFIED_SEARCH_ENABLED = true;
       GROUPS.ASSET_VERSION = "0.9.17";
       GROUPS.HOST_LEVEL = "2";
@@ -1469,12 +1482,12 @@ function showPasswordWarning() {
                             trackYGJSError(err.message, err.fileName, err.lineNumber);
                         }catch(e){}
                     }
-                }; 
+                };
             }
             use.apply(this, arr);
       };
             GROUPS.PAGE = new Y.Groups.Page({"mbAdsEnabled":0});
-      try {          
+      try {
         GROUPS.INSTR_CONFIG = {"rapidEnabled":"true","bucket":"NEO","project_id":1000714451879,"hostname":"y.analytics.yahoo.com","mtest":"GB0","spaceId":1705083388,"debug":"false","pct":"conversations","vt":"topics","login":0,"grpcat":"Number Theory","pcat1":"Science","pcat2":"Mathematics","pgrp":"primenumbers","pgrpst":"RESTRICTED"};
         GROUPS.INSTR = ( typeof GROUPS.INSTR == "undefined") ? new Y.Groups.Instrumentation(GROUPS.INSTR_CONFIG) : GROUPS.INSTR;
       } catch(e) {
@@ -1482,7 +1495,7 @@ function showPasswordWarning() {
       }
       // add  take a tour condition
       GROUPS.TOUR_IMAGES = {"1":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_1.jpg","2":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_2.jpg","3":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_3.jpg","4":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_4.jpg","5":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_5.jpg","6":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_6.jpg","7":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_7.jpg","8":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_8.jpg","9":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_9.jpg","10":"https:\/\/s.yimg.com\/dh\/ap\/groups\/prod_tour_10.jpg"};
-      
+
       Y.on('load', function(){
           Y.Get.js("https://s1.yimg.com/zz/combo?kx/yucs/uh3s/uh/414/js/uh-min.js&kx/yucs/uh2/common/145/js/jsonp-super-cached-min.js&kx/yucs/uh3s/uh/379/js/escregex-min.js&kx/yucs/uh3s/uh/376/js/persistence-min.js&kx/yucs/uh3s/uh/401/js/menu_group_plugin-min.js&kx/yucs/uh3s/uh/430/js/menu-plugin-min.js&kx/yucs/uh3s/uh/463/js/menu_handler_v2-min.js&kx/yucs/uh3s/uh/376/js/gallery-jsonp-min.js&kx/yucs/uh3s/uh/408/js/logo_debug-min.js&kx/yucs/uh3/uh/js/958/localeDateFormat-min.js&kx/yucs/uh3s/uh/409/js/timestamp_library-min.js&kx/yucs/uh3s/uh/376/js/usermenu_v2-min.js&kx/yucs/uh3/signout-link/10/js/signout-min.js&kx/yucs/uhc/rapid/50/js/uh_rapid-min.js&kx/eol/1/js/meta-min.js&kx/yucs/uh3/disclaimer/388/js/disclaimer_seed-min.js&kx/yucs/uh3s/top-bar/137/js/top_bar_v2-min.js&kx/yucs/uh3s/top-bar/139/js/home_menu-min.js&kx/yucs/uh3s/search/379/js/search-min.js&pj/inproduct/v26s/js/yui/yhelp-bootstrap.js&kx/yucs/uh3s/help/81/js/help_menu_v4-min.js&/rq/darla/3-13-0/js/g-r-min.js", function(err) {
             if (!err) {
@@ -1499,14 +1512,14 @@ function showPasswordWarning() {
     });
       }
       Y.Get.js("https://s.yimg.com/zz/combo?os/mit/media/p/content/content-aft-min-b090b26.js&os/mit/media/p/content/content-aft-report-min-cc62833.js", function(err) {
-        if (!err) {        
+        if (!err) {
             var yaftConfig = {
                 modules: GROUPS.INSTR.getTrackedMods(),
                 maxWaitTime: 5000,
                 canShowVisualReport: true,
                 useNormalizeCoverage: true
             };
-            YAFT.init(yaftConfig, function(data,error) { //callback            
+            YAFT.init(yaftConfig, function(data,error) { //callback
                 if (!error) {
                     window.LH.record('AFT', {name: 'AFT', type: 'mark', startTime: Math.round(data.aft), duration: 0});
                     window.LH.record('VIC', {name: 'VIC', type: 'mark', startTime: Math.round(data.visuallyComplete), duration: 0});
@@ -1516,7 +1529,7 @@ function showPasswordWarning() {
       });
   }      }, window);
 
-      
+
     });
   </script>
 </body>
