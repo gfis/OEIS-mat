@@ -1,7 +1,8 @@
 #!perl
 
-# Repair indexes in b-files
+# Repair indices in b-files
 # @(#) $Id$
+# 2019-10-27: print usage if no args
 # 2019-06-04: syntax errors
 # 2019-01-24, Georg Fischer
 #
@@ -24,6 +25,10 @@ my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 200
 #                                             0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 
+if (scalar(@ARGV) == 0) {
+    print `grep -E "^#:#" $0 | cut -b3-`;
+    exit;
+}
 my $basedir   = "../common";
 my $names     = "$basedir/names";     
 my $stripped  = "$basedir/stripped";     

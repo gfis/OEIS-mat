@@ -44,10 +44,14 @@ delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #==============================
 bulk_lists:
-	cat asdata_check.txt asdir_check.txt asname_check.txt \
+	cat allocb_check.txt \
+		asdata_check.txt \
+		asdir_check.txt  \
+		asname_check.txt \
 		bad_check.txt    \
 		bfdata_check.txt \
 		bfdir_check.txt  \
+		bfsize_check.txt \
 		offset_check.txt \
 		syntha_check.txt \
 		synthb_check.txt \
@@ -59,10 +63,13 @@ bulk_lists:
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulka.txt
 	wc -l bulka.txt
-	cat asdata_check.txt                 asname_check.txt \
+	cat allocb_check.txt \
+		asdata_check.txt \
+		asname_check.txt \
 		bad_check.txt    \
 		bfdata_check.txt \
 		bfdir_check.txt  \
+		bfsize_check.txt \
 		offset_check.txt \
 		syntha_check.txt \
 		synthb_check.txt \
@@ -84,8 +91,10 @@ history: # Fetch new or recently changed JSONs
 	mkdir   bulk/ajson
 	cp -pv  bulka.txt bulk/ajson
 	cp -pv  bulkb.txt bulk/bfile
-	make    history2  DIR=bulk KEYWORD=new     MAX=$(NMAX) 
-	make    history2  DIR=bulk KEYWORD=changed MAX=$(CMAX) 
+	make    history2  DIR=bulk KEYWORD=new       MAX=$(NMAX) 
+	make    history2  DIR=bulk KEYWORD=changed   MAX=$(CMAX) 
+	make    history2  DIR=bulk KEYWORD=recycled  MAX=$(NMAX) 
+	make    history2  DIR=bulk KEYWORD=allocated MAX=$(CMAX) 
 	make    history3  DIR=bulk
 	make    bulk_type DIR=bulk TYPE=bfile LIST=bulkb.txt
 	make    history4  DIR=bulk
@@ -250,6 +259,7 @@ bfinfo_load:
 	$(DBAT) -f bfinfo.create.sql
 	cat bfinfo.txt \
 	| $(DBAT) -m csv -s "\t" -r bfinfo
+	$(DBAT) "DELETE FROM bfinfo WHERE LENGTH(aseqno) = 1"
 	$(DBAT) -4 bfinfo
 	$(DBAT) -n bfinfo
 bfinfo_update:
@@ -268,7 +278,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
-joeis_list: joeis_pull joeis_load joeis_name joeis_count
+joeis_list: joeis_pull joeis_load joeis_names joeis_count
 joeis_pull:
 	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
@@ -284,7 +294,7 @@ joeis_names:
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
 	ORDER BY 1" \
-	| perl -pe "s{\'\'}{\'}g" > jnames.txt
+	| perl -pe "s{\'\'}{\'}g" > $@.txt
 joeis_count:
 	$(DBAT) -x "SELECT a/b FROM ( \
 	(SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 , \

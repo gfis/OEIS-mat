@@ -2,6 +2,7 @@
 
 # OEIS-mat/linrec - linear recurrences and index
 # @(#) $Id$
+# 2019-11-05: regenerate wiki index with 'make linrec'
 # 2019-03-29: revisited for joeis
 # 2019-02-19: HTMLIZE
 # 2019-01-22: unpacking from ../dumps
@@ -29,6 +30,96 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
+	# the wiki index page for lin.rec.s is regenerated with 'make linrec'
+#====================================
+deldelta: dde1 dde2 dde_joeis dde_cf dde_gf
+dde1: # raw extract of word "DELTA"
+	grep DELTA $(COMMON)/cat25.txt \
+	| perl deldelta.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+dde2: # separate finite and continued fractions
+	grep -v "#" dde1.tmp > dde2.tmp
+	grep    "#" dde1.tmp > dde_bad.tmp
+	grep -E  "\.\.\." dde2.tmp | uniq > dde2_cont.tmp
+	grep -vE "\.\.\." dde2.tmp | uniq > dde2_fini.tmp
+	grep "seq" dde2_fini.tmp || :
+	wc -l dde*.tmp
+dde_joeis: # join with any JOEIS superclass
+	make -f $(COMMON)/makefile seq2 LIST=dde2_fini.tmp
+	$(DBAT) "SELECT s.aseqno, j.superclass, s.info \
+	FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
+	ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+dde_cf: # continued fraction
+	perl delta_pfract.pl dde_joeis.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+dde_gf: # generating function
+	$(RAMATH) -f dde_cf.tmp \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#====================================
+ralreval:
+	java -cp ../../ramath/dist/ramath.jar org.teherba.ramath.sequence.LinearRecurrence \
+	-eval -b ../common/bfile -f ../common/stripped -m 16 \
+	| tee $@.txt
+raeval1:
+	grep -v "#" ralreval.txt > raeval1.tmp
+	wc -l lreval1.tmp
+raeval2:
+	make -f $(COMMON)/makefile seq2 LIST=raeval1.tmp
+raeval3:
+	$(DBAT) -x "SELECT aseqno, info FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1 " > $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#----
+mma_rectab: mmart1 mmart2 mmart3
+mmart1:
+	grep RecurrenceTable $(COMMON)/cat25.txt \
+	| cut -b4- \
+	| sed -e "s/ /\t/" \
+	| grep -v "A015464	Join" \
+	| grep -v "A051047" \
+	| grep -v "A101368" \
+	| grep -v "A208202" \
+	| grep -v "A269962" \
+	| grep -v "A269964" \
+	| grep -v "A269965" \
+	| grep -v "A277088" \
+	| grep -v "A277089" \
+	| grep -v       "A108242" \
+	| grep -v       "A110105" \
+	| grep -v       "A123178" \
+	| grep -v       "A188404" \
+	| grep -v       "A234618" \
+	>        $@.txt
+	echo "A108242 much too long!"
+	head -n4 $@.txt
+	wc -l    $@.txt
+	cut -b1-7 $@.txt | sort | uniq -c | grep -v "   1 " || :
+mmart2:
+	make -f $(COMMON)/makefile seq2 LIST=mmart1.txt
+mmart3:
+	$(DBAT) -x "SELECT aseqno, info FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+plouffe: plou1 plou2
+plou1:
+	grep -E "a\(n\)" Plouffe.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+plou2:
 #--------
 njoeis: # LIST
 	make -f $(COMMON)/makefile seq 
@@ -74,21 +165,22 @@ fract39:
 	>       $@.tmp || :
 	head -64 $@.tmp
 	wc -l   $@.tmp
-catgf1:
-	$(RAMATH) -f   catgf0.tmp > $@.tmp
-catgf2:
-	grep -E "orgf" catgf1.tmp \
+#-----
+catgf1r:
+	$(RAMATH) -f   catgf0r.tmp > $@.tmp
+catgf2r:
+	grep -E "orgf" catgf1r.tmp \
 	| grep -vP '\d{16}' \
 	>       $@.txt
 	tail -4 $@.txt
 	wc -l   $@.txt
-catgf3:
-	grep -vE "^#" catgf0.tmp | sed -e "s/fract/x/" \
+catgf3r:
+	grep -vE "^#" catgf0r.tmp | sed -e "s/fract/x/" \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
-catgf4:
-	cat catgf0.tmp | sed -e "s/fract/x/" | grep -E "sqrt" \
+catgf4r:
+	cat catgf0r.tmp | sed -e "s/fract/x/" | grep -E "sqrt" \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
@@ -426,6 +518,7 @@ lriord_check: # Compare orders in lin. rec. index
 	$(DBAT) "SELECT 'A' || seqno AS aseqno, lorder, sigorder, compsig, signature \
 	FROM lrindx \
 	WHERE lorder <> sigorder \
+	AND   compsig NOT LIKE '%888888' \
 	ORDER by 1" \
 	| sed -e "s/\r//" \
 	>       $@.txt
@@ -454,7 +547,11 @@ lrperiod:
 	"Index entries for periodic sequences with large period" \
 	> $@.tmp
 #----------------------
-lrindx: lrindx0 lrindx1 lrindx2 lrindx3 lrindx4 lrindx5
+lrindx: lrindx_a lrindx_b lrindx_c
+lrindx_a: lrindx0 lrindx1 lrindx2 
+lrindx_b: lrlink_insert
+lrindx_c: lrindx3 lrindx4 lrindx5
+#
 lrindx0:
 	rm -f lrindx.raw
 	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
@@ -462,11 +559,13 @@ lrindx1:
 	# sed -e "s/:signature */:/" -e "s/=====/====/g" lrindx.raw \
 	# | grep -vE "^ *$$" \
 	cat lrindx.raw \
+	| sed -e "s/<\/?strong>//g" \
 	> lrindx.wiki
 	echo >> lrindx.wiki # append linefeed
 	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
 	perl extract_linrec.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki \
-			> lrindx.tmp
+	| sed -e "s/<\/?strong>//g" \
+	> lrindx.tmp
 lrindx2:
 	perl extract_linrec.pl -d $(D) -m lrindx \
 			>  lrindx.create.sql
@@ -514,21 +613,20 @@ linrec_eval:
 	>     all_linrec.tmp
 	wc -l all_linrec.tmp
 #-------------
-lr_checks: lrlink_check lrindex_check lriord_check lrlord_check
+lr_checks: lrlink_check lrindex_check lriord_check lrlord_check lrstrip_check
 # lrsign_check 
-#--	
-#--	
 lrindex_check: # Lin. rec. in index, but no link -&gt; delete index entry
-	$(DBAT) "SELECT a.seqno, a.lorder, a.signature as Index_Signature \
+	$(DBAT) "SELECT 'A' || a.seqno AS A_number, a.lorder, a.signature as Index_Signature \
 	FROM lrindx a \
 	WHERE a.seqno NOT IN (SELECT seqno FROM lrlink) \
 	  AND (SELECT s.keyword FROM asinfo s WHERE s.aseqno = 'A' || a.seqno) NOT LIKE '%dead%' \
 	ORDER by 1" \
-	>     $@.txt	
-	wc -l $@.txt	
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
 #--	
 lrsign_check: # Differences in lin. rec. signatures
-	$(DBAT) "SELECT 'A' || a.seqno, a.lorder \
+	$(DBAT) "SELECT 'A' || a.seqno AS A_number, a.lorder \
 	    , b.mode \
 		, a.signature AS Index_Signature \
 		, b.signature AS Link_Signature \
@@ -536,17 +634,24 @@ lrsign_check: # Differences in lin. rec. signatures
 	WHERE a.seqno     =  b.seqno \
 	  AND a.compsig   <> b.compsig \
 	ORDER by 1" \
-	>     $@.txt	
-	wc -l $@.txt	
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt	
 #--	
 lrstrip_check: # Whether there are not sufficiently many initial terms in file stripped
-	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, i.signature \
-	FROM lrindx i, asinfo a \
+	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, \
+		b.bfimax - b.bfimin + 1 - a.termno as bf_diff, i.signature \
+	FROM lrindx i, asinfo a, bfinfo b, asname n \
 	WHERE 'A' || i.seqno = a.aseqno \
-	  AND i.sigorder    >= a.termno \
+	  AND a.aseqno       = b.aseqno \
+	  AND b.aseqno       = n.aseqno \
+	  AND i.sigorder     > b.bfimax - b.bfimin + 1 \
+	  AND n.name NOT LIKE '%Coxeter%' \
+	  AND i.signature NOT LIKE CAST(i.sigorder AS INT) || ',%' \
 	ORDER by 1" \
-	>     $@.txt	
-	wc -l $@.txt	
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt	
 #--
 lrmorest_check: # Whether there are more initial terms in file stripped
 	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, i.signature \
@@ -554,8 +659,9 @@ lrmorest_check: # Whether there are more initial terms in file stripped
 	WHERE 'A' || i.seqno  = a.aseqno \
 	  AND i.sigorder + 1 <= a.termno \
 	ORDER by 1" \
-	>     $@.txt	
-	wc -l $@.txt	
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt	
 dummy2:
 	echo " \
 	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
@@ -645,4 +751,3 @@ oldgf3:
 	>        gf3.tmp
 	head -n4 gf3.tmp
 	wc -l    gf3.tmp
-	

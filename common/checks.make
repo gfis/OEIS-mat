@@ -12,6 +12,7 @@ COMMON=$(GITS)/OEIS-mat/common
 JOEIS=../$(GITS)/gitups/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
+PULL=../pull
 D=0
 RALEN=350
 LIST=computed.log
@@ -25,11 +26,14 @@ help:
 # general targets
 
 checks: \
+	allocb_check \
 	asdata_check \
 	asdir_check  \
 	asname_check \
 	bad_check    \
+	bfdata_check \
 	bfdir_check  \
+	bfsize_check \
 	brol_check   \
 	cons_check   \
 	denom_check  \
@@ -86,6 +90,19 @@ deploy_checks:
 #================
 # check targets alphabetically from here
 
+allocb_check: # Sequence is allocated and has a b-file
+	$(DBAT) "SELECT d.aseqno \
+		, substr(b.created, 1, 16) as bfile_time \
+		, substr(d.access , 1, 16) AS seq_time \
+		, CASE WHEN d.aseqno IN (SELECT aseqno FROM draft  ) THEN 'yes' ELSE 'no' END AS draft \
+		, n.name \
+		FROM  asinfo d, bfdir b, asname n \
+		WHERE d.aseqno = b.aseqno \
+		  AND b.aseqno = n.aseqno \
+		  AND d.keyword LIKE '%allocated%' \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
 asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
@@ -117,24 +134,26 @@ asname_check: # Name in sequence and entry in <em>names</em> file differ
 	perl uncode.pl asname.txt > y.tmp
 	echo -e "A-Number\tName" > $@.txt
 	sort x.tmp y.tmp | uniq -c | grep -vE "^  *2 " \
-	| grep -v "allocated for " \
 	| grep -E "[a-zB-Z]" \
 	| cut -b 9- \
 	| grep -vf $(PULL)/draft_load.tmp \
 	>> $@.txt || :
 	wc -l $@.txt
+#	| grep -v "allocated for " \
+#
 #----
 bad_check: # Check b-files for bad format
 	echo -e "A-Number\tbfimin\tbfimax\toffset2\tterms\ttail\tfilesize\tmaxlen\tMessage" > $@.txt
 	grep -E "bad" $(COMMON)/bfinfo.txt \
 	>>    $@.txt || :
 	wc -l $@.txt
-##----
+#----
 bfdata_check: # Compare <em>stripped</em> file with terms extracted from local b-files
 	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
 	> x.tmp
 	echo -e "A-Number\tTerms" > $@.txt
-	sort x.tmp bfdata.txt | uniq -c | grep -vE "^ +2 +" \
+	cut -f1,3 -d"	" bfdata.txt > y.tmp
+	sort x.tmp y.tmp | uniq -c | grep -vE "^ +2 +" \
 	| grep -E "," \
 	| cut -b 9- \
 	| perl comp_terms.pl \
@@ -142,7 +161,15 @@ bfdata_check: # Compare <em>stripped</em> file with terms extracted from local b
 	>> $@.txt || :
 	wc -l $@.txt
 #----
-bfdir_check: # Compare <em>bfilelist</em> with local b-file sizes (without drafts)
+bfdir_check: # Files in <em>bfilelist</em> and not in local dicrectory
+	$(DBAT) "SELECT d.aseqno, d.created, d.filesize \
+		FROM  bfdir d \
+		WHERE d.aseqno NOT IN (SELECT aseqno FROM bfinfo) \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#----
+bfsize_check: # Compare <em>bfilelist</em> with local b-file sizes (without drafts)
 	$(DBAT) "SELECT d.aseqno \
 		, substr(d.created, 1, 16) AS oeis_time, substr(b.access, 1, 16) as local_time \
 		, d.filesize AS oeis_size,  b.filesize AS local_size, b.message \
@@ -275,6 +302,24 @@ noef2:
 	rm -f $@.2.tmp
 	cat  $@.1.tmp | xargs -l -i{} tail -vc32 bfile/{}.txt >> $@.2.tmp
 	wc -l $@.*
+#--------------------------------
+nobase: # search for "IntegerDigits|sumdigits"
+	grep -E "IntegerDigits|sumdigits" cat25.txt | cut -b 4-10 | sort | uniq \
+	>       $@.txt
+	head -4 $@.txt
+	wc -l   $@.txt
+nobase_check: # Sequences without keyword "base" mentioning "IntegerDigits|sumdigits"
+	cat nobase.txt > x.tmp
+	make seq LIST=x.tmp
+	$(DBAT) "SELECT s.aseqno, n.name, i.keyword FROM seq s, asname n, asinfo i \
+	WHERE s.aseqno = n.aseqno \
+	  AND n.aseqno = i.aseqno \
+	  AND NOT i.keyword LIKE '%base%' \
+	  AND NOT i.keyword LIKE '%word%' \
+	  AND NOT n.name    LIKE '%cellular automaton%' \
+	ORDER BY 1" \
+	>       $@.txt
+	wc -l   $@.txt
 #--------------------------------
 offset_check: # Sequence offset differs from first index in b-file and no draft
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \

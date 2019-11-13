@@ -76,9 +76,9 @@ for my $key (sort(keys(%codes))) { # build the inverse mapping
     $sedoc{$codes{$key}} = $key;
 } # foreach $key
 if ($debug >= 2) {
-	foreach my $key (sort(keys(%sedoc))) {
-    	print "sedoc{$key} = \"$sedoc{$key}\"\n";
-	} # foreach
+    foreach my $key (sort(keys(%sedoc))) {
+        print "sedoc{$key} = \"$sedoc{$key}\"\n";
+    } # foreach
 }
 #----
 $/ = ""; # paragraph mode, separated by one or more empty lines
@@ -117,9 +117,9 @@ if (0) {
             if ($debug >= 1) {
                 print "================================ $aseqno ====\n";
             } else {
-            	if ($seqno % 10000 == 0) {
-            		print STDERR "<= $aseqno\n"
-            	}
+                if ($seqno % 10000 == 0) {
+                    print STDERR "<= $aseqno\n"
+                }
             }
             %texts = ();
             my $line;
@@ -200,18 +200,18 @@ if (0) {
                 my $tkey = join("", sort(keys(%texts)));
                 my $jkey = join("", sort(keys(%jsons)));
                 if ($debug >= 2) {
-                		print "\.. $aseqno \"$tkey\"\n"
+                        print "\.. $aseqno \"$tkey\"\n"
                             . "\.. $aseqno \"$jkey\"\n";
                 }
-	            $texts{"U"} =~ s{\n}{}g;
-	            $jsons{"U"} =~ s{\n}{}g;
-	            $texts{"K"} =~ s{\,?(changed|new)}{}g;
-	            $jsons{"K"} =~ s{\,?(changed|new)}{}g;
+                $texts{"U"} =~ s{\n}{}g;
+                $jsons{"U"} =~ s{\n}{}g;
+                $texts{"K"} =~ s{\,?(changed|new)}{}g;
+                $jsons{"K"} =~ s{\,?(changed|new)}{}g;
                 foreach my $key (sort(keys(%texts))) {
                     my $valtext = $texts{$key};
                     if (0) {
                     } elsif ($valtext =~ m{\A\s*\Z}) {
-                    	# empty values do not need to be present in JSON
+                        # empty values do not need to be present in JSON
                     } elsif (defined($jsons{$key})) {
                         my $valjson = $jsons{$key};
                         if ($valtext ne $valjson) {
@@ -227,17 +227,17 @@ if (0) {
                             }
                         }
                     } elsif ($key eq "I" ) {
-                    	if ($needi == 1) { 
-	                        $differs = ord($key) * 1000;
-                    	} else {
-                    		# ignore  missing "id" tag in JSON
-                    	}
+                        if ($needi == 1) { 
+                            $differs = ord($key) * 1000;
+                        } else {
+                            # ignore  missing "id" tag in JSON
+                        }
                     } else {
                         $differs = ord($key) * 1000;
                         if ($debug >= 1) {
-	                        print "\.. $aseqno \"$tkey\"\n"
-    	                        . "\.. $aseqno \"$jkey\"\n";
-        				}
+                            print "\.. $aseqno \"$tkey\"\n"
+                                . "\.. $aseqno \"$jkey\"\n";
+                        }
                     }
                 } # foreach $key
                 if ($differs == 0) {

@@ -2,11 +2,12 @@
 
 # Get the OEIS history for keywords "new", "changed" or "recycled"
 # @(#) $Id$
+# 2019-10-27: recycled and allocated again
 # 2019-01-25: rewritten for -t json
 # 2019-01-17: Georg Fischer, copied from ../broken_link/brol_process.pl
 #
 #:# Usage:
-#:#   perl history.pl [-k (new|changed|recycled)] [-n maxnum] [-w sleep] [-t (text|json)] [outputdir]
+#:#   perl history.pl [-k (new|changed|recycled|allocated)] [-n maxnum] [-w sleep] [-t (text|json)] [outputdir]
 #:#       -k    for keyword kw (default "changed")
 #:#       -n    fetch a maximum of n sequences 
 #:#       -w    wait time in seconds (default 16)
