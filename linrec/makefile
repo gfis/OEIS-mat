@@ -32,8 +32,10 @@ all:
 	grep -E "^[a-z]" makefile
 	# the wiki index page for lin.rec.s is regenerated with 'make linrec'
 #====================================
+# Deléham's DELTA operator
+#
 deldelta: dde1 dde2 dde_joeis dde_cf dde_gf
-dde1: # raw extract of word "DELTA"
+dde1: # raw extract of word "DELTA" 
 	grep DELTA $(COMMON)/cat25.txt \
 	| perl deldelta.pl \
 	>        $@.tmp
@@ -341,7 +343,13 @@ gf_check:
 	wc -l    $@.txt
 #----
 expof:
-	grep -E "Expansion of " $(COMMON)/jnames.txt | grep -v "e.g.f." | grep null \
+	grep -E "Expansion of " $(COMMON)/joeis_names.txt | grep -v "e.g.f." | grep null \
+	> 		 $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+#----
+egf:
+	grep -E "Expansion of " $(COMMON)/joeis_names.txt | grep -i "e.g.f."  \
 	> 		 $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt

@@ -9,6 +9,7 @@ DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 COMMON= $(GITS)/OEIS-mat/common
 D=0
 N=22771
+SLEEP=16
 #----
 
 all: extract wget
@@ -79,20 +80,61 @@ yal2:
 		= '2019-11-1' \
 		AND status = '?'" 
 #----
-yal3: yahoo_check html_checks
+yal3: yahoo_check link_checks
 yahoo_check: # Work list for vanishing Yahoo group links
-	$(DBAT) "SELECT s.aseqno, s.status, substr(i.access, 1, 10) AS 'last_change'\
+	$(DBAT) -16000 "SELECT s.aseqno AS 'A_number', s.status, substr(i.access, 1, 10) AS 'last_change'\
 		, s.info AS 'yahoo_link' \
 	FROM      seq3 s \
 	LEFT JOIN asinfo i ON s.aseqno = i.aseqno \
 	ORDER BY 1" \
+	| perl $(COMMON)/uniq1.pl \
 	> yahoo_check.txt
-html_checks:
-	perl $(COMMON)/html_checks.pl -init $(COMMON)/eval_checks.lst >  check_index.html
+link_checks:
+	perl link_checks.pl -init $(COMMON)/eval_checks.lst >  check_index.html
 	ls -1 *_check.txt | sed -e "s/.txt//" \
-	| xargs -l -i{} make -s html_check1 FILE={}
-	perl $(COMMON)/html_checks.pl -term $(COMMON)/eval_checks.lst >> check_index.html	
-html_check1:
-	perl $(COMMON)/html_checks.pl -m makefile $(FILE).txt > $(FILE).htm
-	perl mod_links.pl $(FILE).htm # write .html
+	| xargs -l -i{} make -s link_check1 FILE={}
+	perl link_checks.pl -term $(COMMON)/eval_checks.lst >> check_index.html	
+	mv -v *.html text
+link_check1:
+	perl link_checks.pl -m makefile -var $(FILE).txt -s geth.txt  >  $(FILE).html
+	# mod_links.pl no longer in use
+#----
+lists: list1 list2
+list1:
+list2:
+#------------------------
+# get current %H lines
+#
+geth: geth1 geth2 geth3
+geth0: # create temp directories
+	# mkdir temp
+	# mkdir temp/text
+geth1: # prepare the fetch commands for wget
+	cut -b1-7 yal1.tmp | sort | uniq \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	perl $(COMMON)/aseq_wget.pl -t text $@.tmp > geth2.tmp
+	head -n4 geth2.tmp
+	wc -l    geth2.tmp
+geth2: # fetch with wget
+	rm -f    geth.txt
+	touch    geth.txt
+	head -n1024 $@.tmp \
+	| xargs -l -i{} make geth_text1 PARM={}
+geth_text1: # xargs subtarget
+	wget  -O $@.tmp      "$(PARM)" 
+	cat      $@.tmp >> geth.txt
+	sleep  $(SLEEP)
+get_rest: # manunal additionals
+	perl $(COMMON)/aseq_wget.pl -t text rest.man > geth2.tmp
+	cat geth2.tmp \
+	| xargs -l -i{} make geth_text1 PARM={}
+geth3: # compare whether we got all
+	grep -iE "%N" geth.txt | cut -b4-11 | sort | uniq > $@.2.tmp
+	sort geth1.tmp | uniq          > $@.1.tmp
+	diff -wy --suppress-common-lines $@.1.tmp           $@.2.tmp
+geth4: # get relevant links; parameter ASEQNO=
+	grep -iE "%H $(ASEQNO)" geth.txt | cut -b12- | grep -iE "yahoo|\/a[0-9]+\.txt"
+	
 	

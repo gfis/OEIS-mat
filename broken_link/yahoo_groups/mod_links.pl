@@ -15,7 +15,7 @@ my $version = "V1.1";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-my $url_path = "http://teherba.org/OEIS-mat/broken_link/yahoo_groups/text";
+my $thread_path = "http://teherba.org/OEIS-mat/broken_link/yahoo_groups/text";
 my $debug  = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
@@ -40,11 +40,12 @@ while (<SRC>) {
     } elsif ($line =~ m{\A\<tr\>\<td}) { # table line
         $line =~ m{href\=\"(https?\:\/\/group[^\"]*)\"};
         my $yahoo = $1 || "";
+        $yahoo =~ s{\?var\=\d+\Z}{};
         my $messid = "";
         if ($yahoo =~ m{\/(\d+)\Z}) {
         	$messid = $1;
         }
-        my $thread_link = "<a href=\"$url_path/yg.$messid.txt\" target=\"_new\">$messid</a>";
+        my $thread_link = "<a href=\"$thread_path/yg.$messid.txt\" target=\"_new\">$messid</a>";
         $line =~ s{\<\/tr\>}{<td class\=\"bor\">$thread_link</td></tr>};
     } # table line
     print TAR "$line\n";
@@ -60,3 +61,7 @@ __DATA__
 <tr><td class="bor"><a href="https://oeis.org/A000978" target="_blank">A000978</a></td><td class="bor">njas</td><td class="bor">2019-11-10</td><td class="bor">Yahoo PrimeForm community: <a href="http://groups.yahoo.com/group/primeform/messages">PrimeForm</a> [There is insufficient information to determine which posting to the forum was intended. Probably not worth pursuing. - ~~~~]</td></tr>
 <tr><td class="bor"><a href="https://oeis.org/A001108" target="_blank">A001108</a></td><td class="bor">edits</td><td class="bor">2019-11-10</td><td class="bor">K. Ramsey, <a href="http://groups.yahoo.com/group/Triangular_and_Fibonacci_Numbers/message/62">Generalized Proof re Square Triangular Numbers</a></td></tr>
 <tr><td class="bor"><a href="https://oeis.org/A001109" target="_blank">A001109</a></td><td class="bor">edits</td><td class="bor">2019-11-10</td><td class="bor">K. J. Ramsey, <a href="http://groups.yahoo.com/group/Triangular_and_Fibonacci_Numbers/message/23">Relation of Mersenne Primes To Square Triangular Numbers</a> [edited by K. J. Ramsey, May 14 2011]</td></tr>
+
+
+Mark Underwood, Jens Kruse Andersen, 2^a*3^b one away from a prime, 
+digest of 3 messages in primenumbers Yahoo group, Nov 19, 2009.

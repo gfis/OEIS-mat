@@ -10,10 +10,16 @@
 use strict;
 use integer;
 use warnings;
-my $version = "V1.1";
+use POSIX;
+my $version = "V1.4";
+
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
+my $timestamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+my @parts = split(/\s+/, POSIX::asctime($sec, $min, $hour, $mday, $mon, $year, $wday, $yday));
+#  "Fri Jun  2 18:22:13 2000\n\0"
+#   0   1    2 3        4
+my $sigtime = sprintf("%s %02d %04d %s", $parts[1], $parts[2], $parts[4], substr($parts[3], 0, 5));
 
 my $debug  = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-]})) {
@@ -58,6 +64,14 @@ while (<SRC>) {
             print TAR "$buffer\n\n";
         }
 
+# <li class="group-icon-row fw-300"><a id="yg-group-summary" class="fc-white" href="/neo/groups/primenumbers/info">Prime numbers and primality testing</a></li>
+    } elsif (($state eq "init")  and ($line =~ m{\A\s*\<li})) {
+        if ($line =~ m{ id\=\"yg-group-summary\"\s+class=\"[^\"]*\"\s+href=\"[^\"]*\"\>([^\<]*)\<}) {
+            $buffer = $1;
+            &revert_entities();
+            print TAR "$buffer\nYahoo Group\n\n";
+        }
+
 # class="cur-msg hide">
 # Message 1 of 7
     } elsif (($state eq "msid1") and ($line =~ m{\Aclass\=\"cur\-msg hide})) {
@@ -67,8 +81,7 @@ while (<SRC>) {
         $state = "date";
 
 # class="cur-msg-dt tip" pos="bottom" data-tooltip="Message sent time">Mar 14, 2009</span>
-    } elsif (($state eq "date")  and ($line =~ m{\Aclass\=\"cur\-msg\-dt tip})) {
-        $line =~ m{\>([^\<]+)\<};
+    } elsif (($state =~ m{date|msid1}) and ($line =~ m{data\-tooltip\=\"Message sent time\"\>([^\<]*)\<})) {
         $date  = $1;
         print TAR <<"GFis";
 ===============================================
@@ -81,25 +94,36 @@ GFis
         $state = "cont1";
 
 # class="msg-content undoreset"><div
+# id="ygrps-yiv-1074784909"><html><div
+# style="color:#000;background-color:#fff;font-family:HelveticaNeue, Helvetica Neue, Helvetica, Arial,
+#   Lucida Grande, sans-serif;font-size:24pt;"><div>This is the concatenation of the first right-truncatable primes of lengths 1 to 8 (maximum) to
+
+
+# class="msg-content undoreset"><div
 # id="ygrps-yiv-1936759143">Hello all:<br/>
 # <br/>
-    } elsif (($state eq "cont1")  and ($line =~ m{\Aclass=\"msg\-content undoreset})) {
+} elsif (($state =~ m{cont1|msid1})  and ($line =~ m{\A\s*class=\"msg\-content\s+undoreset\"\>(.*)})) {
+        if ($state eq "msid1") {
+        print TAR <<"GFis";
+===============================================
+$author     $msg_nof  $date
+-----------------------------------------------
+GFis
+        print <<"GFis";
+$msg_nof\t$date\t$author
+GFis
+        }
+        $buffer = "$1 "; # <div
         $state = "cont2";
-    } elsif (($state eq "cont2")  and ($line =~ m{\Aid\=})) {
-        $line =~ m{\> *(.*)};
-        $buffer = "$1";
-        $state = "cont3";
-    } elsif (($state eq "cont3") ) {
+    } elsif (($state eq "cont2")) {
 # <br/>
 # [Non-text portions of this message have been removed]</div></div><div
 # class="msg-inline-video"></div><div
-        if ($line =~ m{\<\/div\>}) {
-            $line =~ s{\<\/div\>.*}{}; # remove rest
-            $buffer .= $line;
+        if ($line =~ m{\A\s*class\=\"msg\-inline\-video\"\>}) {
+            $buffer =~ s{\<\/?div\s*\Z}{}; # remove rest of previous line
             $buffer =~ s{ *\<br\/?\> *\<br\/?\> *\<br\/?\> *}{\<br\/\><br\/\>}g;
             $buffer =~ s{\<br\/?\>}{\n}g;
             $buffer =~ s{title\=\"ireply\"\> *}{\>}g;
-            $buffer =~ s{\<(a|span|blockquote|div|p)[^\>]*\>}{}g;
             &revert_entities();
             print TAR "$buffer\n";
             $state = "init";
@@ -108,18 +132,24 @@ GFis
         }
     } else { # nothing
     }
-} # while <>
+} # while <SRC>
+
+print TAR <<"GFis";
+===============================================
+Cached by Georg Fischer at $sigtime with clean_yahoo.pl $version
+GFis
 close(SRC);
 close(TAR);
 #----
 sub revert_entities {
-            $buffer =~ s{\<\/\w+\>}{}g;
+            $buffer =~ s{\<\/?\w+[^\>]*\>}{}g; # all start and end tags
             $buffer =~ s{\&gt\;}{\>}g;
             $buffer =~ s{\&lt\;}{\<}g;
             $buffer =~ s{\&amp\;}{\&}g;
             $buffer =~ s{\&quot\;}{\"}g;
             $buffer =~ s{\&nbsp\;}{ }g;
             $buffer =~ s{\&\#39\;}{\'}g;
+            $buffer =~ s{\&\#43\;}{\+}g;
             $buffer =~ s{\&\#92\;}{\\}g;
             $buffer =~ s{\&\#178\;}{²}g;
 } # revert_entities

@@ -20,7 +20,7 @@ my $TIMESTAMP = &iso_time(time());
 my $action = "comp";
 my $debug  = 0; # 0 (none), 1 (some), 2 (more)
 my $numseq = 8;
-my $maxnum = 65536;
+my $maxnum = 65536; # e.g. 4 for testing
 my $type   = "ajson"; # for $outdir
 my $fmt    = "json";  # for OEIS request parameter &ftm=
 my $outdir = "./temp/$type";
