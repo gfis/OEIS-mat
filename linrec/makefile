@@ -114,6 +114,11 @@ mmart3:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+mmart4:
+	perl rectab.pl -d 0 mmart3.tmp | tee $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -d"	" -f2 $@.tmp | sort | uniq -c
 #----
 plouffe: plou1 plou2
 plou1:
@@ -709,6 +714,17 @@ lrordadd:
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	
+#--	
+lrjoeis_check: # Which linrecs are not yet in jOEIS
+	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno \
+		, i.signature \
+	FROM lrindx i, asinfo a \
+	WHERE 'A' || i.seqno = a.aseqno \
+	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	ORDER by 1" \
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt	
 #---------------------
 morix:
 	$(DBAT) "SELECT DISTINCT a.aseqno, a.keyword, a.offset1, b.bfimax, i.signature \
@@ -733,6 +749,12 @@ form:
 	perl extract_linrec.pl -m form form1.tmp \
 	> $@.tmp
 	wc -l $@.tmp 
+#-------------------
+mma_list:
+	cut -b7- $(LIST) > x.tmp
+	make -f $(COMMON)/makefile seq LIST=x.tmp
+	$(DBAT) "SELECT COUNT(*) FROM seq s WHERE s.aseqno NOT IN \
+		(SELECT aseqno FROM joeis)"
 #-------------------
 oldgf1:
 	grep -E "F A[0-9]* G\. *f\." $(COMMON)/cat25.txt  > gf1.tmp
