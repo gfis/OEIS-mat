@@ -18,6 +18,7 @@ PULL=../pull
 COMMON=../common
 D=0
 G=n
+RTLEN=256
 SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
 	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
 	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
@@ -82,43 +83,73 @@ raeval3:
 	head -n8 $@.tmp
 	wc -l    $@.tmp
 #----
-mma_rectab: mmart1 mmart2 mmart3
+rectab: mmart recurr rectab2
+rectab2:
+	sort mmart4.tmp recur5.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--
+recurr: recur1 recur2 recur3 recur4 recur5
+recur1:
+	grep -E "^%F A[0-9]* Recurrence\:" $(COMMON)/cat25.txt \
+	| perl -pe "\
+	s/^...//; \
+	s/ /\t/; \
+	" \
+	| perl -ne 'if (length($$_) < $(RTLEN)) { print; }' \
+	| uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recur2:
+	make -f $(COMMON)/makefile seq2 LIST=recur1.tmp
+recur3:
+	$(DBAT) -x "SELECT s.aseqno, 'recur', s.info, d.data, d.termno \
+		FROM seq2 s, asdata d \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recur4:
+	perl pre_rectab.pl recur3.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recur5:
+	perl rectab.pl -d 0 recur4.tmp > $@.1.tmp
+	grep -vE "recur3" $@.1.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--
+mmart: mmart1 mmart2 mmart3 mmart4
 mmart1:
-	grep RecurrenceTable $(COMMON)/cat25.txt \
-	| cut -b4- \
-	| sed -e "s/ /\t/" \
-	| grep -v "A015464	Join" \
-	| grep -v "A051047" \
-	| grep -v "A101368" \
-	| grep -v "A208202" \
-	| grep -v "A269962" \
-	| grep -v "A269964" \
-	| grep -v "A269965" \
-	| grep -v "A277088" \
-	| grep -v "A277089" \
-	| grep -v       "A108242" \
-	| grep -v       "A110105" \
-	| grep -v       "A123178" \
-	| grep -v       "A188404" \
-	| grep -v       "A234618" \
-	>        $@.txt
-	echo "A108242 much too long!"
-	head -n4 $@.txt
-	wc -l    $@.txt
-	cut -b1-7 $@.txt | sort | uniq -c | grep -v "   1 " || :
+	grep -E "^%t A[0-9]* RecurrenceTable" $(COMMON)/cat25.txt \
+	| perl -pe "\
+	s/^...//; \
+	s/ /\t/; \
+	s/\..*//; \
+	" \
+	| perl -ne 'if (length($$_) < $(RTLEN)) { print; }' \
+	| uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 mmart2:
-	make -f $(COMMON)/makefile seq2 LIST=mmart1.txt
+	make -f $(COMMON)/makefile seq2 LIST=mmart1.tmp
 mmart3:
-	$(DBAT) -x "SELECT aseqno, info FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
+	$(DBAT) -x "SELECT aseqno, 'mmart', info FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
 		ORDER BY 1 " \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 mmart4:
-	perl rectab.pl -d 0 mmart3.tmp | tee $@.tmp
+	perl rectab.pl -d 0 mmart3.tmp > $@.1.tmp
+	grep -vE "mmart3" $@.1.tmp > $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	cut -d"	" -f2 $@.tmp | sort | uniq -c
 #----
 plouffe: plou1 plou2
 plou1:
