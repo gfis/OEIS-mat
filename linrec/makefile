@@ -10,7 +10,8 @@
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.symbolic.PolyFraction
+RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
+PFRACT=java -cp  $(RAMATH).symbolic.PolyFraction
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
@@ -63,13 +64,13 @@ dde_cf: # continued fraction
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 dde_gf: # generating function
-	$(RAMATH) -f dde_cf.tmp \
+	$(PFRACT) -f dde_cf.tmp \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #====================================
 ralreval:
-	java -cp ../../ramath/dist/ramath.jar org.teherba.ramath.sequence.LinearRecurrence \
+	$(RAMATH).sequence.LinearRecurrence \
 	-eval -b ../common/bfile -f ../common/stripped -m 16 \
 	| tee $@.txt
 raeval1:
@@ -82,10 +83,54 @@ raeval3:
 		ORDER BY 1 " > $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
-#----
+#===============================================
 rectab: mmart recurr rectab2
-rectab2:
-	sort mmart4.tmp recur5.tmp \
+rectab2: mmart5     recur5 
+	sort mmart5.tmp recur5.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+rectab3:
+	grep holon rectab2.tmp \
+	| grep -vE "\-256" \
+	| grep -vE ",," \
+	| grep -vE "=" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+rectab4:
+	$(RAMATH).sequence.JoeisPreparer -d $(D) -f rectab3.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--
+mmart: mmart1 mmart2 mmart3 mmart4 mmart5
+mmart1:
+	grep -E "^%t A[0-9]* RecurrenceTable" $(COMMON)/cat25.txt \
+	| perl -pe "\
+	s/^...//; \
+	s/ /\t/; \
+	s/\..*//; \
+	" \
+	| perl -ne 'if (length($$_) < $(RTLEN)) { print; }' \
+	| uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+mmart2:
+	make -f $(COMMON)/makefile seq2 LIST=mmart1.tmp
+mmart3:
+	$(DBAT) -x "SELECT s.aseqno, 'mmart', i.offset1, s.info \
+		FROM seq2 s, asinfo i \
+		WHERE s.aseqno = i.aseqno \
+		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+mmart4: 
+mmart5:
+	perl rectab.pl -d $(D) mmart3.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -105,9 +150,10 @@ recur1:
 recur2:
 	make -f $(COMMON)/makefile seq2 LIST=recur1.tmp
 recur3:
-	$(DBAT) -x "SELECT s.aseqno, 'recur', s.info, d.data, d.termno \
-		FROM seq2 s, asdata d \
+	$(DBAT) -x "SELECT s.aseqno, 'recur', i.offset1, s.info, d.data, d.termno \
+		FROM seq2 s, asdata d, asinfo i \
 		WHERE s.aseqno = d.aseqno \
+		  AND s.aseqno = i.aseqno \
 		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
 		ORDER BY 1 " \
 	>        $@.tmp
@@ -119,38 +165,11 @@ recur4:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recur5:
-	perl rectab.pl -d 0 recur4.tmp > $@.1.tmp
-	grep -vE "recur3" $@.1.tmp > $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#--
-mmart: mmart1 mmart2 mmart3 mmart4
-mmart1:
-	grep -E "^%t A[0-9]* RecurrenceTable" $(COMMON)/cat25.txt \
-	| perl -pe "\
-	s/^...//; \
-	s/ /\t/; \
-	s/\..*//; \
-	" \
-	| perl -ne 'if (length($$_) < $(RTLEN)) { print; }' \
-	| uniq -w 7 \
+	perl rectab.pl -d $(D) recur4.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-mmart2:
-	make -f $(COMMON)/makefile seq2 LIST=mmart1.tmp
-mmart3:
-	$(DBAT) -x "SELECT aseqno, 'mmart', info FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
-		ORDER BY 1 " \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-mmart4:
-	perl rectab.pl -d 0 mmart3.tmp > $@.1.tmp
-	grep -vE "mmart3" $@.1.tmp > $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#----
+#=================================================
 plouffe: plou1 plou2
 plou1:
 	grep -E "a\(n\)" Plouffe.txt \
@@ -205,7 +224,7 @@ fract39:
 	wc -l   $@.tmp
 #-----
 catgf1r:
-	$(RAMATH) -f   catgf0r.tmp > $@.tmp
+	$(PFRACT) -f catgf0r.tmp > $@.tmp
 catgf2r:
 	grep -E "orgf" catgf1r.tmp \
 	| grep -vP '\d{16}' \
@@ -257,7 +276,7 @@ rio2:
 	head -4 $@.tmp
 	wc -l   $@.tmp
 rio3:
-	$(RAMATH) -n 64 -f rio2.tmp
+	$(PFRACT) -n 64 -f rio2.tmp
 #--------
 factabl: factabl1 factabl2
 factabl1:
@@ -333,7 +352,7 @@ elu2:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 elu3:
-	$(RAMATH) -n 16 -f elu2.tmp \
+	$(PFRACT) -n 16 -f elu2.tmp \
 	>        $@.tmp
 elu4:
 	grep -E "coef" elu3.tmp | sed -e "s/coef\t16\t\[//" -e "s/\]//" \
@@ -403,7 +422,7 @@ coxf1: # get coxG calls from 'names' subset
 	coxgn1.tmp | sort > $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	$(RAMATH) -n 24 -f $@.tmp > $@.txt
+	$(PFRACT) -n 24 -f $@.tmp > $@.txt
 	make -f $(COMMON)/makefile seq2 LIST=$@.txt
 coxf2:
 	$(DBAT) -x "(SELECT s.aseqno, 'coxf', s.info \
@@ -454,14 +473,6 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
-#----------------------
-flinrec:
-	perl flinrec.pl $(COMMON)/stripped | tee $@.tmp
-linhrec1:
-	perl linhrec.pl $(COMMON)/stripped 
-linhrec:
-	cp -v ../../linhrec/dist/linhrec.jar .
-	java -jar linhrec.jar -f $(COMMON)/stripped
 #======================================================
 linrec: lrlink lrindx 
 # lrload ???

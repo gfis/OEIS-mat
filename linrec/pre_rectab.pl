@@ -8,7 +8,7 @@ use strict;
 
 while (<>) {
     s{\s+\Z}{};
-    my ($aseqno, $code, $info, $data, $termno) = split(/\t/);
+    my ($aseqno, $callcode, $offset, $info, $data, $termno) = split(/\t/);
     $info =~ s/\..*//; # remove all behind 1st dot
     $info =~ s/\[From.*//i;
     $info =~ s/ (and|or) /\,/ig;
@@ -35,10 +35,10 @@ while (<>) {
                 $index =~ s{\+}{};
                 $hinx{$index} = 1;
             } # foreach
-            my @offsets = sort { $a <=> $b } (keys(%hinx));
-            my $inx0 = $offsets[0];
-            my $inx9 = $offsets[scalar(@offsets) - 1];
-            print "# inx0=$inx0, inx9=$inx9\n";
+            my @anshifts = sort { $a <=> $b } (keys(%hinx));
+            my $inx0 = $anshifts[0];
+            my $inx9 = $anshifts[scalar(@anshifts) - 1];
+            # print "# inx0=$inx0, inx9=$inx9\n";
             my $degree = $inx9 - $inx0 + 1;;
             my @terms = split(/\,/, $data, $degree + 1);
             pop(@terms); # remove the additional
@@ -50,7 +50,7 @@ while (<>) {
         } # initial terms
         $info = "RecurrenceTable\[\{" . $info; 
         $info .= "\},a,$range\]"; 
-        print join("\t", $aseqno, $code, $info, substr($data, 0, 16)) . "\n";
+        print join("\t", $aseqno, $callcode, $offset, $info, substr($data, 0, 16)) . "\n";
     } # allowed, else ignore
 } # while <>
 
