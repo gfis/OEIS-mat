@@ -39,7 +39,8 @@ while (<>) {
             my $inx0 = $anshifts[0];
             my $inx9 = $anshifts[scalar(@anshifts) - 1];
             # print "# inx0=$inx0, inx9=$inx9\n";
-            my $degree = $inx9 - $inx0 + 1;;
+            my $degree = $inx9 - $inx0 + 1;
+            $degree += 3; # 3 more
             my @terms = split(/\,/, $data, $degree + 1);
             pop(@terms); # remove the additional
             my $ind = 0;

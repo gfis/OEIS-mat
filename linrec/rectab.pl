@@ -77,7 +77,7 @@ while (<>) {
         }
         foreach my $part (@parts) {
             if (length($part) == 0) {
-            	# ignore
+              # ignore
             } elsif ($part =~ m{\A[a-z]\[(\-?\d+)\]\=\=?(\-?\d+)\Z}) {
                 my ($left, $right) = ($1, $2);
                 $left = $1;
@@ -93,8 +93,9 @@ while (<>) {
             }
         } # foreach $part
         my $vector = $join;
-        my $ind    = 0;
-        foreach my $key (sort {$a <=> $b} (keys(%hash))) {
+        my @skeys  = sort {$a <=> $b} (keys(%hash));
+        my $ind    = $skeys[0];
+        foreach my $key (@skeys) {
             while ($ind < $key and $ind < 29) {
                 $vector .= ",0";
                 $ind ++;
@@ -136,27 +137,38 @@ while (<>) {
             }
             $poly =~ s{\A\+}{};
             $poly =~ s{\A\-0\Z}{0};
+            $poly =~ s{\A\-\Z}{\-1};
+            $poly =~ s{\A\\Z}{1};
             $poly =~ s{\=0\Z}{};
-            $hinx{$anshift + 0} = $poly; # remove "+" sign
+            if ($poly =~ m{([\-\+])\Z}) { # A249916: a[n]==4(n-1)-a[n-3] -> $poly = "-4(n-1)-"
+                my $sign = $1;
+                $poly =~ s{$sign\Z}{};
+                $hinx{$const} = $poly;
+                if ($negate == 1) {
+                    $sign = ($sign eq "+") ? "-" : "+";
+                }
+                $poly = "${sign}1" + 0;
+            }
+            $hinx{$anshift + 0} = $poly; # "+ 0": remove "+" sign
         } # foreach $part
         my $matrix = "[" . $hinx{$const};
         my @anshifts = (sort { $a <=> $b } (keys(%hinx)));
         print "$aseqno\t# anshifts=" . join(",", @anshifts) . "\n" if $debug >= 1;
         shift(@anshifts); # remove const
         if (scalar(@anshifts) > 0) {
-        	my $inx0 = $anshifts[0];
-        	my $inx9 = $anshifts[scalar(@anshifts) - 1];
-        	print "$aseqno\t# inx0=$inx0, inx9=$inx9\n" if $debug >= 1;
-        	my $degree = $inx9 - $inx0 + 1;
-        	$ind = $inx0;
-        	while ($ind <= $inx9) {
-        	    $matrix .= "," . (defined($hinx{$ind}) ? $hinx{$ind} : "0");
-        	    $ind ++;
-        	} # while $ind
-        	$matrix .= "]";
-        	$matrix =~ s{\A\,}{\[};
-        	print join("\t", $aseqno, "holon", $offset, $matrix, $vector, $inx9), "\n";
-    	} # scalar > 0
+          my $inx0 = $anshifts[0];
+          my $inx9 = $anshifts[scalar(@anshifts) - 1];
+          print "$aseqno\t# inx0=$inx0, inx9=$inx9\n" if $debug >= 1;
+          my $degree = $inx9 - $inx0 + 1;
+          $ind = $inx0;
+          while ($ind <= $inx9) {
+              $matrix .= "," . (defined($hinx{$ind}) ? $hinx{$ind} : "0");
+              $ind ++;
+          } # while $ind
+          $matrix .= "]";
+          $matrix =~ s{\A\,}{\[};
+          print join("\t", $aseqno, "holo", $offset, $matrix, $vector, $inx9), "\n";
+      } # scalar > 0
     } # if RecTab
 } # while <>
 #--------------------

@@ -84,14 +84,14 @@ raeval3:
 	head -n8 $@.tmp
 	wc -l    $@.tmp
 #===============================================
-rectab: mmart recurr rectab2
+rectab: mmart recurr rectab2 rectab3 rectab4
 rectab2: mmart5     recur5 
 	sort mmart5.tmp recur5.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 rectab3:
-	grep holon rectab2.tmp \
+	grep holo rectab2.tmp \
 	| grep -vE "\-256" \
 	| grep -vE ",," \
 	| grep -vE "=" \
