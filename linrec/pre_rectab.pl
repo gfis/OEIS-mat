@@ -3,8 +3,32 @@
 # Preprocess grepped lines with "Recurrence: " for rectab.pl
 # @(#) $Id$
 # 2019-12-03, Georg Fischer
-
+#
+#:# Usage:
+#:#   perl pre_rectab.pl [-a init] infile > outfile
+#:#       -a additional initial terms (more than order)
+#---------------------------------
 use strict;
+use integer;
+use warnings;
+my $version = "V1.2";
+my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
+my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
+        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+
+my $debug  = 0;
+my $ainit  = 0; # additional initial terms
+while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
+    my $opt = shift(@ARGV);
+    if (0) {
+    } elsif ($opt  =~ m{a}) {
+        $ainit  = shift(@ARGV);
+    } elsif ($opt  =~ m{d}) {
+        $debug  = shift(@ARGV);
+    } else {
+        die "invalid option \"$opt\"\n";
+    }
+} # while $opt
 
 while (<>) {
     s{\s+\Z}{};
@@ -32,7 +56,7 @@ while (<>) {
         if (1) { # now determine the number of initial terms
             my %hinx = ();
             foreach my $index ($info =~ m{\[n([\+\-]\d+)\]}g) {
-                $index =~ s{\+}{};
+                $index += 0;
                 $hinx{$index} = 1;
             } # foreach
             my @anshifts = sort { $a <=> $b } (keys(%hinx));
@@ -40,9 +64,9 @@ while (<>) {
             my $inx9 = $anshifts[scalar(@anshifts) - 1];
             # print "# inx0=$inx0, inx9=$inx9\n";
             my $degree = $inx9 - $inx0 + 1;
-            $degree += 3; # 3 more
+            $degree += $ainit;
             my @terms = split(/\,/, $data, $degree + 1);
-            pop(@terms); # remove the additional
+            pop(@terms); # remove the last which consumed the whole rest of the term list
             my $ind = 0;
             foreach my $term (@terms) {
                 $info .= ",a[$ind]=$term";
