@@ -84,9 +84,9 @@ while (<>) {
                 $hash{$left} = $right;
                 print "$aseqno\t# hash{$left}=$hash{$left}\n" if $debug >= 2;
             } else {
-                $annihil = "$part";
+                $annihil = $part;
                 if ($annihil !~ m{\=+}) {
-                    $annihil .= "==0";
+                    $annihil .= "=0";
                 }
                 $annihil =~ s{\=\=}{\=};
                 print "$aseqno\t# annihil: $annihil\n" if $debug >= 1;
@@ -119,7 +119,7 @@ while (<>) {
             $hinx{$const} = "0";
             $anshift = $anshift || $const;
             $poly    = $poly    || "+1";
-            $poly   =~ s{\A\-\Z}{\-1};
+            $poly   =~ s{\A([\-\+])\Z}{${1}1};
             print "$aseqno\t# poly=\"$poly\", anshift=\"$anshift\"\n" if $debug >= 1;
             if (0) {
             } elsif ($poly =~ m{\A\=}) {
