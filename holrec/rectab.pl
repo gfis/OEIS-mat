@@ -142,7 +142,7 @@ while (<>) {
             $poly =~ s{\=0\Z}{};
             if ($poly =~ m{([\-\+])\Z}) { # A249916: a[n]==4(n-1)-a[n-3] -> $poly = "-4(n-1)-"
                 my $sign = $1;
-                $poly =~ s{$sign\Z}{};
+                $poly = substr($poly, 0, length($poly) - 1); # remove trailing sign
                 $hinx{$const} = $poly;
                 if ($negate == 1) {
                     $sign = ($sign eq "+") ? "-" : "+";

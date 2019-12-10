@@ -51,31 +51,32 @@ while (<>) {
     }
     if (($info !~ m{[A-Zb-mo-z]}) and ($info =~ m{a[\(\[]})) { # only allow "a", "n"
         $info =~ s/ //g; 
-        $info =~ s{a\(([0-9n\+\-]+)\)}{a\[\1\]}g; # make a[square brackets]
+        $info =~ s{a\(([0-9n\+\-]+)\)}{a\[$1\]}g; # make a[square brackets]
         $info = &norm_index($info);
-        if (1) { # now determine the number of initial terms
-            my %hinx = ();
-            foreach my $index ($info =~ m{\[n([\+\-]\d+)\]}g) {
-                $index += 0;
-                $hinx{$index} = 1;
-            } # foreach
-            my @anshifts = sort { $a <=> $b } (keys(%hinx));
-            my $inx0 = $anshifts[0];
-            my $inx9 = $anshifts[scalar(@anshifts) - 1];
-            # print "# inx0=$inx0, inx9=$inx9\n";
-            my $degree = $inx9 - $inx0 + 1;
-            $degree += $ainit;
-            my @terms = split(/\,/, $data, $degree + 1);
-            pop(@terms); # remove the last which consumed the whole rest of the term list
-            my $ind = 0;
-            foreach my $term (@terms) {
-                $info .= ",a[$ind]=$term";
-                $ind ++;
-            }
-        } # initial terms
-        $info = "RecurrenceTable\[\{" . $info; 
-        $info .= "\},a,$range\]"; 
-        print join("\t", $aseqno, $callcode, $offset, $info, substr($data, 0, 16)) . "\n";
+        # now determine the number of initial terms
+        my %hinx = ();
+        foreach my $index ($info =~ m{\[n([\+\-]\d+)\]}g) {
+            $index += 0;
+            $hinx{$index} = 1;
+        } # foreach
+        my @anshifts = sort { $a <=> $b } (keys(%hinx));
+        my $inx0 = $anshifts[0];
+        my $inx9 = $anshifts[scalar(@anshifts) - 1];
+        # print "# inx0=$inx0, inx9=$inx9\n";
+        my $degree = $inx9 - $inx0 + 1;
+        $degree += $ainit;
+        if ($degree <= 16) { # reasonable
+        	my @terms = split(/\,/, $data, $degree + 1);
+        	pop(@terms); # remove the last which consumed the whole rest of the term list
+        	my $ind = 0;
+        	foreach my $term (@terms) {
+        	    $info .= ",a[$ind]=$term";
+        	    $ind ++;
+        	}
+        	$info = "RecurrenceTable\[\{" . $info; 
+        	$info .= "\},a,$range\]"; 
+        	print join("\t", $aseqno, $callcode, $offset, $info, substr($data, 0, 16)) . "\n";
+    	} # if reasonable
     } # allowed, else ignore
 } # while <>
 

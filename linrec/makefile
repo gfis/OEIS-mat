@@ -19,6 +19,7 @@ PULL=../pull
 COMMON=../common
 D=0
 G=n
+AINIT=0
 RTLEN=256
 SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
 	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
@@ -69,24 +70,28 @@ dde_gf: # generating function
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #====================================
-ralreval:
+raeval: raeval0 raeval1 raeval2 raeval3
+raeval0:
 	$(RAMATH).sequence.LinearRecurrence \
-	-eval -b ../common/bfile -f ../common/stripped -m 16 \
-	| tee $@.txt
+	-o 8 -eval -b ../common/bfile -f ../common/stripped -m 24 \
+	| tee    $@.tmp
+	head -8  $@.tmp
 raeval1:
-	grep -v "#" ralreval.txt > raeval1.tmp
-	wc -l lreval1.tmp
+	grep -v "#" raeval0.tmp  > $@.tmp
+	wc -l    $@.tmp
 raeval2:
 	make -f $(COMMON)/makefile seq2 LIST=raeval1.tmp
 raeval3:
-	$(DBAT) -x "SELECT aseqno, info FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
-		ORDER BY 1 " > $@.tmp
+	$(DBAT) -x "SELECT aseqno, info FROM seq2 \
+	    WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1" \
+	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
 #===============================================
-rectab: mmart recurr rectab2 rectab3 rectab4
-rectab2: mmart5     recur5 
-	sort mmart5.tmp recur5.tmp \
+rectab: recma recurr rectab2 rectab3 rectab4
+rectab2: recma5     recur5 
+	sort recma5.tmp recur5.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -104,8 +109,8 @@ rectab4:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--
-mmart: mmart1 mmart2 mmart3 mmart4 mmart5
-mmart1:
+recma: recma1 recma2 recma3 recma4 recma5
+recma1:
 	grep -E "^%t A[0-9]* RecurrenceTable" $(COMMON)/cat25.txt \
 	| perl -pe "\
 	s/^...//; \
@@ -117,10 +122,10 @@ mmart1:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-mmart2:
-	make -f $(COMMON)/makefile seq2 LIST=mmart1.tmp
-mmart3:
-	$(DBAT) -x "SELECT s.aseqno, 'mmart', i.offset1, s.info \
+recma2:
+	make -f $(COMMON)/makefile seq2 LIST=recma1.tmp
+recma3:
+	$(DBAT) -x "SELECT s.aseqno, 'recma', i.offset1, s.info \
 		FROM seq2 s, asinfo i \
 		WHERE s.aseqno = i.aseqno \
 		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
@@ -128,9 +133,9 @@ mmart3:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-mmart4: 
-mmart5:
-	perl rectab.pl -d $(D) mmart3.tmp \
+recma4: 
+recma5:
+	perl rectab.pl -d $(D) recma3.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -160,7 +165,7 @@ recur3:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recur4:
-	perl pre_rectab.pl recur3.tmp \
+	perl pre_rectab.pl -a $(AINIT) recur3.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -169,6 +174,52 @@ recur5:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+recuf: recuf1 recuf2 recuf3 recuf4 recuf5 recuf6 recuf7
+recuf1:
+	perl grep_rectab.pl $(COMMON)/cat25.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recuf2:
+	uniq -w7 recuf1.tmp \
+	| cut -b1-1024 \
+	>        $@.tmp
+	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
+recuf3:
+	$(DBAT) -x "SELECT s.aseqno, 'recuf', i.offset1, s.info, d.data, d.termno \
+		FROM seq2 s, asdata d, asinfo i \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.aseqno = i.aseqno \
+		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recuf4:
+	perl pre_rectab.pl  -a $(AINIT) recuf3.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recuf5:
+	perl rectab.pl -d $(D) recuf4.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recuf6:
+	grep holo recuf5.tmp \
+	| grep -vE "\-256" \
+	| grep -vE ",," \
+	| grep -vE "=" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recuf7:
+	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf5.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#
 #=================================================
 plouffe: plou1 plou2
 plou1:
