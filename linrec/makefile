@@ -75,19 +75,57 @@ raeval0:
 	$(RAMATH).sequence.LinearRecurrence \
 	-o 8 -eval -b ../common/bfile -f ../common/stripped -m 24 \
 	| tee    $@.tmp
-	head -8  $@.tmp
 raeval1:
-	grep -v "#" raeval0.tmp  > $@.tmp
+	grep -v "#" raeval0.tmp \
+	| perl -ne 's{[\[\]]}{}g; print if length($$_) <= 1000;' \
+	| perl reverse_signature.pl -d 0 \
+	>        $@.tmp
+	head -8  $@.tmp
 	wc -l    $@.tmp
 raeval2:
-	make -f $(COMMON)/makefile seq2 LIST=raeval1.tmp
-raeval3:
-	$(DBAT) -x "SELECT aseqno, info FROM seq2 \
-	    WHERE aseqno NOT IN (SELECT aseqno FROM joeis) \
+	$(DBAT) -f raeval.create.sql
+	$(DBAT) -m csv -r raeval < raeval1.tmp
+	$(DBAT) "UPDATE raeval SET keyword = 'cand';"
+raeval_count:
+	$(DBAT) -x "SELECT COUNT(r.aseqno) \
+	    FROM raeval r, lrindx i \
+	    WHERE r.aseqno    = i.aseqno \
+	      AND r.signature = i.signature \
+		ORDER BY 1"
+raeval_joeis:
+	$(DBAT) -x "SELECT r.aseqno, r.signature, i.signature, j.superclass  \
+	    FROM raeval r LEFT JOIN lrindx i ON r.aseqno = i.aseqno \
+	                  LEFT JOIN joeis  j ON i.aseqno = j.aseqno \
 		ORDER BY 1" \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
+raeval_null: raeval_null12 raeval_null1
+raeval_null12:
+	grep null raeval_joeis.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+raeval_null1:
+	grep -vE "null	null" raeval_null.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+sig464:
+	$(DBAT) \
+	"SELECT d.aseqno, i.signature, SUBSTR(d.data, 1,20) AS initerms \
+		FROM lrindx i, asdata d \
+		WHERE 'A' || i.seqno = d.aseqno \
+		  AND d.data LIKE '0,0,0,%' \
+		  AND i.signature = '4,-6,4,-1' \
+		ORDER by 1, 3 "
+sig2:
+	$(DBAT) \
+	"SELECT COUNT(d.aseqno) \
+		FROM lrindx i, asdata d \
+		WHERE 'A' || i.seqno = d.aseqno \
+		  AND i.signature = '4,-6,4,-1' \
+		"
 #===============================================
 rectab: recma recurr rectab2 rectab3 rectab4
 rectab2: recma5     recur5 
