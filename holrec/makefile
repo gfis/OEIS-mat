@@ -14,6 +14,10 @@ RTLEN=256
 
 all: rectab recuf
 #===============================================
+holtabs:
+	$(DBAT) -f holrec.create.sql
+	$(DBAT) -f holatt.create.sql
+#----
 rectab: recma recurr rectab2 rectab3 rectab4
 rectab2: recma5     recur5 
 	sort recma5.tmp recur5.tmp \
@@ -140,7 +144,7 @@ recuf6:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recuf7:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf5.tmp \
+	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf6.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

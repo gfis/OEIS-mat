@@ -70,47 +70,82 @@ dde_gf: # generating function
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #====================================
-raeval: raeval0 raeval1 raeval2 raeval3
-raeval0:
+raeval: raeval1 raeval2 raeval_count raeval_joeis raeval_null
+raeval0: # manually on the server, takes ~4 hours
 	$(RAMATH).sequence.LinearRecurrence \
 	-o 8 -eval -b ../common/bfile -f ../common/stripped -m 24 \
 	| tee    $@.tmp
-raeval1:
+raeval1: # guessed signatures for the OEIS index
+	# A000027 2,-1    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
 	grep -v "#" raeval0.tmp \
 	| perl -ne 's{[\[\]]}{}g; print if length($$_) <= 1000;' \
 	| perl reverse_signature.pl -d 0 \
 	>        $@.tmp
 	head -8  $@.tmp
 	wc -l    $@.tmp
+raeval_holog: # guessed signatures for HolonomicRecurrence
+	# A000027 [1,-2,1]        [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+	grep -v "#" raeval0.tmp \
+	| perl -ne 's{\[}{holog\t0\t\[0\,}; s{(\r?\n)}{\t0$$1}; print if length($$_) <= 1000;' \
+	>        $@.tmp
+	head -8  $@.tmp
+	wc -l    $@.tmp
 raeval2:
 	$(DBAT) -f raeval.create.sql
 	$(DBAT) -m csv -r raeval < raeval1.tmp
-	$(DBAT) "UPDATE raeval SET keyword = 'cand';"
+	$(DBAT) "UPDATE raeval SET keyword = 'guess';"
+#--
 raeval_count:
 	$(DBAT) -x "SELECT COUNT(r.aseqno) \
 	    FROM raeval r, lrindx i \
 	    WHERE r.aseqno    = i.aseqno \
 	      AND r.signature = i.signature \
 		ORDER BY 1"
-raeval_joeis:
+#--
+raeval_joeis: raeval_joeis1 raeval_joeis2 
+raeval_joeis1:
 	$(DBAT) -x "SELECT r.aseqno, r.signature, i.signature, j.superclass  \
-	    FROM raeval r LEFT JOIN lrindx i ON r.aseqno = i.aseqno \
-	                  LEFT JOIN joeis  j ON i.aseqno = j.aseqno \
+	    FROM raeval r LEFT OUTER JOIN lrindx i ON r.aseqno = i.aseqno \
+	                  LEFT OUTER JOIN joeis  j ON i.aseqno = j.aseqno \
 		ORDER BY 1" \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
-raeval_null: raeval_null12 raeval_null1
+raeval_joeis2:
+	$(DBAT) -x "SELECT r.aseqno, r.signature, i.signature, j.superclass  \
+	    FROM raeval r  LEFT OUTER JOIN joeis  j ON r.aseqno = j.aseqno \
+	                   LEFT OUTER JOIN lrindx i ON j.aseqno = i.aseqno \
+		ORDER BY 1" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#--
+raeval_null: raeval_null12 raeval_null1 raeval_null2 raeval_null3
 raeval_null12:
-	grep null raeval_joeis.tmp \
+	grep null raeval_joeis*.tmp \
+	| sed -e "s/^raeval_joeis[0-9]*\.tmp\://" | sort | uniq \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
 raeval_null1:
-	grep -vE "null	null" raeval_null.tmp \
+	grep -vE "null	null" raeval_null12.tmp \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
+raeval_null2:
+	grep -E "null	null" raeval_null12.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+raeval_null3:
+	grep -E "null" raeval_joeis2.tmp \
+	| sed -e "s/^A//" -e "s/null/00/g" \
+	| grep -vE "[a-zA-Z]" \
+	| sed -e "s/^/A/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#----
 sig464:
 	$(DBAT) \
 	"SELECT d.aseqno, i.signature, SUBSTR(d.data, 1,20) AS initerms \
