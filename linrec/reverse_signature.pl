@@ -37,11 +37,12 @@ my $aseqno;
 my $signature;
 my $initterms = "";
 my $termno  = 0;
+my @rest;
 
 while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
-    ($aseqno, $signature, $, @rest) = split(/\t/, $line);
+    ($aseqno, $signature, $initterms, @rest) = split(/\t/, $line);
     $signature =~ s{\-?\,1\Z}{};
     my @signatures = map {
         my $term = $_;
@@ -50,7 +51,7 @@ while (<>) {
     $signature = join(",", @signatures);
     if ($holonomic == 1) {
         $signature = "[0,$signature,1]";
-        $initTerms = "[$initTerms]";
+        $initterms = "[$initterms]";
     }
     print join("\t", ($aseqno, $signature, $initterms, @rest)) . "\n";
 } # while <>

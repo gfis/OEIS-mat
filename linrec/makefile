@@ -75,16 +75,21 @@ raeval0: # manually on the server, takes ~4 hours
 	$(RAMATH).sequence.LinearRecurrence \
 	-o 8 -eval -b ../common/bfile -f ../common/stripped -m 24 \
 	| tee    $@.tmp
+raevale: # extract from a subset
+	sed -e "s/\t/ /" joinlr_extract.man | tee $@.tmp 
+	$(RAMATH).sequence.LinearRecurrence \
+	-o 8 -eval -b ../common/bfile -f $@.tmp -m 24 \
+	| tee    raeval0.tmp
+# A000027 2,-1    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
 raeval1: # guessed signatures for the OEIS index
-	# A000027 2,-1    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
 	grep -v "#" raeval0.tmp \
 	| perl -ne 's{[\[\]]}{}g; print if length($$_) <= 1000;' \
 	| perl reverse_signature.pl -d 0 \
 	>        $@.tmp
 	head -8  $@.tmp
 	wc -l    $@.tmp
+# A000027 [1,-2,1]        [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
 raeval_holog: # guessed signatures for HolonomicRecurrence
-	# A000027 [1,-2,1]        [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
 	grep -v "#" raeval0.tmp \
 	| perl -ne 's{\[}{holog\t0\t\[0\,}; s{(\r?\n)}{\t0$$1}; print if length($$_) <= 1000;' \
 	>        $@.tmp
