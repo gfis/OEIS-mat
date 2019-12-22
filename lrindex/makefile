@@ -52,14 +52,15 @@ lrlink3:
 #--
 lrlink_patch:
 	$(DBAT) -n lrlink
+	$(DBAT) -v "UPDATE lrlink SET aseqno = 'A' || seqno;"
 	$(DBAT) -v "DELETE FROM lrlink where lorder <> 88888888 AND lorder >= 2800;"
 	$(DBAT) -v "UPDATE lrlink SET lorder = sigorder WHERE lorder = 88888888;"
 	$(DBAT) -n lrlink
 #----
 lrlink_check: # Lin. rec. link, but no index entry
-	$(DBAT) "SELECT 'A' || seqno, lorder, compsig, sigorder, signature, '#' \
+	$(DBAT) "SELECT aseqno, lorder, compsig, sigorder, signature, '#' \
 	FROM lrlink \
-	WHERE seqno NOT IN (SELECT seqno FROM lrindx) \
+	WHERE aseqno NOT IN (SELECT aseqno FROM lrindx) \
 	  AND lorder < 2800 \
 	ORDER by 1" \
 	| sed -e "s/\r//" \

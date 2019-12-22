@@ -300,6 +300,11 @@ joeis_count:
 	$(DBAT) -x "SELECT a/b FROM ( \
 	(SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 , \
 	(SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 )" 
+	$(DBAT) -n joeis
+joeis_stamp:
+	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
+	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
+	$(DBAT) -4 joeis
 #--------------------------------
 checks:
 	make -f checks.make $@

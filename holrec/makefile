@@ -18,6 +18,27 @@ holtabs:
 	$(DBAT) -f holrec.create.sql
 	$(DBAT) -f holatt.create.sql
 #----
+subjoeis:
+	$(DBAT) "SELECT aseqno, superclass \
+		FROM joeis \
+		WHERE superclass in ('LinearRecurrence', 'GeneratingFunctionSequence', 'HolonomicRecurrence') \
+		ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+jlist:
+	cut -b1-7 subjoeis.tmp | xargs -l -i{} cmd /c jo {}
+holregen:
+	perl holregen.pl subjoeis.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+countjoeis:
+	$(DBAT) "SELECT superclass, COUNT(superclass) \
+		FROM joeis \
+		WHERE superclass in ('LinearRecurrence', 'GeneratingFunctionSequence', 'HolonomicRecurrence') \
+		GROUP BY superclass \
+		ORDER BY 1" 
+#----
 rectab: recma recurr rectab2 rectab3 rectab4
 rectab2: recma5     recur5 
 	sort recma5.tmp recur5.tmp \

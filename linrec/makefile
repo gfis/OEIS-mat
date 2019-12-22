@@ -83,8 +83,8 @@ raevale: # extract from a subset
 # A000027 2,-1    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
 raeval1: # guessed signatures for the OEIS index
 	grep -v "#" raeval0.tmp \
-	| perl -ne 's{[\[\]]}{}g; print if length($$_) <= 1000;' \
-	| perl reverse_signature.pl -d 0 \
+	| perl -ne 's{\,1\]\t}{}; s{[\[\]]}{}g;' \
+	| perl reverse_signature.pl -d 0 -i 1 -h \
 	>        $@.tmp
 	head -8  $@.tmp
 	wc -l    $@.tmp
