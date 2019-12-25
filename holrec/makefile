@@ -13,31 +13,37 @@ AINIT=0
 RTLEN=256
 
 all: rectab recuf
+GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
 #===============================================
 holtabs:
 	$(DBAT) -f holrec.create.sql
 	$(DBAT) -f holatt.create.sql
 #----
-subjoeis:
+subjoeis: subjoeis1
 	$(DBAT) "SELECT aseqno, superclass \
 		FROM joeis \
-		WHERE superclass in ('LinearRecurrence', 'GeneratingFunctionSequence', 'HolonomicRecurrence') \
+		WHERE superclass IN $(GENSEQ) \
 		ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+subjoeis1:
+	$(DBAT) -x "SELECT COUNT(superclass), superclass \
+		FROM joeis \
+		WHERE superclass IN $(GENSEQ) \
+		GROUP BY superclass \
+		ORDER BY 1" 
+	$(DBAT) -x "SELECT COUNT(superclass), 'generated total' \
+		FROM joeis \
+		WHERE superclass IN $(GENSEQ) \
+		ORDER BY 1" 
+#----
 jlist:
 	cut -b1-7 subjoeis.tmp | xargs -l -i{} cmd /c jo {}
 holregen:
 	perl holregen.pl subjoeis.tmp > $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-countjoeis:
-	$(DBAT) "SELECT superclass, COUNT(superclass) \
-		FROM joeis \
-		WHERE superclass in ('LinearRecurrence', 'GeneratingFunctionSequence', 'HolonomicRecurrence') \
-		GROUP BY superclass \
-		ORDER BY 1" 
 #----
 rectab: recma recurr rectab2 rectab3 rectab4
 rectab2: recma5     recur5 
