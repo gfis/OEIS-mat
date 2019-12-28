@@ -1,6 +1,6 @@
 #!perl
 
-# Extract the linear or polynomial recurrence formulas from cat25 file
+# Extract the linear or polynomial recurrence formula from cat25.txt file
 # @(#) $Id$
 # 2019-05-31, Georg Fischer
 #

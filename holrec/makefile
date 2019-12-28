@@ -6,11 +6,14 @@
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
+RAMJAR=java -cp  $(GITS)/ramath/dist/ramath.jar 
+RAMATH=java -cp  $(RAMJAR) org.teherba.ramath
+HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest 
 COMMON=../common
 D=0
 AINIT=0
 RTLEN=256
+REMOTE=gfis@atair:~/work/gits/OEIS-mat/holrec
 
 all: rectab recuf
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
@@ -19,15 +22,16 @@ holtabs:
 	$(DBAT) -f holrec.create.sql
 	$(DBAT) -f holatt.create.sql
 #----
-subjoeis: subjoeis1
-	$(DBAT) "SELECT aseqno, superclass \
-		FROM joeis \
-		WHERE superclass IN $(GENSEQ) \
+holjoeis: holjoeis1
+	$(DBAT) -x "SELECT j.aseqno, j.superclass, a.offset1, a.offset2 \
+		FROM joeis j, asinfo a\
+		WHERE j.aseqno = a.aseqno \
+		  AND j.superclass IN $(GENSEQ) \
 		ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-subjoeis1:
+holjoeis1:
 	$(DBAT) -x "SELECT COUNT(superclass), superclass \
 		FROM joeis \
 		WHERE superclass IN $(GENSEQ) \
@@ -39,9 +43,36 @@ subjoeis1:
 		ORDER BY 1" 
 #----
 jlist:
-	cut -b1-7 subjoeis.tmp | xargs -l -i{} cmd /c jo {}
-holregen:
-	perl holregen.pl subjoeis.tmp > $@.tmp
+	cut -b1-7 holjoeis.tmp | xargs -l -i{} cmd /c jo {}
+#----
+holregen: # takes quite some time on Windows because all Java sources in the list are read
+	perl holregen.pl holjoeis.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+holremote: # do it much faster on Linux
+	scp holregen.pl holjoeis.tmp makefile $(REMOTE)/holrec
+	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/holrec ; make holregen'
+	scp $(REMOTE)/holrec/holregen.tmp .
+#----
+holgf:
+	grep Gener holregen.tmp \
+	| sed -e "s/holos/holgf/" \
+	>        $@.1.tmp
+	head -n4 $@.1.tmp
+	$(HOLT) -d $(D) -f $@.1.tmp \
+	| perl -ne "print if length($$_) < 1024;" \
+	>        $@.tmp
+	wc -L    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+holgf2:
+	cut -f5 -d"	" holgf.tmp \
+	| grep -vE "1,"
+#----
+hyper:
+	perl extract_hypergeom.pl $(COMMON)/cat25.txt \
+	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----

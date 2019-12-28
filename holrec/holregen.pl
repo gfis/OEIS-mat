@@ -2,6 +2,7 @@
 
 # Regenerate parameters for HolonomicRecurrence from jOEIS source files
 # @(#) $Id$
+# 2019-12-27: Generating with offset
 # 2019-12-22, Georg Fischer
 #
 #:# Usage:
@@ -16,19 +17,19 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
 my %ZNUM = qw(
-	ZERO 	0
-	ONE  	1
-	NEG_ONE -1
-	TWO		2
-	THREE	3
-	FOUR	4
-	FIVE	5
-	SIX		6
-	SEVEN	7
-	EIGHT	8
-	NINE	9
-	TEN		10
-	);
+    ZERO    0
+    ONE     1
+    NEG_ONE -1
+    TWO     2
+    THREE   3
+    FOUR    4
+    FIVE    5
+    SIX     6
+    SEVEN   7
+    EIGHT   8
+    NINE    9
+    TEN     10
+    );
 my $srcpath = "../../joeis/src/irvine/oeis";
 my $debug  = 0;
 my $ainit  = 0; # additional initial terms
@@ -45,18 +46,20 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 while (<>) {
-    if (m{\A(A\d+)\s*(\w+)}) { # starts with A-number superclass
+    if (m{\A(A\d+)\s+(\w+)\s+(\d+)\s+(\d+)}) { # starts with A-number superclass
         my $aseqno     = $1;
         my $superclass = $2;
-        &check($aseqno, $superclass);
+        my $offset1    = $3;
+        my $offset2    = $4;
+        &check($aseqno, $superclass, $offset1, $offset2);
     } # if starts with A-number
 } # while <>
 
 sub check {
-    my ($aseqno, $superclass) = @_;
+    my ($aseqno, $superclass, $offset1, $offset2) = @_;
     my $group = lc(substr($aseqno, 0, 4));
     my $filename = "$srcpath/$group/$aseqno.java";
-    open(SRC, "<", $filename) or die "cannot read \"$filename\"\n";
+    open(SRC, "<", $filename) or die "cannot read \"$filename\"; superclass=$superclass, offset1=$offset1, offset2=$offset2\n";
     my @lines  = ();
     my $lstart = -1;
     my $super  = "";
@@ -98,25 +101,38 @@ sub check {
         if (0) { # switch for superclass
         } elsif ($superclass =~ m{^Cox} ) {
             $super =~ s{\s*\,\s*}{\t}g;
-            $super = "0\t$super\t0";
+            $super = "$offset1\t$super\t0\t$offset2";
         } elsif ($superclass =~ m{^Gener}) {
-            $super =~ s{\}\,\s*}{\t};
-            $super =~ s{\,\s*\{}{\t};
+            $super =~ s{\}\,\s*}{\t}g;
+            $super =~ s{\,\s*\{}{\t}g;
             $super =~ s{[\{\}]}{}g;
+            my @parms = split(/\t/, $super);
+            # print "G.F.: \"" . join("\",\"", @parms) . "\"\n";
+            if (scalar(@parms) == 2) { # without offset
+                $super = "$offset1\t$super";
+            }
+            $super .= "\t0\t$offset2"; # offset1, nums, dens, dist, offset2
         } elsif ($superclass =~ m{^Holo}  ) {
             $super =~ s{\"\,\s*\"}{\t};
             $super =~ s{\,\s*\"}{\t};
             $super =~ s{\"\,\s*}{\t};
+            $super .= "\t$offset2";
         } elsif ($superclass =~ m{^Linear}) {
             $super =~ s{\}\,\s*}{\t}g;
-            $super =~ s{\,\s*\{}{\t};
+            $super =~ s{\,\s*\{}{\t}g;
             $super =~ s{[\{\}]}{}g;
             my @parms = split(/\t/, $super);
             if (scalar(@parms) == 3) { # preTerms at the end
                 $parms[1] = "$parms[2],  $parms[1]"; # put them before the initTerms
             }
-            my @sigs = split(/\,\s*/, $parms[0]); # joeis isgnatures are already reversed from OEIS signatures
-            $super = join("\t", 0, "[0," . join(",", @sigs) . ",-1]", "[" . $parms[1] . "]", 0);
+            my @sigs = split(/\,\s*/, $parms[0]); # joeis signatures are already reversed from OEIS signatures
+            $super = join("\t"
+                , $offset1
+                , "[0," . join(",", @sigs) . ",-1]"
+                , "[" . $parms[1] . "]"
+                , 0
+                , $offset2
+                );
         }
         print join("\t", ($aseqno, "holos", $super, $superclass, $author)) . "\n";
     } # not manually modified
