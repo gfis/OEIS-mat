@@ -55,20 +55,20 @@ holremote: # do it much faster on Linux
 	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/holrec ; make holregen'
 	scp $(REMOTE)/holrec/holregen.tmp .
 #----
-holgf:
+holgf: holgf1 holgf2
+holgf1:
 	grep Gener holregen.tmp \
 	| sed -e "s/holos/holgf/" \
-	>        $@.1.tmp
-	head -n4 $@.1.tmp
-	$(HOLT) -d $(D) -f $@.1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+holgf2:
+	$(HOLT) -d $(D) -f holgf1.tmp \
 	| perl -ne "print if length($$_) < 1024;" \
+	| perl holshift.pl -f holpatch1.man \
 	>        $@.tmp
 	wc -L    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-holgf2:
-	cut -f5 -d"	" holgf.tmp \
-	| grep -vE "1,"
 #----
 hyper:
 	perl extract_hypergeom.pl $(COMMON)/cat25.txt \
