@@ -66,17 +66,17 @@ while (<>) {
         my $degree = $inx9 - $inx0 + 1;
         $degree += $ainit;
         if ($degree <= 16) { # reasonable
-        	my @terms = split(/\,/, $data, $degree + 1);
-        	pop(@terms); # remove the last which consumed the whole rest of the term list
-        	my $ind = 0;
-        	foreach my $term (@terms) {
-        	    $info .= ",a[$ind]=$term";
-        	    $ind ++;
-        	}
-        	$info = "RecurrenceTable\[\{" . $info; 
-        	$info .= "\},a,$range\]"; 
-        	print join("\t", $aseqno, $callcode, $offset, $info, substr($data, 0, 16)) . "\n";
-    	} # if reasonable
+            my @terms = split(/\,/, $data, $degree + 1);
+            pop(@terms); # remove the last which consumed the whole rest of the term list
+            my $ind = 0;
+            foreach my $term (@terms) {
+                $info .= ",a[$ind]=$term";
+                $ind ++;
+            }
+            $info = "RecurrenceTable\[\{" . $info; 
+            $info .= "\},a,$range\]"; 
+            print join("\t", $aseqno, $callcode, $offset, $info, substr($data, 0, 16)) . "\n";
+        } # if reasonable
     } # allowed, else ignore
 } # while <>
 
@@ -88,3 +88,4 @@ sub norm_index {
     return $info;
 } # norm_index
 __DATA__
+%t A226302 a = DifferenceRoot[Function[{a, n}, {(-(6*n^2) + 2*n + 4)*a[n+2] + (n^2 + n - 2)*a[n+4] + 8*(n - 1)*n*a[n] - 4*

@@ -75,6 +75,62 @@ hyper:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#-----
+gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4
+gfsqrt1:
+	perl gfsqrt_grep.pl $(COMMON)/cat25.txt \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+gfsqrt2:
+	$(RAMATH).sequence.JoeisPreparer -f gfsqrt1.tmp \
+	| grep -E "orgf" \
+	| cut -f1,4 \
+	| uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
+gfsqrt3:
+	$(DBAT) -x "SELECT s.aseqno, 'gfsqrt', i.offset1, s.info, i.offset2, d.data \
+		FROM seq2 s, asdata d, asinfo i \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.aseqno = i.aseqno \
+		  AND s.aseqno NOT IN (SELECT 'xx' || aseqno FROM joeis) \
+		ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+gfsqrt4:
+	perl gfsqrt_holrec.pl gfsqrt3.tmp \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+gfsqrt5:
+	$(HOLT) -n 16 -f gfsqrt4.tmp
+#----
+sq1:
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+sq2:
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(\d+)\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2\)\s*\.}i" $(COMMON)/cat25.txt \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+sq3:
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x(\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2)?\)\s*\.}i" $(COMMON)/cat25.txt \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+sq4:
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(1\s*[\+\-]\s*(\d*)\s*\*?\s*x(\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2)?\)\^\(\-?\d+\/2\))\s*\.}i" $(COMMON)/cat25.txt \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+sq5:
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)[^\^]+\^\(\-?\d+\/2\)\s*\.}i" $(COMMON)/cat25.txt \
+	| grep -viE "(theta|log|exp|sin|cos|tan|satisf|series|bessel|lambert)" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#	perl -ne "print if m{\A\%F\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \
 #----
 rectab: recma recurr rectab2 rectab3 rectab4
 rectab2: recma5     recur5 
