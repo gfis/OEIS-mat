@@ -8,7 +8,8 @@ GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 RAMJAR=java -cp  $(GITS)/ramath/dist/ramath.jar 
 RAMATH=java -cp  $(RAMJAR) org.teherba.ramath
-HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest 
+HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest
+LITE=../../joeis-lite/internal/fischer
 COMMON=../common
 D=0
 AINIT=0
@@ -76,38 +77,53 @@ hyper:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #-----
-gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4
-gfsqrt1:
+gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 gfsqrt5
+gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	perl gfsqrt_grep.pl $(COMMON)/cat25.txt \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-gfsqrt2:
+gfsqrt2: # convert polynomials to vectors
 	$(RAMATH).sequence.JoeisPreparer -f gfsqrt1.tmp \
 	| grep -E "orgf" \
-	| cut -f1,4 \
+	| sed -e "s/orgf/gfsqrt/" \
+	| cut -f1- \
 	| uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
-gfsqrt3:
-	$(DBAT) -x "SELECT s.aseqno, 'gfsqrt', i.offset1, s.info, i.offset2, d.data \
-		FROM seq2 s, asdata d, asinfo i \
-		WHERE s.aseqno = d.aseqno \
-		  AND s.aseqno = i.aseqno \
-		  AND s.aseqno NOT IN (SELECT 'xx' || aseqno FROM joeis) \
+gfsqrt3: # generate matrix and initerms 	
+	perl gfsqrt_holrec.pl gfsqrt2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	grep A095776 $@.tmp
+EX=xx
+gfsqrt4:
+	$(DBAT) -f $(LITE)/seq4.create.sql
+	cat      gfsqrt3.tmp | $(DBAT) -m csv -r seq4 
+	$(DBAT) -4 seq4
+	$(DBAT) -n seq4
+	$(DBAT) -f gfsqrt.update.sql
+	$(DBAT) -x "SELECT s.aseqno, 'holos', s.offset, s.parm1, s.parm2, s.parm3, s.parm4 \
+		FROM seq4 s  \
+		WHERE s.aseqno NOT IN (SELECT '$(EX)' || aseqno FROM joeis) \
 		ORDER BY 1 " \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-gfsqrt4:
-	perl gfsqrt_holrec.pl gfsqrt3.tmp \
+gfsqrt5:
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-gfsqrt5:
+gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
+#--------
+satis:
+	perl satisfies.pl $(COMMON)/cat25.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
 sq1:
 	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \

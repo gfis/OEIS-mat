@@ -3,7 +3,7 @@
 # Convert generating functions with 1/sqrt(1 - c1*x - c2*x^2 ... - ck*x^k) 
 # and generate calls to HolonomicRecurrence
 # @(#) $Id$
-# 2019-01-01, Georg Fischer
+# 2020-01-01, Georg Fischer
 # Cf. <https://cs.uwaterloo.ca/journals/JIS/VOL9/Noe/noe35.pdf>, Eq. 4
 # <http://www.teherba.org/index.php?title=OEIS/Square_Root_Recurrences>
 #
@@ -13,6 +13,8 @@
 # - keep so many initial terms as necessary for the order
 # - compute the recurrence formula
 # - generate the call for HolonomicRecurrence
+#
+# A318293 has Maple rectoproc and Mathematica DifferentialRoot calls
 #---------------------------------
 use strict;
 use integer;
@@ -25,34 +27,77 @@ my $line;
 while(<>) {
     s{\s+\Z}{}; # chompr
     $line = $_;
-    my ($aseqno, $callcode, $offset1, $coeff, $offset2, $initerms, @rest) = split(/\t/, $line);
-    my @coeffs = split(/\,\s*/, $coeff);
+    my ($aseqno, $callcode, $factor, $coeff_list, $den, $expnum, $expden) = split(/\t/, $line);
+    my @coeffs = split(/\,\s*/, $coeff_list);
     my $order = scalar(@coeffs) - 1;
-    my @inits  = split(/\,\s*/, $initerms);
-    # A101106   1, 3, 12, 57, 283, 1440, 7461, 39159, 207492, 1107549, 5946543, 32080032
-    # A101106   gfsqrt  0   1,-6,3,-6,1        1,3,12,57,283,1440
-    # 1/sqrt(1                - 6*x              - (-3)*x^2            - 6*x^3            - (-1)*x^4)
-    #   0 =  1*(2*n-0)*a(n-0) - 6*(2*n-1)*a(n-1) - (-3)*(2*n-2)*a(n-2) - 6*(2*n-3)*a(n-3) - (-1)*(2n-4)*a(n-4)
-    my $matrix = "[[0]";
-    my $ind = $order;
-    map { my $coe = $_;
-        my $result = ($coe * $ind) . "," . ($coe * (-2)); # 2*n
-        $matrix .= ",[$result]";
-        $ind --;
-    } reverse(@coeffs);
-    $matrix .= "]";
-    print join("\t", $aseqno, "holos", $offset1 
-        , $matrix
-        , "[" . join(",", splice(@inits, 0, $order)) . "]"
-        , 0, $offset2, "gfis", $coeff) . "\n";  
+    if ($expnum == -1) { # currently only in the denominator
+        # A101106   1, 3, 12, 57, 283, 1440, 7461, 39159, 207492, 1107549, 5946543, 32080032
+        # A101106   gfsqrt  0   1,-6,3,-6,1        1,3,12,57,283,1440
+        # 1/sqrt(1                - 6*x              - (-3)*x^2            - 6*x^3            - (-1)*x^4)
+        #   0 =  1*(2*n-0)*a(n-0) - 6*(2*n-1)*a(n-1) - (-3)*(2*n-2)*a(n-2) - 6*(2*n-3)*a(n-3) - (-1)*(2n-4)*a(n-4)
+        # A101106   holos   0   [[0],[4,-2],[-18,12],[6,-6],[-6,12],[0,-2]] [1,3,12,57] 0
+        my $matrix  = "[[0]";
+        my $formula = "";
+        my $demi    = $expden - 1; # 2n-1, 3n-2, 4n-3 ...
+        my $nind    = $order;
+        while ($nind >= 0) {
+            my $coeff = $coeffs[$nind];
+            my $scoeff = $coeff < 0 ? "($coeff)" : $coeff;
+            $matrix .= ",[" . ($coeff * $nind * $demi) . "," . ($coeff * (-$expden)) . "]";
+            if ($nind == 0) {
+                $formula = ($scoeff*0 == 1 ? "" : "$scoeff*") . "$expden*n*a(n)$formula";
+            } else {
+                $formula = " + $scoeff*($expden*n-" . ($nind*$demi) . ")*a(n-$nind)$formula";
+            }
+            $nind --;
+        } # while $nind 
+        $matrix .= "]";
+        $formula .= " = 0;";
+        
+        # now the initial terms; self-starting from [$factor]; assume a(k<0) = 0
+        # A095776 1,3,18,135,1053,8505,70470,594135,5073840,43761870,380433024,3328474032 
+        # A095776	holos	0	[[0],[-162,81],[0,0],[-18,27],[0,-3]]	[1,3,18]	0	
+        # 1*3*n*a(n) + (-9)*(3*n-2)*a(n-1) + 0*(3*n-4)*a(n-2) + (-27)*(3*n-6)*a(n-3) = 0;
+        # a(0) = 1; 3*1*a(1) - (27*1 + 18) => a(1) = 3; 3*2*a(2) - 36*3 => a(2) = 18;
+        # G.f. : (1-9x-27x^3)^(-1/3)
+        # (PARI) a(n)=polcoeff(1/(1-9*x-27*x^3)^(1/3)+O(x^(n+1)),n)        
+        my @initerms = ($factor);
+        my $n = 1;
+        while ($n < $order) { 
+            my $factan = $expden * $n;
+            my $sum = 0;
+            for (my $j = 1; $j <= $n; $j ++) {
+                $sum -= $coeffs[$j] * ($expden * $n - $demi * $j) * $initerms[$n - $j];
+            } # for $j
+            $initerms[$n] = $sum / $factan * $factor;
+            $n ++;
+        } # while $n
+        print join("\t", $aseqno, "holos", 0 
+            , $matrix
+            , "[" . join(",", @initerms) . "]"
+            , 0, $formula) . "\n";
+    } # expnum == -1
 } # while <>
 
 __DATA__
-A028329 gfsqrt  0   1,-4    2,4,12,40,140,504,1848,6864,25740,97240,369512,1410864,5408312,20801200,80233200,310235040,1202160780,4667212440,18150270600,70690527600,275693057640,1076515748880,4208197927440,16466861455200    24
-A051286 gfsqrt  0   1,-2,-1,-2,1    1,1,2,5,11,26,63,153,376,931,2317,5794,14545,36631,92512,234205,594169,1510192,3844787,9802895,25027296,63972861,163701327,419316330,1075049011,2758543201,7083830648,18204064403,46812088751,120452857976  30
-A059345 gfsqrt  0   1,-2,-5,2,1 1,1,4,9,29,82,255,773,2410,7499,23575,74298,235325,747407,2381126,7603433,24332595,78013192,250540055,805803691,2595158718,8368026845,27012184877,87283372610,282294378071,913775677281,2960160734818   27
-A084768 gfsqrt  0   1,-14,1 1,7,73,847,10321,129367,1651609,21360031,278905249,3668760487,48543499753,645382441711,8614382884849,115367108888311,1549456900170553,20861640747345727,281483386791966529,3805228005705102151,51527535767904810889,698796718936034430607   20
-A084769 gfsqrt  0   1,-18,1 1,9,121,1809,28401,458649,7544041,125700129,2114588641,35836273449,610897146201,10463745263409,179939616743121,3104680678772409,53721299280288201,931852905510160449,16198821321758152641   17
+A000407 gfsqrt  1   1,-4    1   -3  2
+A001813 gfsqrt  1   1,-4    1   -1  2
+A002422 gfsqrt  1   1,-4    1   5   2
+A002423 gfsqrt  1   1,-4    1   7   2
+A002424 gfsqrt  1   1,-4    1   9   2
+A002426 gfsqrt  1   1,-2,-3 1   -1  2
+A004981 gfsqrt  1   1,-8    1   -1  4
+A004982 gfsqrt  1   1,-8    1   -3  4
+A004983 gfsqrt  1   1,-8    1   3   4
+A004984 gfsqrt  1   1,-8    1   1   4
+A004985 gfsqrt  1   1,-8    1   -5  4
+A004986 gfsqrt  1   1,-8    1   -7  4
+A004987 gfsqrt  1   1,-9    1   -1  3
+A004988 gfsqrt  1   1,-9    1   -2  3
+A004989 gfsqrt  1   1,-9    1   2   3
+A004990 gfsqrt  1   1,-9    1   1   3
+A004991 gfsqrt  1   1,-9    1   -4  3
+A004992 gfsqrt  1   1,-9    1   -5  3
 
 
 A081207
@@ -89,3 +134,29 @@ n*a[n] == (6*n-3)*a[n-1] +(n-1)*a[n-2] -(2*n-3)*a[n-3] -(n-2)*a[n-4]
   (2*n - 0)*a[n-0] - 6*(2*n-1)*a[n-1] - 1*(2n-2)*a[n-2] - (-2)*(2*n-3)*a[n-3] - (-1)*(2*n-4)*a[n-4]} ,a,{n,0,10}]
 
 RecurrenceTable[{a[0]==1,a[1]==3,a[2]==14,a[3]==71,
+
+A285199 1,2,11,102,1329,22290,457155,11083590,310107105,9834291810
+"E.g.f.: 1/sqrt(1 - 4*x + x^2). - _Ilya Gutkovskiy_, May 05 2017",  wrong
+"a(n+2) = (4n+6) a(n+1) - (n+1)^2 a(n). - _Robert Israel_, May 05 2017", ok
+m-2 = n;  a(m) = 2*(2m-1)*a(m-1) - (m^2-2*m+1) * a(m-2) 
+A285199 holos   0   [[0],[-1,2,-1],[-2,4],[-1]] [1,2]   0                       Product of n! and the n-th Legendre polynomial evaluated at 2.
+
+A098481 holos   0   [[0],[-36,24],[2,-2],[-2,4],[0,-2]] [1,1,1] 0                       Expansion of 1/sqrt((1-x)^2 - 12*x^3).   1 - 2*x + x^2 -12*x^3
+1,1,1,7,19,37,115,361,937,2599,7777,22195,62701,182647,531829,1534903,4461571
+n*a(n) = (2*n-1)*a(n-1) - (n-1)*a(n-2) + 6*(2*n-3)*a(n-3). - _Vaclav Kotesovec_, Jun 23 2014
+-2n       4n-2            2n-2           24n-36   
+
+A182827 1,-1,-1,21,-111,-345,14895,-143955,-760095,49774095,-699437025,-5221460475,458621111025,-8457966542025,-81662774418225,8999266227076125,-205480756062957375,-2434383666448358625
+E.g.f. 1/sqrt(1+2x+4x^2)
+Conjecture: a(n) +(2n-1)*a(n-1) +4*(n-1)^2*a(n-2)=0. - _R. J. Mathar_, Nov 17 2011
+A182827 holos   0   [[0],[8,-8],[2,-4],[0,2]]   [1,-1]  0
+g.f. is wrong
+
+(1                        - c1*x              - c2*x^2    ...         - ck*x^k   )^(-1/2)
+ 1*(2*n-0)*a(n-0) - (2*n-1)*c1*a(n-1) - (2*n-2)*c2*a(n-2) ... - (2*n-k)*ck*a(n-k) = 0
+
+A095776 1,3,18,135,1053,8505,70470,594135,5073840,43761870,380433024,3328474032 
+A095776	holos	0	[[0],[-81,54],[0,0],[-9,18],[0,-2]]	[1,3,18]	0	1*3*n*a(n) + (-9)*(3*n-2)*a(n-1) + 0*(3*n-4)*a(n-2) + (-27)*(3*n-6)*a(n-3) = 0;
+G.f. : (1-9x-27x^3)^(-1/3)
+(PARI) a(n)=polcoeff(1/(1-9*x-27*x^3)^(1/3)+O(x^(n+1)),n)
+
