@@ -27,10 +27,11 @@ my $line;
 while(<>) {
     s{\s+\Z}{}; # chompr
     $line = $_;
-    my ($aseqno, $callcode, $factor, $coeff_list, $den, $expnum, $expden) = split(/\t/, $line);
+    my ($aseqno, $callcode, $factor, $coeff_list, $den, $rnum, $rden) = split(/\t/, $line);
     my @coeffs = split(/\,\s*/, $coeff_list);
     my $order = scalar(@coeffs) - 1;
-    if ($expnum == -1) { # currently only in the denominator
+    # sum_{l=0}^o (sn-sl+rl) p_l a_{n-l} = 0, n \geq o+1; exp = r/s
+    if (1) { # $rnum == -1) { # currently only in the denominator
         # A101106   1, 3, 12, 57, 283, 1440, 7461, 39159, 207492, 1107549, 5946543, 32080032
         # A101106   gfsqrt  0   1,-6,3,-6,1        1,3,12,57,283,1440
         # 1/sqrt(1                - 6*x              - (-3)*x^2            - 6*x^3            - (-1)*x^4)
@@ -38,19 +39,20 @@ while(<>) {
         # A101106   holos   0   [[0],[4,-2],[-18,12],[6,-6],[-6,12],[0,-2]] [1,3,12,57] 0
         my $matrix  = "[[0]";
         my $formula = "";
-        my $demi    = $expden - 1; # 2n-1, 3n-2, 4n-3 ...
-        my $nind    = $order;
-        while ($nind >= 0) {
-            my $coeff = $coeffs[$nind];
+        my $demi    = $rden - 1; # 2n-1, 3n-2, 4n-3 ...
+        my $iell    = $order;
+        while ($iell >= 0) {
+            my $coeff = $coeffs[$iell];
             my $scoeff = $coeff < 0 ? "($coeff)" : $coeff;
-            $matrix .= ",[" . ($coeff * $nind * $demi) . "," . ($coeff * (-$expden)) . "]";
-            if ($nind == 0) {
-                $formula = ($scoeff*0 == 1 ? "" : "$scoeff*") . "$expden*n*a(n)$formula";
+            my $recoff = $rden*$iell + $rnum*$iell;
+            if ($iell == 0) {
+                $formula = "$scoeff*$rden*n*a(n)$formula";
             } else {
-                $formula = " + $scoeff*($expden*n-" . ($nind*$demi) . ")*a(n-$nind)$formula";
+                $formula = " + $scoeff*($rden*n" . ($recoff >= 0 ? "+$recoff" : $recoff) . ")*a(n-$iell)$formula";
             }
-            $nind --;
-        } # while $nind 
+            $matrix .= ",[" . ($coeff * $recoff) . "," . ($coeff * (-$rden)) . "]";
+            $iell --;
+        } # while $iell 
         $matrix .= "]";
         $formula .= " = 0;";
         
@@ -64,10 +66,10 @@ while(<>) {
         my @initerms = ($factor);
         my $n = 1;
         while ($n < $order) { 
-            my $factan = $expden * $n;
+            my $factan = $rden * $n;
             my $sum = 0;
             for (my $j = 1; $j <= $n; $j ++) {
-                $sum -= $coeffs[$j] * ($expden * $n - $demi * $j) * $initerms[$n - $j];
+                $sum -= $coeffs[$j] * ($rden * $n - $demi * $j) * $initerms[$n - $j];
             } # for $j
             $initerms[$n] = $sum / $factan * $factor;
             $n ++;
@@ -159,4 +161,4 @@ A095776 1,3,18,135,1053,8505,70470,594135,5073840,43761870,380433024,3328474032
 A095776	holos	0	[[0],[-81,54],[0,0],[-9,18],[0,-2]]	[1,3,18]	0	1*3*n*a(n) + (-9)*(3*n-2)*a(n-1) + 0*(3*n-4)*a(n-2) + (-27)*(3*n-6)*a(n-3) = 0;
 G.f. : (1-9x-27x^3)^(-1/3)
 (PARI) a(n)=polcoeff(1/(1-9*x-27*x^3)^(1/3)+O(x^(n+1)),n)
-
+make runholo INIT="[1]" MATRIX="[[0],[162,-81],[0],[18,-27],[0,3]"

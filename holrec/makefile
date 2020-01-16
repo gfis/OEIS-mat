@@ -89,6 +89,7 @@ gfsqrt2: # convert polynomials to vectors
 	| sed -e "s/orgf/gfsqrt/" \
 	| cut -f1- \
 	| uniq -w7 \
+	| sed -e "s/A04939\([0-9]\)\tgfsqrt\t1\t1,\-1/A04939\1\tgfsqrt\t1\t1,\-25/" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -113,7 +114,7 @@ gfsqrt4:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 gfsqrt5:
-	| tee    $@.tmp
+	tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 gfsqrt6:
