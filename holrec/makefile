@@ -77,7 +77,7 @@ hyper:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #-----
-gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 gfsqrt5
+gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	perl gfsqrt_grep.pl $(COMMON)/cat25.txt \
 	| tee    $@.tmp
@@ -100,7 +100,7 @@ gfsqrt3: # generate matrix and initerms
 	wc -l    $@.tmp
 	grep A095776 $@.tmp
 EX=xx
-gfsqrt4:
+gfsqrt4: # store in DB table and select non-jOEIS
 	$(DBAT) -f $(LITE)/seq4.create.sql
 	cat      gfsqrt3.tmp | $(DBAT) -m csv -r seq4 
 	$(DBAT) -4 seq4

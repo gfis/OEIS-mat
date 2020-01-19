@@ -2,10 +2,11 @@
 
 # Generate an HTML working list from files *_change.txt with rotten links (%H lines)
 # @(#) $Id$
+# 2020-01-17: for finch3, with cat25 prefixes
 # 2019-04-18, Georg Fischer: copied from ../common/html_checks.pl
 #
 #:# usage:
-#:#   perl html_change.pl [-init|-list|-term] [-m makefile] some_check.txt > some_check.html
+#:#   perl html_changes.pl [-init|-list|-term] [-m makefile] some_check.txt > some_check.html
 #:#       -init write header  of index file
 #:#       -term write trailer of index file
 #:#       -list write table of sequences to be changed (default)
@@ -60,7 +61,7 @@ my $count = 0;
 if (0) {
 } elsif ($mode =~ m{init}   ) {
     print &get_html_head("Index of link change worksheets");
-    print "<tr><th class=\"bor\">Name</th>"
+    print "<tr><th>No.</th><th class=\"bor\">Name</th>"
       . "<th class=\"bor\">Count</th>"
       . "<th class=\"bor\">Description</th></tr>\n";
 
@@ -78,10 +79,10 @@ if (0) {
         } elsif ($line =~ m{^\#\s*(http.*)}) {
             $rep_link = $1;
             if ($debug >= 1) {
-            		print STDERR "rep_link1 = \"$rep_link\"\n";
+                    print STDERR "rep_link1 = \"$rep_link\"\n";
             }
         } elsif ($line =~ m{^\%H\s+(A\d+)\s+(.*)}) { # line to be replaced
-		        $count ++;
+            $count ++;
             $aseqno = $1;
             $old_h  = "\%H $2";
             $new_h  = $old_h;
@@ -90,20 +91,20 @@ if (0) {
             $rep_h  = $new_h;
             $new_h .= " [Broken link]";
             if ($debug >= 2) {
-            		print STDERR "rep_link2 = \"$rep_link\"\n";
+                    print STDERR "rep_link2 = \"$rep_link\"\n";
             }
             $rep_h  =~ s{href\=\"[^\"]+\"}{href\=\"$rep_link\"};
             if ($rep_link =~ m{web\.archive\.org}) {
-            	$rep_h .= " [From the Wayback machine]";
+                $rep_h .= " [From the Wayback machine]";
             }
             print <<"GFis";
-    <tr><td class=\"bor bott\"><a href=\"https://oeis.org/edit\?seq=$aseqno\&internal=1\" target=\"_blank\">$aseqno</a></td>
-        <td class=\"bor\"><textarea readonly wrap="hard" rows="4" cols="160">$new_h
+    <tr><td>$count</td><td class=\"bor bott\"><a href=\"https://oeis.org/edit\?seq=$aseqno\&internal=1\" target=\"_blank\">$aseqno</a></td>
+        <td class=\"bor\"><!--<textarea readonly wrap="hard" rows="4" cols="160">$new_h
 $rep_h
-</textarea><br />$old_h</td></tr>
+</textarea><br />-->$old_h</td></tr>
 GFis
         } else {
-        	$rep_link = "#################";
+            $rep_link = "#################";
         }
     } # while <INF>
     close(INF);

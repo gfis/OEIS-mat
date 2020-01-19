@@ -19,15 +19,18 @@ my $poly;
 my $line;
 my $factor; # $factor/sqrt()
 my ($expnum, $expden); # numerator (-1) and denominator (2) of exponent
+my $gftype; # "e" if e.g.f, "o" otherwise
 
 while(<>) {
     s{\s+\Z}{}; # chompr
     $line = $_;
     $factor = "";
+    $gftype    = "o";
     if (0) {
     #                              1        2                 34                      5                6             7                          8
     } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\(x\)\s*\=\s*)?(\d+)\/\s*sqrt(\([^\.\;]+)}i) { 
         $aseqno = $1;
+        $gftype = $4 || "o";
         $factor = $6;
         $poly   = $7;
         $expnum = -1;
@@ -39,6 +42,7 @@ while(<>) {
     #                              1        2                 34                      5                  67                                8         9
     } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\(x\)\s*\=\s*)?\((([a-z]|[\(\)\^\+\- \*\d])+)\)\^\((\-?\d+)\/(\d+)\)\s*[\.\;]}i) { 
         $aseqno = $1;
+        $gftype = $4 || "o";
         $factor = 1;
         $poly   = $6;
         $expnum = $8;
@@ -47,11 +51,12 @@ while(<>) {
         $poly =~ s{\A\(}{};
         $poly =~ s{\)\Z}{};
     } 
+    $gftype = ($gftype =~ m{E}i) ? "e" : "o"; 
     if (length($factor) > 0 
             and ($poly !~ m{[a-z][a-z]}) 
             and ($poly !~ m{[\=\/]}) 
             and ($poly !~ m{[A-Z]})) {
-        print join("\t", $aseqno, "fract1", $factor, $poly, $expnum, $expden) . "\n";
+        print join("\t", $aseqno, "fract1", $factor, $poly, $expnum, $expden, $gftype) . "\n";
     }
 } # while <>
 __DATA__

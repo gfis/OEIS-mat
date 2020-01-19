@@ -2,6 +2,7 @@
 
 # Convert Mathematica Print output to b-file
 # @(#) $Id$
+# 2020-01-18: ../common/names
 # 2019-02-18, Georg Fischer
 #
 #:# usage:
@@ -21,7 +22,7 @@ my @parts = split(/\s+/, POSIX::asctime($sec, $min, $hour, $mday, $mon, $year, $
 #   0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 
-my $basedir   = "../coincidence/database";
+my $basedir   = "../common";
 my $names     = "$basedir/names";     
 
 my $offset = 1;
