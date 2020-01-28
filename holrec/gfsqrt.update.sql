@@ -13,6 +13,8 @@
 -- UPDATE seq4   SET parm1='[[0],[-12,18],[-3]]'                WHERE aseqno = 'A047657';
 -- UPDATE seq4   SET parm1='[[0],[-6,18],[-3]]'                 WHERE aseqno = 'A049308';
 -- UPDATE seq4   SET parm1='[[0],[-63,81],[-9]]'                WHERE aseqno = 'A084949';
+UPDATE seq4   SET parm1='[[0],[4,-12,8],[1,-6],[1]]', parm2='[1]'
+    , parm4='a(n) +(-6*n+1)*a(n-1) +4*(2*n-1)*(n-1)*a(n-2)=0'   WHERE aseqno = 'A090470';
 UPDATE asinfo SET offset1=0                                  WHERE aseqno = 'A095776';
 -- UPDATE seq4   SET parm1='[[0],[-2,4],[-2]]'                  WHERE aseqno = 'A097801';
   -- (Maple) a:= proc(n) a(n):= `if`(n=0, 2, a(n-1)*(2*n-1)) end; seq(a(n), n=0..25);

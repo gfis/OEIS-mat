@@ -43,6 +43,7 @@ checks: \
 	sign_check   \
 	synth_check  \
 	terms_check  \
+	uncat_check  \
 	eval_checks  \
 	html_checks
 #
@@ -516,6 +517,16 @@ terms_check: # The first few terms differ from the b-file, and that is not synth
 	      AND a.terms <> b.terms \
 	      AND b.message NOT LIKE '%synth%' \
 	      AND a.aseqno  NOT in (SELECT aseqno FROM draft) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#-----------------------------
+uncat_check: # Whether the cat25 file contains newer sequences
+	make -f makefile seq2 LIST=uncat_date1.tmp
+	$(DBAT) "SELECT a.aseqno, SUBSTR(a.access, 1, 10) AS ajson_date, s.info AS cat25_date \
+	    FROM asinfo a, seq2 s \
+	    WHERE a.aseqno = s.aseqno \
+	      AND SUBSTR(a.access, 1, 7) < SUBSTR(s.info,1, 7) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt

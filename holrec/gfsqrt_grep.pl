@@ -20,43 +20,65 @@ my $line;
 my $factor; # $factor/sqrt()
 my ($expnum, $expden); # numerator (-1) and denominator (2) of exponent
 my $gftype; # "e" if e.g.f, "o" otherwise
+my $callcode;
 
 while(<>) {
     s{\s+\Z}{}; # chompr
-    $line = $_;
+    $line   = $_;
     $factor = "";
-    $gftype    = "o";
+    $poly   = "";
+    $gftype = "o";
+    $callcode = "fract1";
     if (0) {
     #                              1        2                 34                      5                6             7                          8
-    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\(x\)\s*\=\s*)?(\d+)\/\s*sqrt(\([^\.\;]+)}i) { 
-        $aseqno = $1;
-        $gftype = $4 || "o";
-        $factor = $6;
-        $poly   = $7;
-        $expnum = -1;
-        $expden = 2;
-        $poly =~ s{\s}{}g;
-        $poly =~ s{\A\(}{};
-        $poly =~ s{\)\Z}{};
+    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\([t-z]\)\s*\=\s*)?(\d+)\s*\/\s*sqrt(\([^\.\;]+)}i) { 
+        $aseqno  = $1;
+        $gftype  = $4 || "o";
+        $factor  = $6;
+        $poly    = $7;
+        $expnum  = -1;
+        $expden  = 2;
+        $callcode = "fract1";
         # sqrt 
+        
+    # A106188 ?stdf?	fract	0	1/((1-x^2)*sqrt(1-4*x))
+    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\([t-z]\)\s*\=\s*)?(\d+)\s*\/\s*\((\([^\.\;\)]+\))\s*\*?\s*sqrt(\([^\.\;\)]+\))\)[ \.\;\w]}i) { 
+        $aseqno  = $1;
+        $gftype  = $4 || "o";
+        $factor  = $6;
+        my $qoly = $7;
+        $poly    = $8;
+        $poly    = "($qoly^2*$poly)";
+        $expnum  = -1;
+        $expden  = 2;
+        $callcode = "fract2";
+        # 1/((Q)*sqrt(P))
     #                              1        2                 34                      5                  67                                8         9
-    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\(x\)\s*\=\s*)?\((([a-z]|[\(\)\^\+\- \*\d])+)\)\^\((\-?\d+)\/(\d+)\)\s*[\.\;]}i) { 
-        $aseqno = $1;
-        $gftype = $4 || "o";
-        $factor = 1;
-        $poly   = $6;
-        $expnum = $8;
-        $expden = $9;
-        $poly =~ s{\s}{}g;
-        $poly =~ s{\A\(}{};
-        $poly =~ s{\)\Z}{};
+    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(A\([t-z]\)\s*\=\s*)?\((([a-z]|[\(\)\^\+\- \*\d])+)\)\^\((\-?\d+)\/(\d+)\)\s*[\.\;]}i) { 
+        $aseqno  = $1;
+        $gftype  = $4 || "o";
+        $factor  = 1;
+        $poly    = $6;
+        $expnum  = $8;
+        $expden  = $9;
+        $callcode = "fract4";
+        # ^(-3/2)
+        
     } 
+    $poly =~ s{\s}{}g;
+    $poly =~ s{\A\(}{};
+    $poly =~ s{\)\Z}{}g;
     $gftype = ($gftype =~ m{E}i) ? "e" : "o"; 
+    my %letters = ();
+    foreach my $letter($poly =~ m{([a-z])}g) {
+        $letters{$letter} = 1;
+    } # foreach letter
     if (length($factor) > 0 
+            and scalar(keys(%letters)) <= 1
             and ($poly !~ m{[a-z][a-z]}) 
             and ($poly !~ m{[\=\/]}) 
             and ($poly !~ m{[A-Z]})) {
-        print join("\t", $aseqno, "fract1", $factor, $poly, $expnum, $expden, $gftype) . "\n";
+        print join("\t", $aseqno, $callcode, $factor, $poly, $expnum, $expden, $gftype) . "\n";
     }
 } # while <>
 __DATA__

@@ -84,11 +84,13 @@ gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 gfsqrt2: # convert polynomials to vectors
-	$(RAMATH).sequence.JoeisPreparer -f gfsqrt1.tmp \
+	sed -e "s/\tfract[0-9]\t/\tfract1\t/" gfsqrt1.tmp > x.tmp
+	$(RAMATH).sequence.JoeisPreparer -f                 x.tmp \
 	| grep -E "orgf" \
 	| sed -e "s/orgf/gfsqrt/" \
 	| cut -f1- \
 	| uniq -w7 \
+	| grep -v A248193 \
 	| sed -e "s/A04939\([0-9]\)\tgfsqrt\t1\t1,\-1/A04939\1\tgfsqrt\t1\t1,\-25/" \
 	>        $@.tmp
 	head -n4 $@.tmp

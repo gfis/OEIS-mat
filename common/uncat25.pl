@@ -2,13 +2,15 @@
 
 # Split a CAT25 file with the internal format, separated by empty lines
 # @(#) $Id$
+# 2020-01-25: -m date
 # 2019-03-01, Georg Fischer
 #
 #:# usage:
 #:#   perl uncat25.pl [-m mode] [-d debug] [-i] [-o tardir] input > output
-#:#   perl uncat25.pl -m text cat25.txt (split into tardir/*.txt, default)
-#:#   perl uncat25.pl -m json cat25.txt (split into tardir/*.json, nyi)
 #:#   perl uncat25.pl -m comp cat25.txt (compare with tardir/*.json)
+#:#   perl uncat25.pl -m date cat25.txt > list of aseqno, date 
+#:#   perl uncat25.pl -m json cat25.txt (split into tardir/*.json, nyi)
+#:#   perl uncat25.pl -m text cat25.txt (split into tardir/*.txt, default)
 #:#       -o target directory, default "./atext"
 #:#       -d 0 (none), 1 (more), 2 (most)
 #:#       -i (do not ignore missing JSON "id")
@@ -87,26 +89,6 @@ my $cpara = 0;
 my %texts; # accumulated lines of text format
 my %jsons; # accumulated lines of JSON format
 if (0) {
-#--
-} elsif ($mode =~ m{text}) {
-    while (<>) {
-        my $block = $_;
-        if ($block =~ m{^\%I (A\d+)}) {
-            my $aseqno = $1;
-            open (OUT, ">", "$tardir/$aseqno.txt") or die "cannot write \"$tardir/$aseqno.txt\"\n";
-            print OUT $block;
-            print OUT "\n";
-            close(OUT);
-            $count ++;
-        } else {
-            print STDERR join("\t", sprintf("\@%06d", $cpara), "?undef_block") . "\n";
-        }
-        $cpara ++;
-    } # while <>
-    print STDERR"$cpara blocks read, $count .txt files written to $tardir\n";
-#--
-} elsif ($mode =~ m{json}) {
-    print "\"-m json\" not yet implemented\n";
 #--
 } elsif ($mode =~ m{comp}) {
     while (<>) {
@@ -258,6 +240,73 @@ if (0) {
         $cpara ++;
     } # while <>
     print STDERR "$cpara blocks read, $count $tardir/*.json files compared\n";
+#--
+} elsif ($mode =~ m{date}) {
+    my %months = qw(
+        Jan 01
+        Feb 02 
+        Mar 03 
+        Apr 04 
+        May 05
+        Jun 06
+        Jul 07
+        Aug 08
+        Sep 09
+        Oct 10
+        Nov 11
+        Dec 12);
+    my $oseqno = "A000000";
+    my $nseqno = $oseqno;
+    my $mstamp = "1900-01-01";
+    my $nstamp = $mstamp;
+    my $ostamp = $mstamp;
+    while (<>) {
+        s{\s+\Z}{}; # chompr
+        my $line = $_;
+        $line =~ m{^\%\w (A\d+)};
+        $nseqno = $1;
+        if ($nseqno ne $oseqno) {
+            if ($ostamp ne $mstamp) {
+                print join("\t", $oseqno, $ostamp) . "\n";
+            }
+            $ostamp = $mstamp;
+            $oseqno = $nseqno;
+        }
+        my @dates = $line =~ m{((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d\d \d\d\d\d)}g;
+        foreach my $date(@dates) {
+            $date =~ m{^(\w\w\w) (\d\d) (\d\d\d\d)};
+            my ($month, $day, $year) = ($months{$1}, $2, $3);
+            my $nstamp = "$year-$month-$day";
+            if ($nstamp gt $ostamp) { # get the maximum
+                $ostamp = $nstamp;
+            }
+        } # foreach $date
+    } # while <>
+    if (1) {
+            if ($ostamp ne $mstamp) {
+                print join("\t", $oseqno, $ostamp) . "\n";
+            }
+    }
+#--
+} elsif ($mode =~ m{json}) {
+    print "\"-m json\" not yet implemented\n";
+#--
+} elsif ($mode =~ m{text}) {
+    while (<>) {
+        my $block = $_;
+        if ($block =~ m{^\%I (A\d+)}) {
+            my $aseqno = $1;
+            open (OUT, ">", "$tardir/$aseqno.txt") or die "cannot write \"$tardir/$aseqno.txt\"\n";
+            print OUT $block;
+            print OUT "\n";
+            close(OUT);
+            $count ++;
+        } else {
+            print STDERR join("\t", sprintf("\@%06d", $cpara), "?undef_block") . "\n";
+        }
+        $cpara ++;
+    } # while <>
+    print STDERR"$cpara blocks read, $count .txt files written to $tardir\n";
 #--
 } else {
     die "invalid mode \"$mode\"\n";
