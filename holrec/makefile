@@ -237,7 +237,47 @@ recur5:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
-recuf: recuf1 recuf2 recuf3 recuf4 recuf5 recuf6 recuf7
+matfin: matfin1 recuf_rest matfin2
+matfin0: # on the server
+	find ajson -iname "*.json" | sort | xargs -l grep -iHE "([CDP]\-finite|[Rr]ecurrence)" \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+matfin1:
+	cat matfin0.tmp \
+	| perl -ne 'print if m{json\:\s*.D\-finite};' \
+	| perl -ne 's{^ajson\/(A\d+)\.json\:\s+\"D\-finite( with recurrence)?( of order \d+)?\:?\s*([^\.\[\"\_]+)}{$$1\t$$4}; my $$recur = $$4;'\
+	's{\..*}{}; s{ \- \_.*}{}; s{\"}{}g; s{\(?(for |if |with |)\s*n\s*\\u003e\=?\s*\d+\)?}{}i;'\
+	's{ }{}g; s{a\(\d+\)\=\-?\d+[\;\,]}{}g; s{\+\-}{\-}g; s{(\(End\))?\,}{}g;'\
+	'print if (length($$recur) < 256 and ($$recur !~ m{\d{4}}));' \
+	| grep -vE "[\\\!\/]" | grep -vE "[b-lp-zB-Z]" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	mv       $@.tmp recuf1.tmp
+matfin2:
+	cp -v    recuf7.tmp $(LITE)/holos.gen
+#--------
+# from http://www.mpia.de/~mathar/public/fischer20200119.pdf
+matpap: matpap1 recuf_rest
+matpap1:
+	EX=ex
+	cat mathar-pap.man \
+	| grep -vE "	\-" \
+	| sed -e "s/\.//" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	mv       $@.tmp recuf1.tmp
+matpap2:
+	$(RAMATH).sequence.JoeisPreparer -d $(D) -f matpap1.tmp \
+	| sed -e "s/\t/\tbva\t0\t/" -e "s/\.//" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
+recuf:  recuf1  recuf_rest
+recuf_rest: recuf2 recuf3 recuf4 recuf5 recuf6 recuf7
 recuf1:
 	perl grep_rectab.pl $(COMMON)/cat25.txt \
 	>        $@.tmp
@@ -248,12 +288,13 @@ recuf2:
 	| cut -b1-1024 \
 	>        $@.tmp
 	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
+EXT=
 recuf3:
 	$(DBAT) -x "SELECT s.aseqno, 'recuf', i.offset1, s.info, d.data, d.termno \
 		FROM seq2 s, asdata d, asinfo i \
 		WHERE s.aseqno = d.aseqno \
 		  AND s.aseqno = i.aseqno \
-		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+		  AND s.aseqno NOT IN (SELECT '$(EX)' || aseqno FROM joeis) \
 		ORDER BY 1 " \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -272,7 +313,6 @@ recuf6:
 	grep holo recuf5.tmp \
 	| grep -vE "\-256" \
 	| grep -vE ",," \
-	| grep -vE "=" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

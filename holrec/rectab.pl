@@ -2,6 +2,7 @@
 
 # Process MMA RecurrenceTable calls and extract parameters for HolonomicSequence
 # @(#) $Id$
+# 2020-02-11: show annihilator
 # 2019-12-02, Georg Fischer
 #
 #:# Usage:
@@ -167,7 +168,7 @@ while (<>) {
           } # while $ind
           $matrix .= "]";
           $matrix =~ s{\A\,}{\[};
-          print join("\t", $aseqno, "holo", $offset, $matrix, $vector, $inx9), "\n";
+          print join("\t", $aseqno, "holo", $offset, $matrix, $vector, $inx9, $annihil), "\n";
       } # scalar > 0
     } # if RecTab
 } # while <>
