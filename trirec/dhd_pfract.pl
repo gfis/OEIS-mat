@@ -58,7 +58,7 @@ while (<>) {
     $cf0 =~ s{ }{}g;
     $cf0 =~ s{\+\-}{\-}g;
     $cf0 =~ s{\/\(1\)}{}g;
-    print "$aseqno\tdelta\t0\t$cf0\n";
+    print join("\t", $aseqno, "dhd", 0, $cf0, $cf0, "gf=$cf0", "dhdop=$delta_oper") . "\n";
 } # while <>
 #--------------------
 __DATA__

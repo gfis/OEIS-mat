@@ -218,6 +218,33 @@ consc_check: # Keyword "cons" related to name
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#----
+dead:
+	$(DBAT) -x "SELECT i.aseqno, n.name, 0 \
+	    FROM asinfo i, asname n \
+	    WHERE i.aseqno = n.aseqno \
+	      AND i.keyword LIKE '%dead%' \
+	    ORDER BY 1" \
+	| perl -ne 'my ($$aseqno, $$name, $$rest) = split(/\t/); $$name =~ m{(A\d\d\d+)}; my $$bseqno = $$1; '\
+	' my $$code = lc(substr($$name, 0, 4)); $$code =~ s{inco|not |van |appa|appe}{erro}i; '\
+	' print join("\t", $$aseqno, "$@", 0, $$bseqno, $$code, substr($$name, 0, 64)) . "\n";'\
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+	cd $(FISCHER); make seq4 LIST=../$(COMMON)/$@.gen
+dead_check: dead # Where are dead, erroneous sequences still referenced?
+	$(DBAT) "SELECT r.aseqno, b.keyword, s.aseqno, s.parm2, a.keyword \
+		FROM asxref r, seq4 s, asinfo a, asinfo b \
+		WHERE r.aseqno = b.aseqno \
+		  AND s.aseqno = r.rseqno \
+		  AND s.aseqno = a.aseqno \
+		  AND s.parm1 <> r.aseqno \
+		  AND (s.parm2 =  'erro' OR s.parm2 =  'dupl') \
+		  AND b.keyword NOT LIKE '%dead%' \
+		ORDER BY 1" \
+	| tee    $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
 #--------------------------------
 denom_check: # Name of the sequence contains "Denominator", keyword <em>sign</em>, and <em>nonn</em> terms
 	$(DBAT) -f seq2.create.sql

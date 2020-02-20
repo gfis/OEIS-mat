@@ -35,41 +35,6 @@ all:
 	grep -E "^[a-z]" makefile
 	# the wiki index page for lin.rec.s is regenerated with 'make linrec'
 #====================================
-# Deléham's DELTA operator
-#
-deldelta: dde1 dde2 dde_joeis dde_cf dde_gf
-dde1: # raw extract of word "DELTA" 
-	grep DELTA $(COMMON)/cat25.txt \
-	| perl deldelta.pl \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-dde2: # separate finite and continued fractions
-	grep -v "#" dde1.tmp > dde2.tmp
-	grep    "#" dde1.tmp > dde_bad.tmp
-	grep -E  "\.\.\." dde2.tmp | uniq > dde2_cont.tmp
-	grep -vE "\.\.\." dde2.tmp | uniq > dde2_fini.tmp
-	grep "seq" dde2_fini.tmp || :
-	wc -l dde*.tmp
-dde_joeis: # join with any JOEIS superclass
-	make -f $(COMMON)/makefile seq2 LIST=dde2_fini.tmp
-	$(DBAT) "SELECT s.aseqno, j.superclass, s.info \
-	FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
-	ORDER BY 1" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-dde_cf: # continued fraction
-	perl delta_pfract.pl dde_joeis.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-dde_gf: # generating function
-	$(PFRACT) -f dde_cf.tmp \
-	| tee    $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#====================================
 raeval: raeval1 raeval2 raeval_count raeval_joeis raeval_null
 raeval0: # manually on the server, takes ~4 hours
 	$(RAMATH).sequence.LinearRecurrence \
@@ -252,52 +217,6 @@ recur5:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#----
-recuf: recuf1 recuf2 recuf3 recuf4 recuf5 recuf6 recuf7
-recuf1:
-	perl grep_rectab.pl $(COMMON)/cat25.txt \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-recuf2:
-	uniq -w7 recuf1.tmp \
-	| cut -b1-1024 \
-	>        $@.tmp
-	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
-recuf3:
-	$(DBAT) -x "SELECT s.aseqno, 'recuf', i.offset1, s.info, d.data, d.termno \
-		FROM seq2 s, asdata d, asinfo i \
-		WHERE s.aseqno = d.aseqno \
-		  AND s.aseqno = i.aseqno \
-		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
-		ORDER BY 1 " \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-recuf4:
-	perl pre_rectab.pl  -a $(AINIT) recuf3.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-recuf5:
-	perl rectab.pl -d $(D) recuf4.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-recuf6:
-	grep holo recuf5.tmp \
-	| grep -vE "\-256" \
-	| grep -vE ",," \
-	| grep -vE "=" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-recuf7:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf5.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#
 #=================================================
 plouffe: plou1 plou2
 plou1:
@@ -345,7 +264,9 @@ fract2:
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
-	make --quiet njoeis LIST=$@.tmp
+	# make --quiet njoeis LIST=$@.tmp
+fract2_prep:
+	
 fract39:
 	grep -vE "^#" catgf1.tmp | grep -E "fract[3-9]" \
 	>       $@.tmp || :
@@ -386,81 +307,6 @@ recur:
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp 
-#--------------------
-# Riordan arrays
-rio: rio0 rio1
-rio0:
-	grep -iE "Riordan *array" $(COMMON)/cat25.txt \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
-rio1:
-	perl extract_rio.pl $(COMMON)/cat25.txt \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
-rio2:
-	grep -vE "\?" rio1.tmp \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
-rio3:
-	$(PFRACT) -n 64 -f rio2.tmp
-#--------
-factabl: factabl1 factabl2
-factabl1:
-	$(DBAT) -x "SELECT i.aseqno, d.data FROM asinfo i, asdata d \
-		WHERE i.aseqno = d.aseqno \
-		  AND i.keyword LIKE '%tabl%' \
-		  AND d.data LIKE '1,2,1,%' \
-		  AND d.data LIKE '%,120,%' \
-		  AND d.data LIKE '%,720,%' \
-	    ORDER BY i.aseqno;" \
-	| perl factabl.pl \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
-	$(DBAT) -f $(COMMON)/seq.create.sql
-	cut -d "	" -f 1 $@.tmp | sort | uniq \
-	| $(DBAT) -r seq
-	$(DBAT)   -n seq
-	perl $(COMMON)/html_checks.pl $@.tmp > $@.html
-factabl2:
-	$(DBAT) -f $(COMMON)/seq2.create.sql
-	cut -d "	" -f 1,4 catgf3.tmp \
-	| grep y \
-	| $(DBAT) -r seq2
-	$(DBAT)   -n seq2
-	$(DBAT) -x "SELECT s.aseqno, s2.info FROM seq s, seq2 s2 \
-		WHERE s.aseqno = s2.aseqno \
-	    ORDER BY s.aseqno;" \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
-#--------
-# triangles
-trigen:
-	$(DBAT) -x "SELECT i.aseqno, d.data FROM asinfo i, asdata d \
-		WHERE i.aseqno = d.aseqno \
-		  AND i.keyword LIKE '%tabl%' \
-	    ORDER BY i.aseqno;" \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
-trigen1:
-	perl extract_trigen1.pl trigen.tmp > $@.tmp  
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
-#--------
-trec:
-	perl -ne \
-	's{with |where |when |for |if }{ }g;'\
-	'if ((! m{[\!\|]|\.\.\.|ceil|floor|min|max|[Nn]umber|Pi|[Ss]um|[ATa]\d{6}\S}) and (m{^\%\w (A\d+)\s+(T\([i-n]\,\s*[i-n]\)\s*\=[^\.]*)\.}))'\
-	'{ print join("\t", $$1, "$@", 0, $$2) . "\n" }' \
-	$(COMMON)/cat25.txt \
-	| tee     $@.tmp
-	# head -n 4 $@.tmp
-	wc -l     $@.tmp  
 #--------
 elu1:
 	grep "def " generatingFunctions.txt \

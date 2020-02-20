@@ -91,7 +91,7 @@ if (0) {
     $tabname = "asxref";
     $do_xref = 1;
 }
-my $access = "1900-01-01 00:00:00"; # modification timestamp from the file
+my $access = "1971-01-01 00:00:00"; # modification timestamp from the file
 my $buffer; # contains the whole file
 my $filesize  = 0; # file size in bytes from the operating system
 #----------------------------------------------
@@ -296,8 +296,8 @@ CREATE  TABLE            $tabname
     , keyword   VARCHAR(64)   -- "hard,nice,more" etc.
     , author    VARCHAR(80)   -- of the sequence; allow for apostrophes
     , revision  INT           -- sequential version number
-    , created   TIMESTAMP     -- creation     time in UTC
-    , access    TIMESTAMP     -- modification time in UTC
+    , created   TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- creation     time in UTC
+    , access    TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- modification time in UTC
     , PRIMARY KEY(aseqno)
     );
 COMMIT;
@@ -398,7 +398,7 @@ sub utc {
     if ($year < 1970) {
         # OEIS server sometimes sets "0000"
         # MariaDB does not accept timestamps < "1970-01-01 01:01:01"
-        $year = 1974;
+        $year = 1971;
     }
     return sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year, $month, $day, $hour, $min, $sec);
@@ -572,7 +572,7 @@ CREATE  TABLE            $tabname
     , filesize  INT           -- size of the file in bytes, from the operating system 
     , maxlen    INT           -- maximum length of terms
     , message   VARCHAR(128)  -- "bad<iline>,blank,comt,cr,ecomt,loose,lsp,msp,neof,rsp,sign,nxinc<iline>,synth,tcomt" 
-    , access    TIMESTAMP     -- b-file modification time in UTC
+    , access    TIMESTAMP DEFAULT '1971-01-01 00:00:01' -- b-file modification time in UTC
     , PRIMARY KEY(aseqno)
     );
 COMMIT;

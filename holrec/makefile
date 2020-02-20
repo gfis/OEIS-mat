@@ -239,24 +239,34 @@ recur5:
 #----
 matfin: matfin1 recuf_rest matfin2
 matfin0: # on the server
-	find ajson -iname "*.json" | sort | xargs -l grep -iHE "([CDP]\-finite|[Rr]ecurrence)" \
+	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -iHE "([CDP]\-finite|[Rr]ecurrence\:)" \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+matfin_scp:
+	scp gfis@atair:~/work/gits/OEIS-mat/holrec/matfin0.tmp .
 matfin1:
 	cat matfin0.tmp \
-	| perl -ne 'print if m{json\:\s*.D\-finite};' \
-	| perl -ne 's{^ajson\/(A\d+)\.json\:\s+\"D\-finite( with recurrence)?( of order \d+)?\:?\s*([^\.\[\"\_]+)}{$$1\t$$4}; my $$recur = $$4;'\
+	| perl -ne 'if (! m {a[\(\]][2-9]\d*\*?n}) { print; }' \
+	| grep -vE "A160149" \
+	| perl -ne 'print if m{json\:\s*.(D\-finite|[Rr]ecurrence\:)};' \
+	| perl -ne 's{^\.\.\/common\/ajson\/(A\d+)\.json\:\s+\"(D\-finite( with recurrence)?( of order \d+)?\:?|[Rr]ecurrence\:)\s*([^\.\[\"\_]+)}{$$1\t$$5}; my $$recur = $$5;'\
 	's{\..*}{}; s{ \- \_.*}{}; s{\"}{}g; s{\(?(for |if |with |)\s*n\s*\\u003e\=?\s*\d+\)?}{}i;'\
 	's{ }{}g; s{a\(\d+\)\=\-?\d+[\;\,]}{}g; s{\+\-}{\-}g; s{(\(End\))?\,}{}g;'\
-	'print if (length($$recur) < 256 and ($$recur !~ m{\d{4}}));' \
+	'print if (length($$recur) < 256 and ($$recur !~ m{\d{5}}));' \
 	| grep -vE "[\\\!\/]" | grep -vE "[b-lp-zB-Z]" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	mv       $@.tmp recuf1.tmp
 matfin2:
-	cp -v    recuf7.tmp $(LITE)/holos.gen
+	grep -vE "^#" matfin.man > $@.tmp || :
+	cut -b1-7 $@.tmp \
+	| grep -vE "^ *$$" > grep.tmp || :
+	grep -vf grep.tmp recuf7.tmp \
+	>             $(LITE)/holos.gen   || :
+	cat $@.tmp >> $(LITE)/holos.gen
+	wc -l         $(LITE)/holos.gen
 #--------
 # from http://www.mpia.de/~mathar/public/fischer20200119.pdf
 matpap: matpap1 recuf_rest
@@ -318,6 +328,7 @@ recuf6:
 	wc -l    $@.tmp
 recuf7:
 	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf6.tmp \
+	| sed -e "s/\r//" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
