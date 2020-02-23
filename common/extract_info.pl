@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2020-02-22: -as:program
 # 2019-04-12: termno in asdata and in bfdata
 # 2019-04-08: evaluate -a x separately
 # 2019-03-22: -ax
@@ -160,6 +161,7 @@ sub extract_from_json { # read JSON of 1  sequence
     my $datalen  = 0;
     my $termno   = 0;
     my $keyword  = "nokeyword";
+    my $program  = "";
     my $author   = "";
     my $revision = 0;
     my $created  = "1974-01-01 00:00:00";
@@ -208,6 +210,12 @@ sub extract_from_json { # read JSON of 1  sequence
             }
         } elsif ($line =~   m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
             $keyword = $1;
+        } elsif ($line =~   m{\A\s*\"maple\"}) {
+            $program .= "m";
+        } elsif ($line =~   m{\A\s*\"mathematica\"}) {
+            $program .= "t";
+        } elsif ($line =~   m{\A\s*\"program\"}) {
+            $program .= "p";
         } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             ($offset1, $offset2) = split(/\,/, $value);
@@ -260,7 +268,8 @@ sub extract_from_json { # read JSON of 1  sequence
             , $termno
             , $datalen
             , substr($keyword, 0, 64)
-            , substr($author , 0, 64)
+            , substr($program, 0, 64)
+            , substr($author , 0, 64) # allow for apostrophes (up to 80)
             , $revision
             , $created
             , $access       )) . "\n";
@@ -294,7 +303,8 @@ CREATE  TABLE            $tabname
     , termno    INT           -- number of terms in DATA section
     , datalen   INT           -- length of DATA section
     , keyword   VARCHAR(64)   -- "hard,nice,more" etc.
-    , author    VARCHAR(80)   -- of the sequence; allow for apostrophes
+    , program   VARCHAR(64)   -- "mtp", later also "PARI,Perl,joeis" etc.
+    , author    VARCHAR(96)   -- of the sequence; allow for apostrophes
     , revision  INT           -- sequential version number
     , created   TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- creation     time in UTC
     , access    TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- modification time in UTC
@@ -581,43 +591,43 @@ GFis
 #------------------------------------
 __DATA__
 {
-    "greeting": "Greetings from The On-Line Encyclopedia of Integer Sequences! http://oeis.org/",
-    "query": "id:A200083",
-    "count": 1,
-    "start": 0,
-    "results": [
-        {
-            "number": 200083,
-            "data": "2,3,8,17,26,43,64,89,122,163,208,269,334,407,496,597,702,831,968,1117,1286,1471,1664,1889,2122,2371,2648,2945,3250,3595,3952,4329,4738,5171,5616,6109,6614,7143,7712,8309,8918,9583,10264,10973,11726,12511,13312",
-            "name": "Number of 0..n arrays x(0..4) of 5 elements with zero 3rd differences.",
-            "comment": [
-                "Row 4 of A200082."
-            ],
-            "link": [
-                "R. H. Hardin, \u003ca href=\"/A200083/b200083.txt\"\u003eTable of n, a(n) for n = 1..200\u003c/a\u003e"
-            ],
-            "formula": [
-                "Empirical: a(n) = a(n-1) +a(n-3) -a(n-5) +a(n-6) -2*a(n-7) +a(n-8) -a(n-9) +a(n-11) +a(n-13) -a(n-14).",
-                "Empirical g.f.: x*(2 + x + 5*x^2 + 7*x^3 + 6*x^4 + 11*x^5 + 5*x^6 + 8*x^7 + 3*x^8 + x^9 + 2*x^10 + x^11 + x^12 - x^13) / ((1 - x)^4*(1 + x)^2*(1 - x + x^2)*(1 + x^2)*(1 + x + x^2)^2). - _Colin Barker_, May 17 2018"
-            ],
-            "example": [
-                "Some solutions for n=6:",
-                "..2....1....2....3....0....4....0....5....0....6....6....3....6....0....4....3",
-                "..3....3....4....4....4....4....0....6....3....2....3....3....3....1....3....5",
-                "..3....4....5....4....6....4....0....6....4....0....2....3....1....2....2....6",
-                "..2....4....5....3....6....4....0....5....3....0....3....3....0....3....1....6",
-                "..0....3....4....1....4....4....0....3....0....2....6....3....0....4....0....5"
-            ],
-            "xref": [
-                "Cf. A200082."
-            ],
-            "keyword": "nonn",
-            "offset": "1,1",
-            "author": "_R. H. Hardin_, Nov 13 2011",
-            "references": 1,
-            "revision": 13,
-            "time": "2018-05-17T13:40:20-04:00",
-            "created": "2011-11-13T12:40:47-05:00"
-        }
-    ]
+	"greeting": "Greetings from The On-Line Encyclopedia of Integer Sequences! http://oeis.org/",
+	"query": "id:A144640",
+	"count": 1,
+	"start": 0,
+	"results": [
+		{
+			"number": 144640,
+			"data": "3,17,48,102,185,303,462,668,927,1245,1628,2082,2613,3227,3930,4728,5627,6633,7752,8990,10353,11847,13478,15252,17175,19253,21492,23898,26477,29235,32178,35312,38643,42177,45920,49878,54057,58463,63102,67980,73103",
+			"name": "Row sums from A144562.",
+			"comment": [
+				"Row 2 of the convolution array A213833. - _Clark Kimberling_, Jul 04 2012"
+			],
+			"link": [
+				"Vincenzo Librandi, \u003ca href=\"/A144640/b144640.txt\"\u003eTable of n, a(n) for n = 1..10000\u003c/a\u003e",
+				"\u003ca href=\"/index/Rec#order_04\"\u003eIndex entries for linear recurrences with constant coefficients\u003c/a\u003e, signature (4,-6,4,-1)."
+			],
+			"formula": [
+				"a(n) = (2*n^2 + 5*n - 1)*n/2. - _Jon E. Schoenfield_, Jun 24 2010",
+				"G.f.: x*(3+5*x-2*x^2)/(1-x)^4. - _Vincenzo Librandi_, Jul 06 2012",
+				"a(n) = 4*a(n-1) - 6*a(n-2) + 4*a(n-3) - a(n-4). - _Vincenzo Librandi_, Jul 06 2012"
+			],
+			"mathematica": [
+				"CoefficientList[Series[(3+5*x-2*x^2)/(1-x)^4,{x,0,40}],x] (* _Vincenzo Librandi_, Jul 06 2012 *)"
+			],
+			"program": [
+				"(MAGMA) I:=[3, 17, 48, 102]; [n le 4 select I[n] else 4*Self(n-1)-6*Self(n-2)+4*Self(n-3)-Self(n-4): n in [1..50]]; // _Vincenzo Librandi_, Jul 06 2012"
+			],
+			"xref": [
+				"Cf. A144562."
+			],
+			"keyword": "nonn,easy",
+			"offset": "1,1",
+			"author": "_Vincenzo Librandi_, Jan 21 2009, Jun 29 2009",
+			"references": 2,
+			"revision": 28,
+			"time": "2017-06-17T02:59:29-04:00",
+			"created": "2009-02-27T03:00:00-05:00"
+		}
+	]
 }

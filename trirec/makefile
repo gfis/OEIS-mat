@@ -172,5 +172,32 @@ trec:
 	'{ print join("\t", $$1, "$@", 0, $$2) . "\n" }' \
 	$(COMMON)/cat25.txt \
 	| tee     $@.tmp
-	# head -n 4 $@.tmp
+	# head -n4 $@.tmp
 	wc -l     $@.tmp  
+#---------------------------
+# "more" triangles
+trimore: trimore1 trimore2 trimore3
+trimore1:
+	$(DBAT) -x "SELECT a.aseqno, '0trimore', a.offset1, d.data \
+	FROM asinfo a, asdata d \
+	WHERE a.aseqno = d.aseqno \
+	  AND a.keyword LIKE '%more%' \
+	  AND a.keyword LIKE '%tabl%' \
+	  AND LENGTH(a.program) = 0 \
+	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+trimore2:
+	perl trimore.pl trimore1.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+trimore3:
+	$(DBAT) -x -f trimore2.tmp \
+	| tee     $@.tmp
+	wc -l     $@.tmp
+
+	less      $@.tmp
+#----------------------------	
