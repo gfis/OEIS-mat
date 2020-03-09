@@ -198,6 +198,10 @@ trimore3:
 	$(DBAT) -x -f trimore2.tmp \
 	| tee     $@.tmp
 	wc -l     $@.tmp
-
 	less      $@.tmp
+trimore4:
+	grep symmetric trimore2.tmp \
+	| cut -f2- \
+	>         ../../joeis-lite/internal/fischer/trimore4.fail.log
+	cd $(COMMON) ; make -f checks.make joeis_check LOG=trimore4
 #----------------------------	

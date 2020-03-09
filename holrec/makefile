@@ -14,7 +14,10 @@ COMMON=../common
 D=0
 AINIT=0
 RTLEN=256
-REMOTE=gfis@atair:~/work/gits/OEIS-mat/holrec
+SERVER=gfis@atair
+REMDIR=~/work/gits/OEIS-mat/holrec
+REMOTE=$(SERVER):$(REMDIR)
+
 
 all: rectab recuf
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
@@ -121,6 +124,61 @@ gfsqrt5:
 	wc -l    $@.tmp
 gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
+#--------
+hiter: hiter1 hiter2 hiter3 
+hiter1:
+	perl hiterate.pl -n 8 \
+	| $(HOLT) -n 8 -f - \
+	| grep -v null \
+	| grep -vE "0,0,0,0," \
+	| grep -vE "1,1,1,1,1,1,1,1," \
+	| grep -vE "1,0,1,0,1,0,1,0," \
+	| grep -vE "1,\-1,1,\-1,1,\-1,1,\-1," \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+ITER=331
+hiter2:
+	scp hiter1.tmp $(REMOTE)
+	ssh $(SERVER) 'cd $(REMDIR); perl hiteval.pl hiter1.tmp | tee hiteval.$(ITER).txt'
+	scp $(REMOTE)/hiteval.$(ITER).txt .
+hiter3:
+	cut -f1 hiteval.$(ITER).txt | sort | uniq > $@.tmp
+	make -f $(COMMON)/makefile seq LIST=$@.tmp
+	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
+hiter4:
+	perl hiteval.pl hiter1.tmp \
+	| grep -v "#" \
+	| tee    $@.tmp 
+	wc -l    $@.tmp
+#--------
+hiteval1: 
+	sort hiteval.*.txt > $@.sort.tmp
+	cut -b1-7  $@.sort.tmp | uniq -c | tee $@.uniqc.tmp
+	cut -b1-7  $@.sort.tmp | uniq > $@.uniq.tmp
+	make -f $(COMMON)/makefile seq LIST=$@.uniq.tmp
+	make hiteval2
+hiteval:
+	$(DBAT) "SELECT aseqno FROM seq WHERE aseqno NOT IN (SELECT aseqno FROM joeis);" \
+	>        $@.notj.tmp
+	wc -l    $@.notj.tmp
+#-------------------
+# too slow:
+hiter2slow:
+	$(DBAT) -f $(LITE)/seq4.create.sql
+	cat      hiter1.tmp \
+	| $(DBAT) -m csv -r seq4 
+	$(DBAT) -4 seq4
+	$(DBAT) -n seq4
+hiter3slow:
+	$(DBAT) "SELECT d.aseqno, s.parm2, n.name \
+		FROM   asdata d, seq4 s, asname n \
+		WHERE d.aseqno = n.aseqno \
+		  AND d.data LIKE '%' || s.parm1 || '%' \
+		" \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
 #--------
 satis:
 	perl satisfies.pl $(COMMON)/cat25.txt \
@@ -233,6 +291,25 @@ recur4:
 	wc -l    $@.tmp
 recur5:
 	perl rectab.pl -d $(D) recur4.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+recform: recform1 recform2 
+recform1:
+	perl recform.pl $(COMMON)/cat25.txt \
+	| uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recform2:
+	make -f $(COMMON)/makefile seq2 LIST=recform1.tmp
+	$(DBAT) -x "SELECT s.aseqno, 'recform', i.offset1, s.info, d.data, d.termno \
+		FROM seq2 s, asdata d, asinfo i \
+		WHERE s.aseqno = d.aseqno \
+		  AND s.aseqno = i.aseqno \
+		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+		ORDER BY 1 " \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
