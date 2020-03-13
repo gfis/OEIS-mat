@@ -29,14 +29,14 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 
 while (<>) {
     # if (m{^\%[NF] (A\d+)\s+([an\+\-\(\)\[\]\*\/\^\= 0-9]+)(\..*)}) {
-    if (m{^\%[NF] (A\d+)\s+([an\+\-\(\)\*\/\^\= 0-9]+)(\..*)}) {
-        my ($aseqno, $expr, $rest) = ($1, $2, $3);
-        # $expr =~ s{for [^\.]*\.}{\.}; 
+    #             1        2                  3         4                      5                          6
+    if (m{^\%[NF] (A\d+)\s+([CDP]\-finite\s+)?(with\s+)?([Rr]ecurrence[\:\s]+)?([an\+\-\(\)\*\/\^\= 0-9]+)(.*)}) {
+        my ($aseqno, $expr, $rest) = ($1, $5, $6);
+        my $ninits = 0;
         $expr =~ s{\.}{}; 
         if (    ($expr =~ m{a\(n\)} ) 
-            and ($expr !~ m{\^a}    )
-            and ($rest !~ m{\A\.\.} )
-            and ($rest !~ m{\.\d} )
+            and ($expr !~ m{\^[\(an]}    )
+            and ($rest !~ m{\A\.\s*(\.\d|\.\.)} )
             ) {
             $expr =~ s{\s}{}g;
             if (0 and ($expr =~ m{\/(.*)})) { # move divisor before - fails rather often
@@ -44,16 +44,28 @@ while (<>) {
                 $expr =~ s{\/.*}{};
                 $expr = "$divisor*$expr";
             } # divisor
-            my $ok = 1;
+            #                      1                      2           3
+            if ($rest =~ m{\A\,?\s*(for |with |when )?n\s*([\=\>]+)\s*(\d*)\s*[\.\,\;]}) {
+                my ($relop, $ninits) = ($2, $3);
+                if ($relop !~ m{\=}) {
+                    $ninits ++;
+                }
+                # print "# ninits=$ninits, rest: $rest\n";
+                $rest = ".";
+            }
+            my $ok = ($rest =~ m{\A\s*[\.\,\;]}) ? 1 : 0;
             if (0) {
-            } elsif ($expr =~ m{\^\(}) {
+            } elsif ($ok > 0 and ($expr =~ m{\^\(}             )) {
                 $ok = 0;
-            } elsif ($expr =~ m{\^\(?n}) {
+            } elsif ($ok > 0 and ($expr =~ m{\^\(?n}           )) {
                 $ok = 0;
-            } elsif ($expr =~ m{a\([n\+\-\d]+\)\^}) {
+            } elsif ($ok > 0 and ($expr =~ m{a\([n\+\-\d]+\)\^})) {
                 $ok = 0;
-            } else {
+            } elsif ($ok > 0) {
                 my @indexes = $expr =~ m{a\(([^\)]+)\)}g;
+                if ($ninits == 0) {
+                	$ninits = scalar(@indexes);
+                }
                 my %shifts = ();
                 foreach my $index (@indexes) {
                     my $orig_index = $index;
@@ -91,7 +103,7 @@ while (<>) {
             }
             my $eqs = $expr =~ s{\=}{\=\=}g;
             if ($eqs <= 1 and $ok == 1 and length($expr) < 1024) {
-                print join("\t", $aseqno, "Recurrence: $expr\. recform.pl $timestamp") . "\n"; 
+                print join("\t", $aseqno, "Recurrence: $expr\.", $ninits, substr($rest, 0, 64)) . "\n"; 
             }
         } # contains a(n)
     } # %[NF]

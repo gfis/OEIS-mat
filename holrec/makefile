@@ -2,14 +2,19 @@
 
 # OEIS-mat/holrec - holonomic recurrences
 # @(#) $Id$
+# 2020-03-13: HOLT, seq3
 # 2019-12-09, Georg Fischer: copied from ../linrec
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 RAMJAR=java -cp  $(GITS)/ramath/dist/ramath.jar 
 RAMATH=java -cp  $(RAMJAR) org.teherba.ramath
+LITE=$(GITS)/joeis-lite
+FISCHER=$(LITE)/internal/fischer
+JOEIS=$(GITS)/joeis
+COMMON=$(GITS)/OEIS-mat/common
+MAXT=32
 HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest
-LITE=../../joeis-lite/internal/fischer
 COMMON=../common
 D=0
 AINIT=0
@@ -18,10 +23,22 @@ SERVER=gfis@atair
 REMDIR=~/work/gits/OEIS-mat/holrec
 REMOTE=$(SERVER):$(REMDIR)
 
-
-all: rectab recuf
+all:
+	echo select specific target 
+# rectab recuf
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
 #===============================================
+runholo:
+	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFFSET) -d $(D) -dist $(DIST)
+maple: 
+	perl $(COMMON)/maple.pl maple.tmp
+seq3: # parameter: $(LIST)
+	$(DBAT) -f $@.create.sql
+	cut -f1-3 $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
+	$(DBAT) -m csv -r $@ < $@.tmp
+	$(DBAT) -4 $@
+	$(DBAT) -n $@
+#----
 holtabs:
 	$(DBAT) -f holrec.create.sql
 	$(DBAT) -f holatt.create.sql
@@ -106,7 +123,7 @@ gfsqrt3: # generate matrix and initerms
 	grep A095776 $@.tmp
 EX=xx
 gfsqrt4: # store in DB table and select non-jOEIS
-	$(DBAT) -f $(LITE)/seq4.create.sql
+	$(DBAT) -f $(FISCHER)/seq4.create.sql
 	cat      gfsqrt3.tmp | $(DBAT) -m csv -r seq4 
 	$(DBAT) -4 seq4
 	$(DBAT) -n seq4
@@ -165,7 +182,7 @@ hiteval:
 #-------------------
 # too slow:
 hiter2slow:
-	$(DBAT) -f $(LITE)/seq4.create.sql
+	$(DBAT) -f $(FISCHER)/seq4.create.sql
 	cat      hiter1.tmp \
 	| $(DBAT) -m csv -r seq4 
 	$(DBAT) -4 seq4
@@ -273,10 +290,10 @@ recur1:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recur2:
-	make -f $(COMMON)/makefile seq2 LIST=recur1.tmp
+	make seq3 LIST=recur1.tmp
 recur3:
-	$(DBAT) -x "SELECT s.aseqno, 'recur', i.offset1, s.info, d.data, d.termno \
-		FROM seq2 s, asdata d, asinfo i \
+	$(DBAT) -x "SELECT s.aseqno, 'recur', i.offset1, s.info, d.data, d.termno, s.number \
+		FROM seq3 s, asdata d, asinfo i \
 		WHERE s.aseqno = d.aseqno \
 		  AND s.aseqno = i.aseqno \
 		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
@@ -303,7 +320,7 @@ recform1:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recform2:
-	make -f $(COMMON)/makefile seq2 LIST=recform1.tmp
+	make seq3 LIST=recform1.tmp
 recform3: recur3 recur4 recur5
 recform4:
 	grep holo recur5.tmp \
@@ -342,9 +359,9 @@ matfin2:
 	cut -b1-7 $@.tmp \
 	| grep -vE "^ *$$" > grep.tmp || :
 	grep -vf grep.tmp recuf7.tmp \
-	>             $(LITE)/holos.gen   || :
-	cat $@.tmp >> $(LITE)/holos.gen
-	wc -l         $(LITE)/holos.gen
+	>             $(FISCHER)/holos.gen   || :
+	cat $@.tmp >> $(FISCHER)/holos.gen
+	wc -l         $(FISCHER)/holos.gen
 #--------
 # from http://www.mpia.de/~mathar/public/fischer20200119.pdf
 matpap: matpap1 recuf_rest

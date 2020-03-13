@@ -32,7 +32,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 
 while (<>) {
     s{\s+\Z}{};
-    my ($aseqno, $callcode, $offset, $info, $data, $termno) = split(/\t/);
+    my ($aseqno, $callcode, $offset, $info, $data, $termno, $ninits) = split(/\t/);
     $info =~ s/\..*//; # remove all behind 1st dot
     $info =~ s/\[From.*//i;
     $info =~ s/ (and|or) /\,/ig;
@@ -64,8 +64,12 @@ while (<>) {
         my $inx9 = $anshifts[scalar(@anshifts) - 1];
         # print "# inx0=$inx0, inx9=$inx9\n";
         my $degree = $inx9 - $inx0 + 1;
+        $ninits = $ninits + 1 - $offset;
+        if ($ninits > $degree) {
+        	$degree = $ninits;
+        }
         $degree += $ainit;
-        if ($degree <= 16) { # reasonable
+        if ($degree <= 32) { # reasonable
             my @terms = split(/\,/, $data, $degree + 1);
             pop(@terms); # remove the last which consumed the whole rest of the term list
             my $ind = 0;

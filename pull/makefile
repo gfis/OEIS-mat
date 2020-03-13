@@ -124,7 +124,7 @@ catsel:
 	diff -wy --suppress-common-lines catcount.1.tmp $@.1.tmp
 encat:
 	rm -f     $@.tmp
-	find $(DIR) -iname "*.json" | xargs -l \
+	find $(DIR) -iname "*.json" | sort | xargs -l \
 	perl encat25.pl -m json >> $@.tmp
 	diff -wy --suppress-common-lines  catsel.tmp       $@.tmp \
 	>         $@.diff.tmp || :
