@@ -295,7 +295,7 @@ recur5:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
-recform: recform1 recform2 
+recform: recform1 recform2 recform3 recform4
 recform1:
 	perl recform.pl $(COMMON)/cat25.txt \
 	| uniq -w 7 \
@@ -304,15 +304,16 @@ recform1:
 	wc -l    $@.tmp
 recform2:
 	make -f $(COMMON)/makefile seq2 LIST=recform1.tmp
-	$(DBAT) -x "SELECT s.aseqno, 'recform', i.offset1, s.info, d.data, d.termno \
-		FROM seq2 s, asdata d, asinfo i \
-		WHERE s.aseqno = d.aseqno \
-		  AND s.aseqno = i.aseqno \
-		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
-		ORDER BY 1 " \
+recform3: recur3 recur4 recur5
+recform4:
+	grep holo recur5.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+	$(RAMATH).sequence.JoeisPreparer -d $(D) -f $@.tmp \
+	>        rectab4.tmp
+	head -n4 rectab4.tmp
+	wc -l    rectab4.tmp
 #----
 matfin: matfin1 recuf_rest matfin2
 matfin0: # on the server

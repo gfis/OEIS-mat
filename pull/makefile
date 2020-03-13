@@ -2,12 +2,14 @@
 
 # OEIS-mat/pull - fetch names.gz, stripped.gz, bfilelist.gz and drafts
 # @(#) $Id$
+# 2020-03-13: with de/encat25 
 # 2019-03-01: cleaned
 # 2019-02-21: Georg Fischer: extracted from ../common
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
 SLEEP=16
 COMMON=../common
+CAT25=$(COMMON)/cat25.txt
 DUMPS=../dumps
 DATE=`date +%Y-%m-%d`
 
@@ -108,4 +110,30 @@ draft_load:
 #----------
 draft_show:
 	grep -E "(\<ins\>|\<del\>)" draft_A320518.html
-#----------
+#===============================
+catcount:
+	cut -b1-2 $(CAT25) | sort | uniq -c | tee $@.2.tmp
+	grep -E "%" $@.2.tmp | cut -b9- | tee $@.1.tmp
+PREFIX=19101
+SUPP=--suppress-common-lines
+DIR=subset
+catsel:
+	grep -E "^%. A$(PREFIX)" $(CAT25) > $@.tmp
+	wc -l     $@.tmp
+	cut -b1-2 $@.tmp | sort | uniq > $@.1.tmp
+	diff -wy --suppress-common-lines catcount.1.tmp $@.1.tmp
+encat:
+	rm -f     $@.tmp
+	find $(DIR) -iname "*.json" | xargs -l \
+	perl encat25.pl -m json >> $@.tmp
+	diff -wy --suppress-common-lines  catsel.tmp       $@.tmp \
+	>         $@.diff.tmp || :
+	head -256 $@.diff.tmp
+	wc -l     $@.diff.tmp
+subs:
+	rm -rf subset
+	mkdir subset
+	find $(COMMON)/ajson -iname "A$(PREFIX)*.json" | sort | xargs -l -i{} \
+	cp {} subset
+	ls -1 subset | wc -l
+

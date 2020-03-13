@@ -23,7 +23,7 @@ my $timestamp = sprintf("%04d-%02d-%02d %02d:%02d:%02d"
 my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 2000\n\0"
 #                                             0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
-my $basedir   = "../../../OEIS-mat/common";
+my $basedir   = "../../OEIS-mat/common";
 my $names     = "$basedir/names";     
 my $stripped  = "$basedir/stripped";     
 
