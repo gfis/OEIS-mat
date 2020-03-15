@@ -290,7 +290,7 @@ joeis_load: # populate a table with A-numbers and superclass names of implemente
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
 joeis_names:
-	$(DBAT) "SELECT n.aseqno, substr(j.superclass, 1, 8), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
+	$(DBAT) "SELECT n.aseqno, substr(j.superclass, 1, 16), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
 	FROM  asinfo a, asname n , bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
@@ -307,6 +307,16 @@ joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
 	$(DBAT) -4 joeis
+#--------
+colin:
+	grep -Ei "Conject"  cat25.txt | grep -E "Colin" \
+	| cut -b4-10 | uniq \
+	>        $@.tmp
+	$(DBAT) -f colin.create.sql
+	cat      $@.tmp  \
+	| $(DBAT) -m csv -r colin
+	$(DBAT) -4 colin
+	$(DBAT) -n colin
 #--------------------------------
 checks:
 	make -f checks.make $@
