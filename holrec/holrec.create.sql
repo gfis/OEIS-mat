@@ -6,8 +6,8 @@
 DROP    TABLE  IF EXISTS holrec;
 CREATE  TABLE            holrec
     ( aseqno    VARCHAR(8)  NOT NULL  -- e.g. A322469
-    , signature VARCHAR(1020)         -- comma separated, without "[ ]"
-    , initterms VARCHAR(1020)         -- comma separated, without "[ ]"
+    , signature VARCHAR(1024)         -- comma separated, without "[ ]"
+    , initterms VARCHAR(1024)         -- comma separated, without "[ ]"
     , sigorder  INT                   -- number of signature elements, without const and a[n]
     , maxdegree INT                   -- 0 = linear
     , prefixno  INT                   -- number of terms prefixed to the recurrence

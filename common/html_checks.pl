@@ -2,6 +2,7 @@
 
 # Convert a tsv file *_check.txt into HTML
 # @(#) $Id$
+# 2020-03-23: links on all A-numbers
 # 2019-04-12, Georg Fischer: copied from ../bfcheck/tsv_html.pl
 #
 #:# usage:
@@ -15,6 +16,8 @@ use strict;
 use integer;
 my $index_name = "check_index.html";
 my $make_name  = "checks.make";
+my $oeis_url   = "https://oeis.org/";
+$oeis_url      = "http://localhost/cgi-bin/oeis.pl?&aseqno=";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"  #:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour, $min); # , $sec, $isdst);
@@ -83,11 +86,13 @@ while (<INF>) {
     my $line = $_;
     $count ++;
     if (0) {
-
     } elsif ($mode =~ m{var}   ) {
-        my @rest = split(/\t/, $line);
-        my $aseqno = shift(@rest);
-        print "<tr><td class=\"bor\"><a href=\"https://oeis.org/$aseqno\" target=\"_blank\">$aseqno</a></td>"
+        my @rest = map {
+        	s{(A\d\d\d\d+)}{\<a href\=\"$oeis_url$1\" target\=\"_blank\"\>$1\<\/a\>}g;
+        	$_
+        	} split(/\t/, $line);
+        # my $aseqno = shift(@rest);
+        print "<tr>"
             . "<td class=\"bor\">" . join("</td><td class=\"bor\">", @rest) . "</td></tr>\n";
     }
 } # while <INF>

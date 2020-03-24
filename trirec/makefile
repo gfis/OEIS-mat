@@ -190,7 +190,8 @@ trimore1:
 	head -n4  $@.tmp
 	wc -l     $@.tmp
 trimore2:
-	perl trimore.pl trimore1.tmp \
+	# with skipping in trimore.pl
+	perl trimore.pl -s trimore1.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
@@ -204,4 +205,53 @@ trimore4:
 	| cut -f2- \
 	>         ../../joeis-lite/internal/fischer/trimore4.fail.log
 	cd $(COMMON) ; make -f checks.make joeis_check LOG=trimore4
-#----------------------------	
+#-------------------------------
+traits: traits1 traits2 traits_ff
+traits_ff: traits3 traits4 traits5 trait6
+traits1:
+	$(DBAT) -x "SELECT a.aseqno \
+	FROM asinfo a \
+	WHERE a.keyword LIKE '%tabl%' \
+	  AND a.offset1 = 0 \
+	  ORDER BY 1" \
+	>         $@.tmp
+	head -n2  $@.tmp
+	wc -l     $@.tmp
+traits2:
+	$(RAMATH).sequence.Triangle -d 0 -trait -b ../common/bfile -f traits1.tmp -m 528 \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+traits3: 
+	# no skipping in trimore.pl
+	perl trimore.pl -l 1 -t traits2.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+traits4:
+	$(DBAT) -x -f traits3.tmp \
+	| perl prep_traits.pl -d 0 \
+	| grep -vE "A000041|A00004|A00007" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+traits5:
+	cut -f4-5 traits4.tmp | cut -b1-24 | sort | uniq -c \
+	| sort -rn \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+trait6:
+	cd ../common; perl html_checks.pl -m checks.make ../trirec/traits4.tmp > traits_check.html
+#-------------------------------	
+joeismore:
+	$(DBAT) -x "SELECT a.aseqno, 'joeismore', SUBSTR(j.superclass, 1, 16), a.offset1, d.data \
+	FROM asinfo a, asdata d, joeis j \
+	WHERE a.aseqno = d.aseqno \
+	  AND d.aseqno = j.aseqno \
+	  AND a.keyword LIKE '%more%' \
+	  ORDER BY 1" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+	# They all run too slow, or are Colin's conjectures.
