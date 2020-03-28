@@ -207,7 +207,7 @@ trimore4:
 	cd $(COMMON) ; make -f checks.make joeis_check LOG=trimore4
 #-------------------------------
 traits: traits1 traits2 traits_ff
-traits_ff: traits3 traits4 traits5 trait6
+traits_ff: traits3 traits4 traits5 traits6
 traits1:
 	$(DBAT) -x "SELECT a.aseqno \
 	FROM asinfo a \
@@ -230,19 +230,19 @@ traits3:
 	wc -l     $@.tmp
 traits4:
 	$(DBAT) -x -f traits3.tmp \
-	| perl prep_traits.pl -d 0 \
 	| grep -vE "A000041|A00004|A00007" \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
 traits5:
-	cut -f4-5 traits4.tmp | cut -b1-24 | sort | uniq -c \
-	| sort -rn \
+	perl prep_traits.pl -d 0 traits4.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
-trait6:
-	cd ../common; perl html_checks.pl -m checks.make ../trirec/traits4.tmp > traits_check.html
+traits6:
+	cd ../common; perl html_checks.pl -m checks.make ../trirec/traits5.tmp > traits_check.html
+traits7:
+	cd ../common; scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
 #-------------------------------	
 joeismore:
 	$(DBAT) -x "SELECT a.aseqno, 'joeismore', SUBSTR(j.superclass, 1, 16), a.offset1, d.data \

@@ -20,6 +20,7 @@ my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (ti
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
+my $name_len = 24;
 my $limit = 2;
 my $minterm = 2;
 my $skip_init = 0; # no skipping, 1 = with skipping
@@ -96,19 +97,27 @@ sub vector {
                 $width = length($_);
             }
         } @terms;
-  	$width = ($width >= scalar(@widlen)) ? $widlen[scalar(@widlen) - 1] : $widlen[$width];
+    $width = ($width >= scalar(@widlen)) ? $widlen[scalar(@widlen) - 1] : $widlen[$width];
     if (scalar(@terms) >= $width) { # long enough
         my $termlist = join(",", @terms);
         my $tseqno_name_list = &is_known($termlist);
         if (length($tseqno_name_list) > 0) {
-            print "SELECT \'$aseqno\', \'$title\', $offset, $tseqno_name_list, \'well-known\',  \'\';\n";  
+            print "SELECT \'$aseqno\', \'$title\', $tseqno_name_list"
+                . ", \'well-known\',  \'\',  \'\'"
+            #   . ", a.keyword"
+            #   . " FROM asinfo a"
+            #   . " WHERE a.aseqno  = \'$aseqno\'"
+                . ";\n"
+                ;  
         } else {
-            print "SELECT \'$aseqno\', \'$title\', $offset, t.aseqno, SUBSTR(n.name, 1, 32), \'$termlist\',  i.keyword, i.author"
-                . " FROM asinfo i, asdata t, asname n"
+            print "SELECT \'$aseqno\', \'$title\', t.aseqno, SUBSTR(n.name, 1, $name_len), \'$termlist\'"
+                . " , i.keyword, i.author, a.keyword"
+                . " FROM asinfo a, asinfo i, asdata t, asname n"
                 . " WHERE t.data LIKE \'$termlist\%' "
+                . "   AND a.aseqno  = \'$aseqno\'"
                 . "   AND t.aseqno <> \'$aseqno\'"
                 . "   AND n.aseqno  = t.aseqno "
-                . "   AND i.aseqno  = n.aseqno "
+                . "   AND i.aseqno  = t.aseqno "
                 . "   AND i.offset1 = 0 "
                 . " ORDER BY 1,4 LIMIT $limit;" 
                 # "LIMIT" is MariaDB specific, DB2 would need "FETCH FIRST $limit ROWS ONLY"

@@ -17,7 +17,7 @@ use integer;
 my $index_name = "check_index.html";
 my $make_name  = "checks.make";
 my $oeis_url   = "https://oeis.org/";
-$oeis_url      = "http://localhost/cgi-bin/oeis.pl?&aseqno=";
+# $oeis_url      = "http://localhost/cgi-bin/oeis.pl?&aseqno=";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"  #:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour, $min); # , $sec, $isdst);
