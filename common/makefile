@@ -202,6 +202,7 @@ asname: # parameter: DIR
 asname_load: # Load table <em>asname</em>
 	$(DBAT) -f                  asname.create.sql
 	perl uncode.pl asname.txt \
+	| grep -E "^A" \
 	| $(DBAT) -m csv -s "\t" -r asname
 	$(DBAT) -4                  asname
 	$(DBAT) -n                  asname
@@ -216,6 +217,7 @@ asinfo_load:
 	perl extract_info.pl -jc | tee asinfo.create.sql
 	$(DBAT) -f asinfo.create.sql
 	cut -b1-256 asinfo.txt \
+	| grep -E "^A" \
 	| $(DBAT) -m csv -s "\t" -r asinfo
 	$(DBAT) -4                  asinfo
 	$(DBAT) -n                  asinfo
@@ -280,9 +282,13 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
 joeis_list: joeis_pull joeis_load joeis_names joeis_count joeis_stamp
+joeis_loct: joeis_list_local joeis_load joeis_names joeis_count joeis_stamp
 joeis_pull:
 	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
+joeis_list_local:
+	cd ../../joeis ; git pull ; make joeis_list
+	cp -v ../../joeis/joeis_list.txt .
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	cat joeis_list.txt | sort \

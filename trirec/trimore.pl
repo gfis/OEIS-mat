@@ -119,7 +119,7 @@ sub vector {
                 . "   AND n.aseqno  = t.aseqno "
                 . "   AND i.aseqno  = t.aseqno "
                 . "   AND i.offset1 = 0 "
-                . " ORDER BY 1,4 LIMIT $limit;" 
+                . " ORDER BY 1,3 LIMIT $limit;" 
                 # "LIMIT" is MariaDB specific, DB2 would need "FETCH FIRST $limit ROWS ONLY"
                 . "\n"
                 ;

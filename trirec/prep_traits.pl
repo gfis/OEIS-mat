@@ -40,7 +40,7 @@ while (<>) {
         my ($aseqno, $trait, $tseqno, $tname, $termlist
             , $tkeyw, $author, $akeyw) = split(/\t/, $line);
         if ($aseqno eq $oseqno) {
-        	$aseqno = "";
+        	# $aseqno = "";
         } else {
         	$oseqno = $aseqno;
         }
