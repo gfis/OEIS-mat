@@ -65,8 +65,8 @@ while (<>) {
         }
         $akeyw   = &keyword($akeyw);
         $tkeyw   = &keyword($tkeyw);
-        $author  = $author || "";
-        $tname   = $tname  || "";
+        $author  = $author || "\~";
+        $tname   = $tname  || "\~";
         $author =~ s{[A-Z]\. }{}g;
         $author =~ s{ [A-Z][a-z][a-z] \d\d }{ };
         $author =~ s{\A\_([\wé]+\s+)?([\wé]+)\_}{$2}g;
@@ -96,14 +96,20 @@ print get_html_tail();
 #--------
 sub keyword {
     my ($keyw) = @_;
-    $keyw = $keyw   || "";
-    $keyw =~ s{nonn|easy|sign|changed|tabl|full|synth}{}g;
-    $keyw =~ s{more}{\<span class=\"warn\"\>more\<\/span\>};
-    $keyw =~ s{nice}{\<span class=\"refp\"\>nice\<\/span\>};
-    $keyw =~ s{core}{\<span class=\"refn\"\>core\<\/span\>};
-    $keyw =~ s{\,+}{\,}g;
-    $keyw =~ s{\A\,+}{};     
-    $keyw =~ s{\,+\Z}{};     
+    if (! defined($keyw) or ($keyw =~ m{\A\s*\Z})) {
+    	$keyw = "\~" ;
+    } else {
+    	$keyw =~ s{nonn|easy|sign|changed|tabl|full|synth}{}g;
+    	$keyw =~ s{more}{\<span class=\"warn\"\>more\<\/span\>};
+    	$keyw =~ s{nice}{\<span class=\"refp\"\>nice\<\/span\>};
+    	$keyw =~ s{core}{\<span class=\"refn\"\>core\<\/span\>};
+    	$keyw =~ s{\,+}{\,}g;
+    	$keyw =~ s{\A\,+}{};     
+    	$keyw =~ s{\,+\Z}{};  
+    	if ($keyw =~ m{\A\s*\Z}) {
+    	    $keyw = "\~" ;   
+    	}
+	}
     return $keyw;
 } # keyw    
 #-----------------------------

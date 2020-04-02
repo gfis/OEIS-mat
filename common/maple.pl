@@ -49,6 +49,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $seqno  = shift(@ARGV);
         $seqno =~ s{\D}{}g; # remove non-digits
         $seqno += 0; # remove leading spaces
+    } elsif ($opt  =~ m{t}) {
+        $data_limit = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }

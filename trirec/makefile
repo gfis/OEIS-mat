@@ -212,7 +212,7 @@ traits1:
 	$(DBAT) -x "SELECT a.aseqno \
 	FROM asinfo a \
 	WHERE a.keyword LIKE '%tabl%' \
-	  AND a.offset1 = 0 \
+	  AND a.offset1 >= 0 \
 	  ORDER BY 1" \
 	>         $@.tmp
 	head -n2  $@.tmp
@@ -249,6 +249,12 @@ traits7_depr:
 	cd ../common; scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
 traits7:
 	scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
+#--------
+power_sides:
+	perl power_sides.pl traits2.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
 #-------------------------------	
 joeismore:
 	$(DBAT) -x "SELECT a.aseqno, 'joeismore', SUBSTR(j.superclass, 1, 16), a.offset1, d.data \
