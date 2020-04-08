@@ -30,14 +30,25 @@ GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 
 #===============================================
 runholo:
 	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFFSET) -d $(D) -dist $(DIST)
-maple: 
-	perl $(COMMON)/maple.pl maple.tmp
+#----------------
+seq: # parameter: $(LIST)
+	$(DBAT) -f $(COMMON)/seq.create.sql
+	cut -b1-7 $(LIST) | grep -E "^A" | $(DBAT) -m csv -r seq
+	$(DBAT) -n seq
+delseq: seq # parameters: $(TAB) $(LIST)
+	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 seq3: # parameter: $(LIST)
 	$(DBAT) -f $@.create.sql
 	cut -f1-3 $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
 	$(DBAT) -m csv -r $@ < $@.tmp
 	$(DBAT) -4 $@
 	$(DBAT) -n $@
+seq4: # parameter: $(LIST) with aseqno, offset, parm1, parm2, parm3, parm4, name
+	$(DBAT) -f $(FISCHER)/seq4.create.sql
+	cat $(LIST) | grep -E "^A" | sort | uniq > seq4.tmp
+	$(DBAT) -m csv -r seq4 < seq4.tmp
+	$(DBAT) -4 seq4
+	$(DBAT) -n seq4
 #----
 holtabs:
 	$(DBAT) -f holrec.create.sql
@@ -169,6 +180,30 @@ homgf2b:
 	wc   -l  $@.tmp
 homgf3:
 	perl holmaple.pl homgf2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+homgf4:
+	sed -e "s/\t\([eo]\)\t/\t0\t\1\t/" homgf3.tmp \
+	| grep -vE "^A32592[1-9]" \
+	>        $@.1.tmp
+	wc -l    $@.1.tmp
+	make seq4 LIST=$@.1.tmp
+	#                                                  matrix   init                   gftype   gf
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, SUBSTR(d.data, 1, 64), s.parm2, s.parm3, s.parm4 \
+	    FROM seq4 s, asdata d \
+	    WHERE s.aseqno = d.aseqno \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+homgf5:
+	perl prep_homgf.pl -a 2 homgf4.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+homgf6:
+	$(RAMATH).sequence.JoeisPreparer -d $(D) -f homgf5.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
@@ -463,11 +498,4 @@ njoeis: # LIST
 	make -f $(COMMON)/makefile seq 
 	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq \
 	WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
-#----------------
-seq: # parameter: $(LIST)
-	$(DBAT) -f $(COMMON)/seq.create.sql
-	cut -b1-7 $(LIST) | grep -E "^A" | $(DBAT) -m csv -r seq
-	$(DBAT) -n seq
-delseq: seq # parameters: $(TAB) $(LIST)
-	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #======================================================
