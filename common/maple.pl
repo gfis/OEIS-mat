@@ -84,6 +84,7 @@ if (1) {
 my $maple = "\"C:/Program Files/Maple 2019/bin.X86_64_WINDOWS/cmaple.exe\"";
 my $cmd = "$maple -q $filename";
 my $result = `$cmd`;
+print "$result";
 $result =~ s{[\[\]]}{}g;
 $result =~ s{\s+}{ }g;
 
@@ -122,7 +123,7 @@ if (1) { #
     }
     print OUT "$data_list\n";
     close(OUT);
-    print STDERR "$data_list\n";
+    # print STDERR "$data_list\n";
 }
 if (1) { # 
     $filename = "$aseqno.gen.tmp";

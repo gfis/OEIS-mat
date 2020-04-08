@@ -96,11 +96,11 @@ hyper:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#-----
+#--------------------------------------------------
 gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	perl gfsqrt_grep.pl $(COMMON)/cat25.txt \
-	| tee    $@.tmp
+	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 gfsqrt2: # convert polynomials to vectors
@@ -141,6 +141,37 @@ gfsqrt5:
 	wc -l    $@.tmp
 gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
+#-------------------------------
+homgf: homgf1 homgf2 homgf3
+homgf1:
+	perl extract_homgf.pl $(COMMON)/cat25.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+homgf2:
+	perl -ne \
+	's{(\d)([a-z])}{$$1\*$$2}g; '\
+	's{(\))(\w)}{$$1\*$$2}g; '\
+	's{(x)(\()}{$$1\*$$2}g; '\
+	's{\)\(}{\)\*\(}g; '\
+	'print;' \
+	homgf1.tmp \
+	| grep -vE "A239112|A245926" \
+	| sort | uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+homgf2b:
+	$(RAMATH).sequence.JoeisPreparer -f homgf2.tmp \
+	| sort | uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+homgf3:
+	perl holmaple.pl homgf2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
 #--------
 hiter: hiter1 hiter2 hiter3 
 hiter1:
