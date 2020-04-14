@@ -258,13 +258,13 @@ fract1:
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
-	make --quiet njoeis LIST=$@.tmp
+	make njoeis LIST=$@.tmp
 fract2:
 	grep -vE "^#" catgf1.tmp | grep -E "fract2" \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
-	# make --quiet njoeis LIST=$@.tmp
+	# make njoeis LIST=$@.tmp
 fract2_prep:
 	
 fract39:

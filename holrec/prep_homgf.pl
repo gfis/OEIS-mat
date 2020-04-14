@@ -31,28 +31,34 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 while (<>) {
-    next if m{\{}; # skip unresolved recurrences
     s{\s+\Z}{};
-    my ($aseqno, $callcode, $offset, $info, $data, $dist, $gftype, $gf, @rest) = split(/\t/);
+    my $line = $_;
+    my ($aseqno, $callcode, $offset, $info, $data, $dist, $gftype, $gf, @rest) = split(/\t/, $line);
+    if ($info =~ m{\A\{}) { # unresolved initial terms?
+        # {(-k-1)*a(k)+(k^2+3*k+1)*a(k+1)+(-k^2-2*k)*a(k+2), a(0) = _t[2], a(1) = _t[2], a(2) = _t[3]}
+        # next if m{\{}; # skip unresolved recurrences
+        $info =~ s{\{}{};   
+        $info =~ s{\,.*}{}; 
+    }
     $info =~ s{k}{n}g; # Wolfram Koepf's FPS.mpl always yields a(k[+d])
-    $info =~ s{\+a}{\+1\*a}g; # insert factor 1
+    $info =~ s{([\+\-])a}{${1}1\*a}g; # insert factor 1
     $info =~ s{\Aa}{\+1\*a}; # insert factor 1
     my $matrix = "[0";
     my $ndist  = 0; # a(n+0), a(n+1) ... a(n+d)
     my $factor = "";
     my $ilis   = 0;
-    my @list   = split   (/(\*a\(n[\+\-0-9]*\))/, $info);
+    my @list   = split   (/(\*a\([n\+]*\d*[n\+]*\))/, $info);
     # print STDERR "list=" . join("; ", @list) . "\n";
     while ($ilis < scalar(@list)) {
         my $elem = $list[$ilis];
         if (0) {
-        } elsif ($elem =~ m{\*a\(n(\+\d+)?\)}) {
+        } elsif ($elem =~ m{\*a\([n\+]*(\d*)[n\+]*\)}) {
             my $cdist = $1 || 0;
             while ($ndist < $cdist) {
                 $matrix .= ",0";
                 $ndist ++;
             } # while $ndist
-			$ndist ++;
+            $ndist ++;
             my $factor = $list[$ilis - 1];
             $factor =~ s{\A\+}{};  # remove leading "+"
             $matrix .= ",$factor";
@@ -67,7 +73,7 @@ while (<>) {
     if (scalar(@terms) - 1 < $dist + $ainit) {
         # not enough terms
     } else {
-        $callcode = "holo"; # for JoeisPreparer
+        $callcode = "holos" . (($gftype =~ m{\Ae}) ? "e" : "");
         my $inits = "[" . join(",", splice(@terms, 0, $dist + $ainit)) . "]";
         print join("\t", $aseqno, $callcode, $offset, $matrix, $inits, $dist, $gftype, $gf, @rest) . "\n";
     }
@@ -81,3 +87,8 @@ A004981 homgf   0   (2+8*k)*a(k)+(-k-1)*a(k+1)  1,2,10,60,390,2652,18564,132600,
 A004982 homgf   0   (6+8*k)*a(k)+(-k-1)*a(k+1)  1,6,42,308,2310,17556,134596,1038312,8046918,62587140,488179692,    0   o   (1-8*x)^(-3/4)
 A004983 homgf   0   (-6+8*k)*a(k)+(-k-1)*a(k+1) 1,-6,-6,-20,-90,-468,-2652,-15912,-99450,-640900,-4229940,-28455    0   o   (1-8*x)^(3/4)
 A004984 homgf   0   (-2+8*k)*a(k)+(-k-1)*a(k+1) 1,-2,-6,-28,-154,-924,-5852,-38456,-259578,-1788204,-12517428,-8    0   o   (1-8*x)^(1/4)
+
+
+A009578 homgf   0       a(k)+(k+3)*a(k+1)+(3*k+6)*a(k+2)+(4+2*k)*a(k+3) egf     sinh(log(1+x))/exp(x)
+f:= gfun:-rectoproc({a(k)+(k+3)*a(k+1)+(3*k+6)*a(k+2)+(4+2*k)*a(k+3), 
+a(0)=0, a(1)=1, a(2)=-3, a(3)=9, a(4)=-34}, a(k), remember): map(f, [$0..20]); # 0, 1, -3, 9, -34

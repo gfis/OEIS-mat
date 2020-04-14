@@ -101,6 +101,12 @@ history: # Fetch new or recently changed JSONs
 	make    history4  DIR=bulk
 	make    history5  DIR=bulk
 #--
+hinlin0: # estimate NMAX; CMAX
+	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
+	| grep -E "\"time\"" | sort 
+	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \
+	| grep -E "\"time\"" | sort 
+	ls -la ??????.txt
 history0: # get new and changed JSONs, expand blocks, and get b-files
 	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
 	| grep -E "\"time\"" | sort 

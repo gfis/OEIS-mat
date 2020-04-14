@@ -7,7 +7,7 @@
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMJAR=java -cp  $(GITS)/ramath/dist/ramath.jar 
+RAMJAR=$(GITS)/ramath/dist/ramath.jar 
 RAMATH=java -cp  $(RAMJAR) org.teherba.ramath
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
@@ -153,57 +153,79 @@ gfsqrt5:
 gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
 #-------------------------------
-homgf: homgf1 homgf2 homgf3
+homgf:   homgf1 homgf2 homgf3 homrest
+homrest: homgf4 homgf5 homgf6
+homgf0:
+	perl extract_gf.pl -m extract $(COMMON)/cat25.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 homgf1:
-	perl extract_homgf.pl $(COMMON)/cat25.txt \
+	make seq4 LIST=homgf0.tmp
+	$(DBAT) -v "DELETE FROM seq4 \
+		WHERE aseqno IN (SELECT aseqno FROM joeis) \
+		   OR aseqno IN (SELECT aseqno FROM poeis)"
+	$(DBAT) -v "DELETE FROM seq4 \
+		WHERE callcode LIKE 'homgfe%' \
+		  AND aseqno IN (SELECT aseqno callcode FROM seq4 WHERE callcode LIKE 'homgfo%')"
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, s.parm2 \
+	    FROM seq4 s \
+	    ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp
-homgf2:
-	perl -ne \
-	's{(\d)([a-z])}{$$1\*$$2}g; '\
-	's{(\))(\w)}{$$1\*$$2}g; '\
-	's{(x)(\()}{$$1\*$$2}g; '\
-	's{\)\(}{\)\*\(}g; '\
-	'print;' \
-	homgf1.tmp \
-	| grep -vE "A239112|A245926" \
-	| sort | uniq -w 7 \
+	wc   -l  $@*.tmp
+lingf2:
+	perl extract_gf.pl -m linr homgf1.tmp \
+	>        $@.1.tmp
+	head -n4 $@.1.tmp
+	wc   -l  $@.1.tmp
+	$(RAMATH).sequence.JoeisPreparer -f $@.1.tmp \
+	| perl -ne 'if (length($$_) < 1024) { print; }' \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp
-homgf2b:
-	$(RAMATH).sequence.JoeisPreparer -f homgf2.tmp \
-	| sort | uniq -w 7 \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc   -l  $@.tmp
+	wc   -l  $@*.tmp
+HOMGF=homgf2a
 homgf3:
-	perl holmaple.pl homgf2.tmp \
+	$(RAMATH).sequence.JoeisPreparer -f $(HOMGF).tmp \
+	| grep -vE "A239112|A245926|A32592[1-9]" \
+	| grep -vE "xgf" \
+	>        $@.1.tmp
+	grep -E  "error|underflow" $@.1.tmp > $@.2.tmp
+	grep -vE "error|underflow" $@.1.tmp \
+	| sort | uniq -w 14 \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc   -l  $@.tmp
+	wc   -l  $@*.tmp
 homgf4:
-	sed -e "s/\t\([eo]\)\t/\t0\t\1\t/" homgf3.tmp \
-	| grep -vE "^A32592[1-9]" \
+	perl holmaple.pl -n 16              homgf3.tmp \
+	>        $@.1.tmp
+	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+homgf5:
+	sed -e "s/\t\([eo][^\t]*\)\t/\t0\t\1\t/"  homgf4.tmp \
+	| perl -ne 'if (length($$_) < 1024) { print; }' \
+	| grep -vE "A190586|A190589|A230557" \
+	| sort | uniq -w 7 \
 	>        $@.1.tmp
 	wc -l    $@.1.tmp
 	make seq4 LIST=$@.1.tmp
-	#                                                  matrix   init                   gftype   gf
-	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, SUBSTR(d.data, 1, 64), s.parm2, s.parm3, s.parm4 \
-	    FROM seq4 s, asdata d \
+	#                                                   matrix   init                   gftype   gf
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, i.offset1, s.parm1, SUBSTR(d.data, 1, 64), s.parm2, s.parm3, s.parm4 \
+	    FROM seq4 s, asdata d, asinfo i \
 	    WHERE s.aseqno = d.aseqno \
+	      AND d.aseqno = i.aseqno \
 	    ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-homgf5:
-	perl prep_homgf.pl -a 2 homgf4.tmp \
+homgf6:
+	perl prep_homgf.pl -a 2             homgf5.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-homgf6:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f homgf5.tmp \
+homgf7:
+	$(RAMATH).sequence.JoeisPreparer -f homgf6.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp

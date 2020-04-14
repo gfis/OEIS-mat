@@ -1,12 +1,16 @@
 #!perl
 
-# Run a Maple program from the clipboard and print either a data list or a b-file
+# Read generating functions and call FPS to derive a holonomic recurrence
 # @(#) $Id$
+# 2020-04-11: -t timeout
 # 2020-04-08, Georg Fischer: copied from $(COMMON)/maple.pl
+# 
+# uses FPS.mpl of Wolfram Koepf, Kassel
 #
 #:# Usage:
-#:#   perl holmaple.pl [-n num] infile ... > outfile
+#:#   perl holmaple.pl [-n num] [-t timeout] infile ... > outfile
 #:#       -n    number of lines to be processed b one Maple activation (default 16)
+#:#       -t    timeout for Maple in s, default 4
 #---------------------------------
 use strict;
 use integer;
@@ -21,12 +25,15 @@ my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 200
 #                                             0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 #----
-my $mapnum = 16;
+my $mapnum  = 16;
+my $timeout = 4;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{n}) {
-        $mapnum = shift(@ARGV);
+        $mapnum  = shift(@ARGV);
+    } elsif ($opt  =~ m{t}) {
+        $timeout = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -37,7 +44,7 @@ read "C:\\Program Files\\Maple 2019\\FPS.mpl":
 interface(prettyprint=0):
 with(gfun):
 
-printf("%s\t%s\t%d\t%a\t%s\t%s\n", $(ASEQNO), $(CALLCODE), $(OFFSET), diffeqtorec(HolonomicDE($(GF),F(x)),F(x),a(k)), $(GFTYPE), "$(GF)");
+printf("%s\t%s\t%d\t%a\t%s\t%s\n", $(ASEQNO), $(CALLCODE), $(OFFSET), timelimit($(TIMEOUT), diffeqtorec(HolonomicDE($(GF),F(x)),F(x),a(k))), $(GFTYPE), "$(GF)");
 Gfis
 my ($pat1, $pat5) = split(/\n\n/, $pattern);
 #----
@@ -54,6 +61,7 @@ while (<>) {
     $copy =~ s{\$\(OFFSET\)}  {$offset}g;
     $copy =~ s{\$\(GF\)}      {$gf}g;
     $copy =~ s{\$\(GFTYPE\)}  {$gftype}g;
+    $copy =~ s{\$\(TIMEOUT\)} {$timeout}g;
     $buffer .= "$copy";
     $count ++;
     if ($count % $mapnum == 0) {
