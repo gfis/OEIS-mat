@@ -2,6 +2,7 @@
 
 # Read generating functions and call FPS to derive a holonomic recurrence
 # @(#) $Id$
+# 2020-04-15: catalan(x)
 # 2020-04-11: -t timeout
 # 2020-04-08, Georg Fischer: copied from $(COMMON)/maple.pl
 # 
@@ -9,7 +10,7 @@
 #
 #:# Usage:
 #:#   perl holmaple.pl [-n num] [-t timeout] infile ... > outfile
-#:#       -n    number of lines to be processed b one Maple activation (default 16)
+#:#       -n    number of lines to be processed b one Maple activation (default 64)
 #:#       -t    timeout for Maple in s, default 4
 #---------------------------------
 use strict;
@@ -25,7 +26,7 @@ my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 200
 #                                             0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 #----
-my $mapnum  = 16;
+my $mapnum  = 64;
 my $timeout = 4;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
@@ -43,6 +44,10 @@ my $pattern = <<'Gfis';
 read "C:\\Program Files\\Maple 2019\\FPS.mpl":
 interface(prettyprint=0):
 with(gfun):
+catalan:= x -> (1/2)*(1-sqrt(1-4*x))/x:
+c      := x -> (1/2)*(1-sqrt(1-4*x))/x:
+basseli:= (x,y) -> BesselI(x,y):
+basselj:= (x,y) -> BesselJ(x,y):
 
 printf("%s\t%s\t%d\t%a\t%s\t%s\n", $(ASEQNO), $(CALLCODE), $(OFFSET), timelimit($(TIMEOUT), diffeqtorec(HolonomicDE($(GF),F(x)),F(x),a(k))), $(GFTYPE), "$(GF)");
 Gfis
@@ -84,8 +89,8 @@ sub execute {
     my $cmd = "$maple -q $filename";
     # print STDERR "starting with $aseqno\n";
     my $result = `$cmd`;
-    print "$result\n";
-    print STDERR substr($result, 0, 64) . "\n";
+    print        "$result\n";
+    print STDERR "$result\n";
 } # execute
 __DATA__
 A033297	hosqrt	2	(1-2*x-sqrt(1-4*x))/(2*(1+x))	o
@@ -112,3 +117,10 @@ A000984	homgf	0	(1-4*x)^(-1/2)	o
 
 A063886 homgf   0       4*k*a(k)+2*a(k+1)+(-k-2)*a(k+2) o       sqrt((1+2*x)/(1-2*x))
 make runholo MATRIX="[[0],[0,4],[2],[-2,-1]]" INIT="	1,2,2,4,6,12,20" DIST=2
+
+read "C:\\Program Files\\Maple 2019\\FPS.mpl":
+interface(ansi=false,prettyprint=0):
+with(gfun):
+
+c:= x -> (1/2)*(1-sqrt(1-4*x))/x:
+timelimit(16, diffeqtorec(HolonomicDE(c(x),F(x)),F(x),a(k)));

@@ -13,14 +13,8 @@ FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 MAXT=32
-HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest
 COMMON=../common
-D=0
-AINIT=0
-RTLEN=256
-SERVER=gfis@atair
-REMDIR=~/work/gits/OEIS-mat/holrec
-REMOTE=$(SERVER):$(REMDIR)
+D=0 # debug mode
 WEIDIS= weidis
 
 all:
@@ -31,6 +25,7 @@ gather1:
 	grep -iE "weight distribution" $(COMMON)/joeis_names.txt \
 	| tee    $@.tmp
 	wc -l    $@.tmp
+	grep -v "full" $@.tmp | wc -l
 	cd $(COMMON) ; make seq LIST=../$(WEIDIS)/$@.tmp
 gather2:
 	$(DBAT) -x "SELECT SUBSTR(s.aseqno, 2, 6) FROM seq s ORDER BY 1" \

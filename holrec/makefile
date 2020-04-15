@@ -153,8 +153,8 @@ gfsqrt5:
 gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
 #-------------------------------
-homgf:   homgf1 homgf2 homgf3 homrest
-homrest: homgf4 homgf5 homgf6
+homgf:    homgf0 homgf1 homgf2 homgf3-7
+homgf3-7: homgf3 homgf4 homgf5 homgf6 homgf7
 homgf0:
 	perl extract_gf.pl -m extract $(COMMON)/cat25.txt \
 	>        $@.tmp
@@ -163,8 +163,9 @@ homgf0:
 homgf1:
 	make seq4 LIST=homgf0.tmp
 	$(DBAT) -v "DELETE FROM seq4 \
-		WHERE aseqno IN (SELECT aseqno FROM joeis) \
-		   OR aseqno IN (SELECT aseqno FROM poeis)"
+		WHERE  aseqno IN (SELECT aseqno FROM joeis) \
+		   OR  aseqno IN (SELECT aseqno FROM poeis)"
+		   OR (aseqno IN (SELECT aseqno FROM colin) AND parm2 = 'ogf'"
 	$(DBAT) -v "DELETE FROM seq4 \
 		WHERE callcode LIKE 'homgfe%' \
 		  AND aseqno IN (SELECT aseqno callcode FROM seq4 WHERE callcode LIKE 'homgfo%')"
@@ -184,9 +185,24 @@ lingf2:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@*.tmp
-HOMGF=homgf2a
+#--
+homgf.pow:
+	#2.^nok
+	grep -E "\^nok" lingf2.1.tmp | cut -b9- \
+	| grep -vE "\^\^" \
+	>        homgf2.tmp
+	make homgf3-7
+homgf.all:
+	perl extract_gf.pl -m eval homgf1.tmp \
+	>        homgf2.tmp
+	head -n4 homgf2.tmp
+	wc   -l  homgf2.tmp
+	# make homgf3-7
+#--
 homgf3:
-	$(RAMATH).sequence.JoeisPreparer -f $(HOMGF).tmp \
+	head -n4 homgf2.tmp
+	wc   -l  homgf2.tmp
+	$(RAMATH).sequence.JoeisPreparer -f homgf2.tmp \
 	| grep -vE "A239112|A245926|A32592[1-9]" \
 	| grep -vE "xgf" \
 	>        $@.1.tmp
@@ -197,8 +213,8 @@ homgf3:
 	head -n4 $@.tmp
 	wc   -l  $@*.tmp
 homgf4:
-	perl holmaple.pl -n 16              homgf3.tmp \
-	>        $@.1.tmp
+	perl holmaple.pl                    homgf3.tmp \
+	2>&1 >   $@.1.tmp
 	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp

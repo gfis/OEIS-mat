@@ -35,6 +35,7 @@ checks: \
 	bfdir_check  \
 	bfsize_check \
 	brol_check   \
+	colin_check  \
 	cons_check   \
 	denom_check  \
 	offset_check \
@@ -185,6 +186,23 @@ bfsize_check: # Compare <em>bfilelist</em> with local b-file sizes (without draf
 #		, d.filesize - b.filesize \
 #--------------------------------
 brol_check: joeis_check
+#--------------------------------
+colin_check: # Conjectured and in joeis
+	$(DBAT) "SELECT j.aseqno, j.superclass, a.keyword, a.program \
+	    FROM joeis j, asinfo a \
+	    WHERE j.aseqno = a.aseqno \
+	      AND j.aseqno IN (SELECT aseqno FROM colin) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+colin_seq4: # Conjectured and in seq4
+	$(DBAT) "SELECT s.aseqno, s.parm5 \
+	    FROM seq4 s, asinfo a \
+	    WHERE s.aseqno = a.aseqno \
+	      AND s.aseqno IN (SELECT aseqno FROM colin) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
 #--------------------------------
 cons_check: consa_check consb_check consc_check
 consa_check: # Keyword "cons" and more than one digit in a term

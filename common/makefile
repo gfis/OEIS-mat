@@ -321,7 +321,7 @@ joeis_stamp:
 	$(DBAT) -4 joeis
 #--------
 colin:
-	grep -Ei "Conject"  cat25.txt | grep -E "Colin" \
+	grep -Ei "Conjecture"  cat25.txt | grep -E "Colin Barker" \
 	| cut -b4-10 | uniq \
 	>        $@.tmp
 	$(DBAT) -f colin.create.sql
@@ -375,6 +375,22 @@ mvsynth:
 	>> $@.tmp
 	sed -e "s/\r//" $@.tmp > $@.sh
 	wc -l $@.sh
+#----
+bfresh: # CC=
+	cut -b1-7 $(FISCHER)/$(CC).gen \
+	| grep -vE "^#" | sort | uniq \
+	| sed -e "s/A/b/" -e "s/$$/.txt/" \
+	>        $@.tmp
+	scp      $@.tmp makefile gfis@atair:~/work/gits/OEIS-mat/common
+	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; make $@.remote'
+	scp      gfis@atair:~/work/gits/OEIS-mat/common/$@.tgz .
+	cd bfile ; tar -xzvf ../$@.tgz
+	rm -f $@.tgz
+bfresh.remote:
+	rm -rf temp bfresh.tgz
+	mkdir temp
+	cat bfresh.tmp | xargs -l -i{} cp bfile/{} temp/{}
+	cd temp ; tar -czvf ../bfresh.tgz *.txt
 #----------------------------
 uncat_diff:
 	perl -w uncat25.pl -m comp -o ./ajson cat25.txt \
