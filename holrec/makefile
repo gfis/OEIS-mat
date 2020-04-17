@@ -165,7 +165,7 @@ homgf1:
 	$(DBAT) -v "DELETE FROM seq4 \
 		WHERE  aseqno IN (SELECT aseqno FROM joeis) \
 		   OR  aseqno IN (SELECT aseqno FROM poeis)"
-		   OR (aseqno IN (SELECT aseqno FROM colin) AND parm2 = 'ogf'"
+		   OR (aseqno IN (SELECT aseqno FROM cojec) AND parm2 = 'ogf'"
 	$(DBAT) -v "DELETE FROM seq4 \
 		WHERE callcode LIKE 'homgfe%' \
 		  AND aseqno IN (SELECT aseqno callcode FROM seq4 WHERE callcode LIKE 'homgfo%')"

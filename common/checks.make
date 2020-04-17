@@ -35,7 +35,7 @@ checks: \
 	bfdir_check  \
 	bfsize_check \
 	brol_check   \
-	colin_check  \
+	cojec_check  \
 	cons_check   \
 	denom_check  \
 	offset_check \
@@ -187,19 +187,19 @@ bfsize_check: # Compare <em>bfilelist</em> with local b-file sizes (without draf
 #--------------------------------
 brol_check: joeis_check
 #--------------------------------
-colin_check: # Conjectured and in joeis
+cojec_check: # Conjectured and in joeis
 	$(DBAT) "SELECT j.aseqno, j.superclass, a.keyword, a.program \
 	    FROM joeis j, asinfo a \
 	    WHERE j.aseqno = a.aseqno \
-	      AND j.aseqno IN (SELECT aseqno FROM colin) \
+	      AND j.aseqno IN (SELECT aseqno FROM cojec) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
-colin_seq4: # Conjectured and in seq4
+cojec_seq4: # Conjectured and in seq4
 	$(DBAT) "SELECT s.aseqno, s.parm5 \
 	    FROM seq4 s, asinfo a \
 	    WHERE s.aseqno = a.aseqno \
-	      AND s.aseqno IN (SELECT aseqno FROM colin) \
+	      AND s.aseqno IN (SELECT aseqno FROM cojec) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt

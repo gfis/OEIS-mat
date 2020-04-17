@@ -320,15 +320,18 @@ joeis_stamp:
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
 	$(DBAT) -4 joeis
 #--------
-colin:
+cojec:
 	grep -Ei "Conjecture"  cat25.txt | grep -E "Colin Barker" \
 	| cut -b4-10 | uniq \
 	>        $@.tmp
-	$(DBAT) -f colin.create.sql
+	$(DBAT) -f cojec.create.sql
 	cat      $@.tmp  \
-	| $(DBAT) -m csv -r colin
-	$(DBAT) -4 colin
-	$(DBAT) -n colin
+	| $(DBAT) -m csv -r cojec
+	$(DBAT) -4 cojec
+	$(DBAT) -n cojec
+	$(DBAT) "SELECT count(*) FROM cojec \
+	    WHERE aseqno IN (SELECT aseqno FROM joeis) \
+	      AND aseqno > 'A030000'"
 #--------------------------------
 checks:
 	make -f checks.make $@
