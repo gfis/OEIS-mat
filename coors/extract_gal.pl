@@ -68,7 +68,7 @@ while (<>) {
         $prefix =~ s{\d+\Z}{}; # remove trailing sequential number
         $ind = 1;
         foreach my $aseqno (split(/\, ?/, $rest)) {
-            print join("\t", $aseqno, $tiles{"$prefix$ind"}) . "\n";
+            print join("\t", $aseqno, "$prefix$ind", $tiles{"$prefix$ind"}) . "\n";
             $ind ++;
         } # foreach
         $state =       "init";
