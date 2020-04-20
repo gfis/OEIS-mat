@@ -37,32 +37,43 @@ while (<>) {
     s{\s+\Z}{};
     my $line = $_;
     $line =~ s{\<br( \/)?\>}{};
+    $line =~ s{\(([^\)]+)\)\<sup\>(\d+)\<\/sup\>}{  &repeat("; ", $1, $2)}eg;
+    $line =~ s{(\D)(\d+)\<sup\>(\d+)\<\/sup\>}{$1 . &repeat(".", $2, $3)}eg;
     if ($debug >= 1) {
         print "state $state: $line\n";
     }
     if (0) {
     } elsif ($state eq "init" and ($line =~ m{^Standard Notation\:\s*(.*)}i)) {
         $rest =   $1;
-        $rest =~ s{\<sup\>(\d+)\<\/sup\>}{\^$1}g;
         $rest =~ s{[\[\]]}{}g;
         $std_notation = $rest;
     } elsif ($state eq "init" and ($line =~ m{^Expanded Notation}i)) {
         %tiles = ();
         $state       = "expa";
-    } elsif ($state eq "expa" and ($line =~ m{^(Gal[\.\d]+)\:\s*(.*)}i)) {
+    } elsif ($state eq "expa" and ($line =~ m{^(Gal[\.\d]+)\:\s*(.*)}i)) { # gal_id, vertex type, angles
         $gal_id = $1;
         $rest =   $2;
-        $rest =~ s{\<sup\>(\d+)\<\/sup\>}{\^$1}g;
-        $tiles{$gal_id}  = join("\t", $std_notation, $rest);
+        my @edges  = split(/\;\s*/, $rest);
+        my @vtypes = split(/\./, shift(@edges));
+        my $eno = scalar(@edges);
+        my $vno = scalar(@vtypes);
+        if ($eno != $vno) {
+            print STDERR "eno=$eno != vno=$vno in $gal_id\n";
+        }
+        my $condensed = "";
+        for (my $ied = 0; $ied < $eno; $ied ++) {
+            $condensed .= ";" . substr($edges[$ied], 0, 1) . $vtypes[$ied];
+        } # foreach
+        $tiles{$gal_id}  = join("\t", substr($condensed, 1), $std_notation, $rest);
     } elsif ($state eq "expa" and ($line =~ m{^(Coord)}i)) {
         $state =       "cseq";
-    } elsif ($state eq "cseq" and ($line =~ m{^(Gal[\.\d]+)\:\s*(.*)}i)) {
+    } elsif ($state eq "cseq" and ($line =~ m{^(Gal[\.\d]+)\:\s*(.*)}i)) { # cs follows
         $gal_id = $1;
         $rest =   $2;
         $rest =~ s{[\[\]]}{}g;
         $rest =~ s{\,\.\.\.\Z}{};
         $tiles{$gal_id} .= "\t" . $rest;
-    } elsif ($state eq "cseq" and ($line =~ m{^A\-numbers\: (.*)}i)) {
+    } elsif ($state eq "cseq" and ($line =~ m{^A\-numbers\: (.*)}i)) { # list of A-numbers 
         $rest = $1;
         my $prefix = $gal_id;
         $prefix =~ s{\d+\Z}{}; # remove trailing sequential number
@@ -73,10 +84,17 @@ while (<>) {
         } # foreach
         $state =       "init";
     } else {
-    	# print "invalid state $state\n";
+        # print "invalid state $state\n";
     }
 } # while
-__DATA__<br />
+#-----
+sub repeat {
+    my ($sep, $string, $mult) = @_;
+    return join($sep, ($string) x $mult);
+} # repeat
+
+__DATA__
+<br />
 A-numbers: A313990, A314063, A313964, A315324, A315223, A315433<br />
 <br />
 <u>Tiling #1248</u><br />
@@ -98,4 +116,10 @@ Gal.6.673.5:  [1,6,10,16,22,29,31,37,45,53,49,59,69,73,70,84,88,96,94,102,110,12
 Gal.6.673.6:  [1,6,10,14,24,28,30,38,46,48,54,60,64,76,74,76,92,98,88,106,114,112,118,128,126,144,138,140,160,166,146,176,182,174,180,198,190,212,200,204,230,234,202,244,252,238,242,266,254,282,...]<br />
 A-numbers: A313961, A314154, A314064, A315356, A315346, A315238<br />
 <br />
-</body></html>
+
+=>
+
+A311044 Gal.4.15.1  3.3.6.6; 3.6.3.6; 6.6.6; 6.6.6  6.6.6; A 180; B 180; B 180  1,3,6,11,15,17,20,23,26,33,37,37,40,43,46,55,59,57,60,63,66,77,81,77,80,83,86,99,103,97,100,103,106,121,125,117,120,123,126,143,147,137,140,143,146,165,169,157,160,163
+A314409 Gal.4.15.2  3.3.6.6; 3.6.3.6; 6.6.6; 6.6.6  6.6.6; C 60; A 180; A 180   1,3,7,10,13,19,20,23,29,30,33,41,40,43,51,50,53,63,60,63,73,70,73,85,80,83,95,90,93,107,100,103,117,110,113,129,120,123,139,130,133,151,140,143,161,150,153,173,160,163
+A310229 Gal.4.15.3  3.3.6.6; 3.6.3.6; 6.6.6; 6.6.6  6.6.3.3; D 60; B 300; D 60; C 180   1,4,7,10,13,16,22,26,27,30,33,36,44,48,47,50,53,56,66,70,67,70,73,76,88,92,87,90,93,96,110,114,107,110,113,116,132,136,127,130,133,136,154,158,147,150,153,156,176,180
+A310710 Gal.4.15.4  3.3.6.6; 3.6.3.6; 6.6.6; 6.6.6  6.3.6.3; C 300; C 300; C 120; C 120 1,4,6,10,12,16,18,30,26,30,32,36,38,54,46,50,52,56,58,78,66,70,72,76,78,102,86,90,92,96,98,126,106,110,112,116,118,150,126,130,132,136,138,174,146,150,152,156,158,198

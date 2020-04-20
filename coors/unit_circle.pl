@@ -89,25 +89,49 @@ angle;285;0,-1,0,1;0,-1,0,-1
 # DOI: 10.2307/2689529
 # https://www.jstor.org/stable/2689529
 # Possible vertex types for tiling with regular polygones with unit side length:
-vertex_type;1.1;3.3.3.3.3.3;arch
-vertex_type;2.1;3.3.3.3.6;arch
-vertex_type;3.1;3.3.3.4.4;arch
-vertex_type;3.2;3.3.4.3.4;arch
-vertex_type;4.1;3.3.4.12;uni
-vertex_type;4.2;3.4.3.12;uni
-vertex_type;5.1;3.3.6.6;uni
-vertex_type;5.2;3.6.3.6;arch
-vertex_type;6.1;3.4.4.6;uni
-vertex_type;6.2;3.4.6.4;arch
+vertex_type;1.1;3.3.3.3.3.3;arch;6
+vertex_type;2.1;3.3.3.3.6;arch;5
+vertex_type;3.1;3.3.3.4.4;arch;5
+vertex_type;3.2;3.3.4.3.4;arch;5
+vertex_type;4.1;3.3.4.12;uni;4
+vertex_type;4.2;3.4.3.12;uni;4
+vertex_type;5.1;3.3.6.6;uni;4
+vertex_type;5.2;3.6.3.6;arch;4
+vertex_type;6.1;3.4.4.6;uni;4
+vertex_type;6.2;3.4.6.4;arch;4
 vertex_type;7.1;3.7.42;invalid
 vertex_type;8.1;3.8.24;invalid
 vertex_type;9.1;3.9.18;invalid
 vertex_type;10.1;3.10.15;invalid
-vertex_type;11.1;3.12.12;arch
-vertex_type;12.1;4.4.4.4;arch
+vertex_type;11.1;3.12.12;arch;3
+vertex_type;12.1;4.4.4.4;arch;4
 vertex_type;13.1;4.5.20;invalid
-vertex_type;14.1;4.6.12;arch
-vertex_type;15.1;4.8.8;arch
+vertex_type;14.1;4.6.12;arch;3
+vertex_type;15.1;4.8.8;arch;3
 vertex_type;16.1;5.5.10;invalid
-vertex_type;17.1;6.6.6;arch
+vertex_type;17.1;6.6.6;arch;3
 # 21 total, 11 arch, 4 uni, 6 invalid
+#---------------------
+# Experiment: Gal.2.1, 6.4.3.4, 12.4.6/12.6.4
+
+v1:	12.6.4 
+	3
+	succ: v2,6;  v3,4; v4,12
+	pred: v2,12; v3,6; v4,4
+v2: 12.6.4
+	3
+	succ: v1,12; v5,6; v6,4
+	pred: v1,6;  v5,4; v6,12
+v3:
+	1
+	succ: v1,6
+	pred: v1,4
+v4:	12.4.6
+	1
+	succ: v1,4
+	pred: v1,12
+	
+#--------------
+v1 -12} v2 -12} v3 >12> v4 >12> v5 >12> v6 >12> v7 >12> v8 >12> v9 >12> v10 >12> v11 >12> v12 >12> v1
+        v2 >6> v1 >6> v13 >6> v14 >6> v15 >6> v16 >6> v2
+               v1 >4> v11 >4> v17
