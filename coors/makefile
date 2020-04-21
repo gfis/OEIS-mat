@@ -33,7 +33,12 @@ gather2:
 	| xargs -l -inn perl weight_dist.pl -s Ann -o Ann.wd.tmp $(COMMON)/bfile/bnn.txt 
 #----
 break:
-	perl -pe "s/\<br\>/\<br \/\>\n/g; s/\<\/?b\>//g;" a250120.html > $@.tmp
+	perl -pe "s{\<br\>}{\<br \/\>\n}g;" a250120.html > $@.tmp
+	perl -pe \
+	's{(.)(A\d{6})(.)}{\1\<a href=\"https://oeis.org/\2\" target=\"_blank\"\>\2\<\/a\>\3}g; '\
+	's{\A\<b\>(Gal\.\d+\.\d+\.\d+)\:\s+(\d)}{\<a name\=\"$$1\" \/\>\n\<b\>$$1\: $$2};' \
+	    $@.tmp > a250120.a.html
+	tail -n16 a250120.a.html
 extract: break
 	perl extract_gal.pl break.tmp \
 	>        $@.tmp
@@ -43,6 +48,10 @@ extract: break
 test488:
 	perl co488.pl -n $(MAXT) -d 0 \
 	| tee    $@.tmp
+#--------
+tile:
+	javac Tiler.java 
+	java -cp . Tiler -d 1 -f tiler.2.1.tst
 #================
 # old targets
 recur3:

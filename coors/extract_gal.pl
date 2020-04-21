@@ -36,7 +36,8 @@ my $gal_id;
 while (<>) {
     s{\s+\Z}{};
     my $line = $_;
-    $line =~ s{\<br( \/)?\>}{};
+    $line =~ s{\<br( \/)?\>}{}g;
+    $line =~ s{\<\/?b\>}{}g;
     $line =~ s{\(([^\)]+)\)\<sup\>(\d+)\<\/sup\>}{  &repeat("; ", $1, $2)}eg;
     $line =~ s{(\D)(\d+)\<sup\>(\d+)\<\/sup\>}{$1 . &repeat(".", $2, $3)}eg;
     if ($debug >= 1) {
