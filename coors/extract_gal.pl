@@ -65,7 +65,9 @@ while (<>) {
         for (my $ied = 0; $ied < $eno; $ied ++) {
             $condensed .= ";" . substr($edges[$ied], 0, 1) . $vtypes[$ied];
         } # foreach
-        $tiles{$gal_id}  = join("\t", substr($condensed, 1), $std_notation, $rest);
+        $tiles{$gal_id}  = join("\t"
+        #	, substr($condensed, 1) 
+        	, $std_notation, $rest);
     } elsif ($state eq "expa" and ($line =~ m{^(Coord)}i)) {
         $state =       "cseq";
     } elsif ($state eq "cseq" and ($line =~ m{^(Gal[\.\d]+)\:\s*(.*)}i)) { # cs follows

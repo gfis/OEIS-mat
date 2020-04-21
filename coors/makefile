@@ -50,8 +50,8 @@ test488:
 	| tee    $@.tmp
 #--------
 tile:
-	javac Tiler.java 
-	java -cp . Tiler -d 1 -f tiler.2.1.tst
+	javac       Tiler.java 
+	java  -cp . Tiler -d 1 -f tiler.2.1.tst
 #================
 # old targets
 recur3:
