@@ -49,9 +49,12 @@ test488:
 	perl co488.pl -n $(MAXT) -d 0 \
 	| tee    $@.tmp
 #--------
-tile:
+LEVEL=2
+tile: compile run
+compile:
 	javac       Tiler.java 
-	java  -cp . Tiler -d 1 -f tiler.2.1.tst
+run:
+	java  -cp . Tiler -d 1 -m $(LEVEL) -f tiler.2.1.tst
 #================
 # old targets
 recur3:

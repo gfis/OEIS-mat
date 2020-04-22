@@ -42,10 +42,24 @@ foreach my $angle(sort(@angles)) {
     my ($degr, $xlist, $ylist) = split(/\;/, $angle);
 	push(@xpos, &cartesian($xlist));
 	push(@ypos, &cartesian($ylist));
-    print join("\t", ($degr + 0) . ":", sprintf("%f10\t%f10", $xpos[$ipos], $ypos[$ipos])). "\n"; 
+    print join("\t", ($degr + 0) . ":", sprintf("%f\t%f", $xpos[$ipos], $ypos[$ipos])). "\n"; 
     $ipos ++;
 } # foreach
 
+my $ipos = 0;
+foreach my $angle(sort(@angles)) {
+    my ($degr, $xlist, $ylist) = split(/\;/, $angle);
+    $xlist = join(",", map {sprintf("%2d", $_)} split(/\,/, $xlist));
+    $ylist = join(",", map {sprintf("%2d", $_)} split(/\,/, $ylist));
+	push(@xpos, &cartesian($xlist));
+	push(@ypos, &cartesian($ylist));
+    print "      " . ($ipos == 0 ? "{ " : ", ") . "new Position"
+            . sprintf("(%s, %s) // [%2d] %3d %10.4f,%10.4f\n"
+            , "new short[] {$xlist}", "new short[] {$ylist}", $ipos, $ipos * 15, $xpos[$ipos], $ypos[$ipos] );
+    $ipos ++;
+} # foreach
+print "      };\n";
+#--------
 sub cartesian {
     my ($list) = @_;
     my (@elems) = split(/\,/, $list);
