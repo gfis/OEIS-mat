@@ -50,13 +50,19 @@ test488:
 	| tee    $@.tmp
 #--------
 LEVEL=2
+GAL=2.9
+NMAX=29061947
 tile: compile run
 compile:
 	javac       Tiler.java 
 run:
-	java  -cp . Tiler -d 2 -m $(LEVEL) -f tiler.2.1.tst \
-	| tee $@.tmp
-	perl svgen.pl $@.tmp | tee $@.svg
+	java  -cp . Tiler -d 2 -m $(LEVEL) -n $(NMAX) -svg $(GAL).svg -f tiler.$(GAL).tst 2> $(GAL).svg\
+	| tee $(GAL).tmp
+	perl svgen.pl -n $(NMAX) -w 4 $(GAL).tmp | tee $(GAL).b.svg
+circle:
+	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 2> $@.svg
+#	| tee $@.tmp
+#	perl svgen.pl -w 2 $@.tmp | tee $@.svg
 #================
 # old targets
 recur3:

@@ -3,10 +3,13 @@
  */
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +33,9 @@ public class Tiler {
     // log = Logger.getLogger(Tiler.class.getName());
     mNumTerms = 32;
     mOffset = 0;
-    sDebug = 1;
+    sDebug = 0;
+    mSVG = false;
+    // mSVGCount  = -1; // no SVG output
   } // Tiler()
 
   /** Debugging mode: 0=none, 1=some, 2=more */
@@ -73,7 +78,10 @@ public class Tiler {
   /** Offset1 of the sequences */
   private int mOffset;
 
-  /** 
+  /** Standard encoding for all files */
+  private static final String sEncoding = "UTF-8";
+
+  /**
    * Join an array of integers
    * @param delim delimiter
    * @param vector integer array
@@ -96,7 +104,7 @@ public class Tiler {
   private static final Double SQRT3 = Math.sqrt(3.0);
   private static final Double SQRT6 = SQRT2 * SQRT3;
 
-  /** 
+  /**
    * Class for an exact position of a {@link Vertex}.
    * The x axis is to the right and the y axis leads downwards (SVG coordinate system).
    * The x and y coordinates are represented by tuples (a,b,c,d)
@@ -107,7 +115,7 @@ public class Tiler {
     protected short[] xtuple;
     protected short[] ytuple;
 
-    /** 
+    /**
      * Empty constructor - creates the origin (0,0).
      */
     public Position() {
@@ -117,7 +125,7 @@ public class Tiler {
       Arrays.fill(ytuple, (short) 0);
     } // Position()
 
-    /** 
+    /**
      * Constructor
      * @param xparm tuple for exact x representation
      * @param yparm tuple for exact y representation
@@ -127,7 +135,7 @@ public class Tiler {
       ytuple = yparm;
     } // Position(short[], short[])
 
-    /** 
+    /**
      * Computes the cartesian coordinate value from an exact position tuple
      * @return a double value
      */
@@ -139,7 +147,7 @@ public class Tiler {
              ) / 4.0;
     } // cartesian
 
-    /** 
+    /**
      * Adds a Position to <em>this</em> Position.
      * @param pos2 Position to be added
      * @return this + pos2
@@ -153,7 +161,21 @@ public class Tiler {
       return result;
     } // add
 
-    /** 
+    /**
+     * Subtracts a Position from <em>this</em> Position.
+     * @param pos2 Position to be subtracted
+     * @return this - pos2
+     */
+    public Position subtract(Position pos2) {
+      Position result = new Position();
+      for (int ipos = 0; ipos < 4; ipos ++) {
+        result.xtuple[ipos] = (short) (this.xtuple[ipos] - pos2.xtuple[ipos]);
+        result.ytuple[ipos] = (short) (this.ytuple[ipos] - pos2.ytuple[ipos]);
+      } // for ipos
+      return result;
+    } // subtract
+
+    /**
      * Returns a representation of the Position
      * @return a tuple "(x,y)" with 4 decimals
      */
@@ -162,7 +184,7 @@ public class Tiler {
           .replaceAll("\\,", ".").replaceAll("\\;", ",");
     } // toString
 
-    /** 
+    /**
      * Gets the cartesian x coordinate (to the right) from <em>this</em> Position
      * @return a String with 4 decimal digits
      */
@@ -171,7 +193,7 @@ public class Tiler {
           .replaceAll("\\,", ".");
     } // getX
 
-    /** 
+    /**
      * Gets the cartesian x coordinate (to the right) from <em>this</em> Position
      * @return a String with 4 decimal digits
      */
@@ -180,14 +202,16 @@ public class Tiler {
           .replaceAll("\\,", ".");
     } // getY
 
-    /** 
-     * Moves <em>this</em> Position by a unit distance in some angle 
+    /**
+     * Moves <em>this</em> Position by a unit distance in some angle
      * @param angle in degrees 0..360
      * @return new Position
      */
-    public Position moveDegrees(int angle) {
-      return this.add(circlePos[Math.round(angle / 15) % 24]);
+    public Position moveUnit(int angle) {
+      int icircle = Math.round(angle / 15) % 24;
+      return this.add(circlePos[icircle]);
     }
+
   } // class Position
 
   /** Positions in the unit circle = increments for the next {@link Vertex} */
@@ -218,11 +242,30 @@ public class Tiler {
       , new Position(new short[] { 0, 1, 0, 1}, new short[] { 0, 1, 0,-1}) // [23] 345     0.9659,   -0.2588
       };
 
-  /** Angles in degrees for the 5 polygones:   triangle,   square, hexagon, octogon,    dodecagon */
-  //                                           0 1 2  3         4  5     6   7    8 9 10 11    12
-  private final int[] polyAngles = new int[] {0,0,0, 60      , 90,0   ,120,0  , 135,0, 0, 0, 150};
+  /** Angles in degrees for the 5 polygones:   triangle, square, hexagon, octogon,   dodecagon */
+  //                                          0 1 2   3       4 5      6 7      8 9 10 11   12
+  private final int[] polyAngles = new int[] {0,0,0, 60,     90,0,   120,0,   135,0, 0, 0, 150};
 
-  /** 
+  /**
+   * Tests the computation of {@link Position}s
+   */
+  public void testCirclePositions() {
+    Position origin = new Position();
+    for (int ipos = 0; ipos < circlePos.length + 1; ipos ++) {
+      Position pos = origin.moveUnit(ipos * 15);
+      System.out.println(String.format("[%2d], %3d = %s", ipos, ipos * 15, pos.toString()));
+      writeSVG("<line class=\"k" + String.valueOf(ipos % 8) 
+          + " x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY() + "\" />");
+    } // for ipos
+    for (int ipos = 0; ipos < circlePos.length; ipos += 4) {
+      int ipos8 = (ipos + 8) % 24;
+      Position hexPos = circlePos[ipos].add(circlePos[ipos8]);
+      System.out.println(String.format("[%2d] + [%2d] = %8s,%8s"
+          , ipos, ipos8, hexPos.getX(), hexPos.getY()));
+    } // for ipos
+  } // testCirclePositions
+
+  /**
    * Class for an allowed vertex type.
    */
   protected  class VertexType { // numbered 1, 2, 3 ... ; 0 is not used
@@ -235,7 +278,7 @@ public class Tiler {
     int[] angles; // how many degrees must the target vertex type be rotated
     String sequence; // list of terms of the coordination sequence
 
-    /** 
+    /**
      * Empty constructor
      */
     VertexType() {
@@ -247,7 +290,7 @@ public class Tiler {
       sequence = "";
     } // VertexType()
 
-    /** 
+    /**
      * Constructor
      * @param galId Galebach's id Gal.u.t.v
      * @param descriptor counter-clockwise list of the polygones followed by the list of types and angles
@@ -285,10 +328,10 @@ public class Tiler {
      * @param iedge number of the edge, zero-based
      * @return angle in degrees, for example 6.4.4.3:
      * <pre>
-     * iedge       =  0   1   2   3                     
-     * polys     s = [6  .4  .4  .3]                    
-     * type > 0:  0 120  90  90  60  (counter-clockwise)  
-     * type < 0:  0 120  60  90  90  (clockwise)          
+     * iedge       =  0   1   2   3
+     * polys     s = [6  .4  .4  .3]
+     * type > 0:  0 120  90  90  60  (counter-clockwise)
+     * type < 0:  0 120  60  90  90  (clockwise)
      * </pre>
      */
     public int getEdgeAngle(int typeIndex, int iedge) {
@@ -299,28 +342,31 @@ public class Tiler {
       if (iedge > 0) {
         if (itype == typeIndex) { // positive, counter-clockwise: 6.4.4.3
           while (ipoly < iedge) {
-          	angle += polyAngles[polys[ipoly]];
+            if (sDebug >= 2) {
+              System.out.println("# getEdgeAngle(" + typeIndex + ", " + iedge + "): polys[" + ipoly + "]=" 
+                  + polys[ipoly] + ", add " + polyAngles[polys[ipoly]]);
+            }
+            angle += polyAngles[polys[ipoly]];
             ipoly ++;
           }
         } else { // negative, clockwise: 3.4.4
           ipoly = polys.length;
           while (ipoly > polys.length - iedge) {
-          	ipoly --;
-          	angle += polyAngles[polys[ipoly]];
+            ipoly --;
+            angle += polyAngles[polys[ipoly]];
           }
         }
       } // iedge > 0
       return angle;
     } // getEdgeAngle
 
-
-    /** 
+    /**
      * Returns a representation of the VertexType
      * @return JSON
      */
     public String toString() {
       pushIndent();
-      String result 
+      String result
           = "{ \"galId\": \"" + galId + "\""
           + ", \"polys\": "   + join(",", polys)
           + ", \"tars\": "    + join(",", tars)
@@ -329,10 +375,10 @@ public class Tiler {
       popIndent();
       return result;
     } // toString
-    
+
   } // class VertexType
 
-  /** 
+  /**
    * Class for an allocated vertex.
    */
   protected class Vertex { // numbered 1, 2, 3 ... ; 0 is not used
@@ -382,21 +428,21 @@ public class Tiler {
       Arrays.fill(preds , 0);
     } // Vertex(int)
 
-    /** 
+    /**
      * Gets the type of <em>this</em> Vertex
      * @return a {@link VertexType}
      */
     public VertexType getType() {
       return mTiling.vertexTypes[Math.abs(typeIndex)];
     } // getType
-    
-    /** 
+
+    /**
      * Returns a representation of the Vertex
      * @return JSON for edges
      */
     public String toString() {
       pushIndent();
-      String result 
+      String result
           = "{ \"type\":"    + String.format("%3d", typeIndex)
           + ", \"angle\": "  + String.format("%3d", angle)
           + ", \"fixed\": "  + fixedEdges
@@ -409,10 +455,10 @@ public class Tiler {
       popIndent();
       return result;
     } // toString
-        
+
   } // class Vertex
 
-  /** 
+  /**
    * Class for an allocated vertex.
    */
   protected class Tiling {
@@ -425,7 +471,7 @@ public class Tiler {
     /** Allocated vertices */
     public ArrayList<Vertex> vertices; // [0] is reserved
 
-    /** 
+    /**
      * Constructor
      * @param nTypes number of VertexTypes
      */
@@ -436,7 +482,7 @@ public class Tiler {
       initialize();
     } // Tiling()
 
-    /** 
+    /**
      * Initializes the dynamic data structures of <em>this</em> Tiling.
      */
     public void initialize() {
@@ -446,7 +492,7 @@ public class Tiler {
       ffVertex = vertices.size();
     } // initialize
 
-    /** 
+    /**
      * Adds a new VertexType
      * @param galId Galebach's id Gal.u.t.v
      * @param descriptor counter-clockwise list the polygones followed by the list of types and angles
@@ -456,7 +502,7 @@ public class Tiler {
       vertexTypes[ffVertexType ++] = new VertexType(galId, descriptor, sequence);
     } // addVertexType
 
-    /** 
+    /**
      * Adds a new Vertex
      * @param itype index in {@link vertexTypes}
      * @return index in {@link vertices}
@@ -467,7 +513,7 @@ public class Tiler {
       return ffVertex - 1;
     } // addVertex
 
-    /** 
+    /**
      * Returns a representation of the Tiling
      * @return JSON for types and vertices
      */
@@ -497,11 +543,11 @@ public class Tiler {
       return result;
     } // toString
 
-    /** 
+    /**
      * Creates a successor vertex and connects to it
      * @param ifocus index of the vertex which gets the new successor
      * @param iedge attach the successor at this edge
-     * @return index of successor vertex 
+     * @return index of successor vertex
      */
     public int attach(int ifocus, int iedge) {
       int isucc = 0; // future result
@@ -515,34 +561,39 @@ public class Tiler {
         focus.succs[iedge] = isucc;
         Position pos = focus.expos;
         succ.angle = (focus.angle + fotype.angles[iedge]) % 360;
-        int edgeAngle = fotype.getEdgeAngle(succ.typeIndex, iedge);
-        succ.expos = focus.expos.moveDegrees(edgeAngle);
+        int edgeAngle = (focus.angle + fotype.getEdgeAngle(focus.typeIndex, iedge)) % 360;
+        succ.expos = focus.expos.moveUnit(edgeAngle);
         if (sDebug >= 2) {
-          System.out.println("/* iedge=" + iedge 
-              + ", focus.angle="  + focus.angle 
-              + ", focus.expos="  + focus.expos.toString() 
+          System.out.println("# iedge=" + iedge
+              + ", focus.angle="  + focus.angle
+              + ", focus.expos="  + focus.expos.toString()
               + ", getEdgeAngle=" + edgeAngle
-              + ", succ.angle="   + succ.angle 
-              + ", succ.expos="   + succ.expos.toString() 
-              ); 
+              + ", succ.angle="   + succ.angle
+              + ", succ.expos="   + succ.expos.toString()
+              );
         }
         // succ.preds[] ...?
         focus.fixedEdges ++;
         if (sDebug >= 1) {
-          System.out.println("/* line:"
-              + " " + focus.expos.getX()
+          System.out.println("# line: k" + String.valueOf(iedge % 8) 
+              + "," + focus.expos.getX()
               + "," + focus.expos.getY()
               + "," +  succ.expos.getX()
               + "," +  succ.expos.getY()
-              + " */");
+              );
         }
-      } else { 
-        isucc = focus.succs[iedge];// already linked 
+        writeSVG("<line class=\"k" + String.valueOf(iedge % 8) 
+            + "\" x1=\"" + focus.expos.getX()
+            + "\" y1=\"" + focus.expos.getY()
+            + "\" x2=\"" +  succ.expos.getX() 
+            + "\" y2=\"" +  succ.expos.getY() + "\" />");
+      } else {
+        isucc = focus.succs[iedge];// already linked
       }
       return isucc;
     } // attach
 
-    /** 
+    /**
      * Computes the neighbourhood of the start vertex up to some distance
      * @param istart index of the initial vertex type
      */
@@ -550,14 +601,14 @@ public class Tiler {
       LinkedList<Integer> queue = new LinkedList<Integer>();
       initialize();
       if (sDebug >= 1) {
-        System.out.println("/* compute neighbours of vertex type " + istart + " up to distance " + mNumTerms + "*/");
+        System.out.println("# compute neighbours of vertex type " + istart + " up to distance " + mNumTerms);
       }
       queue.add(addVertex(istart));
-      int nestLevel = 1; 
+      int nestLevel = 1;
       while (nestLevel <= mMaxLevel) {
         int levelPortion = queue.size();
         if (sDebug >= 1) {
-          System.out.println("/* level " + nestLevel + ": process " + levelPortion + " vertices */");
+          System.out.println("# level " + nestLevel + ": process " + levelPortion + " vertices");
         }
         while (levelPortion > 0 && queue.size() > 0) { // queue not empty
           int ifocus = queue.poll();
@@ -571,12 +622,12 @@ public class Tiler {
         } // while queue not empty
         nestLevel ++;
       } // while nestLevel
-      System.out.println("/* final net */\n" + toString());
+      System.out.println("# final net\n" + toString());
     } // computeNet
 
   } // class Tiling
 
-  /** 
+  /**
    * Process one record from the file
    * @param line record to be processed
    */
@@ -611,20 +662,19 @@ public class Tiler {
     }
   } // processRecord
 
-  /** 
-   * Filters a file and writes the modified output lines.
+  /**
+   * Reads a file and processes all input lines.
    * @param fileName name of the input file, or "-" for STDIN
    */
   private void processFile(String fileName) {
     BufferedReader lineReader; // Reader for the input file
-    String srcEncoding = "UTF-8"; // Encoding of the input file
     String line = null; // current line from text file
     try {
       if (fileName == null || fileName.length() <= 0 || fileName.equals("-")) {
-        lineReader = new BufferedReader(new InputStreamReader(System.in, srcEncoding));
+        lineReader = new BufferedReader(new InputStreamReader(System.in, sEncoding));
       } else {
         ReadableByteChannel lineChannel = (new FileInputStream(fileName)).getChannel();
-        lineReader = new BufferedReader(Channels.newReader(lineChannel , srcEncoding));
+        lineReader = new BufferedReader(Channels.newReader(lineChannel , sEncoding));
       }
       while ((line = lineReader.readLine()) != null) { // read and process lines
         if (! line.matches("\\s*#.*")) { // is not a comment
@@ -641,8 +691,88 @@ public class Tiler {
       exc.printStackTrace();
     } // try
   } // processFile
-
-  /** 
+  
+  /** Whether an SVG image file should be written */
+  private boolean mSVG;
+  
+  /** HOw many &gt;line&lt; elements should be written */
+  private int mSVGCount;
+  
+  /** Writer for SVG output */
+  private PrintWriter mSVGWriter;
+  
+  /**
+   * Writes some portion of an SVG file.
+   * @param xml SVG XML code, or 
+   * "head" for SVG prelude, or 
+   * "tail" for SVG postlude.
+   */
+  private void writeSVG(String xml) {
+          if (sDebug >= 1) {
+            System.out.println("# mSVGCount=" + mSVGCount + ", xml=\"" + xml + "\"");
+          }
+    if (mSVG) {
+      try {
+        if (xml.startsWith("<")) { // normal XML element(s)
+          if (mSVGCount > 0) { 
+            // mSVGWriter.println(xml);
+            System.err.println(xml);
+            if (xml.startsWith("<line")) {
+              mSVGCount --; // limit the number of line segments which are written
+            }
+          }
+        } else if (xml.equals("head")) {
+          // mSVGWriter.print(""
+          System.err.print(""
+          + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+          + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"\n"
+          + " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\" [\n"
+          + " <!ATTLIST svg xmlns:xlink CDATA #FIXED \"http://www.w3.org/1999/xlink\">\n"
+          + "]>\n"
+          + "<!--\n"
+          + "    Tiler - Georg Fischer. Do NOT edit here!\n"
+          + "-->\n"
+          + "<svg width=\"192mm\" height=\"192mm\"\n"
+          + "  viewBox=\"-8 -8 16 16\" \n"
+          + "  xmlns=\"http://www.w3.org/2000/svg\" \n"
+          + "  >\n"
+          + "  <defs>\n"
+          + "    <style type=\"text/css\"><![CDATA[\n"
+          + "      rect, line {\n"
+          + "          stroke-width:0.1\n"
+          + "      }\n"
+          + "      .k0 { fill: crimson     ; stroke: crimson     }\n"
+          + "      .k1 { fill: yellow      ; stroke: yellow      }\n"
+          + "      .k2 { fill: orange      ; stroke: orange      }\n"
+          + "      .k3 { fill: lime        ; stroke: lime        }\n"
+          + "      .k4 { fill: turquoise   ; stroke: turquoise   }\n"
+          + "      .k5 { fill: blue        ; stroke: blue        }\n"
+          + "      .k6 { fill: darkblue    ; stroke: darkblue    }\n"
+          + "      .k7 { fill: darkmagenta ; stroke: darkmagenta }\n"
+          + "      .k8 { fill: black       ; stroke: black       }\n"
+          + "    ]]></style>\n"
+          + "  </defs>\n"
+          + "<title>Tiling</title>\n"
+          + "<g id=\"graph0\" >\n"
+          + "    <rect x=\"-8\" y=\"-8\" width=\"16\" height=\"16\" />\n"
+          );
+        } else if (xml.equals("tail")) {
+          // mSVGWriter.print(""
+          System.err.print(""
+          + "</g>\n"
+          + "</svg>\n"
+          );
+          mSVGWriter.close();
+        }
+      } catch (Exception exc) {
+        // log.error(exc.getMessage(), exc);
+        System.err.println(exc.getMessage());
+        exc.printStackTrace();
+      } // try
+    } // SVG output planned and not yet finished
+  } // writeSVG
+  
+  /**
    * Main method, filters a file and dumps the prgress of the tilings' generation
    * @param args command line arguments: filename, or "-" or none for STDIN
    */
@@ -650,7 +780,7 @@ public class Tiler {
     Tiler tiler = new Tiler();
     try {
       int iarg = 0;
-      String fileName = "-"; // assume STDIN
+      String fileName = "-"; // assume STDIN/STDOUT
       while (iarg < args.length) { // consume all arguments
         String opt = args[iarg ++];
         if (false) {
@@ -658,23 +788,28 @@ public class Tiler {
           sDebug = 1;
           sDebug = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals    ("-f")     ) {
-          fileName = args[iarg ++];
-          tiler.processFile(fileName);
+          tiler.processFile(args[iarg ++]);
         } else if (opt.equals    ("-m")     ) {
           tiler.mMaxLevel = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals    ("-n")     ) {
           tiler.mNumTerms = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals    ("-pos")     ) {
-          for (int ipos = 0; ipos < tiler.circlePos.length + 1; ipos ++) {
-            String pos = tiler.circlePos[0].moveDegrees(ipos * 15).toString();
-            System.out.println(String.format("[%2d], %3d = %s", ipos, ipos * 15, pos));
-          } // for ipos
-          for (int ipos = 0; ipos < tiler.circlePos.length; ipos += 4) {
-            int ipos8 = (ipos + 8) % 24;
-            Position hexPos = tiler.circlePos[ipos].add(tiler.circlePos[ipos8]);
-            System.out.println(String.format("[%2d] + [%2d] = %8s,%8s"
-                , ipos, ipos8, hexPos.getX(), hexPos.getY()));
-          } // for ipos
+        } else if (opt.equals    ("-circle")     ) {
+          tiler.testCirclePositions();
+        } else if (opt.equals    ("-svg")   ) {
+          tiler.mSVG = true;
+          fileName = args[iarg ++];
+          if (fileName.equals("-")) { // stdout
+            tiler.mSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), tiler.sEncoding));
+          } else { // not stdout
+            WritableByteChannel channel = (new FileOutputStream (fileName, false)).getChannel();
+            tiler.mSVGWriter = new PrintWriter(Channels.newWriter(channel, tiler.sEncoding));
+          } // not stdout
+          tiler.mSVGCount = tiler.mNumTerms;
+          tiler.writeSVG("head");
+          // tiler.mSVGWriter.println("<!-- Here I am -->");
+          if (sDebug >= 1) {
+            System.out.println("# tiler.mSVGCount=" + tiler.mSVGCount);
+          }
         } else {
             System.err.println("??? invalid option: \"" + opt + "\"");
         }
@@ -684,6 +819,7 @@ public class Tiler {
       System.err.println(exc.getMessage());
       exc.printStackTrace();
     }
+    tiler.writeSVG("tail"); // also closes mSVGWriter
   } // main
 
 } // Tiler
