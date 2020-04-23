@@ -50,7 +50,7 @@ my $head = <<"GFis";
   >
   <defs>
     <style type="text/css"><![CDATA[
-      rect, line {
+      rect, line, circle, text {
           stroke-width:0.1
       }
       .k0 { fill: crimson     ; stroke: crimson     }

@@ -48,21 +48,24 @@ extract: break
 test488:
 	perl co488.pl -n $(MAXT) -d 0 \
 	| tee    $@.tmp
-#--------
+#========
 LEVEL=2
-GAL=2.9
+D=2
+GAL=Gal.2.9
+ID=1
 NMAX=29061947
-tile: compile run
+#--
+tile: select compile run
+select:
+	grep -E "$(GAL)\." extract.tmp | tee tiler.tst
 compile:
 	javac       Tiler.java 
 run:
-	java  -cp . Tiler -d 2 -m $(LEVEL) -n $(NMAX) -svg $(GAL).svg -f tiler.$(GAL).tst 2> $(GAL).svg\
-	| tee $(GAL).tmp
-	perl svgen.pl -n $(NMAX) -w 4 $(GAL).tmp | tee $(GAL).b.svg
+	java  -cp . Tiler -d $(D) -i $(GAL).$(ID) -l $(LEVEL) -n $(NMAX) \
+	-svg test.svg -f tiler.tst > $(GAL).$(ID).tmp 2> test.svg
+	wc -l $(GAL).$(ID).tmp test.svg
 circle:
 	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 2> $@.svg
-#	| tee $@.tmp
-#	perl svgen.pl -w 2 $@.tmp | tee $@.svg
 #================
 # old targets
 recur3:

@@ -13,6 +13,7 @@ import java.nio.channels.WritableByteChannel;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 // import  org.apache.log4j.Logger;
 
@@ -32,10 +33,9 @@ public class Tiler {
   protected Tiler() {
     // log = Logger.getLogger(Tiler.class.getName());
     mNumTerms = 32;
-    mOffset = 0;
-    sDebug = 0;
-    mSVG = false;
-    // mSVGCount  = -1; // no SVG output
+    mOffset   = 0;
+    mSVG      = false;
+    mGalId    = "Gal.2.1.1";
   } // Tiler()
 
   /** Debugging mode: 0=none, 1=some, 2=more */
@@ -48,6 +48,12 @@ public class Tiler {
   public void setDebug(int level) {
     sDebug = level;
   }
+
+  /** Standard encoding for all files */
+  private static final String sEncoding = "UTF-8";
+
+  /** Brian Galebach's identification of a VertexType, of the form "Gal.u.t.v" */
+  private String mGalId;
 
   /** Amount of indenting for JSON output */
   protected static String sIndent = "";
@@ -66,9 +72,6 @@ public class Tiler {
     }
   } // popIndent
 
-  /** Current tiling */
-  private Tiling mTiling;
-
   /** number of terms to be generated */
   private int mNumTerms;
 
@@ -78,9 +81,8 @@ public class Tiler {
   /** Offset1 of the sequences */
   private int mOffset;
 
-  /** Standard encoding for all files */
-  private static final String sEncoding = "UTF-8";
-
+  /** Current tiling */
+  private Tiling mTiling;
   /**
    * Join an array of integers
    * @param delim delimiter
@@ -268,7 +270,7 @@ public class Tiler {
   /**
    * Class for an allowed vertex type.
    */
-  protected  class VertexType { // numbered 1, 2, 3 ... ; 0 is not used
+  protected class VertexType { // numbered 1, 2, 3 ... ; 0 is not used
     String galId; // e.g. "Gal.2.1.1"
     int edgeNo; // number of edges
     int[] polys; // number of corners of the regular (3,4,6,8,12) polypolys (shapes) which are
@@ -322,43 +324,6 @@ public class Tiler {
         }
       } // for iedge
     } // VertexType(String, String, String)
-
-    /**
-     * Gets the angle for an edge of a {@link VertexType}
-     * @param iedge number of the edge, zero-based
-     * @return angle in degrees, for example 6.4.4.3:
-     * <pre>
-     * iedge       =  0   1   2   3
-     * polys     s = [6  .4  .4  .3]
-     * type > 0:  0 120  90  90  60  (counter-clockwise)
-     * type < 0:  0 120  60  90  90  (clockwise)
-     * </pre>
-     */
-    public int getEdgeAngle(int typeIndex, int iedge) {
-      int itype = Math.abs(typeIndex);
-      int ipoly = 0;
-      int angle = 0;
-      int[] polys = mTiling.vertexTypes[itype].polys;
-      if (iedge > 0) {
-        if (itype == typeIndex) { // positive, counter-clockwise: 6.4.4.3
-          while (ipoly < iedge) {
-            if (sDebug >= 2) {
-              System.out.println("# getEdgeAngle(" + typeIndex + ", " + iedge + "): polys[" + ipoly + "]=" 
-                  + polys[ipoly] + ", add " + polyAngles[polys[ipoly]]);
-            }
-            angle += polyAngles[polys[ipoly]];
-            ipoly ++;
-          }
-        } else { // negative, clockwise: 3.4.4
-          ipoly = polys.length;
-          while (ipoly > polys.length - iedge) {
-            ipoly --;
-            angle += polyAngles[polys[ipoly]];
-          }
-        }
-      } // iedge > 0
-      return angle;
-    } // getEdgeAngle
 
     /**
      * Returns a representation of the VertexType
@@ -447,7 +412,7 @@ public class Tiler {
           + ", \"angle\": "  + String.format("%3d", angle)
           + ", \"fixed\": "  + fixedEdges
           + ", \"succs\": "  + join(",", succs       )
-          + ", \"preds\": "  + join(",", preds       )
+      //  + ", \"preds\": "  + join(",", preds       )
       //  + ", \"shapes\": " + join(",", shapes)
           + ", \"x\": "      + expos.getX()
           + ", \"y\": "      + expos.getY()
@@ -457,6 +422,91 @@ public class Tiler {
     } // toString
 
   } // class Vertex
+
+  /**
+   * Gets the angle for an edge of a {@link VertexType}
+   * @param iedge number of the edge, zero-based
+   * @return angle in degrees, for example 6.4.4.3:
+   * <pre>
+   * iedge       =  0   1   2   3
+   * polys     s = [6  .4  .4  .3]
+   * type > 0:  0 120  90  90  60  (counter-clockwise)
+   * type < 0:  0 120  60  90  90  (clockwise)
+   * </pre>
+   */
+  public int getEdgeAngle(int typeIndex, int iedge) {
+    int itype = Math.abs(typeIndex);
+    int ipoly = 0;
+    int angle = 0;
+    int[] polys = mTiling.vertexTypes[itype].polys;
+    if (iedge > 0) {
+      if (itype == typeIndex) { // positive, counter-clockwise: 6.4.4.3
+        while (ipoly < iedge) {
+          angle += polyAngles[polys[ipoly]];
+          ipoly ++;
+        }
+      } else {                  // negative, clockwise:         3.4.4.6
+        ipoly = polys.length;
+        while (ipoly > polys.length - iedge) {
+          ipoly --;
+          angle += polyAngles[polys[ipoly]];
+        }
+      }
+      if (sDebug >= 2) {
+        System.out.println("# getEdgeAngle(" + typeIndex + ", " + iedge + "): polys[" + ipoly + "]=" 
+            + polys[ipoly] + ", new angle=" + angle);
+      }
+    } // iedge > 0
+    return angle;
+  } // getEdgeAngle
+
+  /**
+   * Gets the edge number (zero based) of a rotated successor {@link Vertex}
+   * which matches an angle from the focus Vertex.
+   * @param succ rotated successor Vertex
+   * @param foAngle angle of an edge from the rotated focus Vertex
+   * @return zero based edge number of the successor, or -1 if not matched
+   */
+  public int getMatchingEdge(Vertex succ, int foAngle) {
+    int itype = Math.abs(succ.typeIndex);
+    int[] polys = mTiling.vertexTypes[itype].polys;
+    int angle = succ.angle;
+    int iedge = 0;
+    boolean busy = true;
+    if (itype == succ.typeIndex) { // positive, counter-clockwise: 6.4.4.3
+      while (busy && iedge < polys.length) { // try to find a matching edge
+        if (sDebug >= 2) {
+          System.out.println("# getMatchingEdge+(" + itype + "," + foAngle + "): angle=" + angle + ", iedge=" + iedge);
+        }
+        if ((angle + 180) % 360 == foAngle) {
+          busy = false; // match found
+        } else {// not matched, advance
+          angle += polyAngles[polys[iedge]];
+          iedge ++;
+        } // advance +
+      } // while busy +
+    } else {                       // negative, clockwise:         3.4.4.6
+      iedge = polys.length - 1;
+      while (busy && iedge >= 0) { // try to find a matching edge
+        if (sDebug >= 2) {
+          System.out.println("# getMatchingEdge+(" + itype + "," + foAngle + "): angle=" + angle + ", iedge=" + iedge);
+        }
+        if ((angle + 180) % 360 == foAngle) {
+          busy = false; // match found
+        } else {// not matched, advance
+          angle += polyAngles[polys[iedge]];
+          iedge --;
+        } // advance -
+      } // while busy -
+    } // negative
+    if (busy) { // not found
+      iedge = -1; // failure
+    }
+    if (sDebug >= 1) {
+      System.out.println("# getMatchingEdge -> " + iedge);
+    }
+    return iedge;
+  } // getMatchingEdge
 
   /**
    * Class for an allocated vertex.
@@ -530,7 +580,8 @@ public class Tiler {
         result += sIndent + ", \"ffVertex\": " + ffVertex + "\n"
                +  sIndent + ", \"vertices\":\n";
         for (int ind = 0; ind < ffVertex; ind ++) {
-          result += sIndent + (ind == 0 ? "  [ " : sep) + vertices.get(ind).toString();
+          Vertex focus = vertices.get(ind);
+          result += sIndent + (ind == 0 ? "  [ " : sep) + focus.toString();
         } // for vertices
         result += sIndent + "  ]\n}\n";
       } catch(Exception exc) {
@@ -547,34 +598,40 @@ public class Tiler {
      * Creates a successor vertex and connects to it
      * @param ifocus index of the vertex which gets the new successor
      * @param iedge attach the successor at this edge
-     * @return index of successor vertex
+     * @return index of new successor vertex, or 0 if attached to an existing vertex
      */
     public int attach(int ifocus, int iedge) {
       int isucc = 0; // future result
       Vertex focus = vertices.get(ifocus);
       VertexType fotype = focus.getType();
       if (focus.succs[iedge] == 0) {
+        focus.fixedEdges ++;
         Vertex succ = new Vertex(fotype.tars[iedge]);
+
         isucc = ffVertex;
         vertices.add(succ);
         ffVertex ++;
         focus.succs[iedge] = isucc;
+
         Position pos = focus.expos;
+        int foEdgeAngle = (focus.angle + getEdgeAngle(focus.typeIndex, iedge)) % 360;
+        succ.expos = focus.expos.moveUnit(foEdgeAngle);
         succ.angle = (focus.angle + fotype.angles[iedge]) % 360;
-        int edgeAngle = (focus.angle + fotype.getEdgeAngle(focus.typeIndex, iedge)) % 360;
-        succ.expos = focus.expos.moveUnit(edgeAngle);
-        if (sDebug >= 2) {
+        int suEdgeNo = getMatchingEdge(succ, foEdgeAngle);
+        if (sDebug >= 1) {
           System.out.println("# iedge=" + iedge
               + ", focus.angle="  + focus.angle
               + ", focus.expos="  + focus.expos.toString()
-              + ", getEdgeAngle=" + edgeAngle
+              + ", getEdgeAngle=" + foEdgeAngle
               + ", succ.angle="   + succ.angle
               + ", succ.expos="   + succ.expos.toString()
+              + ", suEdgeNo="     + suEdgeNo
               );
         }
-        // succ.preds[] ...?
-        focus.fixedEdges ++;
-        if (sDebug >= 1) {
+        if (suEdgeNo >= 0) {
+          succ.succs[suEdgeNo] = ifocus;
+        }
+        if (sDebug >= 3) {
           System.out.println("# line: k" + String.valueOf(iedge % 8) 
               + "," + focus.expos.getX()
               + "," + focus.expos.getY()
@@ -582,13 +639,13 @@ public class Tiler {
               + "," +  succ.expos.getY()
               );
         }
-        writeSVG("<line class=\"k" + String.valueOf(iedge % 8) 
+        writeSVG("<line class=\"l" + String.valueOf((iedge) % 8) 
             + "\" x1=\"" + focus.expos.getX()
             + "\" y1=\"" + focus.expos.getY()
             + "\" x2=\"" +  succ.expos.getX() 
             + "\" y2=\"" +  succ.expos.getY() + "\" />");
       } else {
-        isucc = focus.succs[iedge];// already linked
+        // isucc = focus.succs[iedge];// already linked
       }
       return isucc;
     } // attach
@@ -617,12 +674,27 @@ public class Tiler {
           VertexType fotype = focus.getType();
           for (int iedge = 0; iedge < fotype.edgeNo; iedge ++) {
             int isucc = attach(ifocus, iedge);
-            queue.add(isucc);
+            if (isucc > 0) { // did not yet exist
+              queue.add(isucc);
+            }
           } // for iedge
         } // while queue not empty
         nestLevel ++;
       } // while nestLevel
-      System.out.println("# final net\n" + toString());
+      if (sDebug >= 1) {
+        System.out.println("# final net\n" + toString());
+      }
+      if (mSVG) {
+        for (int ind = 1; ind < ffVertex; ind ++) { // ignore [0]
+          Vertex focus = vertices.get(ind);
+          int fotype = Math.abs(focus.typeIndex);
+          writeSVG("<circle class=\"c" + String.valueOf((fotype) % 8)
+              + (fotype != focus.typeIndex ? " dash" : "")
+              + "\" cx=\"" + focus.expos.getX()
+              + "\" cy=\"" + focus.expos.getY()
+              + "\" r=\""  + (ind == 1 ? "0.15" : "0.1") + "\" />");
+        } // for vertices
+      } // SVG 
     } // computeNet
 
   } // class Tiling
@@ -650,7 +722,9 @@ public class Tiler {
         System.out.println(mTiling.toString());
         // compute the net
         for (int itype = 1; itype < mTiling.ffVertexType; itype ++) {
-          mTiling.computeNet(itype);
+          if (mTiling.vertexTypes[itype].galId.equals(mGalId)) { // only this one from all VertexTypes in the Tiling
+            mTiling.computeNet(itype);
+          }
         } // for itype
       } else {
         mTiling.addVertexType(galId, descriptor, sequence);
@@ -703,67 +777,74 @@ public class Tiler {
   
   /**
    * Writes some portion of an SVG file.
-   * @param xml SVG XML code, or 
+   * @param xml one or more complete SVG XML elements, or 
    * "head" for SVG prelude, or 
    * "tail" for SVG postlude.
    */
   private void writeSVG(String xml) {
-          if (sDebug >= 1) {
-            System.out.println("# mSVGCount=" + mSVGCount + ", xml=\"" + xml + "\"");
-          }
     if (mSVG) {
-      try {
-        if (xml.startsWith("<")) { // normal XML element(s)
-          if (mSVGCount > 0) { 
-            // mSVGWriter.println(xml);
-            System.err.println(xml);
-            if (xml.startsWith("<line")) {
-              mSVGCount --; // limit the number of line segments which are written
-            }
+      String text = null;
+      if (xml.startsWith("<")) { // complete XML element(s)
+        text = xml;
+        if (mSVGCount > 0) { 
+          if (xml.startsWith("<line")) {
+            mSVGCount --; // limit the number of line segments which are written
           }
-        } else if (xml.equals("head")) {
-          // mSVGWriter.print(""
-          System.err.print(""
-          + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-          + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"\n"
-          + " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\" [\n"
-          + " <!ATTLIST svg xmlns:xlink CDATA #FIXED \"http://www.w3.org/1999/xlink\">\n"
-          + "]>\n"
-          + "<!--\n"
-          + "    Tiler - Georg Fischer. Do NOT edit here!\n"
-          + "-->\n"
-          + "<svg width=\"192mm\" height=\"192mm\"\n"
-          + "  viewBox=\"-8 -8 16 16\" \n"
-          + "  xmlns=\"http://www.w3.org/2000/svg\" \n"
-          + "  >\n"
-          + "  <defs>\n"
-          + "    <style type=\"text/css\"><![CDATA[\n"
-          + "      rect, line {\n"
-          + "          stroke-width:0.1\n"
-          + "      }\n"
-          + "      .k0 { fill: crimson     ; stroke: crimson     }\n"
-          + "      .k1 { fill: yellow      ; stroke: yellow      }\n"
-          + "      .k2 { fill: orange      ; stroke: orange      }\n"
-          + "      .k3 { fill: lime        ; stroke: lime        }\n"
-          + "      .k4 { fill: turquoise   ; stroke: turquoise   }\n"
-          + "      .k5 { fill: blue        ; stroke: blue        }\n"
-          + "      .k6 { fill: darkblue    ; stroke: darkblue    }\n"
-          + "      .k7 { fill: darkmagenta ; stroke: darkmagenta }\n"
-          + "      .k8 { fill: black       ; stroke: black       }\n"
-          + "    ]]></style>\n"
-          + "  </defs>\n"
-          + "<title>Tiling</title>\n"
-          + "<g id=\"graph0\" >\n"
-          + "    <rect x=\"-8\" y=\"-8\" width=\"16\" height=\"16\" />\n"
-          );
-        } else if (xml.equals("tail")) {
-          // mSVGWriter.print(""
-          System.err.print(""
-          + "</g>\n"
-          + "</svg>\n"
-          );
-          mSVGWriter.close();
         }
+      } else if (xml.equals("head")) {
+      	int w1 = 8;
+      	int w2 = 2 * w1;
+        text = ""
+        + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+        + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"\n"
+        + " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\" [\n"
+        + " <!ATTLIST svg xmlns:xlink CDATA #FIXED \"http://www.w3.org/1999/xlink\">\n"
+        + "]>\n"
+        + "<!--\n"
+        + "    Tiler - Georg Fischer. Do NOT edit here!\n"
+        + "-->\n"
+        + "<svg width=\"192mm\" height=\"192mm\"\n"
+        + "  viewBox=\"-" + w1 + "-" + w1 + " " + w2 + " " + w2 + "\" \n"
+        + "  xmlns=\"http://www.w3.org/2000/svg\" \n"
+        + "  >\n"
+        + "  <defs>\n"
+        + "    <style type=\"text/css\"><![CDATA[\n"
+        + "      rect, line { stroke-width:0.05    }\n"
+        + "      circle     { stroke-width:0.02    }\n"
+        + "      .dash      { stroke-dasharray:0.04}\n"
+        + "      .l0 { fill: crimson     ; stroke: crimson     }\n"
+        + "      .l1 { fill: yellow      ; stroke: yellow      }\n"
+        + "      .l2 { fill: orange      ; stroke: orange      }\n"
+        + "      .l3 { fill: lime        ; stroke: lime        }\n"
+        + "      .l4 { fill: turquoise   ; stroke: turquoise   }\n"
+        + "      .l5 { fill: blue        ; stroke: blue        }\n"
+        + "      .l6 { fill: darkblue    ; stroke: darkblue    }\n"
+        + "      .l7 { fill: darkmagenta ; stroke: darkmagenta }\n"
+        + "      .l8 { fill: black       ; stroke: black       }\n"
+        + "      .c0 { fill: black       ; stroke: white       }\n"
+        + "      .c1 { fill: crimson     ; stroke: white       }\n"
+        + "      .c2 { fill: yellow      ; stroke: black       }\n"
+        + "      .c3 { fill: orange      ; stroke: white       }\n"
+        + "      .c4 { fill: lime        ; stroke: black       }\n"
+        + "      .c5 { fill: turquoise   ; stroke: black       }\n"
+        + "      .c6 { fill: blue        ; stroke: white       }\n"
+        + "      .c7 { fill: darkblue    ; stroke: white       }\n"
+        + "      .c8 { fill: darkmagenta ; stroke: white       }\n"
+        + "    ]]></style>\n"
+        + "  </defs>\n"
+        + "<title>Tiling</title>\n"
+        + "<g id=\"graph0\" >\n"
+        + "    <rect x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
+        ;
+      } else if (xml.equals("tail")) {
+        text = ""
+        + "</g>\n"
+        + "</svg>\n"
+        ;
+      }
+      try {
+        // mSVGWriter.print(text);
+        System.err.println(text);
       } catch (Exception exc) {
         // log.error(exc.getMessage(), exc);
         System.err.println(exc.getMessage());
@@ -778,26 +859,28 @@ public class Tiler {
    */
   public static void main(String[] args) {
     Tiler tiler = new Tiler();
+    sDebug = 1;
     try {
       int iarg = 0;
       String fileName = "-"; // assume STDIN/STDOUT
       while (iarg < args.length) { // consume all arguments
-        String opt = args[iarg ++];
+        String opt        = args[iarg ++];
         if (false) {
-        } else if (opt.equals    ("-d")     ) {
-          sDebug = 1;
-          sDebug = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals    ("-f")     ) {
+        } else if (opt.equals("-d")     ) {
+          sDebug          = Integer.parseInt(args[iarg ++]);
+        } else if (opt.equals("-f")     ) {
           tiler.processFile(args[iarg ++]);
-        } else if (opt.equals    ("-m")     ) {
+        } else if (opt.equals("-i")     ) {
+          tiler.mGalId    = args[iarg ++];
+        } else if (opt.equals("-l")     ) {
           tiler.mMaxLevel = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals    ("-n")     ) {
+        } else if (opt.equals("-n")     ) {
           tiler.mNumTerms = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals    ("-circle")     ) {
+        } else if (opt.equals("-circle")     ) {
           tiler.testCirclePositions();
-        } else if (opt.equals    ("-svg")   ) {
+        } else if (opt.equals("-svg")   ) {
           tiler.mSVG = true;
-          fileName = args[iarg ++];
+          fileName        = args[iarg ++];
           if (fileName.equals("-")) { // stdout
             tiler.mSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), tiler.sEncoding));
           } else { // not stdout
@@ -806,12 +889,8 @@ public class Tiler {
           } // not stdout
           tiler.mSVGCount = tiler.mNumTerms;
           tiler.writeSVG("head");
-          // tiler.mSVGWriter.println("<!-- Here I am -->");
-          if (sDebug >= 1) {
-            System.out.println("# tiler.mSVGCount=" + tiler.mSVGCount);
-          }
         } else {
-            System.err.println("??? invalid option: \"" + opt + "\"");
+          System.err.println("??? invalid option: \"" + opt + "\"");
         }
       } // while args
     } catch (Exception exc) {
@@ -819,7 +898,10 @@ public class Tiler {
       System.err.println(exc.getMessage());
       exc.printStackTrace();
     }
-    tiler.writeSVG("tail"); // also closes mSVGWriter
+    if (tiler.mSVG) {
+      tiler.writeSVG("tail"); // also closes mSVGWriter
+      tiler.mSVGWriter.close();
+    }
   } // main
 
 } // Tiler
