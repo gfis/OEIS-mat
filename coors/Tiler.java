@@ -218,6 +218,10 @@ public class Tiler {
       , new Position(new short[] { 0, 1, 0, 1}, new short[] { 0, 1, 0,-1}) // [23] 345     0.9659,   -0.2588
       };
 
+  /** Angles in degrees for the 5 polygones:   triangle,   square, hexagon, octogon,    dodecagon */
+  //                                           0 1 2  3         4  5     6   7    8 9 10 11    12
+  private final int[] polyAngles = new int[] {0,0,0, 60      , 90,0   ,120,0  , 135,0, 0, 0, 150};
+
   /** 
    * Class for an allowed vertex type.
    */
@@ -246,7 +250,7 @@ public class Tiler {
     /** 
      * Constructor
      * @param galId Galebach's id Gal.u.t.v
-     * @param descriptor counter-clockwise list the polygones followed by the list of types and angles
+     * @param descriptor counter-clockwise list of the polygones followed by the list of types and angles
      * @param sequence a list of initial terms of the coordination sequence
      */
     VertexType(String galId, String descriptor, String sequence) {
@@ -276,6 +280,40 @@ public class Tiler {
       } // for iedge
     } // VertexType(String, String, String)
 
+    /**
+     * Gets the angle for an edge of a {@link VertexType}
+     * @param iedge number of the edge, zero-based
+     * @return angle in degrees, for example 6.4.4.3:
+     * <pre>
+     * iedge       =  0   1   2   3                     
+     * polys     s = [6  .4  .4  .3]                    
+     * type > 0:  0 120  90  90  60  (counter-clockwise)  
+     * type < 0:  0 120  60  90  90  (clockwise)          
+     * </pre>
+     */
+    public int getEdgeAngle(int typeIndex, int iedge) {
+      int itype = Math.abs(typeIndex);
+      int ipoly = 0;
+      int angle = 0;
+      int[] polys = mTiling.vertexTypes[itype].polys;
+      if (iedge > 0) {
+        if (itype == typeIndex) { // positive, counter-clockwise: 6.4.4.3
+          while (ipoly < iedge) {
+          	angle += polyAngles[polys[ipoly]];
+            ipoly ++;
+          }
+        } else { // negative, clockwise: 3.4.4
+          ipoly = polys.length;
+          while (ipoly > polys.length - iedge) {
+          	ipoly --;
+          	angle += polyAngles[polys[ipoly]];
+          }
+        }
+      } // iedge > 0
+      return angle;
+    } // getEdgeAngle
+
+
     /** 
      * Returns a representation of the VertexType
      * @return JSON
@@ -302,7 +340,7 @@ public class Tiler {
     int angle; // the vertex type was rotated counter-clockwise by so many degrees
     Position expos; // exact Position of the Vertex
     int fixedEdges; // number of allocated neighbours = edges
-    int[] shapeIndices; // list of indices in left shapes
+    int[] shapes; // list of indices in left shapes
     int[] succs; // list of indices in successor vertices
     int[] preds; // list of indices in predecessor vertices
 
@@ -312,14 +350,14 @@ public class Tiler {
     public Vertex() {
       this(0);
     /*
-      typeIndex    = 0; // reserved
-      angle        = 0;
-      expos        = new Position();
-      fixedEdges   = 0;
-      int edgeNo   = 0;
-      shapeIndices = new int[edgeNo];
-      succs        = new int[edgeNo];
-      preds        = new int[edgeNo];
+      typeIndex  = 0; // reserved
+      angle      = 0;
+      expos      = new Position();
+      fixedEdges = 0;
+      int edgeNo = 0;
+      shapes     = new int[edgeNo];
+      succs      = new int[edgeNo];
+      preds      = new int[edgeNo];
     */
     } // Vertex()
 
@@ -331,17 +369,17 @@ public class Tiler {
      * @param iedge which edge of the predecessor leads to <em>this</em> new successor vertex
      */
     public Vertex(int itype) {
-      typeIndex    = itype; // may be negative
-      itype        = Math.abs(itype); // now positive
-      angle        = 0;
-      expos        = new Position();
-      int edgeNo   = itype == 0 ? 0 : mTiling.vertexTypes[itype].edgeNo;
-      shapeIndices = new int[edgeNo];
-      succs        = new int[edgeNo];
-      preds        = new int[edgeNo];
-      Arrays.fill(shapeIndices, 0);
-      Arrays.fill(succs       , 0);
-      Arrays.fill(preds       , 0);
+      typeIndex  = itype; // may be negative
+      itype      = Math.abs(itype); // now positive
+      angle      = 0;
+      expos      = new Position();
+      int edgeNo = itype == 0 ? 0 : mTiling.vertexTypes[itype].edgeNo;
+      shapes     = new int[edgeNo];
+      succs      = new int[edgeNo];
+      preds      = new int[edgeNo];
+      Arrays.fill(shapes, 0);
+      Arrays.fill(succs , 0);
+      Arrays.fill(preds , 0);
     } // Vertex(int)
 
     /** 
@@ -364,7 +402,7 @@ public class Tiler {
           + ", \"fixed\": "  + fixedEdges
           + ", \"succs\": "  + join(",", succs       )
           + ", \"preds\": "  + join(",", preds       )
-          + ", \"shapes\": " + join(",", shapeIndices)
+      //  + ", \"shapes\": " + join(",", shapes)
           + ", \"x\": "      + expos.getX()
           + ", \"y\": "      + expos.getY()
           + " }\n";
@@ -475,11 +513,31 @@ public class Tiler {
         vertices.add(succ);
         ffVertex ++;
         focus.succs[iedge] = isucc;
-        succ.angle = fotype.angles[iedge];
-        // succ.preds[
+        Position pos = focus.expos;
+        succ.angle = (focus.angle + fotype.angles[iedge]) % 360;
+        int edgeAngle = fotype.getEdgeAngle(succ.typeIndex, iedge);
+        succ.expos = focus.expos.moveDegrees(edgeAngle);
+        if (sDebug >= 2) {
+          System.out.println("/* iedge=" + iedge 
+              + ", focus.angle="  + focus.angle 
+              + ", focus.expos="  + focus.expos.toString() 
+              + ", getEdgeAngle=" + edgeAngle
+              + ", succ.angle="   + succ.angle 
+              + ", succ.expos="   + succ.expos.toString() 
+              ); 
+        }
+        // succ.preds[] ...?
         focus.fixedEdges ++;
+        if (sDebug >= 1) {
+          System.out.println("/* line:"
+              + " " + focus.expos.getX()
+              + "," + focus.expos.getY()
+              + "," +  succ.expos.getX()
+              + "," +  succ.expos.getY()
+              + " */");
+        }
       } else { 
-      	isucc = focus.succs[iedge];// already linked 
+        isucc = focus.succs[iedge];// already linked 
       }
       return isucc;
     } // attach
@@ -497,7 +555,7 @@ public class Tiler {
       queue.add(addVertex(istart));
       int nestLevel = 1; 
       while (nestLevel <= mMaxLevel) {
-      	int levelPortion = queue.size();
+        int levelPortion = queue.size();
         if (sDebug >= 1) {
           System.out.println("/* level " + nestLevel + ": process " + levelPortion + " vertices */");
         }

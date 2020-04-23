@@ -54,7 +54,9 @@ tile: compile run
 compile:
 	javac       Tiler.java 
 run:
-	java  -cp . Tiler -d 1 -m $(LEVEL) -f tiler.2.1.tst
+	java  -cp . Tiler -d 2 -m $(LEVEL) -f tiler.2.1.tst \
+	| tee $@.tmp
+	perl svgen.pl $@.tmp | tee $@.svg
 #================
 # old targets
 recur3:
