@@ -1,0 +1,36 @@
+/* Stylesheet for uniform tilings
+ * @(#) $Id$
+ * 2020-04-25, Georg Fischer
+ */
+rect, line { stroke-width:0.05 }
+circle { stroke-width:0.01 }
+text   { stroke-width:0.005; font: 0.1px sans-serif;
+         text-anchor: middle; alignment-baseline: center }
+.dash  { stroke-dasharray:0.03 }
+.l0 { fill: crimson     ; stroke: crimson     }
+.l1 { fill: orange      ; stroke: orange      }
+.l2 { fill: green       ; stroke: green       }
+.l3 { fill: blue        ; stroke: blue        }
+.l4 { fill: darkblue    ; stroke: darkblue    }
+.l5 { fill: firebrick   ; stroke: firebrick   }
+.l6 { fill: magenta     ; stroke: magenta     }
+.l7 { fill: darkmagenta ; stroke: darkmagenta }
+.l8 { fill: black       ; stroke: red         }
+.c0 { fill: black       ; stroke: black }
+.c1 { fill: crimson     ; stroke: black }
+.c2 { fill: yellow      ; stroke: black }
+.c3 { fill: orange      ; stroke: black }
+.c4 { fill: lime        ; stroke: black }
+.c5 { fill: turquoise   ; stroke: black }
+.c6 { fill: blue        ; stroke: black }
+.c7 { fill: darkblue    ; stroke: black }
+.c8 { fill: darkmagenta ; stroke: black }
+.t0 { fill: white       ; stroke: white }
+.t1 { fill: white       ; stroke: white }
+.t2 { fill: black       ; stroke: black }
+.t3 { fill: black       ; stroke: black }
+.t4 { fill: black       ; stroke: black }
+.t5 { fill: black       ; stroke: black }
+.t6 { fill: black       ; stroke: black }
+.t7 { fill: white       ; stroke: white }
+.t8 { fill: white       ; stroke: white }

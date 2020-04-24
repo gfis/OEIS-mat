@@ -44,28 +44,31 @@ extract: break
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
-#--------
-test488:
-	perl co488.pl -n $(MAXT) -d 0 \
-	| tee    $@.tmp
 #========
 LEVEL=2
 D=2
 GAL=Gal.2.9
 ID=1
+GALID=$(GAL).$(ID)
 NMAX=29061947
 #--
-tile: select compile run
+tile: compile run
 select:
 	grep -E "$(GAL)\." extract.tmp | tee tiler.tst
 compile:
-	javac       Tiler.java 
-run:
-	java  -cp . Tiler -d $(D) -i $(GAL).$(ID) -l $(LEVEL) -n $(NMAX) \
-	-svg test.svg -f tiler.tst > $(GAL).$(ID).tmp 2> test.svg
-	wc -l $(GAL).$(ID).tmp test.svg
+	javac Tiler.java 
+run: select
+	java -cp . Tiler -d $(D) -i $(GALID) -l $(LEVEL) -n $(NMAX) \
+		-svg test.svg -f tiler.tst > $(GALID).tmp 
+	grep -i assertion $(GALID).tmp 
+	wc -l test.svg    $(GALID).tmp 
+#--
 circle:
-	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 2> $@.svg
+	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 
+#--------
+test488:
+	perl co488.pl -n $(MAXT) -d 0 \
+	| tee    $@.tmp
 #================
 # old targets
 recur3:
