@@ -60,7 +60,7 @@ compile:
 run: select
 	java -cp . Tiler -d $(D) -i $(GALID) -l $(LEVEL) -n $(NMAX) \
 		-svg test.svg -f tiler.tst > $(GALID).tmp 
-	grep -i assertion $(GALID).tmp 
+	grep -i assertion $(GALID).tmp || :
 	wc -l test.svg    $(GALID).tmp 
 #--
 circle:
