@@ -15,7 +15,7 @@ import java.nio.channels.WritableByteChannel;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 // import  org.apache.log4j.Logger;
@@ -100,26 +100,7 @@ public class Tiler implements Serializable {
     /** Maps exact {@link Position}s of vertices to their index in {@link mVertices}.
      *  Used for the detection of duplicate target vertices.
      */
-    public static HashMap<Position, Integer> mPosiVertex;
-    /**
-     * Initializes the dynamic data structures of <em>this</em> Tiling.
-     * @param numTypes number of {@link VertexTypes}, 
-     * or 0 if only the dynamic structures are to be cleared
-     */
-    public void initializeTiling(int numTypes) {
-        if (numTypes > 0) { // full
-            mVertexTypes  = new VertexType[(1 +numTypes) * 2]; // "1+": [0] is not used / reserved
-            ffVertexTypes = 0;
-            addTypeVariants(new VertexType()); // the reserved element [0]
-        } // full
-        // clear the dynamic structures:
-        sIndent  = "";
-        mNumEdges = 1; // used for titles on SVG <line>s and for limitation of number of lines to be output
-        mPosiVertex = new HashMap<Position, Integer>(256);
-        mVertices = new ArrayList<Vertex>(256);
-        ffVertices = 0;
-        addVertex(new Vertex()); // [0] is not used / reserved
-    } // initializeTiling
+    public static TreeMap<Position, Integer> mPosiVertex;
 
     /**
      * Join an array of integers
@@ -220,7 +201,7 @@ public class Tiler implements Serializable {
      * such that (a + b*sqrt(2) + c*sqrt(3) + d*sqrt(6)) / 4 give the
      * real value for a position.
      */
-    protected  class Position implements Serializable {
+    protected  class Position implements Serializable, Comparable<Position> {
         protected short[] xtuple;
         protected short[] ytuple;
 
@@ -259,6 +240,36 @@ public class Tiler implements Serializable {
             } // while ipos
             return result;
         } // equals
+
+        /**
+         * Comapres <em>this</em> Position with a second
+         * @param pos2 second Position
+         * @return -1, 0, 1 if this < = > pos2 in lexicographical order of the tuple elements
+         */
+        public int compareTo(Position pos2) {
+            int result = 29; // undefined so far
+            int ipos = 0;
+            while (result == 29 && ipos < 4) { // as long as there is no difference
+                if (false) {
+                } else if (xtuple[ipos] < pos2.xtuple[ipos]) {
+                    result = -1;
+                } else if (xtuple[ipos] > pos2.xtuple[ipos]) {
+                    result =  1; 
+                } else { // x = 
+                    if (false) {
+                    } else if (ytuple[ipos] < pos2.ytuple[ipos]) {
+                        result = -1;
+                    } else if (ytuple[ipos] > pos2.ytuple[ipos]) {
+                        result =  1; 
+                    } 
+                } // else check next position
+                ipos ++;
+            } // while ipos
+            if (result == 29) { // no difference found
+                result = 0;
+            }
+            return result;
+        } // compareTo
 
         /**
          * Computes the cartesian coordinate value from an exact position tuple
@@ -552,11 +563,11 @@ public class Tiler implements Serializable {
             String result
                     = "{ \"i\": \""     + index + "\""
                     + ", \"name\": \""  + name  + "\""
-                    + ", \"galId\": \"" + galId + "\""
-                    + ", \"polys\": "   + join(",", polys)
-                    + ", \"taVtis\": "  + join(",", taVtis)
                     + ", \"taRots\": "  + join(",", taRots)
                     + ", \"sweeps\": "  + join(",", sweeps)
+                    + ", \"taVtis\": "  + join(",", taVtis)
+                    + ", \"polys\": "   + join(",", polys)
+                    + ", \"galId\": \"" + galId + "\""
                     + " }\n";
             popIndent();
             return result;
@@ -658,7 +669,7 @@ public class Tiler implements Serializable {
             } // for vertices
             result += sIndent + "  ]\n";
             
-            result += sIndent + ", \"mPosiVertex\": \n";
+            result += sIndent + ", \"size\": " + mPosiVertex.size() + ", \"mPosiVertex\": \n";
             Iterator<Position> piter = mPosiVertex.keySet().iterator();
             while (piter.hasNext()) {
                 Position pos = piter.next();
@@ -667,6 +678,7 @@ public class Tiler implements Serializable {
                         + ", index: " + ind + " }\n";
             } // while piter
             result += sIndent + "  ]\n}\n";
+
         } catch(Exception exc) {
             // log.error(exc.getMessage(), exc);
             System.err.println("partial result: " + result);
@@ -730,6 +742,28 @@ public class Tiler implements Serializable {
     public int flipped(int typeIndex) {
         return (typeIndex & 1) == 0 ? typeIndex + 1 : typeIndex - 1;
     } // flipped
+
+    /**
+     * Initializes the dynamic data structures of <em>this</em> Tiling.
+     * @param numTypes number of {@link VertexTypes}, 
+     * or 0 if only the dynamic structures are to be cleared
+     */
+    public void initializeTiling(int numTypes) {
+        if (numTypes > 0) { // full
+            mVertexTypes  = new VertexType[(numTypes + 1) * 2]; // "+1": [0..1] are not used / reserved
+            ffVertexTypes = 0;
+            addTypeVariants(new VertexType()); // the reserved elements [0..1]
+        } // full
+        // clear the dynamic structures:
+        sIndent  = "";
+        mNumEdges = 1; // used for titles on SVG <line>s and for limitation of number of lines to be output
+        mPosiVertex = new TreeMap<Position, Integer>(); // or HashMap<Position, Integer>; 
+        mVertices = new ArrayList<Vertex>(256);
+        ffVertices = 0;
+        addVertex(new Vertex()); // [0] is not used / reserved
+        addVertex(new Vertex()); // [1] is not used / reserved
+    } // initializeTiling
+
     //----------------------------------------------------------------
     /**
      * Creates and adds a new Vertex
@@ -921,7 +955,7 @@ public class Tiler implements Serializable {
      */
     public void computeNet(int iStartType) {
         LinkedList<Integer> queue = new LinkedList<Integer>();
-        initializeTiling(0); // dynamic structures only
+        initializeTiling(0); // reset dynamic structures only
         if (sDebug >= 1) {
             System.out.println("# compute neighbours of vertex type " + iStartType + " up to distance " + mNumTerms);
         }
@@ -952,6 +986,10 @@ public class Tiler implements Serializable {
             } // while queue not empty
             nestLevel ++;
         } // while nestLevel
+        if (mPosiVertex.size() != ffVertices - 2) {
+            System.out.println("# ** assertion 3 in tiling.toString: " + mPosiVertex.size()
+                    + " different positions, but " + (ffVertices - 2) + " vertices\n");
+        }
         if (sDebug >= 1) {
             System.out.println("# final net\n" + toString());
         }
@@ -967,8 +1005,8 @@ public class Tiler implements Serializable {
                         + "<text class=\"t"  + var
                         + "\" x=\""  + focus.expos.getX()
                         + "\" y=\""  + focus.expos.getY()
-                        + "\" dy=\"0.03px\">" + ind + "</text>"
-                        + "<title>"  + mVertexTypes[focus.typeIndex].name + "</title>"
+                        + "\" dy=\"0.03px\">" + String.valueOf(ind) + mVertexTypes[focus.typeIndex].name + "</text>"
+                    //  + "<title>"  + mVertexTypes[focus.typeIndex].name + "</title>"
                         + "</g>"
                         );
             } // for vertices
@@ -996,7 +1034,7 @@ public class Tiler implements Serializable {
             } else if (gutv[3].equals(gutv[1])) { // last of new tiling
                 addTypeVariants(galId, descriptor, sequence);
                 System.out.println(toString());
-                // compute the net
+                // compute the nets
                 for (int itype = 2; itype < ffVertexTypes; itype += 2) {
                     if (getVertexType(itype).galId.equals(mGalId)) { // only this one from all VertexTypes in the Tiling
                         computeNet(itype);

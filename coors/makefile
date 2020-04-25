@@ -59,9 +59,10 @@ compile:
 	javac Tiler.java 
 run: select
 	java -cp . Tiler -d $(D) -i $(GALID) -l $(LEVEL) -n $(NMAX) \
-		-svg test.svg -f tiler.tst > $(GALID).tmp 
-	grep -i assertion $(GALID).tmp || :
-	wc -l test.svg    $(GALID).tmp 
+		-svg test.svg -f tiler.tst \
+		            > test.tmp 
+	grep -i assertion test.tmp || :
+	wc -l test.svg    test.tmp 
 #--
 circle:
 	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 
