@@ -17,21 +17,10 @@ COMMON=../common
 D=0 # debug mode
 WEIDIS= weidis
 
-all:
-	echo select specific target 
+all: gather tile
+#	echo select specific target 
 #===============================================
-gather: gather1 gather2
-gather1:
-	grep -iE "weight distribution" $(COMMON)/joeis_names.txt \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	grep -v "full" $@.tmp | wc -l
-	cd $(COMMON) ; make seq LIST=../$(WEIDIS)/$@.tmp
-gather2:
-	$(DBAT) -x "SELECT SUBSTR(s.aseqno, 2, 6) FROM seq s ORDER BY 1" \
-	| sed -e "s/\r//" \
-	| xargs -l -inn perl weight_dist.pl -s Ann -o Ann.wd.tmp $(COMMON)/bfile/bnn.txt 
-#----
+gather: break extract extract_load count
 break:
 	perl -pe "s{\<br\>}{\<br \/\>\n}g;" a250120.html > $@.tmp
 	perl -pe \
@@ -44,8 +33,22 @@ extract: break
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
+extract_load:
+	$(DBAT) -f coors.create.sql
+	sed -e "s/\t/\tcoors\t0\t/" extract.tmp \
+	| $(DBAT) -m csv -r coors
+	$(DBAT) -4 coors
+	$(DBAT) -n coors
+count:
+	perl tilings.pl extract.tmp \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f 2 $@.tmp | sort -n | uniq -c \
+	\
+	| tee count_cut.tmp
 #========
-LEVEL=2
+DIST=4
 D=2
 GAL=Gal.2.9
 ID=1
@@ -58,20 +61,18 @@ select:
 compile:
 	javac Tiler.java 
 run: select
-	java -cp . Tiler -d $(D) -i $(GALID) -l $(LEVEL) -n $(NMAX) \
-		-svg test.svg -f tiler.tst \
-		            > test.tmp 
+	java -cp . Tiler -id $(GALID) -dist $(DIST) -n $(NMAX) -d $(D) -svg test.svg -f tiler.tst  > test.tmp 
 	grep -i assertion test.tmp || :
+	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 
-#--
+#================
+# old targets
 circle:
 	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 
 #--------
 test488:
 	perl co488.pl -n $(MAXT) -d 0 \
 	| tee    $@.tmp
-#================
-# old targets
 recur3:
 	$(DBAT) -x "SELECT s.aseqno, 'recur', i.offset1, s.info, d.data, d.termno, s.number \
 		FROM seq3 s, asdata d, asinfo i \

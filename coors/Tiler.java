@@ -42,7 +42,7 @@ public class Tiler implements Serializable {
     } // Tiler()
 
     /** Debugging mode: 0=none, 1=some, 2=more */
-    protected static int sDebug = 0;
+    protected static int sDebug;
 
     /**
      * Set the debugging level.
@@ -81,8 +81,8 @@ public class Tiler implements Serializable {
     /** current number of generated edges (1 based) */
     private int mNumEdges;
 
-    /** Maximum nesting level  */
-    private int mMaxLevel;
+    /** Maximum distance from origin */
+    private int mMaxDistance;
 
     /** Offset1 of the sequences */
     private int mOffset;
@@ -123,17 +123,17 @@ public class Tiler implements Serializable {
 
     /** Whether an SVG image file should be written */
     private boolean mSVG;
-    
+
     /** HOw many &gt;line&lt; elements should be written */
     private int mSVGCount;
-    
+
     /** Writer for SVG output */
     private PrintWriter mSVGWriter;
-    
+
     /**
      * Writes some portion of an SVG file.
-     * @param param one or more complete SVG XML elements, or 
-     * "&gt;x-head&lt;filename&gt;/x-head&lt;" for file open and SVG prelude, or 
+     * @param param one or more complete SVG XML elements, or
+     * "&gt;x-head&lt;filename&gt;/x-head&lt;" for file open and SVG prelude, or
      * "&gt;x-tail /&lt;" for SVG postlude and file close.
      */
     private void writeSVG(String param) {
@@ -180,7 +180,7 @@ public class Tiler implements Serializable {
                     + "</svg>\n"
                     ;
                     mSVGWriter.println(text);
-                    mSVGWriter.close(); 
+                    mSVGWriter.close();
                 }
             } catch (Exception exc) {
                 // log.error(exc.getMessage(), exc);
@@ -189,7 +189,7 @@ public class Tiler implements Serializable {
             } // try
         } // SVG output planned and not yet finished
     } // writeSVG
-    
+
     private static final Double SQRT2 = Math.sqrt(2.0);
     private static final Double SQRT3 = Math.sqrt(3.0);
     private static final Double SQRT6 = SQRT2 * SQRT3;
@@ -254,14 +254,14 @@ public class Tiler implements Serializable {
                 } else if (xtuple[ipos] < pos2.xtuple[ipos]) {
                     result = -1;
                 } else if (xtuple[ipos] > pos2.xtuple[ipos]) {
-                    result =  1; 
-                } else { // x = 
+                    result =  1;
+                } else { // x =
                     if (false) {
                     } else if (ytuple[ipos] < pos2.ytuple[ipos]) {
                         result = -1;
                     } else if (ytuple[ipos] > pos2.ytuple[ipos]) {
-                        result =  1; 
-                    } 
+                        result =  1;
+                    }
                 } // else check next position
                 ipos ++;
             } // while ipos
@@ -403,7 +403,7 @@ public class Tiler implements Serializable {
             , 108 // [ 5] pentagon
             , 120 // [ 6] hexagon
             ,   0 // [ 7] (heptagon)
-            , 135 // [ 8] octogon  
+            , 135 // [ 8] octogon
             , 140 // [ 9] nonagon
             , 144 // [10] decagon
             ,   0 // [11] (hendecagon)
@@ -419,7 +419,7 @@ public class Tiler implements Serializable {
     public static int angleSum(int angle1, int angle2) {
         return Math.floorMod(angle1 + angle2, 360);
     } // angleSum
-    
+
     /**
      * Tests the computation of {@link Position}s
      */
@@ -428,9 +428,9 @@ public class Tiler implements Serializable {
         for (int ipos = 0; ipos < mUnitCirclePoints.length + 1; ipos ++) {
             Position pos = origin.moveUnit(ipos * 15);
             System.out.println(String.format("[%2d], %3d = %s", ipos, ipos * 15, pos.toString()));
-            writeSVG("<line class=\"k" + String.valueOf(ipos % 8) 
-                    + " x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY() 
-                    + "\"><title>" + mNumEdges 
+            writeSVG("<line class=\"k" + String.valueOf(ipos % 8)
+                    + " x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY()
+                    + "\"><title>" + mNumEdges
                     + "</title></line>");
         } // for ipos
         for (int ipos = 0; ipos < mUnitCirclePoints.length; ipos += 4) {
@@ -459,7 +459,7 @@ public class Tiler implements Serializable {
         int[]  sweeps; // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
 
         /**
-         * Empty constructor 
+         * Empty constructor
          */
         VertexType() {
             index    = 0;
@@ -476,34 +476,37 @@ public class Tiler implements Serializable {
         /**
          * Constructor
          * @param pGalId Galebach's identification of a vertex type: "Gal.u.t.v"
-         * @param descriptor counter-clockwise list of the polygones followed by the list of types and angles
+         * @param vertexId clockwise dot-separated list of
+         *     the polygones followed by the list of types and angles
+         * @param taRotList clockwise semicolon-separated list of
+         *     vertex type names and angles (and apostrophe if flipped)
          * @param sequence a list of initial terms of the coordination sequence
          */
-        VertexType(String pGalId, String descriptor, String sequence) {
-            // for example: A265035   Gal.2.1.1   3.4.6.4; 4.6.12 12.6.4; A 180'; A 120'; B 90    1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
-            String[] parts = descriptor.split("\\;\\s*");
-            String[] corners = parts[0].split("\\.");
+        VertexType(String pGalId, String vertexId, String taRotList, String sequence) {
+            // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
+            String[] corners = vertexId.split("\\.");
+            String[] parts   = taRotList.split("\\;\\s*");
             index    = ffVertexTypes; // even = not flipped
             name     = "ZABCDEFGHIJKLMNOP".substring(index / 2, index / 2 + 1);
             galId    = pGalId;
             sequence = sequence;
-            edgeNo   = parts.length - 1;
+            edgeNo   = parts.length;
             polys    = new int[edgeNo];
             taVtis   = new int[edgeNo];
             taRots   = new int[edgeNo];
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
                 try {
-                    polys [iedge] = 0;
-                    taVtis[iedge] = (parts[iedge + 1].charAt(0) - 'A' + 1) * 2; // A -> 2
-                    if (parts[iedge + 1].endsWith("'")) {
-                        taVtis[iedge] ++;
-                        parts[iedge + 1] = parts[iedge + 1].replaceAll("\\'","");
+                    taVtis[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
+                    if (parts [iedge].endsWith("'")) { // is flipped
+                        taVtis[iedge] ++; // make it odd
+                        parts [iedge] = parts[iedge].replaceAll("\\'","");
                     }
+                    polys [iedge] = 0;
                     taRots[iedge] = 0;
                     polys [iedge] = Integer.parseInt(corners[iedge]);
-                    taRots[iedge] = Integer.parseInt(parts[iedge + 1].substring(2));
+                    taRots[iedge] = Integer.parseInt(parts[iedge].substring(2));
                 } catch (Exception exc) {
-                    System.err.println("descriptor \"" + descriptor + "\" bad");
+                    System.err.println("# ** assertion 4: descriptor for \"" + pGalId + "\" bad");
                 }
             } // for iedge
             fillSweeps();
@@ -512,7 +515,7 @@ public class Tiler implements Serializable {
         /**
          * Returns a new, flipped version of <em>this</em> VertexType,
          * which must be normal.
-         * @return a VertexType with the first edge (-> (x+1,y+0)) identical, 
+         * @return a VertexType with the first edge (-> (x+1,y+0)) identical,
          * but the following edges taken from the end backwards
          */
         public VertexType flip() {
@@ -532,7 +535,7 @@ public class Tiler implements Serializable {
                     result.taRots[iedge] =         taRots[iedge];
                 } else {
                     result.polys [iedge] =         polys [edgeNo - 1 - iedge];
-                    result.taVtis[iedge] = flipped(taVtis[edgeNo - 1 - iedge]); 
+                    result.taVtis[iedge] = flipped(taVtis[edgeNo - 1 - iedge]);
                     result.taRots[iedge] =         taRots[edgeNo - 1 - iedge];
                 }
             } // for iedge
@@ -540,7 +543,7 @@ public class Tiler implements Serializable {
             return result;
         } // flip
 
-        /** 
+        /**
          * Fills the cummulative angles for the edges of <em>this</em> VertexType,
          * The angles are positive and sweep from 0 to iedge+1 for (iedge=0..edgeNo) mod edgeNo.
          * The last sweeping angle must always be 360 degrees.
@@ -553,7 +556,7 @@ public class Tiler implements Serializable {
                 sweeps[iedge] = sum;
             } // for iedge
         } // fillSweeps
-        
+
         /**
          * Returns a representation of the VertexType
          * @return JSON
@@ -660,7 +663,7 @@ public class Tiler implements Serializable {
                 result += sIndent + (ind == 0 ? "  [ " : sep) + getVertexType(ind).toString();
             } // for types
             result += sIndent + "  ]\n";
-            
+
             result += sIndent + ", \"ffVertices\": " + ffVertices + "\n"
                          +  sIndent + ", \"mVertices\":\n";
             for (int ind = 0; ind < ffVertices; ind ++) {
@@ -668,13 +671,13 @@ public class Tiler implements Serializable {
                 result += sIndent + (ind == 0 ? "  [ " : sep) + focus.toString();
             } // for vertices
             result += sIndent + "  ]\n";
-            
+
             result += sIndent + ", \"size\": " + mPosiVertex.size() + ", \"mPosiVertex\": \n";
             Iterator<Position> piter = mPosiVertex.keySet().iterator();
             while (piter.hasNext()) {
                 Position pos = piter.next();
                 int ind = mPosiVertex.get(pos).intValue();
-                result += sIndent + (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" + pos.toString() 
+                result += sIndent + (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" + pos.toString()
                         + ", index: " + ind + " }\n";
             } // while piter
             result += sIndent + "  ]\n}\n";
@@ -703,19 +706,22 @@ public class Tiler implements Serializable {
     } // addTypeVariants
 
     /**
-     * Creates and adds a new VertexType from Galebach's parameters 
+     * Creates and adds a new VertexType from Galebach's parameters
      * together with the flipped version
      * @param galId Galebach's id "Gal.u.t.v"
-     * @param descriptor counter-clockwise list the polygones followed by the list of types and angles
+     * @param vertexId clockwise dot-separated list of
+     *     the polygones followed by the list of types and angles
+     * @param taRotList clockwise semicolon-separated list of
+     *     vertex type names and angles (and apostrophe if flipped)
      * @param sequence a list of initial terms of the coordination sequence
      * @return typeIndex of the resulting VertexType
      */
-    public int addTypeVariants(String galId, String descriptor, String sequence) {
-        return addTypeVariants(new VertexType(galId, descriptor, sequence));
+    public int addTypeVariants(String galId, String vertexId, String taRotList, String sequence) {
+        return addTypeVariants(new VertexType(galId, vertexId, taRotList, sequence));
     } // addTypeVariants
 
     /**
-     * Gets a VertexType 
+     * Gets a VertexType
      * @param typeIndex index of type, maybe negative,
      * for example 3 for C or -3 for the flipped version C'.
      * @return the corresponding VertexType with edges rotated clockwise in both versions
@@ -726,7 +732,7 @@ public class Tiler implements Serializable {
 
     /**
      * Gets the number of allocated {@link VertexType} pairs
-     * @return half of {@link #ffVertexTypes} 
+     * @return half of {@link #ffVertexTypes}
      * (normal and flipped version count as one)
      */
     public int numVertexTypes() {
@@ -745,7 +751,7 @@ public class Tiler implements Serializable {
 
     /**
      * Initializes the dynamic data structures of <em>this</em> Tiling.
-     * @param numTypes number of {@link VertexTypes}, 
+     * @param numTypes number of {@link VertexTypes},
      * or 0 if only the dynamic structures are to be cleared
      */
     public void initializeTiling(int numTypes) {
@@ -757,7 +763,7 @@ public class Tiler implements Serializable {
         // clear the dynamic structures:
         sIndent  = "";
         mNumEdges = 1; // used for titles on SVG <line>s and for limitation of number of lines to be output
-        mPosiVertex = new TreeMap<Position, Integer>(); // or HashMap<Position, Integer>; 
+        mPosiVertex = new TreeMap<Position, Integer>(); // or HashMap<Position, Integer>;
         mVertices = new ArrayList<Vertex>(256);
         ffVertices = 0;
         addVertex(new Vertex()); // [0] is not used / reserved
@@ -819,7 +825,7 @@ public class Tiler implements Serializable {
                 }
             }
             if (sDebug >= 2) {
-                System.out.println("# getEdgeAngle(" + typeIndex + ", " + iedge + "): polys[" + ipoly + "]=" 
+                System.out.println("# getEdgeAngle(" + typeIndex + ", " + iedge + "): polys[" + ipoly + "]="
                         + polys[ipoly] + "-> sweep=" + sweep);
             }
         } // iedge > 0
@@ -882,7 +888,7 @@ public class Tiler implements Serializable {
      * @return index of new successor vertex, or 0 if attached to an existing vertex
      */
     public int attach(int ifocus, int iedge) {
-        int isucc = 0; // future result
+        int isucc = 0; // future result; assume that the successor already exists
         Vertex focus = mVertices.get(ifocus);
         VertexType fotype = focus.getType();
         if (focus.succs[iedge] == 0) { // determine successor
@@ -901,7 +907,7 @@ public class Tiler implements Serializable {
             }
             int suEdgeNo = getMatchingEdge(succ, foEdgeAngle);
             if (suEdgeNo < 0) { // not found
-                System.out.println("# ** assertion 1 in attach: no matching edge, succ.expos=" 
+                System.out.println("# ** assertion 1 in attach: no matching edge, succ.expos="
                         + succ.expos.toString() + ", succ.rotate=" + succ.rotate + ", focus=" + focus.index);
             } else { // matching angles
                 Integer intTarget = mPosiVertex.get(succ.expos); // does the successor Vertex already exist?
@@ -917,26 +923,26 @@ public class Tiler implements Serializable {
                 if (succ.succs[suEdgeNo] == 0) { // edge was not yet connected
                     succ.succs[suEdgeNo] = ifocus; // set backward link
                 } else if (succ.succs[suEdgeNo] != ifocus) {
-                    System.out.println("# ** assertion 2 in attach: no matching edge, succ.expos=" 
+                    System.out.println("# ** assertion 2 in attach: no matching edge, succ.expos="
                            + succ.expos.toString() + ", succ.rotate=" + succ.rotate + ", focus=" + focus.index);
-                }   
+                }
                 if (sDebug >= 1) {
                     System.out.println("# ifocus=" + ifocus + ", iedge=" + iedge
                             + ", focus.rotate=" + focus.rotate
                             + ", focus.expos="  + focus.expos.toString()
-                            + ", getEdgeAngle=" + foEdgeAngle 
+                            + ", getEdgeAngle=" + foEdgeAngle
                             + "\n#  -> isucc="  + isucc
                             + ", succ.rotate="  + succ.rotate
                             + ", succ.expos="   + succ.expos.toString()
                             + ", suEdgeNo="     + suEdgeNo
                             );
                 }
-                writeSVG("<line class=\"l" + String.valueOf((iedge) % 8) 
+                writeSVG("<line class=\"l" + String.valueOf((iedge) % 8)
                         + "\" x1=\"" + focus.expos.getX()
                         + "\" y1=\"" + focus.expos.getY()
-                        + "\" x2=\"" + succ.expos.getX() 
-                        + "\" y2=\"" + succ.expos.getY() 
-                        + "\"><title>" + mNumEdges 
+                        + "\" x2=\"" + succ.expos.getX()
+                        + "\" y2=\"" + succ.expos.getY()
+                        + "\"><title>" + mNumEdges
                         + "</title></line>");
                 mNumEdges ++;
             } // matching angles
@@ -959,33 +965,40 @@ public class Tiler implements Serializable {
         if (sDebug >= 1) {
             System.out.println("# compute neighbours of vertex type " + iStartType + " up to distance " + mNumTerms);
         }
+        int distance = 0;
         queue.add(addVertex(iStartType));
-        int nestLevel = 1;
-        while (nestLevel <= mMaxLevel) {
+        int addedVertices = 1;
+        System.out.println(distance + " " + addedVertices); // b-file output
+
+        distance ++;
+        while (distance <= mMaxDistance) {
+            addedVertices = 0;
             int levelPortion = queue.size();
-            if (sDebug >= 1) {
-                System.out.println("\n# level " + nestLevel + ": process " + levelPortion + " vertices");
-            }
             while (levelPortion > 0 && queue.size() > 0) { // queue not empty
                 int ifocus = queue.poll();
                 if (sDebug >= 2) {
                     System.out.println("# dequeue ifocus=" + ifocus);
                 }
-                levelPortion --;
                 Vertex focus = mVertices.get(ifocus);
                 VertexType fotype = focus.getType();
                 for (int iedge = 0; iedge < fotype.edgeNo; iedge ++) {
                     int isucc = attach(ifocus, iedge);
                     if (isucc > 0) { // did not yet exist
+                        addedVertices ++;
+                        queue.add(isucc);
                         if (sDebug >= 2) {
                             System.out.println("# enqueue isucc=" + isucc + ", attached to ifocus=" + ifocus + " at edge " + iedge);
                         }
-                        queue.add(isucc);
                     }
                 } // for iedge
-            } // while queue not empty
-            nestLevel ++;
-        } // while nestLevel
+                levelPortion --;
+            } // while portion not exhausted and queue not empty
+            System.out.println(distance + " " + addedVertices); // b-file output
+            if (sDebug >= 1) {
+                System.out.println("# distance " + distance + ": " + addedVertices + " vertices added\n");
+            }
+            distance ++;
+        } // while distance
         if (mPosiVertex.size() != ffVertices - 2) {
             System.out.println("# ** assertion 3 in tiling.toString: " + mPosiVertex.size()
                     + " different positions, but " + (ffVertices - 2) + " vertices\n");
@@ -1010,7 +1023,7 @@ public class Tiler implements Serializable {
                         + "</g>"
                         );
             } // for vertices
-        } // SVG 
+        } // SVG
     } // computeNet
 
     /**
@@ -1019,20 +1032,22 @@ public class Tiler implements Serializable {
      */
     private void processRecord(String line) {
         // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
-        String[] fields = line.split("\\t");
-        int ifield = 1; // skip aseqno
+        String[] fields   = line.split("\\t");
+        int ifield = 0;
+        ifield ++; // skip aseqno
         String galId      = fields[ifield ++];
         ifield ++; // skip standard notation
-        String descriptor = fields[ifield ++];
+        String vertexId   = fields[ifield ++];
+        String taRotList  = fields[ifield ++];
         String sequence   = fields[ifield ++];
         try {                                     //  0      1    2    3
-            String[] gutv   = galId.split("\\."); // "Gal", "2", "9", "1"
+            String[] gutv = galId.split("\\."); // "Gal", "2", "9", "1"
             if (false) {
             } else if (gutv[3].equals("1")) { // first of new tiling
                 initializeTiling(Integer.parseInt(gutv[1]));
-                addTypeVariants(galId, descriptor, sequence);
+                addTypeVariants(galId, vertexId, taRotList, sequence);
             } else if (gutv[3].equals(gutv[1])) { // last of new tiling
-                addTypeVariants(galId, descriptor, sequence);
+                addTypeVariants(galId, vertexId, taRotList, sequence);
                 System.out.println(toString());
                 // compute the nets
                 for (int itype = 2; itype < ffVertexTypes; itype += 2) {
@@ -1041,7 +1056,7 @@ public class Tiler implements Serializable {
                     }
                 } // for itype
             } else {
-                addTypeVariants(galId, descriptor, sequence);
+                addTypeVariants(galId, vertexId, taRotList, sequence);
             }
         } catch(Exception exc) {
             // log.error(exc.getMessage(), exc);
@@ -1079,32 +1094,34 @@ public class Tiler implements Serializable {
             exc.printStackTrace();
         } // try
     } // processFile
-    
+
     /**
-     * Main method, filters a file and dumps the prgress of the tilings' generation
-     * @param args command line arguments: filename, or "-" or none for STDIN
+     * Main method, filters a file, selects a VertexType group for a tiling,
+     * dumps the progress of the tilings' generation and
+     * possibly writes an SVG drawing file.
+     * @param args command line arguments
      */
     public static void main(String[] args) {
         Tiler tiler = new Tiler();
-        sDebug = 1;
+        sDebug = 0;
         try {
             int iarg = 0;
             String fileName = "-"; // assume STDIN/STDOUT
             while (iarg < args.length) { // consume all arguments
                 String opt        = args[iarg ++];
                 if (false) {
-                } else if (opt.equals("-d")     ) {
-                    sDebug          = Integer.parseInt(args[iarg ++]);
-                } else if (opt.equals("-f")     ) {
-                    tiler.processFile(args[iarg ++]);
-                } else if (opt.equals("-i")     ) {
-                    tiler.mGalId    = args[iarg ++];
-                } else if (opt.equals("-l")     ) {
-                    tiler.mMaxLevel = Integer.parseInt(args[iarg ++]);
-                } else if (opt.equals("-n")     ) {
-                    tiler.mNumTerms = Integer.parseInt(args[iarg ++]);
                 } else if (opt.equals("-circle")     ) {
                     tiler.testCirclePositions();
+                } else if (opt.equals("-d")     ) {
+                    sDebug          = Integer.parseInt(args[iarg ++]);
+                } else if (opt.equals("-dist")     ) {
+                    tiler.mMaxDistance = Integer.parseInt(args[iarg ++]);
+                } else if (opt.equals("-f")     ) {
+                    tiler.processFile(args[iarg ++]);
+                } else if (opt.equals("-id")     ) {
+                    tiler.mGalId    = args[iarg ++];
+                } else if (opt.equals("-n")     ) {
+                    tiler.mNumTerms = Integer.parseInt(args[iarg ++]);
                 } else if (opt.equals("-svg")   ) {
                     tiler.mSVG = true;
                     tiler.writeSVG("<x-head>" + args[iarg ++] + "</x-head>");
