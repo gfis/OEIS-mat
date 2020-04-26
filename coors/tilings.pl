@@ -61,7 +61,7 @@ while (<>) {
         if ($up_count != $guni) {
         	print STDERR "# assertion 1 in tilings.pl, Gal.$guni.$gtil: $up_count != $guni\n";
         }
-        print join("\t", "Gal.$guni.$gtil", $ul_count, $up_count, join(",", @ul_letters)) .  "\n";
+        print join("\t", "$guni.$gtil", $ul_count, $up_count, join(",", @ul_letters)) .  "\n";
     } # complete
 } # while
 #-----

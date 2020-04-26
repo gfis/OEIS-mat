@@ -19,8 +19,8 @@ WEIDIS= weidis
 
 all: gather tile
 #	echo select specific target 
-#===============================================
-gather: break extract extract_load count
+#================
+gather: break extract extract_load count update_noflip
 break:
 	perl -pe "s{\<br\>}{\<br \/\>\n}g;" a250120.html > $@.tmp
 	perl -pe \
@@ -35,7 +35,7 @@ extract: break
 	wc -l    $@.tmp
 extract_load:
 	$(DBAT) -f coors.create.sql
-	sed -e "s/\t/\tcoors\t0\t/" extract.tmp \
+	sed -e "s/\t/\tcoors\t0\t/" -e "s/Gal\.//" -e "s/\./,/" -e "s/\./\t/" -e "s/,/\./" extract.tmp \
 	| $(DBAT) -m csv -r coors
 	$(DBAT) -4 coors
 	$(DBAT) -n coors
@@ -45,26 +45,54 @@ count:
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
 	cut -f 2 $@.tmp | sort -n | uniq -c \
-	\
 	| tee count_cut.tmp
-#========
+update_noflip:
+	grep -vE "[a-z]" count.tmp \
+	>        noflip.tmp
+	tail -n8 noflip.tmp
+	wc -l    noflip.tmp
+	$(DBAT) -f $(COMMON)/seq.create.sql
+	cut -f1  noflip.tmp \
+	| $(DBAT) -m csv -r seq
+	$(DBAT) -v "UPDATE coors SET noflip='noflip' WHERE tileid IN (SELECT aseqno FROM seq);"
+	$(DBAT) -16 coors
+	$(DBAT) "SELECT COUNT(DISTINCT tileid) FROM coors WHERE noflip = 'noflip';"
+#================
+program:
+	$(DBAT) -x "SELECT DISTINCT i.aseqno, c.tileid || '.' || c.galv, b.bfimin, b.bfimax, i.program \
+	    , COALESCE(c.noflip, '-'), COALESCE(j.superclass, 'jnyi') \
+	    FROM asinfo i, bfinfo b, coors c \
+	    LEFT JOIN joeis j ON c.aseqno = j.aseqno \
+	    WHERE i.aseqno = b.aseqno \
+	      AND b.aseqno = c.aseqno \
+	      AND ( b.bfimax > 100 OR LENGTH(i.program) > 0 \
+	            OR i.aseqno IN (SELECT aseqno FROM cojec) \
+	          ) \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n100 $@.tmp
+	wc -l    $@.tmp
+#================
 DIST=4
-D=2
-GAL=Gal.2.9
+D=0
+GAL=2.9
 ID=1
-GALID=$(GAL).$(ID)
+GALID=Gal.$(GAL).$(ID)
 NMAX=29061947
+SVG=-svg test.svg
 #--
 tile: compile run
 select:
-	grep -E "$(GAL)\." extract.tmp | tee tiler.tst
+	grep -E "Gal\.$(GAL)\." extract.tmp | tee tiler.tst
 compile:
 	javac Tiler.java 
 run: select
-	java -cp . Tiler -id $(GALID) -dist $(DIST) -n $(NMAX) -d $(D) -svg test.svg -f tiler.tst  > test.tmp 
+	java -cp . Tiler -id $(GALID) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 
+#================
+
 #================
 # old targets
 circle:

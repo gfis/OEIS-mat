@@ -190,6 +190,70 @@ public class Tiler implements Serializable {
         } // SVG output planned and not yet finished
     } // writeSVG
 
+    /**
+     * Writes an edge from the focus to a successur {@link Vertex} to the SVG file.
+     * @param focus starting Vertex
+     * @param succ  ending   Vertex
+     * @param iedge number of edge in the focus
+     * @param mode  0=normal, 1=tentative
+     */
+    public void writeSVGEdge(Vertex focus, Vertex succ, int iedge, int mode) {
+        if (mSVG) {
+            switch (mode) {
+                default:
+                case 0: // normal
+                    writeSVG("<line class=\"l" + String.valueOf((iedge) % 8)
+                            + "\" x1=\"" + focus.expos.getX()
+                            + "\" y1=\"" + focus.expos.getY()
+                            + "\" x2=\"" + succ.expos.getX()
+                            + "\" y2=\"" + succ.expos.getY()
+                            + "\"><title>"        + focus.index + mVertexTypes[focus.typeIndex].name
+                            + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .typeIndex].name
+                            + "</title></line>");
+                    break;
+                case 1: // tentative
+                    writeSVG("<line class=\"tent dash"
+                            + "\" x1=\"" + focus.expos.getX()
+                            + "\" y1=\"" + focus.expos.getY()
+                            + "\" x2=\"" + succ.expos.getX()
+                            + "\" y2=\"" + succ.expos.getY()
+                            + "\"><title>"        + focus.index + mVertexTypes[focus.typeIndex].name
+                            + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .typeIndex].name
+                            + "</title></line>");
+                    break;
+            } // switch (mode)
+        } // mSVG
+    } // writeSVGEdge
+
+    /**
+     * Writes a circle centered at the position of a {@link Vertex} to the SVG file.
+     * @param focus Vertex to be drawn
+     * @param mode  0=normal, 1=tentative
+     */
+    public void writeSVGVertex(Vertex focus, int mode) {
+        if (mSVG) {
+            String var = String.valueOf(focus.typeIndex % 8);
+            String name = mVertexTypes[focus.typeIndex].name;
+            switch (mode) {
+                default:
+                case 0:
+                    writeSVG("<g><circle class=\"c" + ((focus.distance + 2) % 4)
+                            + "\" cx=\"" + focus.expos.getX()
+                            + "\" cy=\"" + focus.expos.getY()
+                            + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
+                            + "</circle>"
+                            + "<text class=\"t"  + var
+                            + "\" x=\""  + focus.expos.getX()
+                            + "\" y=\""  + focus.expos.getY()
+                            + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
+                            + "<title>"  + name + focus.rotate + "</title>"
+                            + "</g>"
+                            );
+                    break;
+            } // switch (mode)
+        } // mSVG
+    } // writeSVGVertex
+
     private static final Double SQRT2 = Math.sqrt(2.0);
     private static final Double SQRT3 = Math.sqrt(3.0);
     private static final Double SQRT6 = SQRT2 * SQRT3;
@@ -450,6 +514,7 @@ public class Tiler implements Serializable {
         String galId; // e.g. "Gal.2.1.1"
         String sequence; // list of terms of the coordination sequence
         int    edgeNo; // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
+        int    varNo; // number of variants: 2 if flipped variant exists, 1 if not
         int[]  polys; // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
                 // are arranged clockwise (for SVG, counter-clockwise by Galebach)
                 // around this vertex type.
@@ -487,10 +552,11 @@ public class Tiler implements Serializable {
             String[] corners = vertexId.split("\\.");
             String[] parts   = taRotList.split("\\;\\s*");
             index    = ffVertexTypes; // even = not flipped
-            name     = "ZABCDEFGHIJKLMNOP".substring(index / 2, index / 2 + 1);
+            name     = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
             galId    = pGalId;
             sequence = sequence;
             edgeNo   = parts.length;
+            varNo    = 1; // flipped variant does not (yet) exist
             polys    = new int[edgeNo];
             taVtis   = new int[edgeNo];
             taRots   = new int[edgeNo];
@@ -528,17 +594,27 @@ public class Tiler implements Serializable {
             result.polys    = new int[edgeNo];
             result.taVtis   = new int[edgeNo];
             result.taRots   = new int[edgeNo];
-            for (int iedge = 0; iedge < edgeNo; iedge ++) {
-                if (false && iedge == 0) {
-                    result.polys [iedge] =         polys [iedge];
-                    result.taVtis[iedge] = flipped(taVtis[iedge]);
-                    result.taRots[iedge] =         taRots[iedge];
-                } else {
-                    result.polys [iedge] =         polys [edgeNo - 1 - iedge];
-                    result.taVtis[iedge] = flipped(taVtis[edgeNo - 1 - iedge]);
-                    result.taRots[iedge] =         taRots[edgeNo - 1 - iedge];
-                }
-            } // for iedge
+            
+            int iedge = 0;
+            if (result.index == 5) { // bad patch ??? for 2.1.2, B = b
+              result.name   = name.toUpperCase();
+              for (iedge = 0; iedge < edgeNo; iedge ++) {
+                  result.polys [iedge] =         polys [iedge];
+                  result.taVtis[iedge] =         taVtis[iedge];
+                  result.taRots[iedge] =         taRots[iedge];
+              } // for iedge
+            } else { // no patch
+              for (int kedge = edgeNo; kedge > 0; kedge --) {
+                  int jedge = kedge % edgeNo;
+                  result.polys [iedge] =         polys [edgeNo - 1 - iedge];
+                  result.taVtis[iedge] = flipped(taVtis[jedge]);
+                  result.taRots[iedge] =         taRots[iedge];
+              //  result.taRots[iedge] =         taRots[edgeNo - 1 - iedge];
+              //  result.taRots[iedge] =         taRots[(edgeNo     - iedge) % edgeNo];
+                  iedge ++;
+              } // for iedge
+            } // no patch
+
             result.fillSweeps();
             return result;
         } // flip
@@ -583,8 +659,9 @@ public class Tiler implements Serializable {
      */
     protected class Vertex implements Serializable { // numbered 1, 2, 3 ... ; 0 is not used
         int index; // in mVertices
-        int typeIndex; // 1, 2, 3 ... for counter-clockwise orientation (0 is reserved), or -1, -2 for clockwise
-        int rotate; // the vertex type was rotated counter-clockwise by so many degrees
+        int typeIndex; // 0, 1 reserved; even for clockwise, odd for counter-clockwise variant
+        int distance; // length of shortest path to origin
+        int rotate; // the vertex type was rotated clockwise by so many degrees
         Position expos; // exact Position of the Vertex
         int fixedEdges; // number of allocated neighbours = edges
         int[] shapes; // list of indices in left shapes
@@ -600,15 +677,16 @@ public class Tiler implements Serializable {
 
         /**
          * Constructor with an index of a VertexType
-         * @param itype index of type of the new vertex, is positive for counter-clockwise,
-         * negative for clockwise orientation
+         * @param itype index of type of the new vertex,
+         * is even for clockwise, odd for clockwise orientation
          * @param ipred index of predecessor vertex which needs <em>this</em> new successor vertex
          * @param iedge which edge of the predecessor leads to <em>this</em> new successor vertex
          */
         public Vertex(int itype) {
             // setting 'index' is postponed to addVertex
-            typeIndex  = itype; // may be negative
-            rotate      = 0;
+            typeIndex  = itype;
+            distance   = 0;
+            rotate     = 0;
             expos      = new Position();
             int edgeNo = itype == 0 ? 0 : getVertexType(itype).edgeNo;
             shapes     = new int[edgeNo];
@@ -642,6 +720,7 @@ public class Tiler implements Serializable {
                 //  + ", \"preds\": \""  + join(",", preds ) + "\""
                 //  + ", \"shapes\": \"" + join(",", shapes) + "\""
                     + ", \"pos\": \""    + expos.toString()  + "\""
+                    + ", \"dist\": \""   + distance + "\""
                     + " }\n";
             popIndent();
             return result;
@@ -722,8 +801,7 @@ public class Tiler implements Serializable {
 
     /**
      * Gets a VertexType
-     * @param typeIndex index of type, maybe negative,
-     * for example 3 for C or -3 for the flipped version C'.
+     * @param typeIndex index of type, even for normal, odd for flipped variant
      * @return the corresponding VertexType with edges rotated clockwise in both versions
      */
     public static VertexType getVertexType(int typeIndex) {
@@ -736,7 +814,7 @@ public class Tiler implements Serializable {
      * (normal and flipped version count as one)
      */
     public int numVertexTypes() {
-        return ffVertexTypes / 2;
+        return ffVertexTypes >> 1; // half
     } // numVertexTypes
 
     /**
@@ -796,39 +874,17 @@ public class Tiler implements Serializable {
     /**
      * Gets the angle for an edge of a {@link VertexType}
      * @param iedge number of the edge, zero-based
-     * @return angle in degrees, for example 6.4.4.3:
+     * @return angle in degrees, for example 6.4.4.3, clockwise:
      * <pre>
      * iedge:       0    1    2    3
      * polys[ie.]: [6   .4   .3   .4]
-     * type > 0:    0  120   90   60   90  (clockwise = + because of SVG y=downwards, Galebach has it opposite)
-     * sweep+:      0  120  210  270  360
-     * type < 0:    0  -90  -60  -90 -120  (counter-clockwise)
-     * sweep-:      0  -90 -150 -240 -360
+     * corner   : 120   90   60   90  
+     * even type: 360  120  210  270  
      * </pre>
      */
     public int getEdgeAngle(int typeIndex, int iedge) {
-        int itype = Math.abs(typeIndex);
-        int ipoly = 0;
-        int sweep = 0; // the cummulative angle
-        int[] polys = getVertexType(itype).polys;
-        if (iedge > 0) {
-            if (itype == typeIndex) { // positive, clockwise:         6.4.4.3
-                while (ipoly < iedge) {
-                    sweep = angleSum(sweep, mRegularAngles[polys[ipoly]]);
-                    ipoly ++;
-                }
-            } else {                  // negative, counter-clockwise: 3.4.4.6
-                ipoly = polys.length;
-                while (ipoly > polys.length - iedge) {
-                    ipoly --;
-                    sweep = angleSum(sweep, - mRegularAngles[polys[ipoly]]);
-                }
-            }
-            if (sDebug >= 2) {
-                System.out.println("# getEdgeAngle(" + typeIndex + ", " + iedge + "): polys[" + ipoly + "]="
-                        + polys[ipoly] + "-> sweep=" + sweep);
-            }
-        } // iedge > 0
+        VertexType vtype = getVertexType(typeIndex);
+        int sweep = vtype.sweeps[(vtype.edgeNo - 1 + iedge) % vtype.edgeNo];
         return sweep;
     } // getEdgeAngle
 
@@ -836,47 +892,33 @@ public class Tiler implements Serializable {
      * Gets the edge number (zero based) of a rotated successor {@link Vertex}
      * which matches an angle from the focus Vertex.
      * @param succ rotated successor Vertex
-     * @param foAngle angle of an edge from the rotated focus Vertex
-     * @return zero based edge number of the successor, or -1 if not matched
+     * @param foAngle angle of an edge from the rotated focus Vertex = angle to be matched
+     * @return zero based edge number of the successor, or -1 if none was found
      */
     public int getMatchingEdge(Vertex succ, int foAngle) {
-        int itype = Math.abs(succ.typeIndex);
-        int[] polys = getVertexType(itype).polys;
-        int sweep = succ.rotate; // the cummulative angle
+        VertexType suType = getVertexType(succ.typeIndex);
+        int suSweep = succ.rotate; // the cummulative angle
+        if (sDebug >= 2) {
+            System.out.println("# try MatchingEdge of " + suType.name + " rot " + foAngle + " @ " + succ.expos);
+        }
         int iedge = 0;
         boolean busy = true;
-        if (itype == succ.typeIndex) { // positive, counter-clockwise: 6.4.4.3
-            while (busy && iedge < polys.length) { // try to find a matching edge
-                if (sDebug >= 2) {
-                    System.out.println("# try MatchingEdge+(" + itype + "," + foAngle + "): sweep=" + sweep + ", iedge=" + iedge);
-                }
-                if ((sweep + 180) % 360 == foAngle) {
-                    busy = false; // match found
-                } else {// not matched, advance
-                    sweep = angleSum(sweep, mRegularAngles[polys[iedge]]);
-                    iedge ++;
-                } // advance +
-            } // while busy +
-        } else {                       // negative, clockwise:         3.4.4.6
-            iedge = polys.length - 1;
-            while (busy && iedge >= 0) { // try to find a matching edge
-                if (sDebug >= 2) {
-                    System.out.println("# try MatchingEdge+(" + itype + "," + foAngle + "): sweep=" + sweep + ", iedge=" + iedge);
-                }
-                if ((sweep + 180) % 360 == foAngle) {
-                    busy = false; // match found
-                } else {// not matched, advance
-                    sweep = angleSum(sweep, mRegularAngles[polys[iedge]]);
-                    iedge --;
-                } // advance -
-            } // while busy -
-            iedge = polys.length - 1 - iedge;
-        } // negative
+        while (busy && iedge < suType.edgeNo) { // try to find a matching edge
+            if (sDebug >= 2) {
+                System.out.println("#     try iedge=" + iedge + ", suSweep=" + suSweep);
+            }
+            if (angleSum(suSweep, 180) == foAngle) {
+                busy = false; // match found
+            } else {// not matched, advance
+                suSweep = angleSum(succ.rotate, suType.sweeps[iedge]);
+                iedge ++;
+            } // advance +
+        } // while busy +
         if (busy) { // not found
             iedge = -1; // failure
         }
         if (sDebug >= 1) {
-            System.out.println("# getMatchingEdge -> " + iedge);
+            System.out.println("#     getMatchingEdge -> " + iedge);
         }
         return iedge;
     } // getMatchingEdge
@@ -892,23 +934,21 @@ public class Tiler implements Serializable {
         Vertex focus = mVertices.get(ifocus);
         VertexType fotype = focus.getType();
         if (focus.succs[iedge] == 0) { // determine successor
-            Position pos = focus.expos;
             int foEdgeAngle = angleSum(focus.rotate, getEdgeAngle(focus.typeIndex, iedge));
             int suType = fotype.taVtis[iedge];
-            if (focus.typeIndex < 0) {
-                // suType = fotype.taVtis[fotype.taVtis.length - iedge];
-            }
             Vertex succ = new Vertex(suType); // try a new one
-            succ.expos = focus.expos.moveUnit(foEdgeAngle);
+            succ.expos  = focus.expos.moveUnit(foEdgeAngle);
             succ.rotate = angleSum(focus.rotate, fotype.taRots[iedge]);
             if (sDebug >= 2) {
                 System.out.println("# attach(" + ifocus + ", " + iedge + "): foEdgeAngle=" + foEdgeAngle
-                        + ", succ.rotate=" + succ.rotate);
+                        + ", fotype.taRots[iedge]=" + fotype.taRots[iedge]
+                        + ", " + ffVertices + mVertexTypes[suType].name +  ".rotate=" + succ.rotate);
             }
             int suEdgeNo = getMatchingEdge(succ, foEdgeAngle);
             if (suEdgeNo < 0) { // not found
                 System.out.println("# ** assertion 1 in attach: no matching edge, succ.expos="
                         + succ.expos.toString() + ", succ.rotate=" + succ.rotate + ", focus=" + focus.index);
+                writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
                 Integer intTarget = mPosiVertex.get(succ.expos); // does the successor Vertex already exist?
                 if (intTarget == null) { // nothing at that position - store new Vertex
@@ -925,6 +965,7 @@ public class Tiler implements Serializable {
                 } else if (succ.succs[suEdgeNo] != ifocus) {
                     System.out.println("# ** assertion 2 in attach: no matching edge, succ.expos="
                            + succ.expos.toString() + ", succ.rotate=" + succ.rotate + ", focus=" + focus.index);
+                    writeSVGEdge(focus, succ, iedge, 1);
                 }
                 if (sDebug >= 1) {
                     System.out.println("# ifocus=" + ifocus + ", iedge=" + iedge
@@ -937,13 +978,7 @@ public class Tiler implements Serializable {
                             + ", suEdgeNo="     + suEdgeNo
                             );
                 }
-                writeSVG("<line class=\"l" + String.valueOf((iedge) % 8)
-                        + "\" x1=\"" + focus.expos.getX()
-                        + "\" y1=\"" + focus.expos.getY()
-                        + "\" x2=\"" + succ.expos.getX()
-                        + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>" + mNumEdges
-                        + "</title></line>");
+                writeSVGEdge(focus, succ, iedge, 0); // normal
                 mNumEdges ++;
             } // matching angles
             focus.fixedEdges ++;
@@ -980,6 +1015,7 @@ public class Tiler implements Serializable {
                     System.out.println("# dequeue ifocus=" + ifocus);
                 }
                 Vertex focus = mVertices.get(ifocus);
+                focus.distance = distance;
                 VertexType fotype = focus.getType();
                 for (int iedge = 0; iedge < fotype.edgeNo; iedge ++) {
                     int isucc = attach(ifocus, iedge);
@@ -1006,9 +1042,12 @@ public class Tiler implements Serializable {
         if (sDebug >= 1) {
             System.out.println("# final net\n" + toString());
         }
+    //
         if (mSVG) {
             for (int ind = 2; ind < ffVertices; ind ++) { // ignore reserved [0..1]
                 Vertex focus = mVertices.get(ind);
+                writeSVGVertex(focus, 0);
+            /*
                 String var = String.valueOf(focus.typeIndex % 8);
                 writeSVG("<g><circle class=\"c" + var
                         + "\" cx=\"" + focus.expos.getX()
@@ -1019,11 +1058,13 @@ public class Tiler implements Serializable {
                         + "\" x=\""  + focus.expos.getX()
                         + "\" y=\""  + focus.expos.getY()
                         + "\" dy=\"0.03px\">" + String.valueOf(ind) + mVertexTypes[focus.typeIndex].name + "</text>"
-                    //  + "<title>"  + mVertexTypes[focus.typeIndex].name + "</title>"
+                        + "<title>"  + mVertexTypes[focus.typeIndex].name + focus.rotate + "</title>"
                         + "</g>"
                         );
+            */
             } // for vertices
         } // SVG
+    //
     } // computeNet
 
     /**
