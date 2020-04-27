@@ -564,26 +564,30 @@ public class Paver implements Serializable {
         /**
          * Gets the absolute angle of an edge of <em>this</em> {@link #Vertex} (which is already rotated).
          * This method corresponds with {@link #getEdge}.
-         * @param iedge=0..edgeNo -1
+         * @param jedge=0..edgeNo -1
          * @return degrees 0..360 where the edge points to,
          * counted from (x,y)=(0,0) to (x,y)=(0,1), clockwise
          */
-        public int getAngle(int iedge) {
+        public int getAngle(int jedge) {
             VertexType vtype = getType();
             int sweep = rotate;
-            if ((typeIndex & 1) == 0) { // even, normal, clockwise
-                for (int kedge = 0; kedge < iedge; kedge ++) {
+            int iedge = 0;
+            while (iedge < jedge) {
+                int kedge = select(vtype, iedge);
+				if (kedge == iedge) {
                     sweep += mRegularAngles[vtype.polys[kedge]];
+                } else {
+                	sweep += mRegularAngles[vtype.polys[kedge]];
                 }
-            } else { // odd, counter-clockwise
-                for (int kedge = 0; kedge < iedge; kedge ++) {
-                    sweep -= mRegularAngles[vtype.polys[(vtype.edgeNo - 1 - kedge) % vtype.edgeNo]];
-                }
-            } // odd
+                iedge ++;
+            } // while
+			if ((typeIndex & 1) != 0) {
+				// sweep += 180;
+			}
             sweep = normAngle(sweep);
             if (sDebug >= 2) {
-                System.out.println("# " + index + vtype.name + "@" + rotate + "."
-                        + "getAngle(" + iedge + ") -> " + sweep);
+                    System.out.println("# " + index + vtype.name + "@" + rotate + expos + "."
+                        + "getAngle(iedge=" + iedge + ") -> " + sweep);
             }
             return sweep;
         } // getAngle
@@ -603,43 +607,50 @@ public class Paver implements Serializable {
             int iedge = 0;
             int sweep = rotate;
             boolean busy = true;
-            int kedge = 0;
-            if ((typeIndex & 1) == 0) { // even, normal, clockwise
-                while (busy && kedge < vtype.edgeNo) { // +
-                    if (sweep == angle) {
-                        busy = false;
-                        iedge = kedge;
-                    } else {
-                        sweep = normAngle(sweep + mRegularAngles[vtype.polys[kedge]]);
-                    }
-                    kedge ++;
-                } // while +
-            } else { // odd, counter-clockwise
-                while (busy && kedge < vtype.edgeNo) { // +
-                    if (sweep == angle) {
-                        busy = false;
-                        iedge = kedge;
-                    } else {
-                        sweep = normAngle(sweep - mRegularAngles[vtype.polys[kedge]]);
-                    }
-                    kedge ++;
-                } // while +
-            } // odd
+            while (busy && iedge < vtype.edgeNo) {
+                int kedge = select(vtype, iedge);
+                if (sweep == angle) {
+                    busy = false;
+                } else {
+                    sweep = normAngle(sweep + mRegularAngles[vtype.polys[kedge]]);
+                    if (sDebug >= 2) {
+                        System.out.println("# try next behind edge " + iedge + ", advance by " 
+                                + mRegularAngles[vtype.polys[kedge]] + ", new sweep=" + sweep);
+                    } 
+                    iedge ++;
+                }
+            } // while +
             if (busy) {
                 iedge = -1; // no matching angle found
             }
             if (sDebug >= 2) {
                 if (iedge >= 0) {
-                    System.out.println("#     " + index + vtype.name + "@" + rotate + "."
-                            + "getEdge(" + angle + ") -> " + iedge
-                            + " -> " + mVertexTypes[vtype.taVtis[iedge]].name);
+                    System.out.println("# " + index + vtype.name + "@" + rotate + expos + "."
+                            + "getEdge(angle=" + angle + ") -> " 
+                            + iedge + " -> " + mVertexTypes[vtype.taVtis[iedge]].name);
                 } else {
-                    System.out.println("# ** assertion 5: not found " + index + vtype.name + "@" + rotate + "."
-                            + "getEdge(" + angle + ") -> " + iedge);
+                    System.out.println("# " + index + vtype.name + "@" + rotate + expos + "."
+                            + "getEdge(angle=" + angle + ") -> " 
+                            + "\n** assertion 5: edge not found");
                 }
             }
             return iedge;
         } // getEdge
+
+        /** 
+         * Selects the proper index for clockwise or counter-clockwise orientation
+         * @param vtype VertexType of <em>this</em> {@link #Vertex}
+         * @param iedge number of edge &gt;= 0
+         * @return either iedge (ascending) for a normal Vertex,
+         * 0, edgeNo - 1 descending for a flipped Vertex
+         */
+        public int select(VertexType vtype, int iedge) {
+            int result = iedge;
+            if ((typeIndex & 1) == 1) { // descending
+                result = (vtype.edgeNo - iedge) % vtype.edgeNo;
+            } // descending
+            return result;
+        } // select
 
         /**
          * Creates and returns a new successor {@link #Vertex} of <em>this</em> Vertex (which is already rotated).
@@ -648,19 +659,15 @@ public class Paver implements Serializable {
          */
         public Vertex getSuccessor(int iedge) {
             VertexType vtype = getType();
+            int kedge   = select(vtype, iedge);
             int suAngle = this.getAngle(iedge); // successor pointing back to the focus
-            int suType  = (vtype.taVtis[(this.typeIndex & 1) == 0
-                    ? iedge // even
-                    : (- iedge + vtype.edgeNo) % vtype.edgeNo // odd
-                    ]); 
+            int suType  = vtype.taVtis[kedge]; 
             Vertex succ = new Vertex(suType); // create a new Vertex
             succ.expos  = this.expos.moveUnit(suAngle);
-            succ.rotate = normAngle(this.rotate + vtype.taRots[(this.typeIndex & 1) == 0
-                    ? iedge // even
-                    : (- iedge + vtype.edgeNo) % vtype.edgeNo // odd
-                    ]);
+            succ.rotate = normAngle(this.rotate + vtype.taRots[kedge]);
             if (sDebug >= 2) {
-                System.out.println("# getSuccessor(" + iedge + "): " + succ.toString());
+                System.out.print("# " + index + vtype.name + "@" + rotate + expos + "."
+                        + "getSuccessor(iedge=" + iedge + ") -> " + succ.toString());
             }
             return succ;
         } // getSuccessor
@@ -1013,7 +1020,7 @@ public class Paver implements Serializable {
             Vertex succ = focus.getSuccessor(iedge);
             int suAngle = normAngle(focus.getAngle(iedge) + 180); // successor pointing back to the focus
             if (sDebug >= 2) {
-                System.out.println("# attach(vertex" + ifocus + "@" + focus.rotate + ", iedge=" + iedge + ") to "
+                System.out.println("# attach(vertex=" + ifocus + "@" + focus.rotate + ", iedge=" + iedge + ") to "
                         + succ.getType().name + "@" + succ.rotate + succ.expos + " under angle " + suAngle);
             }
             int suEdge = succ.getEdge(suAngle);
@@ -1026,10 +1033,10 @@ public class Paver implements Serializable {
                 writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
                 Integer intTarget = mPosiVertex.get(succ.expos); // does the successor Vertex already exist?
-                if (intTarget == null) { // nothing at that position - store new Vertex
+                if (intTarget == null) { // new, nothing at that position - store new Vertex
                     isucc = addVertex(succ);
                     focus.succs[iedge] = isucc; // set forward link
-                } else { // successor Vertex already exist
+                } else { // old, successor Vertex already exist
                     isucc = intTarget.intValue();
                     succ  = mVertices.get(isucc);
                     focus.succs[iedge] = isucc; // set forward link
