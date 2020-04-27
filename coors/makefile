@@ -80,14 +80,23 @@ ID=1
 GALID=Gal.$(GAL).$(ID)
 NMAX=29061947
 SVG=-svg test.svg
+FLIP=0
 #--
+pave: compave prun
+compave:
+	javac Paver.java 
+prun: select
+	java -cp . Paver -id $(GALID) -flip $(FLIP) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
+	grep -i assertion test.tmp || :
+	grep -i distance  test.tmp || :
+	wc -l test.svg    test.tmp 
 tile: compile run
 select:
 	grep -E "Gal\.$(GAL)\." extract.tmp | tee tiler.tst
 compile:
 	javac Tiler.java 
 run: select
-	java -cp . Tiler -id $(GALID) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
+	java -cp . Tiler -id $(GALID) -flip $(FLIP) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 

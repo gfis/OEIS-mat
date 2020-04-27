@@ -24,7 +24,7 @@ import java.util.LinkedList;
  * Class for the generation of tilings and their coordinations sequences.
  * @author Georg Fischer
  */
-public class Tiler implements Serializable {
+public class Paver implements Serializable {
     private static final long serialVersionUID = 3L;
     public final static String CVSID = "@(#) $Id: Tiler.java $";
     /** log4j logger (category) */
@@ -33,7 +33,7 @@ public class Tiler implements Serializable {
     /**
      * Empty constructor.
      */
-    protected Tiler() {
+    protected Paver() {
         // log = Logger.getLogger(Tiler.class.getName());
         mNumTerms = 32;
         mOffset   = 0;
@@ -390,21 +390,10 @@ public class Tiler implements Serializable {
             result.append(getX());
             result.append(',');
             result.append(getY());
-        /*
-            for (ip = 0; ip < 4; ip ++) {
-                result.append(',');
-                result.append(String.valueOf(xtuple[ip]));
-            } // for ip
-            result.append(' ');
-            for (ip = 0; ip < 4; ip ++) {
-                result.append(',');
-                result.append(String.valueOf(ytuple[ip]));
-            } // for ip
-        */
             result.append(')');
             result.setCharAt(0, '(');
             return result.toString();
-        } // toString
+        } // Position.toString
 
         /**
          * Gets the cartesian x coordinate (to the right) from <em>this</em> Position
@@ -479,15 +468,17 @@ public class Tiler implements Serializable {
             };
 
     /**
-     * Gets the sum of two angles
-     * @param angle1 first angle
-     * @param angle2 second angle
-     * @return (non-negative) sum of the two angles modulo 360 degrees.
+     * Normalizes an angle
+     * @param angle in degrees, maybe negative or >= 360
+     * @return non-negative degrees mod 360
      */
-    public static int angleSum(int angle1, int angle2) {
-        return Math.floorMod(angle1 + angle2, 360);
-    } // angleSum
-
+    public int normAngle(int angle) {
+        while (angle < 0) {
+            angle += 360;
+        }
+        return angle % 360;
+    } // normAngle
+ 
     /**
      * Tests the computation of {@link Position}s
      */
@@ -560,6 +551,86 @@ public class Tiler implements Serializable {
             return getVertexType(typeIndex);
         } // getType
 
+         /**
+         * Gets the absolute angle of an edge of <em>this</em> {@link #Vertex} (which is already rotated).
+         * This method corresponds with {@link #getEdge}.
+         * @param iedge=0..edgeNo -1 
+         * @return degrees 0..360 where the edge points to, 
+         * counted from (x,y)=(0,0) to (x,y)=(0,1), clockwise 
+         */
+        public int getAngle(int iedge) {
+            VertexType vtype = getVertexType(typeIndex);
+            int sweep = rotate;
+            if ((typeIndex & 1) == 0) { // even, normal, clockwise
+                for (int kedge = 0; kedge < iedge; kedge ++) {
+                    sweep += mRegularAngles[vtype.polys[kedge]];
+                }
+            } else { // odd, counter-clockwise
+                for (int kedge = 0; kedge < iedge; kedge ++) {
+                    sweep -= mRegularAngles[vtype.polys[kedge]];
+                }
+            } // odd
+            sweep = normAngle(sweep);
+            if (sDebug >= 2) {
+                System.out.println("# " + index + vtype.name + "@" + rotate + "." 
+                        + "getAngle(" + iedge + ") -> " + sweep);
+            }
+            return sweep;
+        } // getAngle
+
+        /**
+         * Gets the matching edge of <em>this</em> Vertex (which is already rotated) 
+         * for a given absolute angle, or -1 if no such edge was found
+         * This method corresponds with {@link #getAngle}.
+         * @param angle degrees 0..360 where the edge points to, 
+         * already inverted,
+         * counted from (x,y)=(0,0) to (x,y)=(0,1), clockwise 
+         * @return iedge=0..edgeNo -1 if a fitting edge was found, or -1 otherwise
+         */
+        public int getEdge(int angle) {
+            angle = normAngle(angle);
+            VertexType vtype = getVertexType(typeIndex);
+            int iedge = 0;
+            int sweep = rotate;
+            boolean busy = true;
+            int kedge = 0; 
+            if ((typeIndex & 1) == 0) { // even, normal, clockwise
+                while (busy && kedge < vtype.edgeNo) { // +
+                    if (sweep == angle) {
+                        busy = false;
+                        iedge = kedge;
+                    } else {
+                        sweep = normAngle(sweep + mRegularAngles[vtype.polys[kedge]]);
+                    }
+                    kedge ++;
+                } // while +
+            } else { // odd, counter-clockwise
+                while (busy && kedge < vtype.edgeNo) { // +
+                    if (sweep == angle) {
+                        busy = false;
+                        iedge = kedge;
+                    } else {
+                        sweep = normAngle(sweep - mRegularAngles[vtype.polys[kedge]]);
+                    }
+                    kedge ++;
+                } // while +
+            } // odd
+            if (busy) {
+                iedge = -1; // no matching angle found
+            }
+            if (sDebug >= 2) {
+            	if (iedge >= 0) {
+                	System.out.println("#     " + index + vtype.name + "@" + rotate + "." 
+                    	    + "getEdge(" + angle + ") -> " + iedge 
+                        	+ " -> " + mVertexTypes[vtype.taVtis[iedge]].name);
+                } else {
+                	System.out.println("# ** assertion 5: not found " + index + vtype.name + "@" + rotate + "." 
+                    	    + "getEdge(" + angle + ") -> " + iedge);
+                }
+            }
+            return iedge;
+        } // getEdge 
+
         /**
          * Returns a representation of the Vertex
          * @return JSON for edges
@@ -579,13 +650,13 @@ public class Tiler implements Serializable {
                     + " }\n";
             popIndent();
             return result;
-        } // toString
+        } // Vertex.toString
 
     } // class Vertex
 
     /**
      * Returns a representation of the tiling
-     * @return JSON for types and vertices
+     * @return JSON for {@link #mVertexTypes} and {@link #mVertices}
      */
     public String toString() {
         // pushIndent();
@@ -624,7 +695,7 @@ public class Tiler implements Serializable {
         }
         // popIndent();
         return result;
-    } // toString
+    } // Paver.toString
 
     //----------------------------------------------------------------
     /**
@@ -635,7 +706,7 @@ public class Tiler implements Serializable {
     public int addTypeVariants(VertexType normalType) {
         int result = ffVertexTypes;
         mVertexTypes[ffVertexTypes ++] = normalType;
-        mVertexTypes[ffVertexTypes ++] = normalType.flip();
+        mVertexTypes[ffVertexTypes ++] = normalType.getFlippedClone();
         return result;
     } // addTypeVariants
 
@@ -726,97 +797,6 @@ public class Tiler implements Serializable {
         return vertex.index;
     } // addVertex
 
-    /**
-     * Gets the angle for an edge of a {@link VertexType}
-     * @param iedge number of the edge, zero-based
-     * @return angle in degrees, for example 6.4.4.3, clockwise:
-     * <pre>
-     * iedge:       0    1    2    3
-     * polys[ie.]: [6   .4   .3   .4]
-     * corner   : 120   90   60   90  
-     * even type: 360  120  210  270  
-     * </pre>
-     */
-    public int getEdgeAngle(int typeIndex, int iedge) {
-        VertexType vtype = getVertexType(typeIndex);
-        // int sweep = vtype.sweeps[(vtype.edgeNo - 1 + iedge) % vtype.edgeNo];
-        int sweep = 0;
-        for (int kedge = 0; kedge < iedge; kedge ++) {
-        	sweep += mRegularAngles[vtype.rishas[kedge]];
-        }
-        return sweep;
-    } // getEdgeAngle
-
-    /**
-     * Gets the edge number (zero based) of a rotated successor {@link Vertex}
-     * which matches an angle from the focus Vertex.
-     * @param succ rotated successor Vertex
-     * @param foAngle angle of an edge from the rotated focus Vertex = angle to be matched
-     * @return zero based edge number of the successor, or -1 if none was found
-     */
-    public int getMatchingEdge1_99(Vertex succ, int foAngle) {
-        VertexType suType = getVertexType(succ.typeIndex);
-        int suSweep = succ.rotate; // the cummulative angle
-        if (sDebug >= 2) {
-            System.out.println("# try MatchingEdge1 of " + suType.name + " rot " + foAngle + " @ " + succ.expos);
-        }
-        int iedge = 0;
-        boolean busy = true;
-        while (busy && iedge < suType.edgeNo) { // try to find a matching edge
-            if (sDebug >= 2) {
-                System.out.println("#     try iedge=" + iedge + ", suSweep=" + suSweep);
-            }
-            if (angleSum(suSweep, 180) == foAngle) {
-                busy = false; // match found
-            } else {// not matched, advance
-                suSweep = angleSum(succ.rotate, suType.sweeps[iedge]);
-                iedge ++;
-            } // advance +
-        } // while busy +
-        if (busy) { // not found
-            iedge = -1; // failure
-        }
-        if (sDebug >= 1) {
-            System.out.println("#     getMatchingEdge -> " + iedge);
-        }
-        return iedge;
-    } // getMatchingEdge_99
-
-    /**
-     * Gets the edge number (zero based) of a rotated successor {@link Vertex}
-     * which matches an angle from the focus Vertex.
-     * @param succ rotated successor Vertex
-     * @param foAngle angle of an edge from the rotated focus Vertex = angle to be matched
-     * @return zero based edge number of the successor, or -1 if none was found
-     */
-    public int getMatchingEdge(Vertex succ, int foAngle) {
-        VertexType suType = getVertexType(succ.typeIndex);
-        int suSweep = succ.rotate; // the cummulative angle
-        if (sDebug >= 2) {
-            System.out.println("# try MatchingEdge2 of " + suType.name + " rot " + foAngle + " @ " + succ.expos);
-        }
-        int iedge = 0;
-        boolean busy = true;
-        while (busy && iedge < suType.edgeNo) { // try to find a matching edge
-            if (sDebug >= 2) {
-                System.out.println("#     try iedge=" + iedge + ", suSweep=" + suSweep);
-            }
-            if (angleSum(suSweep, 180) == foAngle) {
-                busy = false; // match found
-            } else {// not matched, advance
-                suSweep = angleSum(succ.rotate, suType.sweeps[iedge]);
-                iedge ++;
-            } // advance +
-        } // while busy +
-        if (busy) { // not found
-            iedge = -1; // failure
-        }
-        if (sDebug >= 1) {
-            System.out.println("#     getMatchingEdge -> " + iedge);
-        }
-        return iedge;
-    } // getMatchingEdge
-
     //----------------------------------------------------------------
 
     /**
@@ -836,8 +816,8 @@ public class Tiler implements Serializable {
         int[]  taVtis; // VertexType indices of target vertices (normally even, odd if flipped / C')
         int[]  taRots; // how many degrees must the target vertices be rotated, from Galebach
         int[]  sweeps; // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
-        int[]  leshas; // shapes / polygones from the focus to the left  of the edge 
-        int[]  rishas; // shapes / polygones from the focus to the right of the edge 
+        int[]  leShas; // shapes / polygones from the focus to the left  of the edge 
+        int[]  riShas; // shapes / polygones from the focus to the right of the edge 
 
         /**
          * Empty constructor
@@ -852,8 +832,8 @@ public class Tiler implements Serializable {
             taVtis   = new int[0];
             taRots   = new int[0];
             sweeps   = new int[0];
-            leshas   = new int[0];
-            rishas   = new int[0];
+            leShas   = new int[0];
+            riShas   = new int[0];
         } // VertexType()
 
         /**
@@ -865,17 +845,17 @@ public class Tiler implements Serializable {
             String result
                     = "{ \"i\": \""     + index + "\""
                     + ", \"name\": \""  + name  + "\""
-                    + ", \"taRots\": "  + join(",", taRots)
-                    + ", \"sweeps\": "  + join(",", sweeps)
-                    + ", \"leshas\": "  + join(",", leshas)
-                    + ", \"rishas\": "  + join(",", rishas)
-                    + ", \"taVtis\": "  + join(",", taVtis)
                     + ", \"polys\": "   + join(",", polys)
+                    + ", \"taRots\": "  + join(",", taRots)
+                    + ", \"taVtis\": "  + join(",", taVtis)
+                    + ", \"sweeps\": "  + join(",", sweeps)
+                    + ", \"leShas\": "  + join(",", leShas)
+                    + ", \"riShas\": "  + join(",", riShas)
                     + ", \"galId\": \"" + galId + "\""
                     + " }\n";
             popIndent();
             return result;
-        } // toString
+        } // VertexType.toString
 
         /**
          * Constructor
@@ -899,8 +879,8 @@ public class Tiler implements Serializable {
             polys    = new int[edgeNo];
             taVtis   = new int[edgeNo];
             taRots   = new int[edgeNo];
-            leshas   = new int[edgeNo];
-            rishas   = new int[edgeNo];
+            leShas   = new int[edgeNo];
+            riShas   = new int[edgeNo];
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
                 try {
                     taVtis[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
@@ -917,8 +897,8 @@ public class Tiler implements Serializable {
                 }
             } // for iedge
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
-                leshas[iedge] = polys[(iedge + edgeNo - 1) % edgeNo];
-                rishas[iedge] = polys[iedge];
+                riShas[iedge] = polys[iedge];
+                leShas[iedge] = polys[(iedge + edgeNo - 1) % edgeNo];
             } // for iedge
             fillSweeps();
         } // VertexType(String, String, String)
@@ -940,80 +920,39 @@ public class Tiler implements Serializable {
         /**
          * Returns a new, flipped version of <em>this</em> VertexType,
          * which must be normal.
-         * @return a VertexType with the first edge (-> (x+1,y+0)) identical,
-         * but the following edges taken from the end backwards
+         * @return a VertexType which is a deep copy of <em>this</em>.
+         * The index becomes odd, and all edges are visited in reverse orientation.
          */
-        public VertexType flip() {
+        public VertexType getFlippedClone() {
             VertexType result = new VertexType();
-            result.index    = index + 1;
+            result.index    = index + 1; // odd -> edges turn counter-clockwise
             result.name     = name.toLowerCase();
-            result.galId    = galId; // + "s";
+            result.galId    = galId; 
             result.sequence = sequence;
             result.edgeNo   = edgeNo;
             result.polys    = new int[edgeNo];
             result.taVtis   = new int[edgeNo];
             result.taRots   = new int[edgeNo];
-            result.leshas   = new int[edgeNo];
-            result.rishas   = new int[edgeNo];
-            int iedge = 0;
-            switch (mFlipMode) {
-                default:
-                case 0:
-                    { // no patch
-                      for (int kedge = edgeNo; kedge > 0; kedge --) {
-                          int jedge = kedge % edgeNo;
-                          result.polys [iedge] =         polys [edgeNo - 1 - iedge];
-                          result.taVtis[iedge] = flipped(taVtis[jedge]);
-                          result.taRots[iedge] =         taRots[iedge];
-                          result.leshas[iedge] =         rishas[iedge];
-                          result.rishas[iedge] =         leshas[iedge];
-                          iedge ++;
-                      } // for iedge
-                    } // no patch
-                    break;
-                case 1:
-                    if (result.index == 5) { // bad patch ??? for 2.1.2, B = b
-                      result.name   = name.toUpperCase();
-                      for (iedge = 0; iedge < edgeNo; iedge ++) {
-                          result.polys [iedge] =         polys [iedge];
-                          result.taVtis[iedge] =         taVtis[iedge];
-                          result.taRots[iedge] =         taRots[iedge];
-                          result.leshas[iedge] =         rishas[iedge];
-                          result.rishas[iedge] =         leshas[iedge];
-                      } // for iedge
-                    } else { // no patch
-                      for (int kedge = edgeNo; kedge > 0; kedge --) {
-                          int jedge = kedge % edgeNo;
-                          result.polys [iedge] =         polys [edgeNo - 1 - iedge];
-                          result.taVtis[iedge] = flipped(taVtis[jedge]);
-                          result.taRots[iedge] =         taRots[iedge];
-                          result.leshas[iedge] =         rishas[iedge];
-                          result.rishas[iedge] =         leshas[iedge];
-                          iedge ++;
-                      } // for iedge
-                    } // no patch
-                    break;
-                case 2:
-                    { // no patch
-                      for (int kedge = edgeNo; kedge > 0; kedge --) {
-                          int jedge = kedge % edgeNo;
-                          result.polys [iedge] =         polys [iedge];
-                          result.taVtis[iedge] = flipped(taVtis[iedge]);
-                          result.taRots[iedge] =         taRots[iedge];
-                          result.leshas[iedge] =         rishas[iedge];
-                          result.rishas[iedge] =         leshas[iedge];
-                          iedge ++;
-                      } // for iedge
-                    } // no patch
-                    break;
-            } // switch flipMode
-            result.fillSweeps();
+            result.leShas   = new int[edgeNo];
+            result.riShas   = new int[edgeNo];
+            result.sweeps   = new int[edgeNo];
+            int kedge = 0; // for reverse orientation
+            for (int iedge = 0; iedge < edgeNo; iedge ++) {
+                result.polys [iedge] = polys [iedge];
+                result.taVtis[iedge] = taVtis[iedge];
+                result.taRots[iedge] = taRots[iedge];
+                result.leShas[iedge] = riShas[iedge];
+                result.riShas[iedge] = leShas[iedge];
+                result.sweeps[iedge] = sweeps[iedge];
+                kedge = ((kedge - 1) + edgeNo) % edgeNo;
+            } // for iedge
             return result;
-        } // flip
+        } // getFlippedClone
 
     } // class VertexType
 
     //----------------------------------------------------------------
+
     /**
      * Creates a successor vertex and connects to it
      * @param ifocus index of the vertex which gets the new successor
@@ -1025,20 +964,22 @@ public class Tiler implements Serializable {
         Vertex focus = mVertices.get(ifocus);
         VertexType fotype = focus.getType();
         if (focus.succs[iedge] == 0) { // determine successor
-            int foEdgeAngle = angleSum(focus.rotate, getEdgeAngle(focus.typeIndex, iedge));
-            int suType = fotype.taVtis[iedge];
+            int suAngle = focus.getAngle(iedge); // successor pointing back to the focus
+            int suType  = fotype.taVtis[iedge];
             Vertex succ = new Vertex(suType); // try a new one
-            succ.expos  = focus.expos.moveUnit(foEdgeAngle);
-            succ.rotate = angleSum(focus.rotate, fotype.taRots[iedge]);
+            succ.expos  = focus.expos.moveUnit(suAngle);
+            suAngle     = normAngle(suAngle + 180); // successor pointing back to the focus
+            succ.rotate = normAngle(focus.rotate + fotype.taRots[iedge]);
             if (sDebug >= 2) {
-                System.out.println("# attach(" + ifocus + ", " + iedge + "): foEdgeAngle=" + foEdgeAngle
-                        + ", fotype.taRots[iedge]=" + fotype.taRots[iedge]
-                        + ", " + ffVertices + mVertexTypes[suType].name +  ".rotate=" + succ.rotate);
+                System.out.println("# attach(vertex" + ifocus + "@" + focus.rotate + ", iedge=" + iedge + ") to "
+                        + mVertexTypes[suType].name + "@" + succ.rotate + succ.expos + " under angle " + suAngle);
             }
-            int suEdgeNo = getMatchingEdge(succ, foEdgeAngle);
+            int suEdgeNo = succ.getEdge(suAngle);
             if (suEdgeNo < 0) { // not found
+            /*
                 System.out.println("# ** assertion 1 in attach: no matching edge, succ.expos="
-                        + succ.expos.toString() + ", succ.rotate=" + succ.rotate + ", focus=" + focus.index);
+                        + succ.expos.toString() + ", succ@" + succ.rotate + ", focus=" + focus.index);
+            */
                 writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
                 Integer intTarget = mPosiVertex.get(succ.expos); // does the successor Vertex already exist?
@@ -1060,11 +1001,11 @@ public class Tiler implements Serializable {
                 }
                 if (sDebug >= 1) {
                     System.out.println("# ifocus=" + ifocus + ", iedge=" + iedge
-                            + ", focus.rotate=" + focus.rotate
+                            + ", focus@"        + focus.rotate
                             + ", focus.expos="  + focus.expos.toString()
-                            + ", getEdgeAngle=" + foEdgeAngle
+                            + ", suAngle="      + suAngle
                             + "\n#  -> isucc="  + isucc
-                            + ", succ.rotate="  + succ.rotate
+                            + ", succ@"         + succ.rotate
                             + ", succ.expos="   + succ.expos.toString()
                             + ", suEdgeNo="     + suEdgeNo
                             );
@@ -1225,7 +1166,7 @@ public class Tiler implements Serializable {
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        Tiler tiler = new Tiler();
+        Paver tiler = new Paver();
         sDebug = 0;
         try {
             int iarg = 0;
@@ -1264,5 +1205,5 @@ public class Tiler implements Serializable {
         }
     } // main
 
-} // Tiler
+} // Paver
 
