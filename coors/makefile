@@ -82,10 +82,10 @@ NMAX=29061947
 SVG=-svg test.svg
 FLIP=0
 #--
-pave: compave prun
+pave: compave pavr
 compave:
 	javac Paver.java 
-prun: select
+pavr: select
 	java -cp . Paver -id $(GALID) -flip $(FLIP) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	grep -i distance  test.tmp || :
