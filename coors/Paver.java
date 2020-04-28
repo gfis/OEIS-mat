@@ -489,6 +489,25 @@ public class Paver implements Serializable {
         return angle % 360;
     } // normAngle
 
+    /** 
+     * Selects the orientated index for a property of an edge in 
+     * clockwise or counter-clockwise orientation.
+     * @param vtype VertexType of <em>this</em> {@link #Vertex}
+     * @param iedge number of edge &gt;= 0
+     * @return either iedge (ascending) for a normal Vertex,
+     * 0, edgeNo - 1 descending for a flipped Vertex
+     */
+    public int orientate(VertexType vtype, int iedge) {
+        int result = iedge;
+        if ((vtype.index & 1) == 1) { // flipped -> descending
+            result = vtype.edgeNo - iedge;
+        } // descending
+        while (result < 0) { // problem with Java "-1 % ..."
+            result += vtype.edgeNo;
+        }
+        return result % vtype.edgeNo; 
+    } // orientate
+
     /**
      * Tests the computation of {@link Position}s
      */
@@ -568,26 +587,26 @@ public class Paver implements Serializable {
          * @return degrees 0..360 where the edge points to,
          * counted from (x,y)=(0,0) to (x,y)=(0,1), clockwise
          */
-        public int getAngle(int jedge) {
+        public int getAngle(int iedge) {
             VertexType vtype = getType();
             int sweep = rotate;
-            int iedge = 0;
-            while (iedge < jedge) {
-                int kedge = select(vtype, iedge);
-				if (kedge == iedge) {
-                    sweep += mRegularAngles[vtype.polys[kedge]];
-                } else {
-                	sweep += mRegularAngles[vtype.polys[kedge]];
+            int kedge = 0;
+            while (kedge < iedge) {
+                int deltaAngle = mRegularAngles[vtype.polys[kedge]];
+                if(vtype.isFlipped()) {
+                    deltaAngle = mRegularAngles[vtype.polys[orientate(vtype, kedge + 1)]];
                 }
-                iedge ++;
+                if (sDebug >= 2) {
+                    System.out.println("#       getAngle(iedge=" + iedge + "), kedge=" + kedge 
+                            + ", advance by " + deltaAngle + ", old sweep=" + sweep);
+                } 
+                sweep = normAngle(sweep + deltaAngle);
+                kedge ++;
             } // while
-			if ((typeIndex & 1) != 0) {
-				// sweep += 180;
-			}
-            sweep = normAngle(sweep);
+            // sweep = normAngle(sweep);
             if (sDebug >= 2) {
-                    System.out.println("# " + index + vtype.name + "@" + rotate + expos + "."
-                        + "getAngle(iedge=" + iedge + ") -> " + sweep);
+                    System.out.println("#     getAngle(iedge=" + iedge + ")." + index + vtype.name + "@" + rotate + expos 
+                            + ", rotate=" + rotate +  "-> " + sweep);
             }
             return sweep;
         } // getAngle
@@ -603,54 +622,73 @@ public class Paver implements Serializable {
          */
         public int getEdge(int angle) {
             angle = normAngle(angle);
+            int deltaAngle = 0;
             VertexType vtype = getType();
             int iedge = 0;
             int sweep = rotate;
             boolean busy = true;
             while (busy && iedge < vtype.edgeNo) {
-                int kedge = select(vtype, iedge);
+                int oldSweep = sweep;
+                int oedge = orientate(vtype, iedge);
                 if (sweep == angle) {
                     busy = false;
-                } else {
-                    sweep = normAngle(sweep + mRegularAngles[vtype.polys[kedge]]);
-                    if (sDebug >= 2) {
-                        System.out.println("# try next behind edge " + iedge + ", advance by " 
-                                + mRegularAngles[vtype.polys[kedge]] + ", new sweep=" + sweep);
-                    } 
-                    iedge ++;
-                }
+                } else { // angles still different
+                	iedge ++;
+                	sweep = getAngle(iedge);
+                /*
+                    if (! vtype.isFlipped()) { // normal
+                        deltaAngle =   mRegularAngles[vtype.polys[(oedge) % vtype.edgeNo]];
+                        sweep = normAngle(sweep + deltaAngle);
+                        if (sDebug >= 2) {
+                            System.out.println("#       getEdge, sweep(" + oldSweep + ") <> angle(" + angle + ") at edge " + iedge + ", advance by " 
+                                    + mRegularAngles[vtype.polys[oedge]] + ", new sweep=" + sweep);
+                        } 
+                        iedge ++;
+                    } else { // flipped
+                        deltaAngle = - mRegularAngles[vtype.polys[(oedge) % vtype.edgeNo]];
+                        sweep = normAngle(sweep + deltaAngle);
+                        if (sDebug >= 2) {
+                            System.out.println("#       getEdge, sweep(" + oldSweep + ") <> angle(" + angle + ") at edge " + iedge + ", advance by " 
+                                    + mRegularAngles[vtype.polys[oedge]] + ", new sweep=" + sweep);
+                        } 
+                        iedge ++;
+                    } // flipped
+                */
+                } // still different
             } // while +
+
+                /* only 5B -> a does not work
+                    sweep = normAngle(sweep + 
+                            (vtype.isFlipped() 
+                            ? - mRegularAngles[vtype.polys[oedge]]
+                            :   mRegularAngles[vtype.polys[oedge]]
+                            ) );
+                */
+                /*
+                    sweep = normAngle(sweep + 
+                            (vtype.isFlipped() 
+                            ?   mRegularAngles[vtype.polys[iedge]]
+                            : - mRegularAngles[vtype.polys[oedge]]
+                            ) );
+                */
+
+
             if (busy) {
                 iedge = -1; // no matching angle found
             }
             if (sDebug >= 2) {
                 if (iedge >= 0) {
-                    System.out.println("# " + index + vtype.name + "@" + rotate + expos + "."
-                            + "getEdge(angle=" + angle + ") -> " 
-                            + iedge + " -> " + mVertexTypes[vtype.taVtis[iedge]].name);
+                    System.out.println("#     getEdge(angle=" + angle + ")." + index + vtype.name + "@" + rotate + expos 
+                            + " -> " + iedge + " -> " 
+                            + mVertexTypes[vtype.taVtis[iedge]].name);
                 } else {
-                    System.out.println("# " + index + vtype.name + "@" + rotate + expos + "."
-                            + "getEdge(angle=" + angle + ") -> " 
-                            + "\n** assertion 5: edge not found");
+                    System.out.println("#     getEdge(angle=" + angle + ")." + index + vtype.name + "@" + rotate + expos 
+                            + " -> " + iedge + " -> " 
+                            + "** assert 5: edge not found");
                 }
             }
             return iedge;
         } // getEdge
-
-        /** 
-         * Selects the proper index for clockwise or counter-clockwise orientation
-         * @param vtype VertexType of <em>this</em> {@link #Vertex}
-         * @param iedge number of edge &gt;= 0
-         * @return either iedge (ascending) for a normal Vertex,
-         * 0, edgeNo - 1 descending for a flipped Vertex
-         */
-        public int select(VertexType vtype, int iedge) {
-            int result = iedge;
-            if ((typeIndex & 1) == 1) { // descending
-                result = (vtype.edgeNo - iedge) % vtype.edgeNo;
-            } // descending
-            return result;
-        } // select
 
         /**
          * Creates and returns a new successor {@link #Vertex} of <em>this</em> Vertex (which is already rotated).
@@ -658,16 +696,28 @@ public class Paver implements Serializable {
          * @return successor Vertex which is properly rotated and linked back to <em>this</em>
          */
         public Vertex getSuccessor(int iedge) {
-            VertexType vtype = getType();
-            int kedge   = select(vtype, iedge);
+            VertexType vtype = getType(); // of the focus
+            int oedge   = orientate(vtype, iedge);
             int suAngle = this.getAngle(iedge); // successor pointing back to the focus
-            int suType  = vtype.taVtis[kedge]; 
-            Vertex succ = new Vertex(suType); // create a new Vertex
+            int siType  = vtype.taVtis[oedge]; 
+            VertexType suType = mVertexTypes[siType];
+            int suRots  = vtype.taRots[oedge];
+        //  if (vtype.hasOppositeOrientation(suType)) {
+            if (vtype.isFlipped() && suType.chiral) {
+                siType ^= 1; // flip the least significant bit
+            }
+        //  if (vtype.isFlipped() || suType.isFlipped()) { // UC -> lc do not work
+            if (vtype.isFlipped()) { // 5B -> a does not work
+        //  if (! vtype.isFlipped() && suType.chiral) { // all B and A->a do not work
+        //  if (vtype.isFlipped() || (! vtype.chiral      && suType.isFlipped())) { // UC -> lc do not work
+                suRots  = - suRots;
+            }
+            Vertex succ = new Vertex(siType); // create a new Vertex
             succ.expos  = this.expos.moveUnit(suAngle);
-            succ.rotate = normAngle(this.rotate + vtype.taRots[kedge]);
+            succ.rotate = normAngle(this.rotate + suRots);
             if (sDebug >= 2) {
-                System.out.print("# " + index + vtype.name + "@" + rotate + expos + "."
-                        + "getSuccessor(iedge=" + iedge + ") -> " + succ.toString());
+                System.out.print("#     getSuccessor(iedge=" + iedge + ")." + index + vtype.name + "@" + rotate + expos 
+                        + " -> " + succ.toString());
             }
             return succ;
         } // getSuccessor
@@ -802,9 +852,24 @@ public class Paver implements Serializable {
      * @param typeIndex index in {@link #mVertexTypes}
      * @return typeIndex + 1 for even typeIndex, typeIndex - 1 for odd
      */
-    public int flipped(int typeIndex) {
+    public int flipped_99(int typeIndex) {
         return (typeIndex & 1) == 0 ? typeIndex + 1 : typeIndex - 1;
-    } // flipped
+    } // flipped_99
+
+    /**
+     * Gets the type index of the opposite version of a {@link VertexType}
+     * (A' for A and A for A'), if the type is chiral, or the unflipped version otherwise
+     * @param typeIndex index in {@link #mVertexTypes}
+     * @return typeIndex +- 1 if the type is chiral
+     */
+    public int getMirroredType(int typeIndex) {
+        int result = typeIndex;
+        if (true && mVertexTypes[typeIndex].chiral) {
+            result ^= 1; // switch least significant bit
+        }
+        return result;
+    } // getMirroredType
+
 
     /**
      * Initializes the dynamic data structures of <em>this</em> Tiling.
@@ -857,11 +922,8 @@ public class Paver implements Serializable {
      */
     protected class VertexType implements Serializable { // numbered 1, 2, 3 ... ; 0 is not used
         int    index; // even for normal type, odd for flipped version
-        String name; // for example "A" for normal or "a" (lowercase) for flipped version
-        String galId; // e.g. "Gal.2.1.1"
-        String sequence; // list of terms of the coordination sequence
+        boolean chiral; // whether the vertices are chiral and have a flipped variant
         int    edgeNo; // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
-        int    varNo; // number of variants: 2 if flipped variant exists, 1 if not
         int[]  polys; // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
                 // are arranged clockwise (for SVG, counter-clockwise by Galebach)
                 // around this vertex type.
@@ -871,15 +933,16 @@ public class Paver implements Serializable {
         int[]  sweeps; // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
         int[]  leShas; // shapes / polygones from the focus to the left  of the edge
         int[]  riShas; // shapes / polygones from the focus to the right of the edge
+        String galId; // e.g. "Gal.2.1.1"
+        String name; // for example "A" for normal or "a" (lowercase) for flipped version
+        String sequence; // list of terms of the coordination sequence
 
         /**
          * Empty constructor
          */
         VertexType() {
             index    = 0;
-            name     = "Z";
-            galId    = "Gal.0.0.0";
-            sequence = "";
+            chiral   = false;
             edgeNo   = 0;
             polys    = new int[0];
             taVtis   = new int[0];
@@ -887,6 +950,9 @@ public class Paver implements Serializable {
             sweeps   = new int[0];
             leShas   = new int[0];
             riShas   = new int[0];
+            galId    = "Gal.0.0.0";
+            name     = "Z";
+            sequence = "";
         } // VertexType()
 
         /**
@@ -898,6 +964,7 @@ public class Paver implements Serializable {
             String result
                     = "{ \"i\": \""     + index + "\""
                     + ", \"name\": \""  + name  + "\""
+                    + ", \"chiral\": \""  + chiral + "\""
                     + ", \"polys\": "   + join(",", polys)
                     + ", \"taRots\": "  + join(",", taRots)
                     + ", \"taVtis\": "  + join(",", taVtis)
@@ -928,7 +995,6 @@ public class Paver implements Serializable {
             galId    = pGalId;
             sequence = sequence;
             edgeNo   = parts.length;
-            varNo    = 1; // flipped variant does not (yet) exist
             polys    = new int[edgeNo];
             taVtis   = new int[edgeNo];
             taRots   = new int[edgeNo];
@@ -937,22 +1003,24 @@ public class Paver implements Serializable {
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
                 try {
                     taVtis[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
-                    if (parts [iedge].endsWith("'")) { // is flipped
+                    if (parts [iedge].endsWith("'")) { // with apostrophe => is flipped
                         taVtis[iedge] ++; // make it odd
                         parts [iedge] = parts[iedge].replaceAll("\\'","");
                     }
                     polys [iedge] = 0;
                     taRots[iedge] = 0;
                     polys [iedge] = Integer.parseInt(corners[iedge]);
-                    taRots[iedge] = Integer.parseInt(parts[iedge].substring(2));
+                    taRots[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits
                 } catch (Exception exc) {
                     System.err.println("# ** assertion 4: descriptor for \"" + pGalId + "\" bad");
                 }
             } // for iedge
+            chiral = true;
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
-                riShas[iedge] = polys[iedge];
-                leShas[iedge] = polys[(iedge + edgeNo - 1) % edgeNo];
-            } // for iedge
+                int oedge = orientate(this, iedge);
+                riShas[iedge] = polys[oedge];
+                leShas[iedge] = polys[orientate(this, iedge - 1)];
+            } // for
             fillSweeps();
         } // VertexType(String, String, String)
 
@@ -969,6 +1037,25 @@ public class Paver implements Serializable {
                 sweeps[iedge] = sum;
             } // for iedge
         } // fillSweeps
+
+        /** 
+         * Determines whether <em>this</em> {@link VertexType} is flipped
+         * @return true if the index is odd, false otherwise
+         */
+        public boolean isFlipped() {
+            return  chiral && 
+                    (index & 1) == 1;
+        } // isFlipped
+        
+        /**
+         * Determines whether <em>this</em> VertexType has the opposite orientation than a second VertexType.
+         * @param vtype2 second VertexType
+         * @return true if one is flipped and the other not, false if both are flipped or both not flipped.
+         */
+        public boolean hasOppositeOrientation(VertexType vtype2) {
+            return   this.isFlipped() && ! vtype2.isFlipped() ||
+                   ! this.isFlipped() &&   vtype2.isFlipped();
+        } // hasOppositeOrientation
 
         /**
          * Returns a new, flipped version of <em>this</em> VertexType,
@@ -989,16 +1076,23 @@ public class Paver implements Serializable {
             result.leShas   = new int[edgeNo];
             result.riShas   = new int[edgeNo];
             result.sweeps   = new int[edgeNo];
-            int kedge = 0; // for reverse orientation
+            chiral = false;
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
+                int oedge = orientate(result, iedge);
                 result.polys [iedge] = polys [iedge];
                 result.taVtis[iedge] = taVtis[iedge];
                 result.taRots[iedge] = taRots[iedge];
                 result.leShas[iedge] = riShas[iedge];
                 result.riShas[iedge] = leShas[iedge];
                 result.sweeps[iedge] = sweeps[iedge];
-                kedge = (kedge + edgeNo - 1) % edgeNo;
+                if (polys[iedge] != polys[oedge]) {
+                    chiral = true;
+                }
             } // for iedge
+            result.chiral = chiral; // both get this property
+            if (! chiral) {
+                // result.name = result.name.toUpperCase();
+            }
             return result;
         } // getFlippedClone
 
@@ -1016,20 +1110,24 @@ public class Paver implements Serializable {
         int isucc = 0; // future result; assume that the successor already exists
         Vertex focus = mVertices.get(ifocus);
         VertexType fotype = focus.getType();
+        if (sDebug >= 1) {
+             System.out.println("# call attach, vertex=" + ifocus + "@" + focus.rotate + focus.expos + " for iedge=" + iedge);
+        }
         if (focus.succs[iedge] == 0) { // determine successor
             Vertex succ = focus.getSuccessor(iedge);
             int suAngle = normAngle(focus.getAngle(iedge) + 180); // successor pointing back to the focus
-            if (sDebug >= 2) {
-                System.out.println("# attach(vertex=" + ifocus + "@" + focus.rotate + ", iedge=" + iedge + ") to "
-                        + succ.getType().name + "@" + succ.rotate + succ.expos + " under angle " + suAngle);
+            if (sDebug >= 1) {
+                System.out.println("#     candidate successor is "
+                        + succ.getType().name + "@" + succ.rotate + succ.expos + ", edge to angle " + suAngle);
             }
             int suEdge = succ.getEdge(suAngle);
             if (suEdge < 0) { // not found
-               succ.show();
-            /*
-                System.out.println("# ** assertion 1 in attach: no matching edge, succ.expos="
-                        + succ.expos.toString() + ", succ@" + succ.rotate + ", focus=" + focus.index);
-            */
+                succ.show();
+            //
+                System.out.println("# ** assertion 1 in attach(focus=" + focus.index + fotype.name + "\t, iedge=" + iedge 
+                        + "): no matching edge in succ " + succ.getType().name 
+                        + "@" + succ.rotate + succ.expos);
+            //
                 writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
                 Integer intTarget = mPosiVertex.get(succ.expos); // does the successor Vertex already exist?
@@ -1045,19 +1143,16 @@ public class Paver implements Serializable {
                 if (succ.succs[suEdge] == 0) { // edge was not yet connected
                     succ.succs[suEdge] = ifocus; // set backward link
                 } else if (succ.succs[suEdge] != ifocus) {
-                    System.out.println("# ** assertion 2 in attach: no matching edge, succ.expos="
-                           + succ.expos.toString() + ", succ.rotate=" + succ.rotate + ", focus=" + focus.index);
-                    writeSVGEdge(focus, succ, iedge, 1); // transparent
+                    succ.show();
+                    System.out.println("# ** assertion 2 in attach(focus=" + focus.index + fotype.name + "\t, iedge=" + iedge 
+                        + "): no matching edge in succ " + succ.getType().name 
+                        + "@" + succ.rotate + succ.expos);
                 }
                 if (sDebug >= 1) {
-                    System.out.println("# ifocus=" + ifocus + ", iedge=" + iedge
-                            + ", focus@"        + focus.rotate
-                            + ", focus.expos="  + focus.expos.toString()
-                            + ", suAngle="      + suAngle
-                            + "\n#  -> isucc="  + isucc
-                            + ", succ@"         + succ.rotate
-                            + ", succ.expos="   + succ.expos.toString()
-                            + ", suEdge="     + suEdge
+                    System.out.println("# attached focus=" + ifocus + "@" + focus.rotate + focus.expos.toString()
+                            + ", iedge="  + iedge + " under angle " + suAngle
+                            + " -> succ=" + isucc + "@" + succ.rotate + succ.expos.toString()
+                            + ", suEdge=" + suEdge
                             );
                 }
                 writeSVGEdge(focus, succ, iedge, 0); // normal
@@ -1065,9 +1160,10 @@ public class Paver implements Serializable {
             } // matching angles
             focus.fixedEdges ++;
         } else { // focus.succs[iedge] != 0 - ignore
-          if (sDebug >= 2) {
-              System.out.println("# attach(" + ifocus + ", " + iedge + "): ignore attached succ " + focus.succs[iedge]);
-          }
+            if (sDebug >= 2) {
+                System.out.println("# attach(" + ifocus + ", " + iedge 
+                        + "): ignore attached edge " + iedge + " -> " + focus.succs[iedge]);
+            }
         }
         return isucc;
     } // attach

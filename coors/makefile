@@ -101,7 +101,8 @@ run: select
 	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 
 #================
-
+zip:
+	zip coors.`date +%Y-%m-%d.%H`.zip *.java *.pl makefile test.svg test.tmp *.css
 #================
 # old targets
 circle:

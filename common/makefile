@@ -290,7 +290,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 joeis_list: joeis_pull joeis_load joeis_names joeis_count joeis_stamp
 joeis_loct: joeis_list_local joeis_load joeis_names joeis_count joeis_stamp
 joeis_pull:
-	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list'
+	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
 joeis_list_local:
 	cd ../../joeis ; git pull ; make joeis_list
