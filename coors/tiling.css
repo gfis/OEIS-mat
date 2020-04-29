@@ -16,7 +16,7 @@ text   { stroke-width:0.005; font: 0.1px sans-serif;
 .l6 { fill: magenta     ; stroke: magenta     }
 .l7 { fill: darkmagenta ; stroke: darkmagenta }
 .l8 { fill: black       ; stroke: red         }
-.tent { fill: lightgray   ; stroke: lightgray ; stroke-width:0.10  }
+.tent { fill: lightgray   ; stroke: lightgray   ; stroke-width:0.10  }
 .test { fill: lightsalmon ; stroke: lightsalmon ; stroke-width:0.03  }
 .c0 { fill: white       ; stroke: black }
 .c1 { fill: salmon      ; stroke: black }

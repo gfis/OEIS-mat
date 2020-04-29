@@ -1145,8 +1145,9 @@ public class Paver implements Serializable {
                 } else if (succ.succs[suEdge] != ifocus) {
                     succ.show();
                     System.out.println("# ** assertion 2 in attach(focus=" + focus.index + fotype.name + "\t, iedge=" + iedge 
-                        + "): no matching edge in succ " + succ.getType().name 
-                        + "@" + succ.rotate + succ.expos);
+                        + "): no matching edge in succ " + succ.index + succ.getType().name 
+                        + "@" + succ.rotate + succ.expos 
+                        + ", succs[" + suEdge + "]=" + succ.succs[suEdge] + " <> ifocus=" + ifocus);
                 }
                 if (sDebug >= 1) {
                     System.out.println("# attached focus=" + ifocus + "@" + focus.rotate + focus.expos.toString()
