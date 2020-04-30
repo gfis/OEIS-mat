@@ -17,9 +17,11 @@ COMMON=../common
 D=0 # debug mode
 WEIDIS= weidis
 
-all: gather tile
+all: init gather tile
 #	echo select specific target 
 #================
+init:
+	mkdir bfile
 gather: break extract extract_load count update_noflip
 break:
 	perl -pe "s{\<br\>}{\<br \/\>\n}g;" a250120.html > $@.tmp
@@ -80,16 +82,17 @@ ID=1
 GALID=Gal.$(GAL).$(ID)
 NMAX=29061947
 SVG=-svg test.svg
-FLIP=0
+BFILE=-bfile bfile/
+SELECT=1
 #----------------
 select:
-	grep -E "Gal\.$(GAL)\." extract.tmp | cut -b1-96 | tee tiler.tst
+	grep -E "Gal\.$(GAL)\." extract.tmp | tee tiler.tst
 #--
 pave: compave pavr
 compave:
 	javac Paver.java 
 pavr: select
-	java -cp . Paver -id $(GALID) -flip $(FLIP) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
+	java -cp . Paver -id $(GALID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 
@@ -98,10 +101,22 @@ tile: compile tilr
 compile:
 	javac Tiler.java 
 tilr: select
-	java -cp . Tiler -id $(GALID) -flip $(FLIP) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 
+#================
+verify:
+	echo "all:" > $@.tmp
+	grep -E "Gal\.$(SELECT)\." extract.tmp | cut -f 2 \
+	| perl -ne 'm{\AGal\.(\d+\.\d+)\.(\d+)}; my ($$gal, $$id) = ($$1, $$2); print "\tmake verify1 GAL=$$gal ID=$$id\n"' \
+	>>         $@.tmp
+	tail -n4   $@.tmp
+	wc -l      $@.tmp
+	make -s -f $@.tmp
+verify1: 
+	grep -E "Gal\.$(GAL)\." extract.tmp > tiler.tst
+	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee test.tmp 
 #================
 zip:
 	zip coors.`date +%Y-%m-%d.%H`.zip *.java *.pl makefile test.svg test.tmp *.css
