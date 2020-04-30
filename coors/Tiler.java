@@ -1,6 +1,7 @@
 /* Generate tilings from Galebach's list
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
+ * 2020-04-30: cleaned
  * 2020-04-29: 4th version, flipped straight from backwards
  * 2020-04-21, Georg Fischer
  */
@@ -16,6 +17,7 @@ import java.nio.channels.WritableByteChannel;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -103,7 +105,8 @@ public class Tiler implements Serializable {
     /** Maps exact {@link Position}s of vertices to their index in {@link mVertices}.
      *  Used for the detection of duplicate target vertices.
      */
-    public static TreeMap<Position, Integer> mPosiVertex;
+    // public HashMap<Position, Integer> mPosiVertex;
+    public TreeMap<Position, Integer> mPosiVertex;
 
     /**
      * Join an array of integers
@@ -342,19 +345,22 @@ public class Tiler implements Serializable {
      * The x and y coordinates are represented by tuples (a,b,c,d)
      * such that (a + b*sqrt(2) + c*sqrt(3) + d*sqrt(6)) / 4 give the
      * real value for a position.
+     * All edges of unit length under angles of n * 15 degrees can exactly be represented by such tuples.
+     * Cf. https://math.stackexchange.com/questions/96946/how-to-prove-1-sqrt2-sqrt3-and-sqrt6-are-linearly-independent-ove 
+     * r Q
      */
     protected  class Position implements Serializable, Comparable<Position> {
-        protected short[] xtuple;
-        protected short[] ytuple;
+        protected int/*s*/[] xtuple;
+        protected int/*s*/[] ytuple;
 
         /**
          * Empty constructor - creates the origin (0,0).
          */
         public Position() {
-            xtuple = new short[4];
-            ytuple = new short[4];
-            Arrays.fill(xtuple, (short) 0);
-            Arrays.fill(ytuple, (short) 0);
+            xtuple = new int/*s*/[4];
+            ytuple = new int/*s*/[4];
+            Arrays.fill(xtuple, (int/*s*/) 0);
+            Arrays.fill(ytuple, (int/*s*/) 0);
         } // Position()
 
         /**
@@ -362,16 +368,17 @@ public class Tiler implements Serializable {
          * @param xparm tuple for exact x representation
          * @param yparm tuple for exact y representation
          */
-        public Position(short[] xparm, short[]yparm) {
+        public Position(int/*s*/[] xparm, int/*s*/[]yparm) {
             xtuple = xparm;
             ytuple = yparm;
-        } // Position(short[], short[])
+        } // Position(int/*s*/[], int/*s*/[])
 
         /**
          * Determines whether <em>this</em> Position is equal to a second
          * @param pos2 second Position
          * @return true if the underlaying arrays have the same values
          */
+    /*
         public boolean equals(Position pos2) {
             boolean result = true; // assume succes
             int ipos = 0;
@@ -382,7 +389,7 @@ public class Tiler implements Serializable {
             } // while ipos
             return result;
         } // equals
-
+    */
         /**
          * Comapres <em>this</em> Position with a second
          * @param pos2 second Position
@@ -417,7 +424,7 @@ public class Tiler implements Serializable {
          * Computes the cartesian coordinate value from an exact position tuple
          * @return a double value
          */
-        public Double cartesian(short[] tuple) {
+        public Double cartesian(int/*s*/[] tuple) {
             return ( tuple[0]
                          + tuple[1] * SQRT2
                          + tuple[2] * SQRT3
@@ -433,8 +440,8 @@ public class Tiler implements Serializable {
         public Position add(Position pos2) {
             Position result = new Position();
             for (int ipos = 0; ipos < 4; ipos ++) {
-                result.xtuple[ipos] = (short) (xtuple[ipos] + pos2.xtuple[ipos]);
-                result.ytuple[ipos] = (short) (ytuple[ipos] + pos2.ytuple[ipos]);
+                result.xtuple[ipos] = (int/*s*/) (xtuple[ipos] + pos2.xtuple[ipos]);
+                result.ytuple[ipos] = (int/*s*/) (ytuple[ipos] + pos2.ytuple[ipos]);
             } // for ipos
             return result;
         } // add
@@ -447,17 +454,20 @@ public class Tiler implements Serializable {
         public Position subtract(Position pos2) {
             Position result = new Position();
             for (int ipos = 0; ipos < 4; ipos ++) {
-                result.xtuple[ipos] = (short) (xtuple[ipos] - pos2.xtuple[ipos]);
-                result.ytuple[ipos] = (short) (ytuple[ipos] - pos2.ytuple[ipos]);
+                result.xtuple[ipos] = (int/*s*/) (xtuple[ipos] - pos2.xtuple[ipos]);
+                result.ytuple[ipos] = (int/*s*/) (ytuple[ipos] - pos2.ytuple[ipos]);
             } // for ipos
             return result;
         } // subtract
 
         /**
          * Returns a representation of the Position
-         * @return a tuple "[x0,x1,x2,x3 ,y0,y1,y2,y3]" of short integers
+         * @return the cartesian coordinates like "[-3.0981,1.3660]"
          */
         public String toString() {
+        /*
+            return join(",", xtuple) + join(",", ytuple);
+        */
             StringBuffer result = new StringBuffer(64);
             int ip;
             result.append('[');
@@ -467,7 +477,16 @@ public class Tiler implements Serializable {
             result.append(']');
             result.setCharAt(0, '[');
             return result.toString();
+        //
         } // Position.toString
+
+        /**
+         * Returns an internal representation of the Position
+         * @return a tuple "[x0-x1-x2-x3/y0-y1-y2-y3]" of integers
+         */
+        public String toList() {
+            return join(",", xtuple) + join(",", ytuple);
+        } // toList
 
         /**
          * Gets the cartesian x coordinate (to the right) from <em>this</em> Position
@@ -499,30 +518,30 @@ public class Tiler implements Serializable {
 
     /** Positions in the unit circle = increments for the next {@link Vertex} */
     private final Position[] mUnitCirclePoints = new Position[]
-            { new Position(new short[] { 4, 0, 0, 0}, new short[] { 0, 0, 0, 0}) // [ 0]   0     1.0000,    0.0000
-            , new Position(new short[] { 0, 1, 0, 1}, new short[] { 0,-1, 0, 1}) // [ 1]  15     0.9659,    0.2588
-            , new Position(new short[] { 0, 0, 2, 0}, new short[] { 2, 0, 0, 0}) // [ 2]  30     0.8660,    0.5000
-            , new Position(new short[] { 0, 2, 0, 0}, new short[] { 0, 2, 0, 0}) // [ 3]  45     0.7071,    0.7071
-            , new Position(new short[] { 2, 0, 0, 0}, new short[] { 0, 0, 2, 0}) // [ 4]  60     0.5000,    0.8660
-            , new Position(new short[] { 0,-1, 0, 1}, new short[] { 0, 1, 0, 1}) // [ 5]  75     0.2588,    0.9659
-            , new Position(new short[] { 0, 0, 0, 0}, new short[] { 4, 0, 0, 0}) // [ 6]  90     0.0000,    1.0000
-            , new Position(new short[] { 0, 1, 0,-1}, new short[] { 0, 1, 0, 1}) // [ 7] 105    -0.2588,    0.9659
-            , new Position(new short[] {-2, 0, 0, 0}, new short[] { 0, 0, 2, 0}) // [ 8] 120    -0.5000,    0.8660
-            , new Position(new short[] { 0,-2, 0, 0}, new short[] { 0, 2, 0, 0}) // [ 9] 135    -0.7071,    0.7071
-            , new Position(new short[] { 0, 0,-2, 0}, new short[] { 2, 0, 0, 0}) // [10] 150    -0.8660,    0.5000
-            , new Position(new short[] { 0,-1, 0,-1}, new short[] { 0,-1, 0, 1}) // [11] 165    -0.9659,    0.2588
-            , new Position(new short[] {-4, 0, 0, 0}, new short[] { 0, 0, 0, 0}) // [12] 180    -1.0000,    0.0000
-            , new Position(new short[] { 0,-1, 0,-1}, new short[] { 0, 1, 0,-1}) // [13] 195    -0.9659,   -0.2588
-            , new Position(new short[] { 0, 0,-2, 0}, new short[] {-2, 0, 0, 0}) // [14] 210    -0.8660,   -0.5000
-            , new Position(new short[] { 0,-2, 0, 0}, new short[] { 0,-2, 0, 0}) // [15] 225    -0.7071,   -0.7071
-            , new Position(new short[] {-2, 0, 0, 0}, new short[] { 0, 0,-2, 0}) // [16] 240    -0.5000,   -0.8660
-            , new Position(new short[] { 0, 1, 0,-1}, new short[] { 0,-1, 0,-1}) // [17] 255    -0.2588,   -0.9659
-            , new Position(new short[] { 0, 0, 0, 0}, new short[] {-4, 0, 0, 0}) // [18] 270     0.0000,   -1.0000
-            , new Position(new short[] { 0,-1, 0, 1}, new short[] { 0,-1, 0,-1}) // [19] 285     0.2588,   -0.9659
-            , new Position(new short[] { 2, 0, 0, 0}, new short[] { 0, 0,-2, 0}) // [20] 300     0.5000,   -0.8660
-            , new Position(new short[] { 0, 2, 0, 0}, new short[] { 0,-2, 0, 0}) // [21] 315     0.7071,   -0.7071
-            , new Position(new short[] { 0, 0, 2, 0}, new short[] {-2, 0, 0, 0}) // [22] 330     0.8660,   -0.5000
-            , new Position(new short[] { 0, 1, 0, 1}, new short[] { 0, 1, 0,-1}) // [23] 345     0.9659,   -0.2588
+            { new Position(new int/*s*/[] { 4, 0, 0, 0}, new int/*s*/[] { 0, 0, 0, 0}) // [ 0]   0     1.0000,    0.0000
+            , new Position(new int/*s*/[] { 0, 1, 0, 1}, new int/*s*/[] { 0,-1, 0, 1}) // [ 1]  15     0.9659,    0.2588
+            , new Position(new int/*s*/[] { 0, 0, 2, 0}, new int/*s*/[] { 2, 0, 0, 0}) // [ 2]  30     0.8660,    0.5000
+            , new Position(new int/*s*/[] { 0, 2, 0, 0}, new int/*s*/[] { 0, 2, 0, 0}) // [ 3]  45     0.7071,    0.7071
+            , new Position(new int/*s*/[] { 2, 0, 0, 0}, new int/*s*/[] { 0, 0, 2, 0}) // [ 4]  60     0.5000,    0.8660
+            , new Position(new int/*s*/[] { 0,-1, 0, 1}, new int/*s*/[] { 0, 1, 0, 1}) // [ 5]  75     0.2588,    0.9659
+            , new Position(new int/*s*/[] { 0, 0, 0, 0}, new int/*s*/[] { 4, 0, 0, 0}) // [ 6]  90     0.0000,    1.0000
+            , new Position(new int/*s*/[] { 0, 1, 0,-1}, new int/*s*/[] { 0, 1, 0, 1}) // [ 7] 105    -0.2588,    0.9659
+            , new Position(new int/*s*/[] {-2, 0, 0, 0}, new int/*s*/[] { 0, 0, 2, 0}) // [ 8] 120    -0.5000,    0.8660
+            , new Position(new int/*s*/[] { 0,-2, 0, 0}, new int/*s*/[] { 0, 2, 0, 0}) // [ 9] 135    -0.7071,    0.7071
+            , new Position(new int/*s*/[] { 0, 0,-2, 0}, new int/*s*/[] { 2, 0, 0, 0}) // [10] 150    -0.8660,    0.5000
+            , new Position(new int/*s*/[] { 0,-1, 0,-1}, new int/*s*/[] { 0,-1, 0, 1}) // [11] 165    -0.9659,    0.2588
+            , new Position(new int/*s*/[] {-4, 0, 0, 0}, new int/*s*/[] { 0, 0, 0, 0}) // [12] 180    -1.0000,    0.0000
+            , new Position(new int/*s*/[] { 0,-1, 0,-1}, new int/*s*/[] { 0, 1, 0,-1}) // [13] 195    -0.9659,   -0.2588
+            , new Position(new int/*s*/[] { 0, 0,-2, 0}, new int/*s*/[] {-2, 0, 0, 0}) // [14] 210    -0.8660,   -0.5000
+            , new Position(new int/*s*/[] { 0,-2, 0, 0}, new int/*s*/[] { 0,-2, 0, 0}) // [15] 225    -0.7071,   -0.7071
+            , new Position(new int/*s*/[] {-2, 0, 0, 0}, new int/*s*/[] { 0, 0,-2, 0}) // [16] 240    -0.5000,   -0.8660
+            , new Position(new int/*s*/[] { 0, 1, 0,-1}, new int/*s*/[] { 0,-1, 0,-1}) // [17] 255    -0.2588,   -0.9659
+            , new Position(new int/*s*/[] { 0, 0, 0, 0}, new int/*s*/[] {-4, 0, 0, 0}) // [18] 270     0.0000,   -1.0000
+            , new Position(new int/*s*/[] { 0,-1, 0, 1}, new int/*s*/[] { 0,-1, 0,-1}) // [19] 285     0.2588,   -0.9659
+            , new Position(new int/*s*/[] { 2, 0, 0, 0}, new int/*s*/[] { 0, 0,-2, 0}) // [20] 300     0.5000,   -0.8660
+            , new Position(new int/*s*/[] { 0, 2, 0, 0}, new int/*s*/[] { 0,-2, 0, 0}) // [21] 315     0.7071,   -0.7071
+            , new Position(new int/*s*/[] { 0, 0, 2, 0}, new int/*s*/[] {-2, 0, 0, 0}) // [22] 330     0.8660,   -0.5000
+            , new Position(new int/*s*/[] { 0, 1, 0, 1}, new int/*s*/[] { 0, 1, 0,-1}) // [23] 345     0.9659,   -0.2588
             };
 
     /** Angles in degrees for regular polygones */
@@ -605,8 +624,8 @@ public class Tiler implements Serializable {
             chiral   = false;
             edgeNo   = 0;
             polys    = new int[0];
-            tipes   = new int[0];
-            rotas   = new int[0];
+            tipes    = new int[0];
+            rotas    = new int[0];
             leShas   = new int[0];
             riShas   = new int[0];
             sweeps   = new int[0];
@@ -621,7 +640,7 @@ public class Tiler implements Serializable {
          * @return the most important properties
          */
         public String toString() {
-            return "vt(" + index + name + ")";
+            return "{" + index + name + "}";
         } // VertexType.toString
 
         /**
@@ -649,20 +668,6 @@ public class Tiler implements Serializable {
         } // VertexType.toJSON
 
         /**
-         * Fills the cummulative angles for the edges of <em>this</em> VertexType,
-         * The angles are positive and sweep from 0 to iedge+1 for (iedge=0..edgeNo) mod edgeNo.
-         * The last sweeping angle must always be 360 degrees.
-         */
-        private void fillSweeps() {
-            int sum = 0;
-            sweeps  = new int[edgeNo];
-            for (int iedge = 0; iedge < edgeNo; iedge ++) {
-                // sum += mRegularAngles[polys[iedge]];
-                sweeps[iedge] = sum;
-            } // for iedge
-        } // fillSweeps
-
-        /**
          * Determines whether <em>this</em> {@link VertexType} is flipped
          * @return true if the index is odd, false otherwise
          */
@@ -670,16 +675,6 @@ public class Tiler implements Serializable {
             return  // chiral &&
                     (index & 1) == 1;
         } // isFlipped
-
-        /**
-         * Determines whether <em>this</em> VertexType has the opposite orientation than a second VertexType.
-         * @param vtype2 second VertexType
-         * @return true if one is flipped and the other not, false if both are flipped or both not flipped.
-         */
-        public boolean hasOppositeOrientation(VertexType vtype2) {
-            return   this.isFlipped() && ! vtype2.isFlipped() ||
-                   ! this.isFlipped() &&   vtype2.isFlipped();
-        } // hasOppositeOrientation
 
         /**
          * Constructor from input file parameters
@@ -695,18 +690,18 @@ public class Tiler implements Serializable {
             // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
             String[] corners = vertexId.split("\\.");
             String[] parts   = taRotList.split("\\;\\s*");
-            index    = ffVertexTypes; // even = not flipped
-            name     = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
+            index  = ffVertexTypes; // even = not flipped
+            name   = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
             this.aSeqNo = aSeqNo;
             this.galId  = galId;
             this.sequence = sequence;
-            edgeNo   = parts.length;
-            polys    = new int[edgeNo];
-            tipes    = new int[edgeNo];
-            rotas    = new int[edgeNo];
-            leShas   = new int[edgeNo];
-            riShas   = new int[edgeNo];
-            sweeps   = new int[edgeNo];
+            edgeNo = parts.length;
+            polys  = new int[edgeNo];
+            tipes  = new int[edgeNo];
+            rotas  = new int[edgeNo];
+            leShas = new int[edgeNo];
+            riShas = new int[edgeNo];
+            sweeps = new int[edgeNo];
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
                 try {
                     tipes[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
@@ -769,16 +764,16 @@ public class Tiler implements Serializable {
             int dedge = 0;
             for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
                 if (true || ! chiral) { // normal
-                    result.tipes [iedge] =   tipes[iedge];
-                    result.rotas [iedge] =   rotas[iedge];
+                    result.tipes [iedge] =   tipes [iedge];
+                    result.rotas [iedge] =   rotas [iedge];
                     result.sweeps[iedge] =   sweeps[iedge];
 
                     result.polys [iedge] =   polys [iedge];
                     result.riShas[iedge] =   polys [iedge];
                     result.leShas[iedge] =   polys [iedge];
                 } else { // chiral  not used
-                    result.tipes [iedge] =   tipes[iedge];
-                    result.rotas [iedge] = - rotas[dedge];
+                    result.tipes [iedge] =   tipes [iedge];
+                    result.rotas [iedge] = - rotas [dedge];
                     result.sweeps[iedge] = - sweeps[dedge];
                 // ???
                     result.polys [iedge] =   polys [dedge];
@@ -793,30 +788,6 @@ public class Tiler implements Serializable {
     } // class VertexType
 
     //--------
-    /**
-     * Selects the orientated index for a property of an edge in
-     * clockwise or counter-clockwise orientation.
-     * @param vtype {@link VertexType} of a {@link #Vertex}
-     * @param iedge number of edge between 0 and edgeNo
-     * @return either iedge  (ascending)  for a normal Vertex,
-     * or edgeNo - 1 - iedge (descending) for a flipped Vertex
-     */
-    public int orientEdge(VertexType vtype, int iedge) {
-        return normEdge(vtype, vtype.isFlipped() ? - iedge : iedge);
-    } // orientEdge
-
-    /**
-     * Gets the index of the next edge, depending on the
-     * orientation of the {@link VertexType} (clockwise or counter-clockwise).
-     * @param vtype VertexType
-     * @param iedge number of edge &gt;= 0
-     * @return either iedge + 1 (ascending) for a normal Vertex,
-     * iedge - 1 descending for a flipped Vertex, both modulo edgeNo
-     */
-    public int advance(VertexType vtype, int iedge) {
-        return normEdge(vtype, iedge + (vtype.isFlipped() ? -1 : +1));
-    } // advance
-
     /**
      * Limits the index of an edge to the range 0..edgeNo - 1.
      * @param vtype VertexType
@@ -843,9 +814,11 @@ public class Tiler implements Serializable {
         int rotate; // the vertex type was rotated clockwise by so many degrees
         Position expos; // exact Position of the Vertex
         int fixedEdges; // number of allocated neighbours = edges
-        int[] shapes; // list of indices in left shapes
         int[] succs; // list of indices in successor vertices
+    /*
+        int[] shapes; // list of indices in left shapes
         int[] preds; // list of indices in predecessor vertices
+    */
         int bedge; // temporary edge pointing backwards to the last focus of this successor
 
         /**
@@ -869,12 +842,14 @@ public class Tiler implements Serializable {
             rotate     = 0;
             expos      = new Position();
             int edgeNo = iType == 0 ? 0 : getVertexType(iType).edgeNo;
-            shapes     = new int[edgeNo];
             succs      = new int[edgeNo];
+            Arrays.fill(succs , 0);
+        /*
+            shapes     = new int[edgeNo];
             preds      = new int[edgeNo];
             Arrays.fill(shapes, 0);
-            Arrays.fill(succs , 0);
             Arrays.fill(preds , 0);
+        */
         } // Vertex(int)
 
         /**
@@ -882,7 +857,8 @@ public class Tiler implements Serializable {
          * @return a {@link VertexType}
          */
         public VertexType getType() {
-            return getVertexType(iType);
+        	return mVertexTypes[iType];
+            // return getVertexType(iType);
         } // getType
 
         /**
@@ -1015,9 +991,8 @@ public class Tiler implements Serializable {
                             + " -> " + iedge + " -> "
                             + mVertexTypes[vtype.tipes[iedge]].name);
                 } else {
-                    System.out.println("#       getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + expos
-                            + " -> " + iedge + " -> "
-                            + "\n# ** assert 5: edge not found");
+                    System.out.println("# ** assertion 5: getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + expos
+                            + " -> " + iedge + " -> edge not found");
                 }
             }
             return iedge;
@@ -1030,15 +1005,16 @@ public class Tiler implements Serializable {
          */
         public Vertex getSuccessor(int iedge) {
             VertexType vtype = getType(); // of the focus
-            int siType  = vtype.tipes[
-                    vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
-                    ];
+            int siType  = vtype.tipes[vtype.isFlipped() 
+                    ? normEdge(vtype, - iedge) 
+                    : normEdge(vtype, + iedge)];
             if (vtype.isFlipped()) {
-                siType ^= 1;
+                siType ^= 1; // normal -> flipped or flipped -> normal
             }
             VertexType suType = mVertexTypes[siType];
-            int suRota  = normAngle(vtype.rotas[
-                    vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
+            int suRota  = normAngle(vtype.rotas[vtype.isFlipped() 
+                    ? normEdge(vtype, - iedge) 
+                    : normEdge(vtype, + iedge)
                     ] * (vtype.isFlipped() ? -1 : +1));
             int fAngle  = getAngle(iedge); // points to the successor
             if (sDebug >= 2) {
@@ -1170,11 +1146,6 @@ public class Tiler implements Serializable {
         int distance = 0; // also index for terms
         queue.add(addVertex(iStartType));
         int addedVertices = 1;
-        if (terms[distance] != addedVertices && errorCount > 0) {
-            System.out.println("# " + startType.aSeqNo + " " + startType.galId
-                    + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " +addedVertices);
-            errorCount --;
-        }
         if (mBFile) { // data line
             writeBFile(distance + " " + addedVertices);
         }
@@ -1202,6 +1173,11 @@ public class Tiler implements Serializable {
                 } // for iedge
                 levelPortion --;
             } // while portion not exhausted and queue not empty
+            if (terms[distance] != addedVertices && errorCount > 0) {
+                System.out.println("# ** assertion 6: " + startType.aSeqNo + " " + startType.galId
+                        + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " +addedVertices);
+                errorCount --;
+            }
             if (mBFile) { // data line
                 writeBFile(distance + " " + addedVertices);
             }
@@ -1282,20 +1258,6 @@ public class Tiler implements Serializable {
     } // numVertexTypes
 
     /**
-     * Gets the type index of the opposite version of a {@link VertexType}
-     * (A' for A and A for A'), if the type is chiral, or the unflipped version otherwise
-     * @param iType index in {@link #mVertexTypes}
-     * @return iType +- 1 if the type is chiral
-     */
-    public int getMirroredType(int iType) {
-        int result = iType;
-        if (true && mVertexTypes[iType].chiral) {
-            result ^= 1; // switch least significant bit
-        }
-        return result;
-    } // getMirroredType
-
-    /**
      * Initializes the dynamic data structures of <em>this</em> Tiling.
      * @param numTypes number of {@link VertexTypes},
      * or 0 if only the dynamic structures are to be cleared
@@ -1309,7 +1271,8 @@ public class Tiler implements Serializable {
         // clear the dynamic structures:
         sIndent  = "";
         mNumEdges = 1; // used for titles on SVG <line>s and for limitation of number of lines to be output
-        mPosiVertex = new TreeMap<Position, Integer>(); // or HashMap<Position, Integer>;
+        // mPosiVertex = new HashMap<Position, Integer>(1024); 
+        mPosiVertex = new TreeMap<Position, Integer>(); 
         mVertices = new ArrayList<Vertex>(256);
         ffVertices = 0;
         addVertex(new Vertex()); // [0] is not used / reserved
@@ -1366,8 +1329,8 @@ public class Tiler implements Serializable {
             while (piter.hasNext()) {
                 Position pos = piter.next();
                 int ind = mPosiVertex.get(pos).intValue();
-                result += sIndent + (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" + pos.toString()
-                        + ", index: " + ind + " }\n";
+                result += sIndent + (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" 
+                        + pos.toString() + pos.toList() + ", index: " + ind + " }\n";
             } // while piter
             result += sIndent + "  ]\n}\n";
 
@@ -1406,9 +1369,9 @@ public class Tiler implements Serializable {
                     System.out.println(toJSON());
                 }
                 // compute the nets
-                for (int itype = 2; itype < ffVertexTypes; itype += 2) {
-                    if (getVertexType(itype).galId.equals(mGalId)) { // only this one from all VertexTypes in the Tiling
-                        computeNet(itype);
+                for (int ind = 2; ind < ffVertexTypes; ind += 2) {
+                    if (getVertexType(ind).galId.equals(mGalId)) { // only this one from all VertexTypes in the Tiling
+                        computeNet(ind);
                     }
                 } // for itype
             }

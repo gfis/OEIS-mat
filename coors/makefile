@@ -15,13 +15,15 @@ COMMON=$(GITS)/OEIS-mat/common
 MAXT=32
 COMMON=../common
 D=0 # debug mode
-WEIDIS= weidis
 
 all: init gather tile
 #	echo select specific target 
 #================
 init:
 	mkdir bfile
+	mkdir svg
+	wget https://oeis.org/A250120/a250120.html
+#----
 gather: break extract extract_load count update_noflip
 break:
 	perl -pe "s{\<br\>}{\<br \/\>\n}g;" a250120.html > $@.tmp
@@ -67,7 +69,7 @@ program:
 	    LEFT JOIN joeis j ON c.aseqno = j.aseqno \
 	    WHERE i.aseqno = b.aseqno \
 	      AND b.aseqno = c.aseqno \
-	      AND ( b.bfimax > 100 OR LENGTH(i.program) > 0 \
+	      AND ( b.bfimax > 50 OR LENGTH(i.program) > 0 \
 	            OR i.aseqno IN (SELECT aseqno FROM cojec) \
 	          ) \
 	    ORDER BY 1" \
@@ -106,6 +108,13 @@ tilr: select
 	grep -i distance  test.tmp || :
 	wc -l test.svg    test.tmp 
 #================
+bf: select
+	rm -vf temp/b*.txt
+	java -cp . Tiler -id Gal.$(GAL).$(ID) -bfile temp/ -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst 
+	ls -tcr1 temp | tail -n1 \
+	| xargs -l -i{} diff -wy --suppress-common-lines --width=40 "temp/{}" ../common/bfile > diff.log || :
+	head -n16 diff.log
+#================
 verify:
 	echo "all:" > $@.tmp
 	grep -E "Gal\.$(SELECT)\." extract.tmp | cut -f 2 \
@@ -113,10 +122,10 @@ verify:
 	>>         $@.tmp
 	tail -n4   $@.tmp
 	wc -l      $@.tmp
-	make -s -f $@.tmp
+	make -s -f $@.tmp | tee verify.$(SELECT).log
 verify1: 
 	grep -E "Gal\.$(GAL)\." extract.tmp > tiler.tst
-	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee test.tmp 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
 #================
 zip:
 	zip coors.`date +%Y-%m-%d.%H`.zip *.java *.pl makefile test.svg test.tmp *.css
