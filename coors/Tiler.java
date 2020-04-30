@@ -617,7 +617,7 @@ public class Tiler implements Serializable {
          * @return true if the index is odd, false otherwise
          */
         public boolean isFlipped() {
-            return  chiral && 
+            return  // chiral && 
                     (index & 1) == 1;
         } // isFlipped
         
@@ -670,19 +670,29 @@ public class Tiler implements Serializable {
                     System.err.println("# ** assertion 4: descriptor for \"" + pGalId + "\" bad");
                 }
             } // for iedge
-            chiral = false; // now determine chirality
+            chiral = false; 
+            // now determine chirality; reverse the vertexId 
+            StringBuffer revId = new StringBuffer(128);
+            // revId.append("rev");
             for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
                 int dedge = edgeNo - 1 - iedge; // decreasing
-                if (polys[dedge] != polys[(iedge + 1) % edgeNo]) {
-                    chiral = true;
-                }
+                revId.append('.');
+                revId.append(String.valueOf(polys[dedge]));
                 sweeps[iedge] = iedge == 0 
                         ? 0 
                         : sweeps[iedge - 1] + mRegularAngles[polys[iedge - 1]];
                 riShas[iedge] = polys[iedge];
                 leShas[iedge] = polys[dedge];
             } // for iedge
+            revId.append(revId.substring(0, revId.length())); // duplicate it
+            revId.append('.');
+            chiral = revId.indexOf(vertexId + ".") < 0; // is it found in some rotation?
+            if (sDebug >= 2) {
+            	System.out.println("# determine chiral: \"." + vertexId + ".\" contained in \"" + revId + "\" ? -> " + chiral);
+            }
         } // VertexType(String, String, String)
+
+
 
         /**
          * Returns a new, flipped version of <em>this</em> VertexType,
@@ -849,7 +859,7 @@ public class Tiler implements Serializable {
          * @return JSON for edges
          */
         public String toString() {
-            return index + getType().name + "@" + rotate + expos;
+            return index + getType().name + " @" + rotate + expos + "->" + join(",", succs).replaceAll("[\\[\\]]", "");
         } // Vertex.toString
 
         /**
@@ -879,9 +889,13 @@ public class Tiler implements Serializable {
          */
         public int getAngle(int iedge) {
             VertexType vtype  = getType();
-            VertexType suType = mVertexTypes[vtype.tipes[
-            		vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
-            		]];
+            int siType  = vtype.tipes[
+                    vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
+                    ];
+            if (vtype.isFlipped()) {
+                siType ^= 1;
+            }
+            VertexType suType = mVertexTypes[siType];
             int sum       = rotate;
             int swFlipped = - vtype.sweeps[normEdge(vtype, - iedge)];
             int swNormal  =   vtype.sweeps[normEdge(vtype, + iedge)];
@@ -903,25 +917,14 @@ public class Tiler implements Serializable {
             }
             sum = normAngle(sum);
             if (sDebug >= 2) {
-                    System.out.println("#         getAngle(iedge=" + iedge + ")." + index + vtype.name + "@" + rotate + expos 
-                            + ", suType=" + suType.toString()
-                            + " -> swNormal=" + normAngle(swNormal) + ", swFlipped=" + normAngle(swFlipped) 
-                            + ", focus.flipped=" + vtype.isFlipped() + ", succ.flipped=" + suType.isFlipped()
-                            + ", sum=" + sum);
+                    System.out.println("#         getAngle(iedge " + iedge + ")." + index + vtype.name + "@" + rotate + expos 
+                            + ", suType " + suType.toString()
+                            + " -> swNormal " + normAngle(swNormal) + ", swFlipped " + normAngle(swFlipped) 
+                            + ", focus.flipped " + vtype.isFlipped() + ", succ.flipped " + suType.isFlipped()
+                            + ", sum " + sum);
             }
             return sum;
         } // getAngle
-
-        public int[] getAngle2(int iedge) {
-            VertexType vtype  = getType();
-            VertexType suType = mVertexTypes[vtype.tipes[
-            		vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
-            		]];
-             int sum       = rotate;
-            int swFlipped = - vtype.sweeps[normEdge(vtype, - iedge)];
-            int swNormal  =   vtype.sweeps[normEdge(vtype, + iedge)];
-            return new int[] { normAngle(sum + swFlipped), normAngle(sum + swNormal) }; 
-        } // getAngle2
 
         /**
          * Gets the matching edge of <em>this</em> {@link Vertex} (which is already rotated)
@@ -936,11 +939,10 @@ public class Tiler implements Serializable {
             angle = normAngle(angle);
             VertexType vtype = getType();
             if (sDebug >= 2) {
-                    System.out.println("#       try getEdge(angle=" + angle + ")." + index + vtype.name + "@" + rotate + " ?");
+                    System.out.println("#       try getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + " ?");
             }
             int iedge = 0;
             boolean busy = true;
-//
             while (busy && iedge < vtype.edgeNo) {
                 int edgeAngle = getAngle(iedge);
                 if (sDebug >= 2) {
@@ -952,30 +954,16 @@ public class Tiler implements Serializable {
                     iedge ++;
                 } // still different
             } // while +
-//
-/*
-            while (busy && iedge < vtype.edgeNo) {
-                int[] edgeAngle2 = getAngle2(iedge);
-                if (sDebug >= 2) {
-                    System.out.println("#         compare " + edgeAngle2[0] + "/" + edgeAngle2[1] + " with " + angle);
-                }
-                if (edgeAngle2[0] == angle || edgeAngle2[1] == angle) {
-                    busy = false;
-                } else { // angles still different
-                    iedge ++;
-                } // still different
-            } // while +
-*/
             if (busy) {
                 iedge = -1; // no matching angle found
             }
             if (sDebug >= 2) {
                 if (iedge >= 0) {
-                    System.out.println("#       getEdge(angle=" + angle + ")." + index + vtype.name + "@" + rotate + expos 
+                    System.out.println("#       getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + expos 
                             + " -> " + iedge + " -> " 
                             + mVertexTypes[vtype.tipes[iedge]].name);
                 } else {
-                    System.out.println("#       getEdge(angle=" + angle + ")." + index + vtype.name + "@" + rotate + expos 
+                    System.out.println("#       getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + expos 
                             + " -> " + iedge + " -> " 
                             + "\n# ** assert 5: edge not found");
                 }
@@ -990,20 +978,20 @@ public class Tiler implements Serializable {
          */
         public Vertex getSuccessor(int iedge) {
             VertexType vtype = getType(); // of the focus
-            int suRota  = vtype.rotas[
+            int siType  = vtype.tipes[
                     vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
                     ];
-            int siType  = vtype.tipes[
-            		vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
-            		];
             if (vtype.isFlipped()) {
-            	siType ^= 1;
+                siType ^= 1;
             }
             VertexType suType = mVertexTypes[siType];
+            int suRota  = normAngle(vtype.rotas[
+                    vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
+                    ] * (vtype.isFlipped() ? -1 : +1));
             int fAngle  = getAngle(iedge); // points to the successor
             if (sDebug >= 2) {
-                System.out.println("#     getSuccessor(iedge=" + iedge + ")." + index + vtype.name + "@" + rotate + expos 
-                        + " start: siType=" + siType + ", suRota=" + suRota);
+                System.out.println("#     getSuccessor(iedge " + iedge + ")." + index + vtype.name + "@" + rotate + expos 
+                        + " start: siType " + siType + ", suRota " + suRota);
             }
             Vertex succ = new Vertex(siType); // create a new Vertex
             succ.expos  = expos.moveUnit(fAngle);
@@ -1011,8 +999,8 @@ public class Tiler implements Serializable {
             int bangle  = normAngle(fAngle + 180); // points backwards to the focus
             succ.bedge  = succ.getEdge(bangle);
             if (sDebug >= 2) {
-                System.out.println("#             got (iedge=" + iedge + ")." + index + vtype.name + "@" + rotate + expos 
-                        + " -> " + succ.toString() + ", fAngle=" + fAngle + ", bangle=" + bangle + ", bedge=" + bedge);
+                System.out.println("#             got (iedge " + iedge + ")." + index + vtype.name + "@" + rotate + expos 
+                        + " -> " + succ.toString() + ", fAngle " + fAngle + ", bangle " + bangle + ", bedge " + bedge);
             }
             return succ;
         } // getSuccessor
@@ -1025,26 +1013,27 @@ public class Tiler implements Serializable {
      * Creates a successor {@link Vertex} of the focus and connects the successor back to the focus
      * @param focus the Vertex which gets the new successor
      * @param iedge attach the successor at this edge of the focus
+     * @param distance from the origin Vertex
      * @return index of new successor vertex, or 0 if attached to an existing vertex
      */
-    public int attach(Vertex focus, int iedge) {
+    public int attach(Vertex focus, int iedge, int distance) {
         int isucc = 0; // future result; assume that the successor already exists
         VertexType foType = focus.getType();
         if (sDebug >= 1) {
-             System.out.println("# call attach(vertex=" + focus.toString() + ", iedge=" + iedge + ")");
+             System.out.println("#--------\n# call attach(vertex " + focus.toString() + ", iedge " + iedge + ")");
         }
         if (focus.succs[iedge] == 0) { // determine successor
             Vertex succ = focus.getSuccessor(iedge);
             if (sDebug >= 1) {
                 System.out.println("#     candidate successor is "
-                        + succ.getType().name + "@" + succ.rotate + succ.expos + ", bedge=" + succ.bedge);
+                        + succ.getType().name + "@" + succ.rotate + succ.expos + ", bedge " + succ.bedge);
             }
             int suEdge = succ.bedge;
             if (suEdge < 0) { // not found
                 succ.showVertex();
             //
-                System.out.println("# ** assertion 1 in attach(focus=" + focus.index + foType.name + "\t, iedge=" + iedge 
-                        + "): no matching edge in succ " + succ.toString());
+                System.out.println("# ** assertion 1 in attach(focus " + focus.index + foType.name + "\t, edge " + iedge 
+                        + "): no match in succ " + succ.toString());
             //
                 writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
@@ -1062,18 +1051,18 @@ public class Tiler implements Serializable {
                     succ.succs[suEdge] = focus.index; // set backward link
                 } else if (succ.succs[suEdge] != focus.index) {
                     succ.showVertex();
-                    System.out.println("# ** assertion 2 in attach(focus=" + focus.toString() 
-                        + "\t, iedge=" + iedge + "): no matching edge in succ " + succ.toString()
-                        + ", succs[" + suEdge + "]=" + succ.succs[suEdge] + " <> ifocus=" + focus.index);
+                    System.out.println("# ** assertion 2 in attach(focus " + focus.toString() 
+                        + "\t, edge " + iedge + "): focus not in succ " + succ.toString()
+                        + "[" + suEdge + "]=" + succ.succs[suEdge]);
                 }
                 if (sDebug >= 1) {
-                    System.out.println("#   attached focus=" + focus.toString()
-                            + ", iedge="  + iedge 
-                            + " -> succ=" + succ.toString()
-                            + ", suEdge=" + suEdge
+                    System.out.println("#   attached focus " + focus.toString()
+                            + ", iedge "  + iedge 
+                            + " -> succ " + succ.toString()
+                            + ", suEdge " + suEdge
                             );
                 }
-                writeSVGEdge(focus, succ, iedge, 0); // normal
+                writeSVGEdge(focus, succ, distance, 0); // normal
                 mNumEdges ++;
             } // matching angles
             focus.fixedEdges ++;
@@ -1116,18 +1105,18 @@ public class Tiler implements Serializable {
             while (levelPortion > 0 && queue.size() > 0) { // queue not empty
                 int ifocus = queue.poll();
                 if (sDebug >= 2) {
-                    System.out.println("# dequeue ifocus=" + ifocus);
+                    System.out.println("# dequeue ifocus " + ifocus);
                 }
                 Vertex focus = mVertices.get(ifocus);
                 focus.distance = distance;
                 VertexType foType = focus.getType();
                 for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
-                    int isucc = attach(focus, iedge);
+                    int isucc = attach(focus, iedge, distance);
                     if (isucc > 0) { // did not yet exist
                         addedVertices ++;
                         queue.add(isucc);
                         if (sDebug >= 2) {
-                            System.out.println("# enqueue isucc=" + isucc + ", attached to ifocus=" + ifocus + " at edge " + iedge);
+                            System.out.println("# enqueue isucc " + isucc + ", attached to ifocus " + ifocus + " at edge " + iedge);
                         }
                     }
                 } // for iedge

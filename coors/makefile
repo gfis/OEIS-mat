@@ -83,7 +83,7 @@ SVG=-svg test.svg
 FLIP=0
 #----------------
 select:
-	grep -E "Gal\.$(GAL)\." extract.tmp | tee tiler.tst
+	grep -E "Gal\.$(GAL)\." extract.tmp | cut -b1-96 | tee tiler.tst
 #--
 pave: compave pavr
 compave:
