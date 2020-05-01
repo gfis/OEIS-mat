@@ -102,12 +102,6 @@ public class Tiler implements Serializable {
     /** first free index in vertices */
     public static int ffVertices;
 
-    /** Maps exact {@link Position}s of vertices to their index in {@link mVertices}.
-     *  Used for the detection of duplicate target vertices.
-     */
-    // public HashMap<Position, Integer> mPosiVertex;
-    public TreeMap<Position, Integer> mPosiVertex;
-
     /**
      * Join an array of integers
      * @param delim delimiter
@@ -212,20 +206,15 @@ public class Tiler implements Serializable {
                          mSVGWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
                     } // not stdout
                     text = ""
-                    + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"\n"
-                    + " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\" [\n"
-                    + " <!ATTLIST svg xmlns:xlink CDATA #FIXED \"http://www.w3.org/1999/xlink\">\n"
-                    + "]>\n"
+                    + "<?xml version=\"1.0\"?>\n"
+                    + "<?xml-stylesheet type=\"text/css\" href=\"tiling.css\" ?>\n"
+                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+                    + "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
+                    + "    width=\"192mm\" height=\"192mm\" viewBox=\"-" + w1 + " -" + w1 + " " + w2 + " " + w2 + "\" >\n"
                     + "<!--\n"
                     + "    Tiler - Georg Fischer. Do NOT edit here!\n"
                     + "-->\n"
-                    + "<?xml-stylesheet type=\"text/css\" href=\"tiling.css\" ?>\n"
-                    + "<svg width=\"192mm\" height=\"192mm\"\n"
-                    + "viewBox=\"-" + w1 + "-" + w1 + " " + w2 + " " + w2 + "\" \n"
-                    + "xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n"
-                    + "\n"
-                    + "<title>Tiling</title>\n"
+                    + "<title>Uniform Tiling</title>\n"
                     + "<g id=\"tile\">\n"
                     + "<rect class=\"l8\" fill=\"black\" x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
                     ;
@@ -337,7 +326,7 @@ public class Tiler implements Serializable {
 
     private static final Double SQRT2 = Math.sqrt(2.0);
     private static final Double SQRT3 = Math.sqrt(3.0);
-    private static final Double SQRT6 = SQRT2 * SQRT3;
+    private static final Double SQRT6 = Math.sqrt(6.0);
 
     /**
      * Class for an exact position of a {@link Vertex}.
@@ -378,27 +367,29 @@ public class Tiler implements Serializable {
          * @param pos2 second Position
          * @return true if the underlaying arrays have the same values
          */
-    /*
+    
         public boolean equals(Position pos2) {
             boolean result = true; // assume succes
             int ipos = 0;
             while (result && ipos < 4) {
-                result =   xtuple[ipos] == pos2.xtuple[ipos]
-                        && ytuple[ipos] == pos2.ytuple[ipos];
+                if (  xtuple[ipos] != pos2.xtuple[ipos]
+                   || ytuple[ipos] != pos2.ytuple[ipos]) { 
+                   result = false;
+                }
                 ipos ++;
             } // while ipos
             return result;
         } // equals
-    */
+    
         /**
          * Comapres <em>this</em> Position with a second
          * @param pos2 second Position
          * @return -1, 0, 1 if this < = > pos2 in lexicographical order of the tuple elements
          */
         public int compareTo(Position pos2) {
-            int result = 29; // undefined so far
+            int result = 0; // undefined so far
             int ipos = 0;
-            while (result == 29 && ipos < 4) { // as long as there is no difference
+            while (result == 0 && ipos < 4) { // as long as there is no difference
                 if (false) {
                 } else if (xtuple[ipos] < pos2.xtuple[ipos]) {
                     result = -1;
@@ -414,9 +405,7 @@ public class Tiler implements Serializable {
                 } // else check next position
                 ipos ++;
             } // while ipos
-            if (result == 29) { // no difference found
-                result = 0;
-            }
+            // maybe still result = 0;
             return result;
         } // compareTo
 
@@ -426,10 +415,10 @@ public class Tiler implements Serializable {
          */
         public Double cartesian(int/*s*/[] tuple) {
             return ( tuple[0]
-                         + tuple[1] * SQRT2
-                         + tuple[2] * SQRT3
-                         + tuple[3] * SQRT6
-                         ) / 4.0;
+                   + tuple[1] * SQRT2
+                   + tuple[2] * SQRT3
+                   + tuple[3] * SQRT6
+                   ) / 4.0;
         } // cartesian
 
         /**
@@ -465,9 +454,10 @@ public class Tiler implements Serializable {
          * @return the cartesian coordinates like "[-3.0981,1.3660]"
          */
         public String toString() {
-        /*
+        //
             return join(",", xtuple) + join(",", ytuple);
-        */
+        //
+        /*
             StringBuffer result = new StringBuffer(64);
             int ip;
             result.append('[');
@@ -477,7 +467,7 @@ public class Tiler implements Serializable {
             result.append(']');
             result.setCharAt(0, '[');
             return result.toString();
-        //
+        */
         } // Position.toString
 
         /**
@@ -559,6 +549,27 @@ public class Tiler implements Serializable {
             ,   0 // [11] (hendecagon)
             , 150 // [12] dodecagon
             };
+
+    /** 
+     * Maps exact {@link Position}s of vertices to their index in {@link mVertices}.
+     * Used for the detection of duplicate target vertices.
+     */
+    // public HashMap<Position, Integer> mPosiVertex;
+    public TreeMap<Position, Integer> mPosiVertex;
+
+    /**
+     * Determines whether a {@link Vertex} exists at some {@link Position}.
+     * @param expos the Position where a vertex is expected
+     * @return index of the vertex at expos, or -1 if the position is still empty
+     */
+    public int findVertex(Position expos) {
+    	int result = -1; // assume not found
+    	Integer pos = mPosiVertex.get(expos);
+    	if (pos != null) {
+    		result = pos.intValue();
+    	}
+    	return result;
+    } // findVertex
 
     /**
      * Normalizes an angle
@@ -1065,14 +1076,13 @@ public class Tiler implements Serializable {
             }
                 writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
-                Integer intTarget = mPosiVertex.get(succ.expos); // does the successor Vertex already exist?
-                if (intTarget == null) { // new, nothing at that position - store new Vertex
+            	int ioldv = findVertex(succ.expos); // does the successor Vertex already exist?
+            	if (ioldv < 0) {
                     isucc = addVertex(succ);
                     focus.succs[iedge] = isucc; // set forward link
                 } else { // old, successor Vertex already exist
-                    isucc = intTarget.intValue();
-                    succ  = mVertices.get(isucc);
-                    focus.succs[iedge] = isucc; // set forward link
+                    // succ  = mVertices.get(ioldv);
+                    focus.succs[iedge] = ioldv; // set forward link
                     isucc = 0; // do not enqueue it
                 } // successor Vertex already exist
                 if (succ.succs[suEdge] == 0) { // edge was not yet connected
@@ -1082,8 +1092,9 @@ public class Tiler implements Serializable {
                     if (sDebug >= 1) {
                         System.out.println("# ** assertion 2 in attach(focus " + focus.toString()
                         + "\t, edge " + iedge + "): focus not in succ " + succ.toString()
-                        + "[" + suEdge + "]=" + succ.succs[suEdge]);
+                        + "[" + suEdge + "]=" + succ.succs[suEdge] + " <> " + focus.index);
                     }
+                    succ.succs[suEdge] = focus.index;
                 }
                 if (sDebug >= 2) {
                     System.out.println("#   attached focus " + focus.toString()
@@ -1105,7 +1116,7 @@ public class Tiler implements Serializable {
         return isucc;
     } // attach
 
-    private static final int MAX_ERROR = 4;
+    private static final int MAX_ERROR = 2;
 
     /**
      * Computes the neighbourhood of the start vertex up to some distance
@@ -1126,7 +1137,7 @@ public class Tiler implements Serializable {
             }
         } // for iterm
         if (mMaxDistance == -1) {
-            mMaxDistance = termNo;
+            mMaxDistance = termNo - 1;
         }
 
         if (mBFile) { // open b-file
