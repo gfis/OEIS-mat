@@ -1157,9 +1157,12 @@ public class Tiler implements Serializable {
         int distance = 0; // also index for terms
         queue.add(addVertex(iStartType));
         int addedVertices = 1;
+        StringBuffer coordSeq = new StringBuffer(256);
+        coordSeq.append("1");
         if (mBFile) { // data line
             writeBFile(distance + " " + addedVertices);
         }
+                
         distance ++;
         while (distance <= mMaxDistance) {
             addedVertices = 0;
@@ -1189,6 +1192,8 @@ public class Tiler implements Serializable {
                         + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " +addedVertices);
                 errorCount --;
             }
+            coordSeq.append(',');
+            coordSeq.append(String.valueOf(addedVertices));
             if (mBFile) { // data line
                 writeBFile(distance + " " + addedVertices);
             }
@@ -1206,6 +1211,7 @@ public class Tiler implements Serializable {
         if (sDebug >= 3) {
             System.out.println("# final net\n" + toJSON());
         }
+        System.out.println(coordSeq.toString());
         if (mBFile) { // close b-file
             writeBFile("tail");
         }
