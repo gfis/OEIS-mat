@@ -12,34 +12,40 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
+HERE=$(GITS)/OEIS-mat/coors
 MAXT=32
 COMMON=../common
 D=0 # debug mode
 
-all: init gather tile
+all: gather tile
 #	echo select specific target 
 #================
 init:
 	mkdir bfile
 	mkdir svg
+wget:
+	rm -f a250120.html
 	wget https://oeis.org/A250120/a250120.html
 #----
-gather: break extract extract_load count update_noflip
+gather: break extract extract_load count 
+#   update_noflip
 break:
-	perl -pe "s{\<br\>}{\<br \/\>\n}g;" a250120.html > $@.tmp
+	perl -pe "s{\<br\>}{\<br \/\>\n}ig;" a250120.html > $@.tmp
 	perl -pe \
+	's{(\<\/?)(\w+)}{"$$1" . lc($$2)}eg; '\
 	's{(.)(A\d{6})(.)}{\1\<a href=\"https://oeis.org/\2\" target=\"_blank\"\>\2\<\/a\>\3}g; '\
-	's{\A\<b\>(Gal\.\d+\.\d+\.\d+)\:\s+(\d)}{\<a name\=\"$$1\" \/\>\n\<b\>$$1\: $$2};' \
-	    $@.tmp > a250120.a.html
+	's{\A\<b\>(Gal\.\d+\.\d+\.\d+)\:\s+(\d)}{\<a name\=\"$$1\" \/\>\n\<b\>$$1\: $$2}i;' \
+	$@.tmp > a250120.a.html
 	tail -n16 a250120.a.html
 extract: break
 	perl extract_gal.pl break.tmp \
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
+	grep "Gal.3.44.3" $@.tmp
 extract_load:
 	$(DBAT) -f coors.create.sql
-	sed -e "s/\t/\tcoors\t0\t/" -e "s/Gal\.//" -e "s/\./,/" -e "s/\./\t/" -e "s/,/\./" extract.tmp \
+	sed -e "s/\t/\tcoors\t0\t/" extract.tmp \
 	| $(DBAT) -m csv -r coors
 	$(DBAT) -4 coors
 	$(DBAT) -n coors
@@ -50,6 +56,60 @@ count:
 	wc -l    $@.tmp
 	cut -f 2 $@.tmp | sort -n | uniq -c \
 	| tee count_cut.tmp
+checkcnt:
+	$(DBAT) "SELECT COUNT(tilingno) \
+	FROM coors WHERE COUNT(tilingno) <> SUBSTR(galid, 5, 1) GROUP BY tilingno "
+#--------
+# A310296 null    Coordination sequence Gal.6.52.1 where G.u.t.v
+update: updano1 updano2 updano3
+updano1:
+	grep Galebach ../common/joeis_names.txt \
+	| perl -ne 'if (s{\A(A\d+)\t\w+\tCoordination sequence (Gal[\.\d]+) where.*}{$$1\t$$2}) { print; };' \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+updano2: # takes 57 s
+	cd $(COMMON) ; make seq2 LIST=$(HERE)/updano1.tmp
+	$(DBAT) -v "UPDATE coors c SET c.aseqno = 'unknown'"
+	$(DBAT) -v "UPDATE coors c SET c.aseqno = \
+	  COALESCE((SELECT s.aseqno FROM seq2 s WHERE c.galid = s.info), c.aseqno)"
+LEN=128
+updano3:
+	$(DBAT) -v "UPDATE coors c SET c.aseqno = c.rseqno \
+	  WHERE (SELECT SUBSTR(d.data, 1, LENGTH(c.sequence)) FROM asdata d WHERE d.aseqno = c.rseqno) \
+	  = c.sequence "
+updano4: # ???
+	$(DBAT) -v "UPDATE coors c SET c.aseqno = d.aseqno \
+	  WHERE (SELECT d.data FROM asdata d) \
+	  = c.sequence "
+checkano:
+	$(DBAT) -x "SELECT c.aseqno, c.galid, c.rseqno, c.tilingno \
+	  , SUBSTR(c.sequence, 1, $(LEN)), SUBSTR(d.data, 1, $(LEN)) \
+	  FROM  coors c, asdata d \
+	  WHERE r.aseqno = d.aseqno \
+	    AND SUBSTR(c.sequence, 1, $(LEN)) <> SUBSTR(d.data, 1, $(LEN)) \
+	  ORDER BY 2" \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+checkun:
+	$(DBAT) -x "SELECT c.aseqno, c.galid, c.rseqno, c.tilingno, b.bfimax \
+	  , SUBSTR(c.sequence, 1, 64) \
+	  , '#' \
+	  , SUBSTR(d.data    , 1, 64) \
+	  FROM coors c, bfinfo b, asdata d \
+	  WHERE c.aseqno = 'unknown' \
+	    AND c.rseqno = b.aseqno \
+	    AND c.rseqno = d.aseqno \
+	  ORDER BY 4, 2" \
+	| sed -e "s/#/\n\t\t\t\t\t/" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+ca1:
+	$(DBAT) "SELECT aseqno, galid, tilingno, rseqno  FROM coors WHERE sequence LIKE '$(DATA)%'"
+#----
+# no longer needed
 update_noflip:
 	grep -vE "[a-z]" count.tmp \
 	>        noflip.tmp
@@ -115,10 +175,10 @@ run3:
 #================
 bf: select
 	rm -vf temp/b*.txt
-	java -cp . Tiler -id Gal.$(GAL).$(ID) -bfile temp/ -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) -bfile temp/ -dist -1 -n $(NMAX) -d $(D) -f tiler.tst 
 	ls -tcr1 temp | tail -n1 \
 	| xargs -l -i{} diff -wy --suppress-common-lines --width=40 "temp/{}" ../common/bfile > diff.log || :
-	head -n16 diff.log
+	head -n4 diff.log
 #================
 verall:
 	make verify SELECT=1

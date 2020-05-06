@@ -32,18 +32,24 @@ my %tiles = ();
 my $rest;
 my $ind;
 my $std_notation;
+my $tiling_no; # tiling #
 my $gal_id;
 while (<>) {
     s{\s+\Z}{};
     my $line = $_;
-    $line =~ s{\<br( \/)?\>}{}g;
-    $line =~ s{\<\/?b\>}{}g;
+    $line =~ s{\<br( \/)?\>}{}ig;
+    $line =~ s{\<\/?b\>}{}ig;
     $line =~ s{\(([^\)]+)\)\<sup\>(\d+)\<\/sup\>}{  &repeat("; ", $1, $2)}eg;
     $line =~ s{(\D)(\d+)\<sup\>(\d+)\<\/sup\>}{$1 . &repeat(".", $2, $3)}eg;
+    if ($line =~ m{Gal\.3\.44\.3}) {
+        $line =~ s{C 0\;}{C 180\;};
+    }
     if ($debug >= 1) {
         print "state $state: $line\n";
     }
     if (0) {
+    } elsif ($state eq "init" and ($line =~ m{^\<u\>Tiling #(\d+)\<\/u\>}i)) {
+    	$tiling_no = $1;
     } elsif ($state eq "init" and ($line =~ m{^Standard Notation\:\s*(.*)}i)) {
         $rest =   $1;
         $rest =~ s{[\[\]]}{}g;
@@ -83,7 +89,7 @@ while (<>) {
         $prefix =~ s{\d+\Z}{}; # remove trailing sequential number
         $ind = 1;
         foreach my $aseqno (split(/\, ?/, $rest)) {
-            print join("\t", $aseqno, "$prefix$ind", $tiles{"$prefix$ind"}) . "\n";
+            print join("\t", $aseqno, "$prefix$ind", $tiles{"$prefix$ind"}, $tiling_no, "xnewnot", $aseqno, "xname") . "\n";
             $ind ++;
         } # foreach
         $state =       "init";
