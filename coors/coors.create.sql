@@ -17,6 +17,6 @@ CREATE  TABLE            coors
     , newnot   VARCHAR(128)          -- letter-encoded new notation
     , rseqno   VARCHAR(128)          -- BG's version in a250120.html
     , name     VARCHAR(1024)         -- OEIS sequence name 
-    , PRIMARY KEY(rseqno, galid)
+    , PRIMARY KEY(galid)
     );
 COMMIT;

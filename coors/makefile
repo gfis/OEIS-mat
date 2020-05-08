@@ -17,7 +17,7 @@ MAXT=32
 COMMON=../common
 D=0 # debug mode
 
-all: gather tile
+all: gather update
 #	echo select specific target 
 #================
 init:
@@ -61,7 +61,7 @@ checkcnt:
 	FROM coors WHERE COUNT(tilingno) <> SUBSTR(galid, 5, 1) GROUP BY tilingno "
 #--------
 # A310296 null    Coordination sequence Gal.6.52.1 where G.u.t.v
-update: updano1 updano2 updano3
+update: updano1 updano2 updano3 update_same update_man check_unk
 updano1:
 	grep Galebach ../common/joeis_names.txt \
 	| perl -ne 'if (s{\A(A\d+)\t\w+\tCoordination sequence (Gal[\.\d]+) where.*}{$$1\t$$2}) { print; };' \
@@ -72,16 +72,107 @@ updano2: # takes 57 s
 	cd $(COMMON) ; make seq2 LIST=$(HERE)/updano1.tmp
 	$(DBAT) -v "UPDATE coors c SET c.aseqno = 'unknown'"
 	$(DBAT) -v "UPDATE coors c SET c.aseqno = \
-	  COALESCE((SELECT s.aseqno FROM seq2 s WHERE c.galid = s.info), c.aseqno)"
+	  COALESCE((SELECT s.aseqno FROM seq2 s WHERE c.galid = s.info), 'unkoeis')"
 LEN=128
 updano3:
-	$(DBAT) -v "UPDATE coors c SET c.aseqno = c.rseqno \
-	  WHERE (SELECT SUBSTR(d.data, 1, LENGTH(c.sequence)) FROM asdata d WHERE d.aseqno = c.rseqno) \
-	  = c.sequence "
-updano4: # ???
-	$(DBAT) -v "UPDATE coors c SET c.aseqno = d.aseqno \
-	  WHERE (SELECT d.data FROM asdata d) \
-	  = c.sequence "
+	$(DBAT) -v "UPDATE coors c SET c.aseqno = c.rseqno WHERE EXISTS \
+	  ( SELECT d.aseqno \
+	    FROM   asdata d \
+	    WHERE d.aseqno = c.rseqno \
+	      AND SUBSTR(c.sequence, 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+	       =  SUBSTR(d.data    , 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+	  ) "
+update_same:
+	$(DBAT) -x "SELECT c.aseqno, c.galid, c.sequence \
+	  FROM coors c\
+	  ORDER BY 3, 1" \
+	>        $@.1.tmp
+	perl update_same.pl $@.1.tmp \
+	>        $@.2.tmp
+	head -n4 $@.2.tmp
+	wc -l    $@.2.tmp
+	grep UPDATE $@.2.tmp \
+	>        $@.3.tmp || :
+	head -n4 $@.3.tmp
+	wc -l    $@.3.tmp
+	$(DBAT) -f $@.3.tmp
+	$(DBAT) -x "SELECT * FROM coors WHERE aseqno LIKE 'unk%' ORDER BY 1" \
+	| tee    $@.4.tmp
+	wc -l    $@.4.tmp
+update_man:
+	$(DBAT) -v -f update_same.man
+#--------
+allbf:
+	rm -f bfile/b*.txt $@.log
+	$(DBAT) -x "SELECT aseqno, galid, stdnot, vtype, tarots, sequence \
+		, 'allbf.3 GAL=' || SUBSTR(galid, 1, LENGTH(galid) - 2) || ' ID=' || SUBSTR(galid, LENGTH(galid), 1) \
+		FROM coors ORDER BY 1" \
+	>        $@.1.tmp
+	tail -n4 $@.1.tmp
+	wc -l    $@.1.tmp
+	cut -f7  $@.1.tmp > $@.2.tmp
+allbf2:
+	cat allbf.2.tmp | xargs -l make -s
+allbf.3:
+	grep -E "$(GAL)\." allbf.1.tmp | tee tiler.tst
+	java -cp . Tiler -id $(GAL).$(ID) $(BFILE) -dist -1 -n $(NMAX) -d $(D) -f tiler.tst | tee -a $@.log
+#--------
+bigbf: bigbf1 bigbf2 bigbf4
+bigbf1:
+	$(DBAT) -x "SELECT c.aseqno, b.bfimax, c.galid \
+		, 'bigbf3 ASEQNO=' || c.aseqno || ' GAL=' || SUBSTR(c.galid, 1, LENGTH(c.galid)-2) \
+		|| ' ID=' || SUBSTR(c.galid, LENGTH(c.galid), 1) || ' DIST=' || \
+		CAST(CASE WHEN b.bfimax > 1000 THEN 1000 ELSE b.bfimax END AS CHAR) \
+	  FROM coors c, bfinfo b \
+	  WHERE c.aseqno = b.aseqno \
+	    AND b.bfimax > 49 \
+	  ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f4  $@.tmp | sed -e "s/\r//" > bigbf2.tmp
+#--
+bigbf2:
+	rm -rvf bigbfile bigbf*.log
+	mkdir  bigbfile
+	cat bigbf2.tmp | xargs -l make 
+bigbf3:
+	grep -E "$(GAL)." extract.tmp > tiler.tst
+	# echo ASEQNO=$(ASEQNO) GAL=$(GAL) ID=$(ID) DIST=$(DIST)
+	java -cp . Tiler -a $(ASEQNO) -id $(GAL).$(ID) -bfile bigbfile/ -dist $(DIST) -n $(NMAX) -d 0 -f tiler.tst | tee -a $@.log
+bigbf4:
+	find bigbfile -iname "b*.txt" | xargs -l -i{} make -s bigbf5 BF={}
+bigbf5: # BF=
+	echo $(BF)
+	diff -wy --width=32 --suppress-common-lines $(BF) ../common/bfile | head -n4
+#--------
+checkbf: 
+	make -s checkbf1
+	make -s patchbf DIG=2
+	make -s checkbf1
+	make -s patchbf DIG=1
+	make -s checkbf1
+checkbf1:
+	$(DBAT) -x "SELECT c.aseqno, c.galid, c.sequence \
+	    FROM  coors c, asdata d \
+	    WHERE c.aseqno = d.aseqno \
+	      AND SUBSTR(c.sequence, 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+	       <> SUBSTR(d.data    , 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+	    ORDER BY 1, 2" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+patchbf: # DIG=
+	$(DBAT) "UPDATE coors SET sequence = '$(DIG)' || SUBSTR(sequence, 2, LENGTH(SEQUENCE) - 1) \
+		WHERE galid = 'Gal.1.1.1'"
+#--------
+list:
+	$(DBAT) "SELECT tilingno, galid, stdnot, vtype, tarots, aseqno, sequence \
+		FROM coors ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
 checkano:
 	$(DBAT) -x "SELECT c.aseqno, c.galid, c.rseqno, c.tilingno \
 	  , SUBSTR(c.sequence, 1, $(LEN)), SUBSTR(d.data, 1, $(LEN)) \
@@ -94,33 +185,42 @@ checkano:
 	wc -l    $@.tmp
 checkun:
 	$(DBAT) -x "SELECT c.aseqno, c.galid, c.rseqno, c.tilingno, b.bfimax \
-	  , SUBSTR(c.sequence, 1, 64) \
+	  , c.sequence \
 	  , '#' \
-	  , SUBSTR(d.data    , 1, 64) \
-	  FROM coors c, bfinfo b, asdata d \
-	  WHERE c.aseqno = 'unknown' \
+	  , SUBSTR(d.data    , 1, LENGTH(c.sequence)) \
+	  , '#' \
+	  , n.name \
+	  , '#' \
+	  FROM coors c, bfinfo b, asdata d, asname n \
+	  WHERE c.aseqno LIKE 'unk%' \
 	    AND c.rseqno = b.aseqno \
 	    AND c.rseqno = d.aseqno \
+	    AND c.rseqno = n.aseqno \
 	  ORDER BY 4, 2" \
-	| sed -e "s/#/\n\t\t\t\t\t/" \
+	| sed -e "s/#/\nOEIS\t\t\t\t\t/g" \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp
-ca1:
-	$(DBAT) "SELECT aseqno, galid, tilingno, rseqno  FROM coors WHERE sequence LIKE '$(DATA)%'"
+	grep unk $@.tmp \
+	| wc -l 
+check2:
+	$(DBAT) -x "SELECT * FROM seq2 ORDER BY 2" \
+	| perl check2.pl 2> check2.missing.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+check2un:
+	cut -f1 check2.missing.tmp      | sort \
+	>        $@.1.tmp
+	grep unk checkun.tmp | cut -f2  | sort \
+	>        $@.2.tmp
+	diff -wy --width=32 $@.1.tmp $@.2.tmp \
+	| tee    $@.3.tmp
+	grep -vE "[\<\>]" $@.3.tmp \
+	>        $@.4.tmp
+	wc l     $@.*
+check_unk:
+	$(DBAT) "SELECT aseqno, galid, tilingno, rseqno, SUBSTR(sequence, 1, 64) FROM coors WHERE aseqno LIKE 'unk%'"
 #----
-# no longer needed
-update_noflip:
-	grep -vE "[a-z]" count.tmp \
-	>        noflip.tmp
-	tail -n8 noflip.tmp
-	wc -l    noflip.tmp
-	$(DBAT) -f $(COMMON)/seq.create.sql
-	cut -f1  noflip.tmp \
-	| $(DBAT) -m csv -r seq
-	$(DBAT) -v "UPDATE coors SET noflip='noflip' WHERE tileid IN (SELECT aseqno FROM seq);"
-	$(DBAT) -16 coors
-	$(DBAT) "SELECT COUNT(DISTINCT tileid) FROM coors WHERE noflip = 'noflip';"
 #================
 program:
 	$(DBAT) -x "SELECT DISTINCT i.aseqno, c.tileid || '.' || c.galv, b.bfimin, b.bfimax, i.program \
@@ -137,7 +237,7 @@ program:
 	head -n100 $@.tmp
 	wc -l    $@.tmp
 #================
-DIST=4
+DIST=16
 D=0
 GAL=2.9
 ID=1
@@ -148,7 +248,7 @@ BFILE=-bfile bfile/
 SELECT=1
 #----------------
 select:
-	grep -E "Gal\.$(GAL)\." extract.tmp | tee tiler.tst
+	grep -E "Gal\.$(GAL)\." extract.tmp > tiler.tst
 #--
 pave: compave pavr
 compave:
@@ -157,7 +257,8 @@ pavr: select
 	java -cp . Paver -id $(GALID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	grep -i distance  test.tmp || :
-	wc -l test.svg    test.tmp 
+	head -n4 test.tmp
+	wc -l    test.tmp 
 #--
 tile: compile tilr
 compile:
@@ -165,13 +266,15 @@ compile:
 tilr: select 
 	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
-	grep -i distance  test.tmp || :
-	wc -l test.svg    test.tmp 
+	head -n4 test.tmp
+	wc -l    test.tmp 
 run3:
 	rm 3.44.txt
 	java -cp . Tiler -id Gal.3.44.1 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 	java -cp . Tiler -id Gal.3.44.2 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 	java -cp . Tiler -id Gal.3.44.3 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
+run: select
+	java -cp . Tiler -id $(GALID)   $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
 #================
 bf: select
 	rm -vf temp/b*.txt

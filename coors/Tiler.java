@@ -1,6 +1,7 @@
 /* Generate tilings from Galebach's list
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
+ * 2020-05-08: -a aseqno
  * 2020-04-30: cleaned
  * 2020-04-29: 4th version, flipped straight from backwards
  * 2020-04-21, Georg Fischer
@@ -44,6 +45,7 @@ public class Tiler implements Serializable {
         mBFilePrefix = "./";
         mSVG      = false;
         mGalId    = "Gal.2.1.1";
+        mASeqNo   = null; // not specified
     } // Tiler()
 
     /** Debugging mode: 0=none, 1=some, 2=more */
@@ -59,6 +61,9 @@ public class Tiler implements Serializable {
 
     /** Standard encoding for all files */
     private static final String sEncoding = "UTF-8";
+
+    /** OEIS A-number of the coordination sequence */
+    private String mASeqNo;
 
     /** Brian Galebach's identification of a VertexType, of the form "Gal.u.t.v" */
     private String mGalId;
@@ -1141,7 +1146,7 @@ public class Tiler implements Serializable {
         }
 
         if (mBFile) { // open b-file
-            writeBFile("head " + startType.aSeqNo);
+            writeBFile("head " + (mASeqNo != null ? mASeqNo : startType.aSeqNo));
         }
         if (sDebug >= 3) {
             System.out.println("# compute neighbours of vertex type " + iStartType + " up to distance " + mMaxDistance);
@@ -1187,7 +1192,7 @@ public class Tiler implements Serializable {
                 } // for iedge
                 levelPortion --;
             } // while portion not exhausted and queue not empty
-            if (terms[distance] != addedVertices && errorCount > 0) {
+            if (distance < terms.length && terms[distance] != addedVertices && errorCount > 0) {
                 System.out.println("# ** assertion 6: " + startType.aSeqNo + " " + startType.galId
                         + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " +addedVertices);
                 errorCount --;
@@ -1444,18 +1449,20 @@ public class Tiler implements Serializable {
             while (iarg < args.length) { // consume all arguments
                 String opt        = args[iarg ++];
                 if (false) {
-                } else if (opt.equals("-bfile")   ) {
+                } else if (opt.equals("-a")     ) {
+                    tiler.mASeqNo       = args[iarg ++];
+                } else if (opt.equals("-bfile") ) {
                     tiler.mBFile = true;
                     tiler.mBFilePrefix  = args[iarg ++];
-                } else if (opt.equals("-circle")     ) {
+                } else if (opt.equals("-circle")) {
                     tiler.testCirclePositions();
-                } else if (opt.equals("-dist")     ) {
+                } else if (opt.equals("-dist")  ) {
                     tiler.mMaxDistance = Integer.parseInt(args[iarg ++]);
                 } else if (opt.equals("-d")     ) {
                     sDebug          = Integer.parseInt(args[iarg ++]);
                 } else if (opt.equals("-f")     ) {
                     tiler.processFile(args[iarg ++]);
-                } else if (opt.equals("-id")     ) {
+                } else if (opt.equals("-id")    ) {
                     tiler.mGalId    = args[iarg ++];
                 } else if (opt.equals("-n")     ) {
                     tiler.mNumTerms = Integer.parseInt(args[iarg ++]);
