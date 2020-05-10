@@ -2,6 +2,7 @@
 
 # OEIS-mat/coors - coordination sequences
 # @(#) $Id$
+# 2020-05-09: new format of a250120.html
 # 2020-04-17, Georg Fischer: copied from ../weidis
 #---------------------------------
 GITS=../..
@@ -33,11 +34,11 @@ break:
 	perl -pe "s{\<br\>}{\<br \/\>\n}ig;" a250120.html > $@.tmp
 	perl -pe \
 	's{(\<\/?)(\w+)}{"$$1" . lc($$2)}eg; '\
-	's{(.)(A\d{6})(.)}{\1\<a href=\"https://oeis.org/\2\" target=\"_blank\"\>\2\<\/a\>\3}g; '\
 	's{\A\<b\>(Gal\.\d+\.\d+\.\d+)\:\s+(\d)}{\<a name\=\"$$1\" \/\>\n\<b\>$$1\: $$2}i;' \
 	$@.tmp > a250120.a.html
 	tail -n16 a250120.a.html
-extract: break
+#	's{(.)(A\d{6})(.)}{\1\<a href=\"https://oeis.org/\2\" target=\"_blank\"\>\2\<\/a\>\3}g; '
+extract:
 	perl extract_gal.pl break.tmp \
 	>        $@.tmp
 	tail -n4 $@.tmp
@@ -56,9 +57,28 @@ count:
 	wc -l    $@.tmp
 	cut -f 2 $@.tmp | sort -n | uniq -c \
 	| tee count_cut.tmp
-checkcnt:
-	$(DBAT) "SELECT COUNT(tilingno) \
-	FROM coors WHERE COUNT(tilingno) <> SUBSTR(galid, 5, 1) GROUP BY tilingno "
+check:
+	$(DBAT) -x "SELECT aseqno, rseqno, galid, tilingno \
+	  FROM coors \
+	  WHERE aseqno <> rseqno \
+	  ORDER BY 1" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#--------------------------------
+guess: guess1 guess2
+guess1:
+	$(DBAT) -x "SELECT aseqno, galid, sequence \
+	  FROM coors \
+	  ORDER BY tilingno, galid" \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+guess2:
+	head -n16000 guess1.tmp \
+	| perl tilemaple.pl \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
 #--------
 # A310296 null    Coordination sequence Gal.6.52.1 where G.u.t.v
 update: updano1 updano2 updano3 update_same update_man check_unk
@@ -145,6 +165,12 @@ bigbf4:
 bigbf5: # BF=
 	echo $(BF)
 	diff -wy --width=32 --suppress-common-lines $(BF) ../common/bfile | head -n4
+#----
+galist:
+	$(DBAT) -x "SELECT aseqno        FROM coors ORDER BY tilingno, galid" > galist.1.txt
+	$(DBAT) -x "SELECT aseqno, galid FROM coors ORDER BY tilingno, galid" > galist.2.txt
+	head -n4 galist*
+	wc -l    galist*
 #--------
 checkbf: 
 	make -s checkbf1
@@ -263,8 +289,13 @@ pavr: select
 tile: compile tilr
 compile:
 	javac Tiler.java 
+tils: select 
+	java -cp . Tiler -a $(ASEQNO) -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst | tee test.tmp 
+	grep -i assertion test.tmp || :
+	head -n4 test.tmp
+	wc -l    test.tmp 
 tilr: select 
-	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
+	java -cp . Tiler -a $(ASEQNO) -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee test.tmp 
 	grep -i assertion test.tmp || :
 	head -n4 test.tmp
 	wc -l    test.tmp 

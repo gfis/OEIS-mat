@@ -64,6 +64,8 @@ bulk_lists:
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulka.txt
 	wc -l bulka.txt
+	rm -vf fetch_list.man
+	touch  fetch_list.man
 	cat allocb_check.txt \
 		asdata_check.txt \
 		asname_check.txt \
@@ -79,9 +81,6 @@ bulk_lists:
 		terms_check.txt  \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulkb.txt
-	wc -l bulkb.txt
-	echo '#### with fetch_list: ???'
-	cat fetch_list.man
 	wc -l bulk?.txt
 	#### now copy bulk?.txt to the Linux machine
 #---------

@@ -38,7 +38,9 @@ checks: \
 	cojec_check  \
 	cons_check   \
 	denom_check  \
+	lead0_check  \
 	offset_check \
+	order_check  \
 	radata_check \
 	rbdata_check \
 	sign_check   \
@@ -316,6 +318,10 @@ keyword_check: # Forbidden combinations of keywords
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------
+lead0_check:
+	cp -v ../lrindex/lead0.tmp $@.txt
+	wc -l $@.txt
+#---------------------------
 mma_check: # Terms in sequence differ from first terms in MMA Lin.Rec. call
 	make -f makefile seq2 LIST=$(FISCHER)/mmacheck.tmp
 	$(DBAT)  "SELECT a.aseqno, SUBSTR(a.data, 1, LENGTH(s.info)*2) as data, s.info \
@@ -379,6 +385,10 @@ offset_check: # Sequence offset differs from first index in b-file and no draft
 	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
+	wc -l $@.txt
+#---------------------------
+order_check:
+	cp -v ../lrindex/order_only.tmp $@.txt
 	wc -l $@.txt
 #----
 pass_check: # Check whether test result counts equals number of terms in b-files

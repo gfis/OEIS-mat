@@ -2,6 +2,7 @@
 
 # OEIS-mat/lrindex - recreate OEIS wiki page: "Index of linear recurrences ..."
 # @(#) $Id$
+# 2020-05-09: regenerated
 # 2019-06-04: moved from ../linrec
 # 2019-03-29: revisited for joeis
 # 2019-02-19: HTMLIZE
@@ -24,10 +25,12 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) 
 #======================================================
 all:
-	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 #======================================================
-lrindex: lrlink lrindx 
+lrindex: lr0 lrlink lrindx 
+lr0:
+	$(DBAT) "DROP    TABLE  IF EXISTS lrindx;"
+	$(DBAT) "DROP    TABLE  IF EXISTS lrlink;"
 #--
 lrlink_prep: # extract all links (faster on Linux)
 	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -iH \
@@ -134,6 +137,7 @@ lrindx2:
 	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
 	$(DBAT) -n                lrindx
 	$(DBAT) -4 lrindx
+#--
 lrindx3:
 	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, comment \
 		FROM lrindx " \
@@ -145,6 +149,7 @@ lrindx3:
 	# diff -C0 -w                      lrindx.tmp lrindx.sort.tmp || :
 lrindx4:
 	perl extract_lrindex.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
+	| perl -pe 's/\<\/?strong\>//g;' \
 	> lrindx.new.tmp
 	# | grep -vE "^ *$$"
 	tail -2 lrindx.new.tmp | hexdump -C
@@ -259,3 +264,25 @@ seq: # parameter: $(LIST)
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #----------------
+# ../common/ajson/A000004.json:				"\u003ca href=\"/index/Rec#order_01\"\u003eIndex entries for linear recurrences with constant coefficients\u003c/a\u003e, signature (1).",
+lead0:
+	echo "A-number	order" > $@.tmp
+	perl -ne 'if (m{ajson\/(A\d+)\.json\:[^#]+\#(order_[1-9])\D}) { print "$$1\t$$2\n"; } ' lrlink1.tmp \
+	>>       $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+order_only:
+	echo "A-number	order1	order2" > $@.tmp
+	perl -ne 'if (m{ajson\/(A\d+)\.json\:[^#]+\#(order_\d+)[^\,]*\,\s*(order\s+(\d+))}) '\
+	'{ my $$order = $$4; if ($$order < 100) { print "$$1\t$$2\t$$3\n"; }} ' lrlink1.tmp \
+	>>       $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+sig_only:
+	echo "A-number	signature" > $@.tmp
+	perl -ne 'if ((m{ajson\/(A\d+)\.json\:) [^#]+\#(order_\d+)[^\,]*\,\s*(order\s+(\d+))}) '\
+	'{ my $$order = $$4; if ($$order < 100) { print "$$1\t$$2\t$$3\n"; }} ' lrlink1.tmp \
+	>>       $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+
