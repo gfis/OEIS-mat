@@ -290,12 +290,11 @@ tile: compile tilr
 compile:
 	javac Tiler.java 
 tils: select 
-	java -cp . Tiler -a $(ASEQNO) -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst | tee test.tmp 
-	grep -i assertion test.tmp || :
-	head -n4 test.tmp
-	wc -l    test.tmp 
+	touch bfile/timer.tmp
+	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst
+	ls -tclr bfile | tail -n2
 tilr: select 
-	java -cp . Tiler -a $(ASEQNO) -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee test.tmp 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee test.tmp 
 	grep -i assertion test.tmp || :
 	head -n4 test.tmp
 	wc -l    test.tmp 
@@ -306,6 +305,14 @@ run3:
 	java -cp . Tiler -id Gal.3.44.3 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 run: select
 	java -cp . Tiler -id $(GALID)   $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
+runall:
+	rm --f $@.tmp
+	head -n$(NMAX) extract.tmp > $@.in.tmp
+	java -cp . Tiler -dist $(DIST) -d $(D) -f $@.in.tmp | tee -a $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp 
+guessall:
+	perl tilemaple.pl runall.tmp | tee $@.tmp
 #================
 bf: select
 	rm -vf temp/b*.txt

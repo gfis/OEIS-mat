@@ -44,7 +44,7 @@ public class Tiler implements Serializable {
         mBFile    = false;
         mBFilePrefix = "./";
         mSVG      = false;
-        mGalId    = "Gal.2.1.1";
+        mGalId    = null;
         mASeqNo   = null; // not specified
     } // Tiler()
 
@@ -374,6 +374,9 @@ public class Tiler implements Serializable {
          */
     
         public boolean equals(Position pos2) {
+        /*
+            return this.compareTo(pos2) == 0;
+        */
             boolean result = true; // assume succes
             int ipos = 0;
             while (result && ipos < 4) {
@@ -568,12 +571,12 @@ public class Tiler implements Serializable {
      * @return index of the vertex at expos, or -1 if the position is still empty
      */
     public int findVertex(Position expos) {
-    	int result = -1; // assume not found
-    	Integer pos = mPosiVertex.get(expos);
-    	if (pos != null) {
-    		result = pos.intValue();
-    	}
-    	return result;
+        int result = -1; // assume not found
+        Integer pos = mPosiVertex.get(expos);
+        if (pos != null) {
+            result = pos.intValue();
+        }
+        return result;
     } // findVertex
 
     /**
@@ -873,7 +876,7 @@ public class Tiler implements Serializable {
          * @return a {@link VertexType}
          */
         public VertexType getType() {
-        	return mVertexTypes[iType];
+            return mVertexTypes[iType];
             // return getVertexType(iType);
         } // getType
 
@@ -1081,8 +1084,8 @@ public class Tiler implements Serializable {
             }
                 writeSVGEdge(focus, succ, iedge, 1);
             } else { // matching angles
-            	int ioldv = findVertex(succ.expos); // does the successor Vertex already exist?
-            	if (ioldv < 0) {
+                int ioldv = findVertex(succ.expos); // does the successor Vertex already exist?
+                if (ioldv < 0) {
                     isucc = addVertex(succ);
                     focus.succs[iedge] = isucc; // set forward link
                 } else { // old, successor Vertex already exist
@@ -1125,14 +1128,14 @@ public class Tiler implements Serializable {
 
     /**
      * Computes the neighbourhood of the start vertex up to some distance
-     * @param iStartType index of the initial vertex type
+     * @param iBaseType index of the initial vertex type
      */
-    public void computeNet(int iStartType) {
-        VertexType startType = getVertexType(iStartType);
+    public void computeNet(int iBaseType) {
+        VertexType baseType = getVertexType(iBaseType);
         int errorCount = MAX_ERROR;
         LinkedList<Integer> queue = new LinkedList<Integer>();
         initializeTiling(0); // reset dynamic structures only
-        String[] parts = startType.sequence.split("\\,");
+        String[] parts = baseType.sequence.split("\\,");
         int termNo = parts.length;
         int[] terms = new int[termNo];
         for (int iterm = 0; iterm < termNo; iterm ++) {
@@ -1144,12 +1147,14 @@ public class Tiler implements Serializable {
         if (mMaxDistance == -1) {
             mMaxDistance = termNo - 1;
         }
-
+        if (mASeqNo != null) {
+            baseType.aSeqNo = mASeqNo;
+        }
         if (mBFile) { // open b-file
-            writeBFile("head " + (mASeqNo != null ? mASeqNo : startType.aSeqNo));
+            writeBFile("head " + baseType.aSeqNo);
         }
         if (sDebug >= 3) {
-            System.out.println("# compute neighbours of vertex type " + iStartType + " up to distance " + mMaxDistance);
+            System.out.println("# compute neighbours of vertex type " + iBaseType + " up to distance " + mMaxDistance);
             String result  = sIndent + "# \"ffVertexTypes\": " + ffVertexTypes  + "\n"
                                      + sIndent + ", \"mVertexTypes\":\n";
             String sep = "  , ";
@@ -1160,7 +1165,7 @@ public class Tiler implements Serializable {
             System.err.println(result);
         }
         int distance = 0; // also index for terms
-        queue.add(addVertex(iStartType));
+        queue.add(addVertex(iBaseType));
         int addedVertices = 1;
         StringBuffer coordSeq = new StringBuffer(256);
         coordSeq.append("1");
@@ -1193,7 +1198,7 @@ public class Tiler implements Serializable {
                 levelPortion --;
             } // while portion not exhausted and queue not empty
             if (distance < terms.length && terms[distance] != addedVertices && errorCount > 0) {
-                System.out.println("# ** assertion 6: " + startType.aSeqNo + " " + startType.galId
+                System.out.println("# ** assertion 6: " + baseType.aSeqNo + " " + baseType.galId
                         + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " +addedVertices);
                 errorCount --;
             }
@@ -1216,12 +1221,15 @@ public class Tiler implements Serializable {
         if (sDebug >= 3) {
             System.out.println("# final net\n" + toJSON());
         }
-        System.out.println(coordSeq.toString());
+        if (true) { // this is always output
+            System.out.print  (baseType.aSeqNo + "\ttiler\t0\t");
+            System.out.println(coordSeq.toString());
+        }
         if (mBFile) { // close b-file
             writeBFile("tail");
         }
-        if (errorCount == MAX_ERROR) {
-            System.out.println("# " + startType.aSeqNo + " " + startType.galId + ":\t" + termNo + " terms verified");
+        if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
+            System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t" + termNo + " terms verified");
         }
         if (mSVG) {
             for (int ind = 2; ind < ffVertices; ind ++) { // ignore reserved [0..1]
@@ -1392,7 +1400,8 @@ public class Tiler implements Serializable {
                 }
                 // compute the nets
                 for (int ind = 2; ind < ffVertexTypes; ind += 2) {
-                    if (getVertexType(ind).galId.equals(mGalId)) { // only this one from all VertexTypes in the Tiling
+                    if (mGalId == null || getVertexType(ind).galId.equals(mGalId)) { 
+                        // either all in the input file, or only the specified mGalId
                         computeNet(ind);
                     }
                 } // for itype
@@ -1441,6 +1450,7 @@ public class Tiler implements Serializable {
      * @param args command line arguments
      */
     public static void main(String[] args) {
+        long startTime = System.currentTimeMillis();
         Tiler tiler = new Tiler();
         sDebug = 0;
         try {
@@ -1481,6 +1491,7 @@ public class Tiler implements Serializable {
             System.err.println(exc.getMessage());
             exc.printStackTrace();
         }
+        System.err.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
     } // main
 
 } // Tiler
