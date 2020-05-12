@@ -290,11 +290,9 @@ tile: compile tilr
 compile:
 	javac Tiler.java 
 tils: select 
-	touch bfile/timer.tmp
-	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst
-	ls -tclr bfile | tail -n2
+	java -cp . Tiler -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst
 tilr: select 
-	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee test.tmp 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	head -n4 test.tmp
 	wc -l    test.tmp 
@@ -313,6 +311,28 @@ runall:
 	wc -l    $@.tmp 
 guessall:
 	perl tilemaple.pl runall.tmp | tee $@.tmp
+#================
+map256:
+	sed -e "s/\[/ogf\t0\t/" -e "s/\, *ogf\]//" -e "s/\r//" guessall.128.txt > $@.1.tmp
+	head -n4 $@.1.tmp
+	perl runmaple.pl $@.1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp 
+diff256:
+	rm -v $@.*tmp
+	sed -e "s/\[/tiler\t0\t/" -e "s/\, */\,/g" -e "s/\]//" map256.tmp > $@.1.tmp
+	head -n2 $@.1.tmp
+	diff -wy --width=128 --suppress-common-lines runall.256.tmp $@.1.tmp \
+	>        $@.tmp || : 
+	head -n4 $@.tmp
+	wc -l    $@.tmp 
+denom:
+	cat guessall.128.txt \
+	| perl -ne 'm{^(A\d+)\t\[(....)[^\/]+\/([^\,]+)}; print "$$1\t$$2\t$$3\n";' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp 
 #================
 bf: select
 	rm -vf temp/b*.txt

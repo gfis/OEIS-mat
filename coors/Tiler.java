@@ -1,6 +1,7 @@
 /* Generate tilings from Galebach's list
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
+ * 2020-05-12: mTreePosition and mHashPosition
  * 2020-05-08: -a aseqno
  * 2020-04-30: cleaned
  * 2020-04-29: 4th version, flipped straight from backwards
@@ -19,6 +20,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -104,8 +106,6 @@ public class Tiler implements Serializable {
 
     /** Allocated vertices */
     public static ArrayList<Vertex> mVertices; // [0] is reserved
-    /** first free index in vertices */
-    public static int ffVertices;
 
     /**
      * Join an array of integers
@@ -192,52 +192,50 @@ public class Tiler implements Serializable {
      * "&gt;x-tail /&lt;" for SVG postlude and file close.
      */
     private void writeSVG(String param) {
-        if (mSVG) {
-            String text = param;
-            try {
-                if (! param.startsWith("<x-")) { // normal SVG XML element(s)
-                    if (mNumEdges <= mSVGCount) { // number of <line> elements can be limited
-                        mSVGWriter.println(text);
-                    }
-                } else if (param.startsWith("<x-head")) { // special tag
-                    int w1 = 8;
-                    int w2 = 2 * w1;
-                    param = param.replaceAll("\\<[^\\>]+\\>([^\\<]+)\\<.*", "$1");
-                    mSVGCount = mNumTerms;
-                    if (param.equals("-")) { // stdout
-                         mSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), sEncoding));
-                    } else { // not stdout
-                         WritableByteChannel channel = (new FileOutputStream (param, false)).getChannel();
-                         mSVGWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
-                    } // not stdout
-                    text = ""
-                    + "<?xml version=\"1.0\"?>\n"
-                    + "<?xml-stylesheet type=\"text/css\" href=\"tiling.css\" ?>\n"
-                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
-                    + "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-                    + "    width=\"192mm\" height=\"192mm\" viewBox=\"-" + w1 + " -" + w1 + " " + w2 + " " + w2 + "\" >\n"
-                    + "<!--\n"
-                    + "    Tiler - Georg Fischer. Do NOT edit here!\n"
-                    + "-->\n"
-                    + "<title>Uniform Tiling</title>\n"
-                    + "<g id=\"tile\">\n"
-                    + "<rect class=\"l8\" fill=\"black\" x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
-                    ;
+        String text = param;
+        try {
+            if (! param.startsWith("<x-")) { // normal SVG XML element(s)
+                if (mNumEdges <= mSVGCount) { // number of <line> elements can be limited
                     mSVGWriter.println(text);
-                } else if (param.startsWith("<x-tail")) { // special tag
-                    text = ""
-                    + "</g>\n"
-                    + "</svg>\n"
-                    ;
-                    mSVGWriter.println(text);
-                    mSVGWriter.close();
                 }
-            } catch (Exception exc) {
-                // log.error(exc.getMessage(), exc);
-                System.err.println(exc.getMessage());
-                exc.printStackTrace();
-            } // try
-        } // SVG output enabled and not yet finished
+            } else if (param.startsWith("<x-head")) { // special tag
+                int w1 = 8;
+                int w2 = 2 * w1;
+                param = param.replaceAll("\\<[^\\>]+\\>([^\\<]+)\\<.*", "$1");
+                mSVGCount = mNumTerms;
+                if (param.equals("-")) { // stdout
+                     mSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), sEncoding));
+                } else { // not stdout
+                     WritableByteChannel channel = (new FileOutputStream (param, false)).getChannel();
+                     mSVGWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
+                } // not stdout
+                text = ""
+                + "<?xml version=\"1.0\"?>\n"
+                + "<?xml-stylesheet type=\"text/css\" href=\"tiling.css\" ?>\n"
+                + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+                + "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
+                + "    width=\"192mm\" height=\"192mm\" viewBox=\"-" + w1 + " -" + w1 + " " + w2 + " " + w2 + "\" >\n"
+                + "<!--\n"
+                + "    Tiler - Georg Fischer. Do NOT edit here!\n"
+                + "-->\n"
+                + "<title>Uniform Tiling</title>\n"
+                + "<g id=\"tile\">\n"
+                + "<rect class=\"l8\" fill=\"black\" x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
+                ;
+                mSVGWriter.println(text);
+            } else if (param.startsWith("<x-tail")) { // special tag
+                text = ""
+                + "</g>\n"
+                + "</svg>\n"
+                ;
+                mSVGWriter.println(text);
+                mSVGWriter.close();
+            }
+        } catch (Exception exc) {
+            // log.error(exc.getMessage(), exc);
+            System.err.println(exc.getMessage());
+            exc.printStackTrace();
+        } // try
     } // writeSVG
 
     /**
@@ -248,41 +246,39 @@ public class Tiler implements Serializable {
      * @param mode  0=normal, 1=tentative
      */
     public void writeSVGEdge(Vertex focus, Vertex succ, int iedge, int mode) {
-        if (mSVG) {
-            switch (mode) {
-                default:
-                case 0: // normal
-                    writeSVG("<line class=\"l" + String.valueOf((iedge) % 8)
-                            + "\" x1=\"" + focus.expos.getX()
-                            + "\" y1=\"" + focus.expos.getY()
-                            + "\" x2=\"" + succ.expos.getX()
-                            + "\" y2=\"" + succ.expos.getY()
-                            + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
-                            + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
-                            + "</title></line>");
-                    break;
-                case 1: // tentative
-                    writeSVG("<line class=\"tent dash"
-                            + "\" x1=\"" + focus.expos.getX()
-                            + "\" y1=\"" + focus.expos.getY()
-                            + "\" x2=\"" + succ.expos.getX()
-                            + "\" y2=\"" + succ.expos.getY()
-                            + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
-                            + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
-                            + "</title></line>");
-                    break;
-                case 2: // test
-                    writeSVG("<line class=\"test dash"
-                            + "\" x1=\"" + focus.expos.getX()
-                            + "\" y1=\"" + focus.expos.getY()
-                            + "\" x2=\"" + succ.expos.getX()
-                            + "\" y2=\"" + succ.expos.getY()
-                            + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
-                            + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
-                            + "</title></line>");
-                    break;
-            } // switch (mode)
-        } // mSVG
+        switch (mode) {
+            default:
+            case 0: // normal
+                writeSVG("<line class=\"l" + String.valueOf((iedge) % 8)
+                        + "\" x1=\"" + focus.expos.getX()
+                        + "\" y1=\"" + focus.expos.getY()
+                        + "\" x2=\"" + succ.expos.getX()
+                        + "\" y2=\"" + succ.expos.getY()
+                        + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
+                        + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
+                        + "</title></line>");
+                break;
+            case 1: // tentative
+                writeSVG("<line class=\"tent dash"
+                        + "\" x1=\"" + focus.expos.getX()
+                        + "\" y1=\"" + focus.expos.getY()
+                        + "\" x2=\"" + succ.expos.getX()
+                        + "\" y2=\"" + succ.expos.getY()
+                        + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
+                        + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
+                        + "</title></line>");
+                break;
+            case 2: // test
+                writeSVG("<line class=\"test dash"
+                        + "\" x1=\"" + focus.expos.getX()
+                        + "\" y1=\"" + focus.expos.getY()
+                        + "\" x2=\"" + succ.expos.getX()
+                        + "\" y2=\"" + succ.expos.getY()
+                        + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
+                        + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
+                        + "</title></line>");
+                break;
+        } // switch (mode)
     } // writeSVGEdge
 
     /**
@@ -291,42 +287,40 @@ public class Tiler implements Serializable {
      * @param mode  0=normal, 1=tentative
      */
     public void writeSVGVertex(Vertex focus, int mode) {
-        if (mSVG) {
-            String var = String.valueOf(focus.iType % 8);
-            String name = mVertexTypes[focus.iType].name;
-            switch (mode) {
-                default:
-                case 0:
-                    writeSVG("<g><circle class=\"c" + ((focus.distance + 2) % 4)
-                            + "\" cx=\"" + focus.expos.getX()
-                            + "\" cy=\"" + focus.expos.getY()
-                            + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
-                            + "</circle>"
-                            + "<text class=\"t"  + var
-                            + "\" x=\""  + focus.expos.getX()
-                            + "\" y=\""  + focus.expos.getY()
-                            + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
-                            + "<title>"  + name + focus.rotate + "</title>"
-                            + "</g>"
-                            );
-                    break;
-                case 1:
-                case 2:
-                    writeSVG("<g><circle class=\"test"
-                            + "\" cx=\"" + focus.expos.getX()
-                            + "\" cy=\"" + focus.expos.getY()
-                            + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
-                            + "</circle>"
-                            + "<text class=\"t"  + var
-                            + "\" x=\""  + focus.expos.getX()
-                            + "\" y=\""  + focus.expos.getY()
-                            + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
-                            + "<title>"  + name + focus.rotate + "</title>"
-                            + "</g>"
-                            );
-                    break;
-            } // switch (mode)
-        } // mSVG
+        String var = String.valueOf(focus.iType % 8);
+        String name = mVertexTypes[focus.iType].name;
+        switch (mode) {
+            default:
+            case 0:
+                writeSVG("<g><circle class=\"c" + ((focus.distance + 2) % 4)
+                        + "\" cx=\"" + focus.expos.getX()
+                        + "\" cy=\"" + focus.expos.getY()
+                        + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
+                        + "</circle>"
+                        + "<text class=\"t"  + var
+                        + "\" x=\""  + focus.expos.getX()
+                        + "\" y=\""  + focus.expos.getY()
+                        + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
+                        + "<title>"  + name + focus.rotate + "</title>"
+                        + "</g>"
+                        );
+                break;
+            case 1:
+            case 2:
+                writeSVG("<g><circle class=\"test"
+                        + "\" cx=\"" + focus.expos.getX()
+                        + "\" cy=\"" + focus.expos.getY()
+                        + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
+                        + "</circle>"
+                        + "<text class=\"t"  + var
+                        + "\" x=\""  + focus.expos.getX()
+                        + "\" y=\""  + focus.expos.getY()
+                        + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
+                        + "<title>"  + name + focus.rotate + "</title>"
+                        + "</g>"
+                        );
+                break;
+        } // switch (mode)
     } // writeSVGVertex
 
     private static final Double SQRT2 = Math.sqrt(2.0);
@@ -375,7 +369,7 @@ public class Tiler implements Serializable {
     
         public boolean equals(Position pos2) {
         /*
-            return this.compareTo(pos2) == 0;
+            return compareTo(pos2) == 0;
         */
             boolean result = true; // assume succes
             int ipos = 0;
@@ -389,13 +383,24 @@ public class Tiler implements Serializable {
             return result;
         } // equals
     
+        public int hashCode() {
+            int result = 0; // sum here
+            int ipos = 0;
+            while (ipos < 4) {
+            	result = result << 8 + xtuple[ipos];
+            	result = result << 8 + ytuple[ipos];
+                ipos ++;
+            } // while ipos
+            return result;
+        } // hashCode
+    
         /**
-         * Comapres <em>this</em> Position with a second
+         * Compares <em>this</em> Position with a second
          * @param pos2 second Position
          * @return -1, 0, 1 if this < = > pos2 in lexicographical order of the tuple elements
          */
         public int compareTo(Position pos2) {
-            int result = 0; // undefined so far
+            int result = 0; // assume equality
             int ipos = 0;
             while (result == 0 && ipos < 4) { // as long as there is no difference
                 if (false) {
@@ -413,7 +418,7 @@ public class Tiler implements Serializable {
                 } // else check next position
                 ipos ++;
             } // while ipos
-            // maybe still result = 0;
+            // maybe still result == 0 
             return result;
         } // compareTo
 
@@ -437,8 +442,8 @@ public class Tiler implements Serializable {
         public Position add(Position pos2) {
             Position result = new Position();
             for (int ipos = 0; ipos < 4; ipos ++) {
-                result.xtuple[ipos] = (int/*s*/) (xtuple[ipos] + pos2.xtuple[ipos]);
-                result.ytuple[ipos] = (int/*s*/) (ytuple[ipos] + pos2.ytuple[ipos]);
+                result.xtuple[ipos] = (xtuple[ipos] + pos2.xtuple[ipos]);
+                result.ytuple[ipos] = (ytuple[ipos] + pos2.ytuple[ipos]);
             } // for ipos
             return result;
         } // add
@@ -451,8 +456,8 @@ public class Tiler implements Serializable {
         public Position subtract(Position pos2) {
             Position result = new Position();
             for (int ipos = 0; ipos < 4; ipos ++) {
-                result.xtuple[ipos] = (int/*s*/) (xtuple[ipos] - pos2.xtuple[ipos]);
-                result.ytuple[ipos] = (int/*s*/) (ytuple[ipos] - pos2.ytuple[ipos]);
+                result.xtuple[ipos] = (xtuple[ipos] - pos2.xtuple[ipos]);
+                result.ytuple[ipos] = (ytuple[ipos] - pos2.ytuple[ipos]);
             } // for ipos
             return result;
         } // subtract
@@ -462,20 +467,19 @@ public class Tiler implements Serializable {
          * @return the cartesian coordinates like "[-3.0981,1.3660]"
          */
         public String toString() {
-        //
-            return join(",", xtuple) + join(",", ytuple);
-        //
         /*
+            return join(",", xtuple) + join(",", ytuple);
+        */
             StringBuffer result = new StringBuffer(64);
-            int ip;
-            result.append('[');
-            result.append(getX());
-            result.append(',');
-            result.append(getY());
+            for (int ipos = 0; ipos < 4; ipos ++) {
+                result.append(',');
+                result.append(String.valueOf(xtuple[ipos]));
+                result.append(',');
+                result.append(String.valueOf(ytuple[ipos]));
+            } // for ipos
             result.append(']');
             result.setCharAt(0, '[');
             return result.toString();
-        */
         } // Position.toString
 
         /**
@@ -562,8 +566,15 @@ public class Tiler implements Serializable {
      * Maps exact {@link Position}s of vertices to their index in {@link mVertices}.
      * Used for the detection of duplicate target vertices.
      */
-    // public HashMap<Position, Integer> mPosiVertex;
-    public TreeMap<Position, Integer> mPosiVertex;
+    public HashMap<String, Integer> mHashPosition;
+    // public TreeMap<String, Integer> mTreePosition;
+    
+    /** 
+     * Gets the size of the position map.
+     */ 
+    public int positionSize() {
+    	return mHashPosition.size();
+    } // positionSize
 
     /**
      * Determines whether a {@link Vertex} exists at some {@link Position}.
@@ -572,9 +583,17 @@ public class Tiler implements Serializable {
      */
     public int findVertex(Position expos) {
         int result = -1; // assume not found
-        Integer pos = mPosiVertex.get(expos);
-        if (pos != null) {
-            result = pos.intValue();
+        Integer posh = mHashPosition.get(expos.toString());
+    /*    
+        Integer post = mTreePosition.get(expos.toString());
+        if (post == null && posh != null || posh == null && post != null) {
+            System.out.println("# assertion 7: mTrHaPosition difference post=" + post + " <> posh=" + posh + " for expos=" + expos.toString());
+        } else if (post != null && post.intValue() != posh.intValue()) {
+            System.out.println("# assertion 8: mTrHaPosition difference post=" + post + " <> posh=" + posh + " for expos=" + expos.toString());
+        }
+    */
+        if (posh != null) {
+            result = posh.intValue();
         }
         return result;
     } // findVertex
@@ -599,10 +618,12 @@ public class Tiler implements Serializable {
         for (int ipos = 0; ipos < mUnitCirclePoints.length + 1; ipos ++) {
             Position pos = origin.moveUnit(ipos * 15);
             System.out.println(String.format("[%2d], %3d = %s", ipos, ipos * 15, pos.toString()));
-            writeSVG("<line class=\"k" + String.valueOf(ipos % 8)
-                    + " x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY()
-                    + "\"><title>" + mNumEdges
-                    + "</title></line>");
+            if (mSVG) {
+                writeSVG("<line class=\"k" + String.valueOf(ipos % 8)
+                       + " x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY()
+                       + "\"><title>" + mNumEdges
+                       + "</title></line>");
+            }
         } // for ipos
         for (int ipos = 0; ipos < mUnitCirclePoints.length; ipos += 4) {
             int ipos8 = (ipos + 8) % 24;
@@ -628,8 +649,10 @@ public class Tiler implements Serializable {
         int[]  tipes; // VertexType indices of target vertices (normally even, odd if flipped / C')
         int[]  rotas; // how many degrees must the target vertices be rotated, from Galebach
         int[]  sweeps; // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
+    /*Shas    
         int[]  leShas; // shapes / polygones from the focus to the left  of the edge
         int[]  riShas; // shapes / polygones from the focus to the right of the edge
+    Shas*/
         String galId; // e.g. "Gal.2.1.1"
         String name; // for example "A" for normal or "a" (lowercase) for flipped version
         String aSeqNo; // OEIS A-number of {@link #sequence}
@@ -645,8 +668,10 @@ public class Tiler implements Serializable {
             polys    = new int[0];
             tipes    = new int[0];
             rotas    = new int[0];
+        /*Shas    
             leShas   = new int[0];
             riShas   = new int[0];
+        Shas*/
             sweeps   = new int[0];
             galId    = "Gal.0.0.0";
             name     = "Z";
@@ -718,8 +743,10 @@ public class Tiler implements Serializable {
             polys  = new int[edgeNo];
             tipes  = new int[edgeNo];
             rotas  = new int[edgeNo];
+        /*Shas    
             leShas = new int[edgeNo];
             riShas = new int[edgeNo];
+        Shas*/
             sweeps = new int[edgeNo];
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
                 try {
@@ -749,8 +776,10 @@ public class Tiler implements Serializable {
                 sweeps[iedge] = iedge == 0
                         ? 0
                         : sweeps[iedge - 1] + mRegularAngles[polys[iedge - 1]];
+            /*Shas    
                 riShas[iedge] = polys[iedge];
                 leShas[iedge] = polys[dedge];
+            Shas*/
             } // for iedge
             revId.append(revId.substring(0, revId.length())); // duplicate it
             revId.append('.');
@@ -777,28 +806,21 @@ public class Tiler implements Serializable {
             result.polys    = new int[edgeNo];
             result.tipes    = new int[edgeNo];
             result.rotas    = new int[edgeNo];
+        /*Shas    
             result.leShas   = new int[edgeNo];
             result.riShas   = new int[edgeNo];
+        Shas*/
             result.sweeps   = new int[edgeNo];
             int dedge = 0;
             for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
-                if (true || ! chiral) { // normal
-                    result.tipes [iedge] =   tipes [iedge];
-                    result.rotas [iedge] =   rotas [iedge];
-                    result.sweeps[iedge] =   sweeps[iedge];
-
-                    result.polys [iedge] =   polys [iedge];
+                result.tipes [iedge] =   tipes [iedge];
+                result.rotas [iedge] =   rotas [iedge];
+                result.sweeps[iedge] =   sweeps[iedge];
+                result.polys [iedge] =   polys [iedge];
+                /*Shas    
                     result.riShas[iedge] =   polys [iedge];
                     result.leShas[iedge] =   polys [iedge];
-                } else { // chiral  not used
-                    result.tipes [iedge] =   tipes [iedge];
-                    result.rotas [iedge] = - rotas [dedge];
-                    result.sweeps[iedge] = - sweeps[dedge];
-                // ???
-                    result.polys [iedge] =   polys [dedge];
-                    result.riShas[iedge] =   polys [dedge];
-                    result.leShas[iedge] =   polys [dedge];
-                }
+                Shas*/
                 dedge = normEdge(result, dedge - 1); // decreasing
             } // for iedge
             return result;
@@ -913,14 +935,14 @@ public class Tiler implements Serializable {
          * Draws the edges of <em>this</em> rotated {@link #Vertex} with thin
          * lines for debugging purposes
          */
-        public void showVertex() {
-            VertexType vtype = this.getType();
-            for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
-                Vertex succ = this.getSuccessor(iedge);
-                writeSVGEdge(this, succ, iedge, 2); // mode = test
-            } // for iedge
-            writeSVGVertex(this, 2); // mode = test
-        } // showVertex
+        public void showSVGVertex() {
+           VertexType vtype = getType();
+           for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
+               Vertex succ = this.getSuccessor(iedge);
+               writeSVGEdge(this, succ, iedge, 2); // mode = test
+           } // for iedge
+           writeSVGVertex(this, 2); // mode = test
+        } // showSVGVertex
 
         //--------
         /**
@@ -935,7 +957,7 @@ public class Tiler implements Serializable {
          * turning clockwise := positive (downwards, because of SVG's y axis)
          */
         public int getAngle(int iedge) {
-            VertexType vtype  = getType();
+            VertexType vtype  = mVertexTypes[iType];
             int siType  = vtype.tipes[
                     vtype.isFlipped() ? normEdge(vtype, - iedge) : normEdge(vtype, + iedge)
                     ];
@@ -984,7 +1006,7 @@ public class Tiler implements Serializable {
          */
         public int getEdge(int angle) {
             angle = normAngle(angle);
-            VertexType vtype = getType();
+            VertexType vtype = mVertexTypes[iType];
             if (sDebug >= 3) {
                     System.out.println("#       try getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + " ?");
             }
@@ -1023,7 +1045,7 @@ public class Tiler implements Serializable {
          * @return successor Vertex which is properly rotated and linked back to <em>this</em>
          */
         public Vertex getSuccessor(int iedge) {
-            VertexType vtype = getType(); // of the focus
+            VertexType vtype = mVertexTypes[iType]; // of the focus
             int siType  = vtype.tipes[vtype.isFlipped() 
                     ? normEdge(vtype, - iedge) 
                     : normEdge(vtype, + iedge)];
@@ -1065,27 +1087,29 @@ public class Tiler implements Serializable {
      */
     public int attach(Vertex focus, int iedge, int distance) {
         int isucc = 0; // future result; assume that the successor already exists
-        VertexType foType = focus.getType();
-        if (sDebug >= 2) {
-             System.out.println("#--------\n# call attach(vertex " + focus.toString() + ", iedge " + iedge + ")");
-        }
+        VertexType foType = mVertexTypes[focus.iType];
         if (focus.succs[iedge] == 0) { // determine successor
             Vertex succ = focus.getSuccessor(iedge);
             if (sDebug >= 2) {
+                System.out.println("#--------\n# call attach(vertex " + focus.toString() + ", iedge " + iedge + ")");
                 System.out.println("#     candidate successor is "
                         + succ.getType().name + "@" + succ.rotate + succ.expos + ", bedge " + succ.bedge);
             }
             int suEdge = succ.bedge;
             if (suEdge < 0) { // not found
-                succ.showVertex();
-            if (sDebug >= 1) {
-                System.out.println("# ** assertion 1 in attach(focus " + focus.index + foType.name + "\t, edge " + iedge
-                        + "): no match in succ " + succ.toString());
-            }
-                writeSVGEdge(focus, succ, iedge, 1);
+            	if (mSVG) {
+                    succ.showSVGVertex();
+                }
+                if (sDebug >= 1) {
+                    System.out.println("# ** assertion 1 in attach(focus " + focus.index + foType.name + "\t, edge " + iedge
+                            + "): no match in succ " + succ.toString());
+                }
+                if (mSVG) {
+                    writeSVGEdge(focus, succ, iedge, 1);
+                }
             } else { // matching angles
                 int ioldv = findVertex(succ.expos); // does the successor Vertex already exist?
-                if (ioldv < 0) {
+                if (ioldv < 0) { // not found
                     isucc = addVertex(succ);
                     focus.succs[iedge] = isucc; // set forward link
                 } else { // old, successor Vertex already exist
@@ -1096,7 +1120,9 @@ public class Tiler implements Serializable {
                 if (succ.succs[suEdge] == 0) { // edge was not yet connected
                     succ.succs[suEdge] = focus.index; // set backward link
                 } else if (succ.succs[suEdge] != focus.index) {
-                    succ.showVertex();
+                    if (mSVG) {
+                    	succ.showSVGVertex();
+                    }
                     if (sDebug >= 1) {
                         System.out.println("# ** assertion 2 in attach(focus " + focus.toString()
                         + "\t, edge " + iedge + "): focus not in succ " + succ.toString()
@@ -1111,7 +1137,9 @@ public class Tiler implements Serializable {
                             + ", suEdge " + suEdge
                             );
                 }
-                writeSVGEdge(focus, succ, distance, 0); // normal
+                if (mSVG) {
+                    writeSVGEdge(focus, succ, distance, 0); // normal
+                }
                 mNumEdges ++;
             } // matching angles
             focus.fixedEdges ++;
@@ -1184,7 +1212,7 @@ public class Tiler implements Serializable {
                 }
                 Vertex focus = mVertices.get(ifocus);
                 focus.distance = distance;
-                VertexType foType = focus.getType();
+                VertexType foType = mVertexTypes[focus.iType];
                 for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
                     int isucc = attach(focus, iedge, distance);
                     if (isucc > 0) { // did not yet exist
@@ -1212,9 +1240,10 @@ public class Tiler implements Serializable {
             }
             distance ++;
         } // while distance
-        if (mPosiVertex.size() != ffVertices - 2) {
+        int ffVertices = mVertices.size();
+        if (positionSize() != ffVertices - 2) {
             if (sDebug >= 3) {
-                System.out.println("# ** assertion 3 in tiling.toString: " + mPosiVertex.size()
+                System.out.println("# ** assertion 3 in tiling.toString: " + positionSize()
                         + " different positions, but " + (ffVertices - 2) + " vertices\n");
             }
         }
@@ -1301,10 +1330,9 @@ public class Tiler implements Serializable {
         // clear the dynamic structures:
         sIndent  = "";
         mNumEdges = 1; // used for titles on SVG <line>s and for limitation of number of lines to be output
-        // mPosiVertex = new HashMap<Position, Integer>(1024); 
-        mPosiVertex = new TreeMap<Position, Integer>(); 
+        mHashPosition = new HashMap<String, Integer>(1024); 
+        // mTreePosition = new TreeMap<String, Integer>(); 
         mVertices = new ArrayList<Vertex>(256);
-        ffVertices = 0;
         addVertex(new Vertex()); // [0] is not used / reserved
         addVertex(new Vertex()); // [1] is not used / reserved
     } // initializeTiling
@@ -1324,10 +1352,13 @@ public class Tiler implements Serializable {
      * @return index of added Vertex in {@link mVertices}
      */
     public int addVertex(Vertex vertex) {
-        vertex.index = ffVertices;
+        vertex.index = mVertices.size();
         mVertices.add(vertex);
-        mPosiVertex.put(vertex.expos, vertex.index);
-        ffVertices = mVertices.size();
+        mHashPosition.put(vertex.expos.toString(), vertex.index);
+        // mTreePosition.put(vertex.expos.toString(), vertex.index);
+        if (sDebug >= 3) {
+        	System.out.println("# assigned mTrHaPosition[" + vertex.expos.toString() + "] := " + vertex.index);
+        }
         return vertex.index;
     } // addVertex
 
@@ -1346,21 +1377,20 @@ public class Tiler implements Serializable {
             } // for types
             result += sIndent + "  ]\n";
 
-            result += sIndent + ", \"ffVertices\": " + ffVertices + "\n"
-                         +  sIndent + ", \"mVertices\":\n";
+            int ffVertices = mVertices.size();
+            result += sIndent + ", \"ffVertices\": " + ffVertices + "\n" +  sIndent + ", \"mVertices\":\n";
             for (int ind = 0; ind < ffVertices; ind ++) {
                 Vertex focus = mVertices.get(ind);
                 result += sIndent + (ind == 0 ? "  [ " : sep) + focus.toJSON();
             } // for vertices
             result += sIndent + "  ]\n";
 
-            result += sIndent + ", \"size\": " + mPosiVertex.size() + ", \"mPosiVertex\": \n";
-            Iterator<Position> piter = mPosiVertex.keySet().iterator();
+            result += sIndent + ", \"size\": " + positionSize() + ", \"mHashPosition\": \n";
+            Iterator<String> piter = mHashPosition.keySet().iterator();
             while (piter.hasNext()) {
-                Position pos = piter.next();
-                int ind = mPosiVertex.get(pos).intValue();
-                result += sIndent + (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" 
-                        + pos.toString() + pos.toList() + ", index: " + ind + " }\n";
+                String pos = piter.next();
+                int ind = mHashPosition.get(pos).intValue();
+                result += sIndent + (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" + pos + ", index: " + ind + " }\n";
             } // while piter
             result += sIndent + "  ]\n}\n";
 
