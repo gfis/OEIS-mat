@@ -1,0 +1,1 @@
+printf("%s\t%s\t%a\n", "$(PARM0)", "$(PARM1)", timelimit($(TIMEOUT), factor($(PARM2))) );

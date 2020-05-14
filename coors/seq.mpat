@@ -1,0 +1,1 @@
+printf("%s\t%s\t%a\n", "$(ASEQNO)", "$(GALID)", timelimit($(TIMEOUT), [seq(coeff(series($(OGF), x, n+1), x, n), n = 0..256)]));

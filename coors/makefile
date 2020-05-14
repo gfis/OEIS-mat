@@ -303,17 +303,19 @@ run3:
 	java -cp . Tiler -id Gal.3.44.3 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 run: select
 	java -cp . Tiler -id $(GALID)   $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
+#================
 runall:
-	rm --f $@.tmp
+	rm -f $@.tmp
 	head -n$(NMAX) extract.tmp > $@.in.tmp
-	java -cp . Tiler -dist $(DIST) -d $(D) -f $@.in.tmp | tee -a $@.tmp
+	java -cp . Tiler -dist $(DIST) -d $(D) -f $@.in.tmp >> $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp 
+#----
 guessall:
 	perl tilemaple.pl runall.tmp | tee $@.tmp
 #================
 map256:
-	sed -e "s/\[/ogf\t0\t/" -e "s/\, *ogf\]//" -e "s/\r//" guessall.128.txt > $@.1.tmp
+	sed -e "s/\[/ogf\t0\t/" -e "s/\, *ogf\]//" -e "s/\r//" guessall.tmp > $@.1.tmp
 	head -n4 $@.1.tmp
 	perl runmaple.pl $@.1.tmp \
 	>        $@.tmp
@@ -328,11 +330,61 @@ diff256:
 	head -n4 $@.tmp
 	wc -l    $@.tmp 
 denom:
-	cat guessall.128.txt \
+	cat guessall.tmp \
 	| perl -ne 'm{^(A\d+)\t\[(....)[^\/]+\/([^\,]+)}; print "$$1\t$$2\t$$3\n";' \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp 
+#================
+# A008486	Gal.1.1.1	[-(x^2+x+1)/(-x^2+2*x-1), ogf]
+# A024313	lingfo	0	(-3+2*x^7+3*x^5+x^4-4*x^3+2*x^2)/((x^2+x-1)*(x^4+x^2-1)^2)	ogf	Gal.1.2.3
+#	sed -e "s/\[/lingfo\t0\t/" -e "s/\, *ogf\]/\togf/" -e "s/\r//" guessall.128.txt 
+#	| perl -ne 'if (length($$_) < 2048) { print; }' 
+tilegf:
+	perl -ne 's{\s+\Z}{}; my ($$aseqno, $$galid, $$fract) = split(/\t/); '\
+	'$$fract =~ s{\[}{}; $$fract =~ s{\, *ogf\]}{}; '\
+	'print join("\t", $$aseqno, "lingfo", 0, $$fract, "ogf", "oldfract", $$galid) . "\n"; ' guessall.tmp \
+	>        $@.1.tmp
+	head -n4 $@.1.tmp
+	wc   -l  $@.1.tmp
+	$(RAMATH).sequence.JoeisPreparer -f $@.1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@*.tmp
+#----
+evalgf:
+	perl evalgf.pl tilegf.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+	# cut -f2-4  $@.tmp \
+	# | sort | uniq -c
+evalgf2:
+	cut -f2,6 evalgf.tmp \
+	| sort | uniq -c | tee $@.tmp
+	wc -l $@.tmp
+evalgf_load:
+	$(DBAT) -f coogf.create.sql
+	cat evalgf.tmp \
+	| $(DBAT) -m csv -r coogf
+	$(DBAT) -4 coogf
+	$(DBAT) -n coogf
+denpoly:
+	perl denpoly.pl evalgf.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+densimplify:
+	perl callmaple.pl -p simplify.mpat denpoly.tmp \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+GCD=
+denfactor:
+	perl denfactor.pl $(GCD) densimplify.tmp \
+	| sort | uniq -c | sort -rn > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
 #================
 bf: select
 	rm -vf temp/b*.txt

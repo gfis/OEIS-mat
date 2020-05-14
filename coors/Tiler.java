@@ -851,7 +851,7 @@ public class Tiler implements Serializable {
     protected class Vertex implements Serializable { // numbered 1, 2, 3 ... ; 0 is not used
         int index; // in mVertices
         int iType; // 0, 1 reserved; even for clockwise, odd for counter-clockwise variant
-        int distance; // length of shortest path to origin
+        int distance; // length of shortest path to origin, for coloring
         int rotate; // the vertex type was rotated clockwise by so many degrees
         Position expos; // exact Position of the Vertex
         int fixedEdges; // number of allocated neighbours = edges
@@ -1251,8 +1251,7 @@ public class Tiler implements Serializable {
             System.out.println("# final net\n" + toJSON());
         }
         if (true) { // this is always output
-            System.out.print  (baseType.aSeqNo + "\ttiler\t0\t");
-            System.out.println(coordSeq.toString());
+            System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mVertexTypes[iBaseType].galId + "\t" + coordSeq.toString());
         }
         if (mBFile) { // close b-file
             writeBFile("tail");
@@ -1356,9 +1355,11 @@ public class Tiler implements Serializable {
         mVertices.add(vertex);
         mHashPosition.put(vertex.expos.toString(), vertex.index);
         // mTreePosition.put(vertex.expos.toString(), vertex.index);
+    /*
         if (sDebug >= 3) {
         	System.out.println("# assigned mTrHaPosition[" + vertex.expos.toString() + "] := " + vertex.index);
         }
+    */
         return vertex.index;
     } // addVertex
 
