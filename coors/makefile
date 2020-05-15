@@ -280,6 +280,7 @@ test: test1 test2
 test1: compile1 run1
 test2: compile2 run2
 compile: compile1 compile2
+	ls -al *.class
 compile1:
 	javac Tiler1.java 
 compile2:
