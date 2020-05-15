@@ -33,17 +33,17 @@ import java.util.LinkedList;
  * Class for the generation of tilings and their coordinations sequences.
  * @author Georg Fischer
  */
-public class Tiler implements Serializable {
+public class Tiler2 implements Serializable {
     private static final long serialVersionUID = 3L;
-    public final static String CVSID = "@(#) $Id: Tiler.java $";
+    public final static String CVSID = "@(#) $Id: Tiler2.java $";
     /** log4j logger (category) */
     // private Logger log;
 
     /**
      * Empty constructor.
      */
-    protected Tiler() {
-        // log = Logger.getLogger(Tiler.class.getName());
+    protected Tiler2() {
+        // log = Logger.getLogger(Tiler2.class.getName());
         mNumTerms = 32;
         mOffset   = 0;
         mBFile    = false;
@@ -51,7 +51,7 @@ public class Tiler implements Serializable {
         mSVG      = false;
         mGalId    = null;
         mASeqNo   = null; // not specified
-    } // Tiler()
+    } // Tiler2()
 
     /** Debugging mode: 0=none, 1=some, 2=more */
     protected static int sDebug;
@@ -202,7 +202,7 @@ public class Tiler implements Serializable {
                     mSVGWriter.println(text);
                 }
             } else if (param.startsWith("<x-head")) { // special tag
-            	// viewBox="-w1 -w1 w2 w2"
+                // viewBox="-w1 -w1 w2 w2"
                 int w1 = mMaxDistance;
                 int w2 = 2 * w1; 
                 param = param.replaceAll("\\<[^\\>]+\\>([^\\<]+)\\<.*", "$1");
@@ -217,7 +217,7 @@ public class Tiler implements Serializable {
                 text = ""
                 + "<?xml version=\"1.0\"?>\n"
                 + "<!--\n"
-                + "    Written with Tiler.java at " + timestamp + " - Georg Fischer. Do NOT edit here!\n"
+                + "    Written with Tiler2.java at " + timestamp + " - Georg Fischer. Do NOT edit here!\n"
                 + "-->\n"
                 + "<?xml-stylesheet type=\"text/css\" href=\"tiling.css\" ?>\n"
                 + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
@@ -245,7 +245,7 @@ public class Tiler implements Serializable {
     } // writeSVG
 
     /** Color in dices in tilings.css cycle through 0..5 */
-    private static final int COLOR_MOD = 6;
+    private static final int COLOR_MOD = 3;
     
     /**
      * Writes an edge from the focus to a successur {@link Vertex} to the SVG file.
@@ -263,8 +263,8 @@ public class Tiler implements Serializable {
                         + "\" y1=\"" + focus.expos.getY()
                         + "\" x2=\"" + succ.expos.getX()
                         + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>" + focus.index + mVertexTypes[focus.iType].name
-                        + "->"         + succ .index + mVertexTypes[succ .iType].name
+                        + "\"><title>" + focus.index + focus.getName()
+                        + "->"         + succ .index + succ .getName()
                         + "</title></line>");
                 break;
             case 1: // tentative
@@ -273,8 +273,8 @@ public class Tiler implements Serializable {
                         + "\" y1=\"" + focus.expos.getY()
                         + "\" x2=\"" + succ.expos.getX()
                         + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>" + focus.index + mVertexTypes[focus.iType].name
-                        + "->"         + succ .index + mVertexTypes[succ .iType].name
+                        + "\"><title>" + focus.index + focus.getName()
+                        + "->"         + succ .index + succ .getName()
                         + "</title></line>");
                 break;
             case 2: // test
@@ -283,8 +283,8 @@ public class Tiler implements Serializable {
                         + "\" y1=\"" + focus.expos.getY()
                         + "\" x2=\"" + succ.expos.getX()
                         + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>" + focus.index + mVertexTypes[focus.iType].name
-                        + "->"         + succ .index + mVertexTypes[succ .iType].name
+                        + "\"><title>" + focus.index + focus.getName()
+                        + "->"         + succ .index + succ .getName()
                         + "</title></line>");
                 break;
         } // switch (mode)
@@ -296,8 +296,8 @@ public class Tiler implements Serializable {
      * @param mode  0=normal, 1=tentative, 2=test
      */
     public void writeSVGVertex(Vertex focus, int mode) {
-        String color = String.valueOf(focus.distance % COLOR_MOD);
-        String name = mVertexTypes[focus.iType].name;
+        String color = focus.fixedEdges > 0 ? String.valueOf(focus.distance % COLOR_MOD) : "8";
+        String name  = focus.getName();
         switch (mode) {
             default:
             case 0:
@@ -306,10 +306,10 @@ public class Tiler implements Serializable {
                         + "\" cy=\"" + focus.expos.getY()
                         + "\" r=\""  + (focus.index == 2 ? "0.3" : "0.15") + "\">" // bigger if baseVertex
                         + "</circle>"
-                        + "<text class=\"t"  + color
+                        + "<text     class=\"t" + color
                         + "\" x=\""  + focus.expos.getX()
                         + "\" y=\""  + focus.expos.getY()
-                        + "\" dy=\"0.03px\">" + name + "</text>"
+                        + "\" dy=\"0.35em\">" + name + "</text>"
                         + "<title>"  + String.valueOf(focus.index) + name + focus.rotate + "</title>"
                         + "</g>"
                         );
@@ -396,8 +396,8 @@ public class Tiler implements Serializable {
             int result = 0; // sum here
             int ipos = 0;
             while (ipos < 4) {
-            	result = result << 8 + xtuple[ipos];
-            	result = result << 8 + ytuple[ipos];
+                result = result << 8 + xtuple[ipos];
+                result = result << 8 + ytuple[ipos];
                 ipos ++;
             } // while ipos
             return result;
@@ -582,7 +582,7 @@ public class Tiler implements Serializable {
      * Gets the size of the position map.
      */ 
     public int positionSize() {
-    	return mHashPosition.size();
+        return mHashPosition.size();
     } // positionSize
 
     /**
@@ -649,7 +649,7 @@ public class Tiler implements Serializable {
      */
     protected class VertexType implements Serializable { // numbered 1, 2, 3 ... ; 0 is not used
         int    index; // even for normal type, odd for flipped version
-        boolean chiral; // whether the vertices are chiral and have a flipped variant
+        String vertexId; // e.g. "12.6.4"
         int    edgeNo; // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
         int[]  polys; // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
                 // are arranged clockwise (for SVG, counter-clockwise by Galebach)
@@ -672,7 +672,7 @@ public class Tiler implements Serializable {
          */
         VertexType() {
             index    = 0;
-            chiral   = false;
+            vertexId = "";
             edgeNo   = 0;
             polys    = new int[0];
             tipes    = new int[0];
@@ -705,11 +705,11 @@ public class Tiler implements Serializable {
             String result
                     = "{ \"i\": \""     + index + "\""
                     + ", \"name\": \""  + name  + "\""
-                    + ", \"chiral\": \""  + chiral + "\""
+                    + ", \"vid\": \""   + vertexId + "\""
                     + ", \"polys\": "   + join(",", polys)
                     + ", \"sweeps\": "  + join(",", sweeps)
-                    + ", \"rotas\": "  + join(",", rotas)
-                    + ", \"tipes\": "  + join(",", tipes)
+                    + ", \"rotas\": "   + join(",", rotas)
+                    + ", \"tipes\": "   + join(",", tipes)
             /*
                     + ", \"leShas\": "  + join(",", leShas)
                     + ", \"riShas\": "  + join(",", riShas)
@@ -725,8 +725,7 @@ public class Tiler implements Serializable {
          * @return true if the index is odd, false otherwise
          */
         public boolean isFlipped() {
-            return  // chiral &&
-                    (index & 1) == 1;
+            return  (index & 1) == 1;
         } // isFlipped
 
         /**
@@ -741,6 +740,7 @@ public class Tiler implements Serializable {
          */
         VertexType(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
             // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
+            this.vertexId    = vertexId;
             String[] corners = vertexId.split("\\.");
             String[] parts   = taRotList.split("\\;\\s*");
             index  = ffVertexTypes; // even = not flipped
@@ -774,28 +774,16 @@ public class Tiler implements Serializable {
                     }
                 }
             } // for iedge
-            chiral = false;
-            // now determine chirality; reverse the vertexId
-            StringBuffer revId = new StringBuffer(128);
-            // revId.append("rev");
             for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
-                int dedge = edgeNo - 1 - iedge; // decreasing
-                revId.append('.');
-                revId.append(String.valueOf(polys[dedge]));
                 sweeps[iedge] = iedge == 0
                         ? 0
                         : sweeps[iedge - 1] + mRegularAngles[polys[iedge - 1]];
             /*Shas    
+                int dedge = edgeNo - 1 - iedge; // decreasing
                 riShas[iedge] = polys[iedge];
                 leShas[iedge] = polys[dedge];
             Shas*/
             } // for iedge
-            revId.append(revId.substring(0, revId.length())); // duplicate it
-            revId.append('.');
-            chiral = revId.indexOf(vertexId + ".") < 0; // is it found in some rotation?
-            if (sDebug >= 3) {
-                System.out.println("# determine chiral: \"." + vertexId + ".\" contained in \"" + revId + "\" ? -> " + chiral);
-            }
         } // VertexType(String, String, String)
 
         /**
@@ -807,8 +795,6 @@ public class Tiler implements Serializable {
         public VertexType getFlippedClone() {
             VertexType result = new VertexType();
             result.index    = index + 1; // odd -> edges turn counter-clockwise
-            result.chiral   = chiral;
-            result.name     = chiral ? name.toLowerCase() : name;
             result.galId    = galId;
             result.sequence = sequence;
             result.edgeNo   = edgeNo;
@@ -819,9 +805,12 @@ public class Tiler implements Serializable {
             result.leShas   = new int[edgeNo];
             result.riShas   = new int[edgeNo];
         Shas*/
+
+            // now determine chirality; reverse the vertexId
+            StringBuffer revId = new StringBuffer(128);
             result.sweeps   = new int[edgeNo];
-            int dedge = 0;
             for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
+                int dedge = edgeNo - 1 - iedge; // decreasing
                 result.tipes [iedge] =   tipes [iedge];
                 result.rotas [iedge] =   rotas [iedge];
                 result.sweeps[iedge] =   sweeps[iedge];
@@ -830,8 +819,16 @@ public class Tiler implements Serializable {
                     result.riShas[iedge] =   polys [iedge];
                     result.leShas[iedge] =   polys [iedge];
                 Shas*/
-                dedge = normEdge(result, dedge - 1); // decreasing
+                revId.append('.');
+                revId.append(String.valueOf(polys[dedge]));
             } // for iedge
+            revId.append(revId.substring(0, revId.length())); // duplicate it
+            revId.append('.');
+            boolean chiral = revId.indexOf("." + vertexId + ".") < 0; // is it found in some rotation?
+            if (sDebug >= 3) {
+                System.out.println("# determine chiral: \"." + vertexId + ".\" contained in \"" + revId + "\" ? -> " + chiral);
+            }
+            result.name     = chiral ? name.toLowerCase() : name;
             return result;
         } // getFlippedClone
 
@@ -859,7 +856,8 @@ public class Tiler implements Serializable {
      */
     protected class Vertex implements Serializable { // numbered 1, 2, 3 ... ; 0 is not used
         int index; // in mVertices
-        int iType; // 0, 1 reserved; even for clockwise, odd for counter-clockwise variant
+        int iType; // 0, 1 are reserved; iType is even for clockwise, odd for counter-clockwise variant
+        int flip;  // 0 for clockwise, 1 for counter-clockwise orientation
         int distance; // length of shortest path to origin, for coloring
         int rotate; // the vertex type was rotated clockwise by so many degrees
         Position expos; // exact Position of the Vertex
@@ -885,9 +883,10 @@ public class Tiler implements Serializable {
          * @param ipred index of predecessor vertex which needs <em>this</em> new successor vertex
          * @param iedge which edge of the predecessor leads to <em>this</em> new successor vertex
          */
-        public Vertex(int itype) {
+        public Vertex(int iType) {
             // setting 'index' is postponed to addVertex
-            this.iType  = itype;
+            this.iType = iType;
+            flip       = iType & 1; // lowest bit
             distance   = 0;
             rotate     = 0;
             expos      = new Position();
@@ -912,6 +911,16 @@ public class Tiler implements Serializable {
         } // getType
 
         /**
+         * Gets the name (via the {@link #VertexType}) of <em>this</em> Vertex
+         * @return uppercase letter (for non-flipped) or lowercase letter (for flipped)
+         */
+        public String getName() {
+            return flip == 0 
+                    ? mVertexTypes[iType].name
+                    : mVertexTypes[iType].name.toLowerCase();
+        } // getName
+
+        /**
          * Returns a JSON representation of the Vertex
          * @return JSON for all properties
          */
@@ -920,6 +929,7 @@ public class Tiler implements Serializable {
             String result
                     = "{ \"i\": "        + String.format("%4d", index)
                     + ", \"type\": "     + String.format("%2d", iType)
+                //  + ", \"name\": "     + String.format("%2d", getName()
                     + ", \"rot\": "      + String.format("%3d", rotate)
                     + ", \"fix\": "      + fixedEdges
                     + ", \"succs\": \""  + join(",", succs ) + "\""
@@ -937,7 +947,7 @@ public class Tiler implements Serializable {
          * @return JSON for edges
          */
         public String toString() {
-            return index + getType().name + " @" + rotate + expos + "->" + join(",", succs).replaceAll("[\\[\\]]", "");
+            return index + getName() + " @" + rotate + expos + "->" + join(",", succs).replaceAll("[\\[\\]]", "");
         } // Vertex.toString
 
         /**
@@ -995,7 +1005,7 @@ public class Tiler implements Serializable {
             }
             sum = normAngle(sum);
             if (sDebug >= 2) {
-                    System.out.println("#         getAngle(iedge " + iedge + ")." + index + vtype.name + "@" + rotate + expos
+                    System.out.println("#         getAngle(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
                             + ", suType " + suType.toString()
                             + " -> swNormal " + normAngle(swNormal) + ", swFlipped " + normAngle(swFlipped)
                             + ", focus.flipped " + vtype.isFlipped() + ", succ.flipped " + suType.isFlipped()
@@ -1017,7 +1027,7 @@ public class Tiler implements Serializable {
             angle = normAngle(angle);
             VertexType vtype = mVertexTypes[iType];
             if (sDebug >= 3) {
-                    System.out.println("#       try getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + " ?");
+                    System.out.println("#       try getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + " ?");
             }
             int iedge = 0;
             boolean busy = true;
@@ -1037,11 +1047,11 @@ public class Tiler implements Serializable {
             }
             if (sDebug >= 2) {
                 if (iedge >= 0) {
-                    System.out.println("#       getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + expos
+                    System.out.println("#       getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + expos
                             + " -> " + iedge + " -> "
                             + mVertexTypes[vtype.tipes[iedge]].name);
                 } else {
-                    System.out.println("# ** assertion 5: getEdge(angle " + angle + ")." + index + vtype.name + "@" + rotate + expos
+                    System.out.println("# ** assertion 5: getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + expos
                             + " -> " + iedge + " -> edge not found");
                 }
             }
@@ -1068,7 +1078,7 @@ public class Tiler implements Serializable {
                     ] * (vtype.isFlipped() ? -1 : +1));
             int fAngle  = getAngle(iedge); // points to the successor
             if (sDebug >= 2) {
-                System.out.println("#     getSuccessor(iedge " + iedge + ")." + index + vtype.name + "@" + rotate + expos
+                System.out.println("#     getSuccessor(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
                         + " start: siType " + siType + ", suRota " + suRota);
             }
             Vertex succ = new Vertex(siType); // create a new Vertex
@@ -1077,7 +1087,7 @@ public class Tiler implements Serializable {
             int bangle  = normAngle(fAngle + 180); // points backwards to the focus
             succ.bedge  = succ.getEdge(bangle);
             if (sDebug >= 2) {
-                System.out.println("#             got (iedge " + iedge + ")." + index + vtype.name + "@" + rotate + expos
+                System.out.println("#             got (iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
                         + " -> " + succ.toString() + ", fAngle " + fAngle + ", bangle " + bangle + ", bedge " + bedge);
             }
             return succ;
@@ -1102,15 +1112,15 @@ public class Tiler implements Serializable {
             if (sDebug >= 2) {
                 System.out.println("#--------\n# call attach(vertex " + focus.toString() + ", iedge " + iedge + ")");
                 System.out.println("#     candidate successor is "
-                        + succ.getType().name + "@" + succ.rotate + succ.expos + ", bedge " + succ.bedge);
+                        + succ.getName() + "@" + succ.rotate + succ.expos + ", bedge " + succ.bedge);
             }
             int suEdge = succ.bedge;
             if (suEdge < 0) { // not found
-            	if (mSVG) {
+                if (mSVG) {
                     succ.showSVGVertex();
                 }
                 if (sDebug >= 1) {
-                    System.out.println("# ** assertion 1 in attach(focus " + focus.index + foType.name + "\t, edge " + iedge
+                    System.out.println("# ** assertion 1 in attach(focus " + focus.index + focus.getName() + "\t, edge " + iedge
                             + "): no match in succ " + succ.toString());
                 }
                 if (mSVG) {
@@ -1130,7 +1140,7 @@ public class Tiler implements Serializable {
                     succ.succs[suEdge] = focus.index; // set backward link
                 } else if (succ.succs[suEdge] != focus.index) {
                     if (mSVG) {
-                    	succ.showSVGVertex();
+                        succ.showSVGVertex();
                     }
                     if (sDebug >= 1) {
                         System.out.println("# ** assertion 2 in attach(focus " + focus.toString()
@@ -1199,7 +1209,7 @@ public class Tiler implements Serializable {
                 result += sIndent + (ind == 0 ? "  [ " : sep) + getVertexType(ind).toJSON();
             } // for types
             result += sIndent + "  ]\n";
-            System.err.println(result);
+            System.out.println(result);
         }
         int distance = 0; // also index for terms
         queue.add(addVertex(iBaseType));
@@ -1266,7 +1276,8 @@ public class Tiler implements Serializable {
             writeBFile("tail");
         }
         if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
-            System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t" + termNo + " terms verified");
+            System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t" 
+                    + String.valueOf(mMaxDistance + 1) + " terms verified");
         }
         if (mSVG) {
             for (int ind = 2; ind < ffVertices; ind ++) { // ignore reserved [0..1]
@@ -1366,7 +1377,7 @@ public class Tiler implements Serializable {
         // mTreePosition.put(vertex.expos.toString(), vertex.index);
     /*
         if (sDebug >= 3) {
-        	System.out.println("# assigned mTrHaPosition[" + vertex.expos.toString() + "] := " + vertex.index);
+            System.out.println("# assigned mTrHaPosition[" + vertex.expos.toString() + "] := " + vertex.index);
         }
     */
         return vertex.index;
@@ -1412,7 +1423,7 @@ public class Tiler implements Serializable {
         }
         // popIndent();
         return result;
-    } // Tiler.toJSON
+    } // Tiler2.toJSON
 
     /**
      * Process one record from the file
@@ -1491,7 +1502,7 @@ public class Tiler implements Serializable {
      */
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
-        Tiler tiler = new Tiler();
+        Tiler2 tiler = new Tiler2();
         sDebug = 0;
         try {
             int iarg = 0;
@@ -1534,5 +1545,5 @@ public class Tiler implements Serializable {
         System.err.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
     } // main
 
-} // Tiler
+} // Tiler2
 

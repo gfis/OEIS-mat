@@ -4,30 +4,51 @@
  * 2020-04-25, Georg Fischer
  */
 rect    { fill:white; stroke: white; stroke-width:0.1 }
-line    { stroke-width:0.15}
+line    { stroke-width:0.06}
 circle  { stroke-width:0.01 }
 text    { stroke-width:0.008; font: 0.2px sans-serif;
-         text-anchor: middle; alignment-baseline: center }
+          text-anchor: middle; alignment-baseline: center }
 .dash   { stroke-dasharray:0.06 }
-.l0,.c0 { fill: Magenta       ; stroke: Magenta       }
-.l1,.c1 { fill: Crimson       ; stroke: Crimson       }
-.l2,.c2 { fill: SandyBrown    ; stroke: SandyBrown    }
-.l3,.c3 { fill: ForestGreen   ; stroke: ForestGreen   }
-.l4,.c4 { fill: DarkTurquoise ; stroke: DarkTurquoise }
-.l5,.c5 { fill: Blue          ; stroke: Blue          }
-.l6,.c6 { fill: black         ; stroke: black         }
-.l7,.c7 { fill: gray          ; stroke: gray          }
-.l8,.c7 { fill: white         ; stroke: white         }
+.l0 {stroke: DodgerBlue    }
+.l1 {stroke: LightCoral    }
+.l2 {stroke: SpringGreen   }
+.l3 {stroke: RosyBrown     }
+.l4 {stroke: Lime          }
+.l5 {stroke: Blue          }
+.l6 {stroke: black         }
+.l7 {stroke: gray          }
+.l8 {stroke: white         }
+/*
+.l0 {stroke: Silver     }
+.l1 {stroke: Silver     }
+.l2 {stroke: Silver     }
+.l3 {stroke: Silver     }
+.l4 {stroke: Silver     }
+.l5 {stroke: Silver     }
+.l6 {stroke: Silver     }
+.l7 {stroke: Silver     }
+.l8 {stroke: Silver     }
+*/
+.c0 { fill: Blue          ; stroke: DarkSlateGray }
+.c1 { fill: Crimson       ; stroke: DarkSlateGray }
+.c2 { fill: LimeGreen     ; stroke: DarkSlateGray }
+.c3 { fill: RosyBrown     ; stroke: DarkSlateGray }
+.c4 { fill: Lime          ; stroke: DarkSlateGray }
+.c5 { fill: Blue          ; stroke: DarkSlateGray }
+.c6 { fill: black         ; stroke: DarkSlateGray }
+.c7 { fill: gray          ; stroke: DarkSlateGray }
+.c7 { fill: white         ; stroke: DarkSlateGray }
+.c8 { fill: white         ; stroke: DarkSlateGray }
 
 .t0 { fill: white         ; stroke: white }
 .t1 { fill: white         ; stroke: white }
-.t2 { fill: black         ; stroke: black }
+.t2 { fill: white         ; stroke: white }
 .t3 { fill: white         ; stroke: white }
 .t4 { fill: black         ; stroke: black }
 .t5 { fill: white         ; stroke: white }
 .t6 { fill: white         ; stroke: white }
 .t7 { fill: white         ; stroke: white }
-.t8 { fill: white         ; stroke: white }
+.t8 { fill: black         ; stroke: black }
 
 .tent { fill: lightgray   ; stroke: lightgray   ; stroke-width:0.10  }
 .test { fill: lightsalmon ; stroke: lightsalmon ; stroke-width:0.03  }

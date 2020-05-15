@@ -19,7 +19,7 @@ COMMON=../common
 D=0 # debug mode
 
 all: gather update
-#	echo select specific target 
+#   echo select specific target 
 #================
 init:
 	mkdir bfile
@@ -37,7 +37,7 @@ break:
 	's{\A\<b\>(Gal\.\d+\.\d+\.\d+)\:\s+(\d)}{\<a name\=\"$$1\" \/\>\n\<b\>$$1\: $$2}i;' \
 	$@.tmp > a250120.a.html
 	tail -n16 a250120.a.html
-#	's{(.)(A\d{6})(.)}{\1\<a href=\"https://oeis.org/\2\" target=\"_blank\"\>\2\<\/a\>\3}g; '
+#   's{(.)(A\d{6})(.)}{\1\<a href=\"https://oeis.org/\2\" target=\"_blank\"\>\2\<\/a\>\3}g; '
 extract:
 	perl extract_gal.pl break.tmp \
 	>        $@.tmp
@@ -97,10 +97,10 @@ LEN=128
 updano3:
 	$(DBAT) -v "UPDATE coors c SET c.aseqno = c.rseqno WHERE EXISTS \
 	  ( SELECT d.aseqno \
-	    FROM   asdata d \
-	    WHERE d.aseqno = c.rseqno \
-	      AND SUBSTR(c.sequence, 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
-	       =  SUBSTR(d.data    , 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+		FROM   asdata d \
+		WHERE d.aseqno = c.rseqno \
+		  AND SUBSTR(c.sequence, 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+		   =  SUBSTR(d.data    , 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
 	  ) "
 update_same:
 	$(DBAT) -x "SELECT c.aseqno, c.galid, c.sequence \
@@ -145,7 +145,7 @@ bigbf1:
 		CAST(CASE WHEN b.bfimax > 1000 THEN 1000 ELSE b.bfimax END AS CHAR) \
 	  FROM coors c, bfinfo b \
 	  WHERE c.aseqno = b.aseqno \
-	    AND b.bfimax > 49 \
+		AND b.bfimax > 49 \
 	  ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -180,11 +180,11 @@ checkbf:
 	make -s checkbf1
 checkbf1:
 	$(DBAT) -x "SELECT c.aseqno, c.galid, c.sequence \
-	    FROM  coors c, asdata d \
-	    WHERE c.aseqno = d.aseqno \
-	      AND SUBSTR(c.sequence, 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
-	       <> SUBSTR(d.data    , 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
-	    ORDER BY 1, 2" \
+		FROM  coors c, asdata d \
+		WHERE c.aseqno = d.aseqno \
+		  AND SUBSTR(c.sequence, 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+		   <> SUBSTR(d.data    , 1, (CASE WHEN LENGTH(d.data) < LENGTH(c.sequence) THEN LENGTH(d.data) ELSE LENGTH(c.sequence) END)) \
+		ORDER BY 1, 2" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -204,7 +204,7 @@ checkano:
 	  , SUBSTR(c.sequence, 1, $(LEN)), SUBSTR(d.data, 1, $(LEN)) \
 	  FROM  coors c, asdata d \
 	  WHERE r.aseqno = d.aseqno \
-	    AND SUBSTR(c.sequence, 1, $(LEN)) <> SUBSTR(d.data, 1, $(LEN)) \
+		AND SUBSTR(c.sequence, 1, $(LEN)) <> SUBSTR(d.data, 1, $(LEN)) \
 	  ORDER BY 2" \
 	>        $@.tmp
 	tail -n4 $@.tmp
@@ -219,9 +219,9 @@ checkun:
 	  , '#' \
 	  FROM coors c, bfinfo b, asdata d, asname n \
 	  WHERE c.aseqno LIKE 'unk%' \
-	    AND c.rseqno = b.aseqno \
-	    AND c.rseqno = d.aseqno \
-	    AND c.rseqno = n.aseqno \
+		AND c.rseqno = b.aseqno \
+		AND c.rseqno = d.aseqno \
+		AND c.rseqno = n.aseqno \
 	  ORDER BY 4, 2" \
 	| sed -e "s/#/\nOEIS\t\t\t\t\t/g" \
 	>        $@.tmp
@@ -250,15 +250,15 @@ check_unk:
 #================
 program:
 	$(DBAT) -x "SELECT DISTINCT i.aseqno, c.tileid || '.' || c.galv, b.bfimin, b.bfimax, i.program \
-	    , COALESCE(c.noflip, '-'), COALESCE(j.superclass, 'jnyi') \
-	    FROM asinfo i, bfinfo b, coors c \
-	    LEFT JOIN joeis j ON c.aseqno = j.aseqno \
-	    WHERE i.aseqno = b.aseqno \
-	      AND b.aseqno = c.aseqno \
-	      AND ( b.bfimax > 50 OR LENGTH(i.program) > 0 \
-	            OR i.aseqno IN (SELECT aseqno FROM cojec) \
-	          ) \
-	    ORDER BY 1" \
+		, COALESCE(c.noflip, '-'), COALESCE(j.superclass, 'jnyi') \
+		FROM asinfo i, bfinfo b, coors c \
+		LEFT JOIN joeis j ON c.aseqno = j.aseqno \
+		WHERE i.aseqno = b.aseqno \
+		  AND b.aseqno = c.aseqno \
+		  AND ( b.bfimax > 50 OR LENGTH(i.program) > 0 \
+				OR i.aseqno IN (SELECT aseqno FROM cojec) \
+			  ) \
+		ORDER BY 1" \
 	>        $@.tmp
 	head -n100 $@.tmp
 	wc -l    $@.tmp
@@ -269,42 +269,57 @@ GAL=2.9
 ID=1
 GALID=Gal.$(GAL).$(ID)
 NMAX=29061947
-SVG=-svg test.svg
+SVG=-svg Test.svg
 BFILE=-bfile bfile/
+BFILP=-bfile bfilp/
 SELECT=1
 #----------------
 select:
-	grep -E "Gal\.$(GAL)\." extract.tmp > tiler.tst
-#--
+	grep -E "Gal\.$(GAL)\." extract.tmp > $@.tst
+test: test1 test2
+test1: compile1 run1
+test2: compile2 run2
+compile: compile1 compile2
+compile1:
+	javac Tiler1.java 
+compile2:
+	javac Tiler2.java 
+#----
+run: run1 run2
+run1: select
+	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -bfile bfile1/ -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f select.tst > $@.tmp 
+	grep -i assertion $@.tmp || :
+run2:
+	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -bfile bfile2/ -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f select.tst > $@.tmp 
+	grep -i assertion $@.tmp || :
+	# diff -wy --suppress-common-lines run1.tmp run2.tmp || :
+	ls -tc1r bfile/* | tail -n1 | cut -b8- \
+	| xargs -l -i{} diff -wy --suppress-common-lines bfile1/{} bfile2/{} || :
+#-----------------
 pave: compave pavr
 compave:
 	javac Paver.java 
-pavr: select
-	java -cp . Paver -id $(GALID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
-	grep -i assertion test.tmp || :
-	grep -i distance  test.tmp || :
-	head -n4 test.tmp
-	wc -l    test.tmp 
+pavr: selecp
 #--
 tile: compile tilr
-compile:
-	javac Tiler.java 
-tils: select 
-	java -cp . Tiler -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst
 tilr: select 
 	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
 	grep -i assertion test.tmp || :
 	head -n4 test.tmp
 	wc -l    test.tmp 
+#----
+#----
+tils: select 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst
 run3:
 	rm 3.44.txt
 	java -cp . Tiler -id Gal.3.44.1 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 	java -cp . Tiler -id Gal.3.44.2 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 	java -cp . Tiler -id Gal.3.44.3 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
-run: select
+runold: select
 	java -cp . Tiler -id $(GALID)   $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
 deploy:
-	scp test.svg tiling.css gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/coors
+	scp *est.svg tiling.css gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/coors
 #================
 test_mma:
 	echo "Print[InputForm[Simplify[(x-1)^2*(x^6+x^5+x^4+x^3+x^2+x+1)^2]]];" > test.mma
@@ -345,10 +360,10 @@ denom:
 	head -n4 $@.tmp
 	wc -l    $@.tmp 
 #================
-# A008486	Gal.1.1.1	[-(x^2+x+1)/(-x^2+2*x-1), ogf]
-# A024313	lingfo	0	(-3+2*x^7+3*x^5+x^4-4*x^3+2*x^2)/((x^2+x-1)*(x^4+x^2-1)^2)	ogf	Gal.1.2.3
-#	sed -e "s/\[/lingfo\t0\t/" -e "s/\, *ogf\]/\togf/" -e "s/\r//" guessall.128.txt 
-#	| perl -ne 'if (length($$_) < 2048) { print; }' 
+# A008486   Gal.1.1.1   [-(x^2+x+1)/(-x^2+2*x-1), ogf]
+# A024313   lingfo  0   (-3+2*x^7+3*x^5+x^4-4*x^3+2*x^2)/((x^2+x-1)*(x^4+x^2-1)^2)  ogf Gal.1.2.3
+#   sed -e "s/\[/lingfo\t0\t/" -e "s/\, *ogf\]/\togf/" -e "s/\r//" guessall.128.txt 
+#   | perl -ne 'if (length($$_) < 2048) { print; }' 
 tilegf:
 	perl -ne 's{\s+\Z}{}; my ($$aseqno, $$galid, $$fract) = split(/\t/); '\
 	'$$fract =~ s{\[}{}; $$fract =~ s{\, *ogf\]}{}; '\
@@ -435,7 +450,8 @@ verify:
 	make -s -f $@.tmp | tee verify.$(SELECT).log
 verify1: 
 	grep -E "Gal\.$(GAL)\." extract.tmp > tiler.tst
-	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
+	java -cp . Tiler -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst > test.tmp
+	grep -i assertion test.tmp || :
 #================
 bcheck:
 	rm -f bcheck.log
@@ -446,7 +462,7 @@ bcheck1:
 	diff -wy --suppress-common-lines --width=32 x.tmp $(BF) | head -n4 >> bcheck.log || :
 #================
 zip:
-	zip coors.`date +%Y-%m-%d.%H`.zip *.java *.pl makefile test.svg test.tmp *.css
+	zip coors.`date +%Y-%m-%d.%H`.zip *.java *.pl makefile Test.svg test.tmp *.css
 #================
 # old targets
 circle:
