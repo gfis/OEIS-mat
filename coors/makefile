@@ -263,7 +263,7 @@ program:
 	head -n100 $@.tmp
 	wc -l    $@.tmp
 #================
-DIST=16
+DIST=8
 D=0
 GAL=2.9
 ID=1
@@ -303,6 +303,15 @@ run3:
 	java -cp . Tiler -id Gal.3.44.3 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
 run: select
 	java -cp . Tiler -id $(GALID)   $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
+deploy:
+	scp test.svg tiling.css gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/coors
+#================
+test_mma:
+	echo "Print[InputForm[Simplify[(x-1)^2*(x^6+x^5+x^4+x^3+x^2+x+1)^2]]];" > test.mma
+	scp test.mma pi@piras:
+	ssh pi@piras 'cat test.mma | wolfram -noinit > out.tmp'
+	scp pi@piras:out.tmp .
+	cat out.tmp
 #================
 runall:
 	rm -f $@.tmp
@@ -375,13 +384,29 @@ denpoly:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 densimplify:
-	perl callmaple.pl -p simplify.mpat denpoly.tmp \
+	perl callmaple.pl -p factor.mpat denpoly.tmp \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+densimma1:
+	perl callmma.pl -p Simplify.tpat denpoly.tmp \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+densimma2:
+	perl callmma.pl -p FactorList.tpat denpoly.tmp \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+# perl -ne "print if m{\t\(\-1 \+ x\^\d+\)\^2\n}" densimma.simplify.man
 GCD=
 denfactor:
 	perl denfactor.pl $(GCD) densimplify.tmp \
+	| sort | uniq -c | sort -rn > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+demfactor:
+	perl demfactor.pl densimma2.tmp \
 	| sort | uniq -c | sort -rn > $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp

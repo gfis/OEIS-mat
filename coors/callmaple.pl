@@ -5,9 +5,9 @@
 # 2020-05-11, Georg Fischer: copied from tilemaple.pl
 # 
 #:# Usage:
-#:#   perl cmaple.pl [-n num] [-t timeout] [-p patternfile] inputfile ... > outputfile
+#:#   perl callmaple.pl [-n num] [-t timeout] [-p patternfile.mpat] inputfile ... > outputfile
 #:#       -n    number of lines to be processed b one Maple activation (default 64)
-#:#       -p    file with the pattern form Maple, maybe preceeded by a header and an empty line
+#:#       -p    file with the pattern for Maple, maybe preceeded by a header and an empty line
 #:#       -t    timeout for Maple in s (default 16)
 #
 # The pattern file may contain variables of the form $(PARM0), $(PARM1), $(PARM2) ...

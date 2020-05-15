@@ -1,38 +1,36 @@
 /* Stylesheet for uniform tilings
  * @(#) $Id$
+ * 2020-05-14: 6 colors
  * 2020-04-25, Georg Fischer
  */
-rect, line { stroke-width:0.05 }
-circle { stroke-width:0.01 }
-text   { stroke-width:0.005; font: 0.1px sans-serif;
+rect    { fill:white; stroke: white; stroke-width:0.1 }
+line    { stroke-width:0.15}
+circle  { stroke-width:0.01 }
+text    { stroke-width:0.008; font: 0.2px sans-serif;
          text-anchor: middle; alignment-baseline: center }
-.dash  { stroke-dasharray:0.06 }
-.l0 { fill: crimson     ; stroke: crimson     }
-.l1 { fill: orange      ; stroke: orange      }
-.l2 { fill: green       ; stroke: green       }
-.l3 { fill: blue        ; stroke: blue        }
-.l4 { fill: darkblue    ; stroke: darkblue    }
-.l5 { fill: firebrick   ; stroke: firebrick   }
-.l6 { fill: magenta     ; stroke: magenta     }
-.l7 { fill: darkmagenta ; stroke: darkmagenta }
-.l8 { fill: black       ; stroke: red         }
+.dash   { stroke-dasharray:0.06 }
+.l0,.c0 { fill: Magenta       ; stroke: Magenta       }
+.l1,.c1 { fill: Crimson       ; stroke: Crimson       }
+.l2,.c2 { fill: SandyBrown    ; stroke: SandyBrown    }
+.l3,.c3 { fill: ForestGreen   ; stroke: ForestGreen   }
+.l4,.c4 { fill: DarkTurquoise ; stroke: DarkTurquoise }
+.l5,.c5 { fill: Blue          ; stroke: Blue          }
+.l6,.c6 { fill: black         ; stroke: black         }
+.l7,.c7 { fill: gray          ; stroke: gray          }
+.l8,.c7 { fill: white         ; stroke: white         }
+
+.t0 { fill: white         ; stroke: white }
+.t1 { fill: white         ; stroke: white }
+.t2 { fill: black         ; stroke: black }
+.t3 { fill: white         ; stroke: white }
+.t4 { fill: black         ; stroke: black }
+.t5 { fill: white         ; stroke: white }
+.t6 { fill: white         ; stroke: white }
+.t7 { fill: white         ; stroke: white }
+.t8 { fill: white         ; stroke: white }
+
 .tent { fill: lightgray   ; stroke: lightgray   ; stroke-width:0.10  }
 .test { fill: lightsalmon ; stroke: lightsalmon ; stroke-width:0.03  }
-.c0 { fill: white       ; stroke: black }
-.c1 { fill: salmon      ; stroke: black }
-.c2 { fill: yellow      ; stroke: black }
-.c3 { fill: orange      ; stroke: black }
-.c4 { fill: lime        ; stroke: black }
-.c5 { fill: turquoise   ; stroke: black }
-.c6 { fill: blue        ; stroke: black }
-.c7 { fill: darkblue    ; stroke: black }
-.c8 { fill: darkmagenta ; stroke: black }
-.t0 { fill: white       ; stroke: white }
-.t1 { fill: white       ; stroke: white }
-.t2 { fill: black       ; stroke: black }
-.t3 { fill: black       ; stroke: black }
-.t4 { fill: black       ; stroke: black }
-.t5 { fill: black       ; stroke: black }
-.t6 { fill: black       ; stroke: black }
-.t7 { fill: white       ; stroke: white }
-.t8 { fill: white       ; stroke: white }
+.nota { fill: black; stroke: black; stroke-width:0.01; font: 0.8px sans-serif; 
+        text-anchor: start; alignment-baseline: top }
+

@@ -1,7 +1,8 @@
 /* Generate tilings from Galebach's list
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
- * 2020-05-12: mTreePosition and mHashPosition
+ * 2020-05-14: new colors
+ * 2020-05-12: mHashPosition only, comparing Position.toString()
  * 2020-05-08: -a aseqno
  * 2020-04-30: cleaned
  * 2020-04-29: 4th version, flipped straight from backwards
@@ -17,8 +18,10 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.TreeMap;
@@ -199,8 +202,9 @@ public class Tiler implements Serializable {
                     mSVGWriter.println(text);
                 }
             } else if (param.startsWith("<x-head")) { // special tag
-                int w1 = 8;
-                int w2 = 2 * w1;
+            	// viewBox="-w1 -w1 w2 w2"
+                int w1 = mMaxDistance;
+                int w2 = 2 * w1; 
                 param = param.replaceAll("\\<[^\\>]+\\>([^\\<]+)\\<.*", "$1");
                 mSVGCount = mNumTerms;
                 if (param.equals("-")) { // stdout
@@ -209,18 +213,20 @@ public class Tiler implements Serializable {
                      WritableByteChannel channel = (new FileOutputStream (param, false)).getChannel();
                      mSVGWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
                 } // not stdout
+                String timestamp = (new SimpleDateFormat("yyyy-MM-dd' 'HH:mm")).format(new java.util.Date());
                 text = ""
                 + "<?xml version=\"1.0\"?>\n"
+                + "<!--\n"
+                + "    Written with Tiler.java at " + timestamp + " - Georg Fischer. Do NOT edit here!\n"
+                + "-->\n"
                 + "<?xml-stylesheet type=\"text/css\" href=\"tiling.css\" ?>\n"
                 + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
                 + "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-                + "    width=\"192mm\" height=\"192mm\" viewBox=\"-" + w1 + " -" + w1 + " " + w2 + " " + w2 + "\" >\n"
-                + "<!--\n"
-                + "    Tiler - Georg Fischer. Do NOT edit here!\n"
-                + "-->\n"
+                + "    width=\"192mm\" height=\"192mm\" viewBox=\"-" + w1 + " -" + w1 + " " + w2 + " " + w2 + "\" >\n" // spaces are important!
                 + "<title>Uniform Tiling</title>\n"
                 + "<g id=\"tile\">\n"
-                + "<rect class=\"l8\" fill=\"black\" x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
+                + "<rect x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
+                + "<text class=\"nota\" x=\"-" + w1 +"\" y=\"-" + (w1 - 1) + "\">&#xa0;" + mGalId + "</text>"
                 ;
                 mSVGWriter.println(text);
             } else if (param.startsWith("<x-tail")) { // special tag
@@ -238,24 +244,27 @@ public class Tiler implements Serializable {
         } // try
     } // writeSVG
 
+    /** Color in dices in tilings.css cycle through 0..5 */
+    private static final int COLOR_MOD = 6;
+    
     /**
      * Writes an edge from the focus to a successur {@link Vertex} to the SVG file.
      * @param focus starting Vertex
      * @param succ  ending   Vertex
-     * @param iedge number of edge in the focus
-     * @param mode  0=normal, 1=tentative
+     * @param distance distance from baseVertex, for coloring
+     * @param mode  0=normal, 1=tentative, 2=test
      */
-    public void writeSVGEdge(Vertex focus, Vertex succ, int iedge, int mode) {
+    public void writeSVGEdge(Vertex focus, Vertex succ, int distance, int mode) {
         switch (mode) {
             default:
             case 0: // normal
-                writeSVG("<line class=\"l" + String.valueOf((iedge) % 8)
+                writeSVG("<line class=\"l" + String.valueOf(distance % COLOR_MOD)
                         + "\" x1=\"" + focus.expos.getX()
                         + "\" y1=\"" + focus.expos.getY()
                         + "\" x2=\"" + succ.expos.getX()
                         + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
-                        + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
+                        + "\"><title>" + focus.index + mVertexTypes[focus.iType].name
+                        + "->"         + succ .index + mVertexTypes[succ .iType].name
                         + "</title></line>");
                 break;
             case 1: // tentative
@@ -264,8 +273,8 @@ public class Tiler implements Serializable {
                         + "\" y1=\"" + focus.expos.getY()
                         + "\" x2=\"" + succ.expos.getX()
                         + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
-                        + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
+                        + "\"><title>" + focus.index + mVertexTypes[focus.iType].name
+                        + "->"         + succ .index + mVertexTypes[succ .iType].name
                         + "</title></line>");
                 break;
             case 2: // test
@@ -274,8 +283,8 @@ public class Tiler implements Serializable {
                         + "\" y1=\"" + focus.expos.getY()
                         + "\" x2=\"" + succ.expos.getX()
                         + "\" y2=\"" + succ.expos.getY()
-                        + "\"><title>"        + focus.index + mVertexTypes[focus.iType].name
-                        + "-" + iedge + "->"  + succ .index + mVertexTypes[succ .iType].name
+                        + "\"><title>" + focus.index + mVertexTypes[focus.iType].name
+                        + "->"         + succ .index + mVertexTypes[succ .iType].name
                         + "</title></line>");
                 break;
         } // switch (mode)
@@ -284,24 +293,24 @@ public class Tiler implements Serializable {
     /**
      * Writes a circle centered at the position of a {@link Vertex} to the SVG file.
      * @param focus Vertex to be drawn
-     * @param mode  0=normal, 1=tentative
+     * @param mode  0=normal, 1=tentative, 2=test
      */
     public void writeSVGVertex(Vertex focus, int mode) {
-        String var = String.valueOf(focus.iType % 8);
+        String color = String.valueOf(focus.distance % COLOR_MOD);
         String name = mVertexTypes[focus.iType].name;
         switch (mode) {
             default:
             case 0:
-                writeSVG("<g><circle class=\"c" + ((focus.distance + 2) % 4)
+                writeSVG("<g><circle class=\"c" + color
                         + "\" cx=\"" + focus.expos.getX()
                         + "\" cy=\"" + focus.expos.getY()
-                        + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
+                        + "\" r=\""  + (focus.index == 2 ? "0.3" : "0.15") + "\">" // bigger if baseVertex
                         + "</circle>"
-                        + "<text class=\"t"  + var
+                        + "<text class=\"t"  + color
                         + "\" x=\""  + focus.expos.getX()
                         + "\" y=\""  + focus.expos.getY()
-                        + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
-                        + "<title>"  + name + focus.rotate + "</title>"
+                        + "\" dy=\"0.03px\">" + name + "</text>"
+                        + "<title>"  + String.valueOf(focus.index) + name + focus.rotate + "</title>"
                         + "</g>"
                         );
                 break;
@@ -310,13 +319,13 @@ public class Tiler implements Serializable {
                 writeSVG("<g><circle class=\"test"
                         + "\" cx=\"" + focus.expos.getX()
                         + "\" cy=\"" + focus.expos.getY()
-                        + "\" r=\""  + (focus.index == 2 ? "0.15" : "0.1") + "\">"
+                        + "\" r=\""  + (focus.index == 2 ? "0.3" : "0.15") + "\">"
                         + "</circle>"
-                        + "<text class=\"t"  + var
+                        + "<text class=\"t"  + color
                         + "\" x=\""  + focus.expos.getX()
                         + "\" y=\""  + focus.expos.getY()
-                        + "\" dy=\"0.03px\">" + String.valueOf(focus.index) + name + "</text>"
-                        + "<title>"  + name + focus.rotate + "</title>"
+                        + "\" dy=\"0.03px\">" + name + "</text>"
+                        + "<title>"  + String.valueOf(focus.index) + name + focus.rotate + "</title>"
                         + "</g>"
                         );
                 break;
