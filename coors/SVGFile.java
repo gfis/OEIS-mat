@@ -28,15 +28,16 @@ public class SVGFile {
   /** Whether SVG output is enabled */
   public static boolean sEnabled;
   
+  /** Filename for SVG output */
+  public static String fileName;
+
   /**
    * Opens the SVG file
-   * @param param "-" for STDIN or a filename (the ending ".svg" may be omitted).
    * @param maxDistance length of path to outer shell
    * @param galId name of the tiling
    */
-  public static void open(String param, int maxDistance, String galId) {
+  public static void open(int maxDistance, String galId) {
     try {
-    	String fileName = param;
       if (fileName.equals("-")) { // stdout
          sSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), sEncoding));
       } else { // not stdout

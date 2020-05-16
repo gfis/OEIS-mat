@@ -15,28 +15,28 @@ import java.io.Serializable;
 public class VertexType implements Serializable {
   public final static String CVSID = "@(#) $Id: Vertex.java $";
 
+  int    index;    // even for normal type, odd for flipped version
+  String vertexId; // e.g. "12.6.4"
+  int    edgeNo;   // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
+  int[]  polys;    // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
+                   // are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type.
+                   // First edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
+  VertexType[] proxyTypes; // VertexTypes of target vertices - set only in completeVertexTypes
+  int[]  tipes;    // VertexType indices of target vertices (normally even, odd if flipped / C')
+  int[]  rotas;    // how many degrees must the target vertices be rotated, from Galebach
+  int[]  sweeps;   // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
+/*Shas    
+  int[]  leShas;   // shapes / polygones from the focus to the left  of the edge
+  int[]  riShas;   // shapes / polygones from the focus to the right of the edge
+Shas*/
+  String galId;    // e.g. "Gal.2.1.1"
+  String name;     // for example "A" for normal or "a" (lowercase) for flipped version
+  String aSeqNo;   // OEIS A-number of {@link #sequence}
+  String sequence; // list of terms of the coordination sequence
+
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
   
-  int    index; // even for normal type, odd for flipped version
-  String vertexId; // e.g. "12.6.4"
-  int    edgeNo; // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
-  int[]  polys; // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
-      // are arranged clockwise (for SVG, counter-clockwise by Galebach)
-      // around this vertex type.
-      // First edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
-  int[]  tipes; // VertexType indices of target vertices (normally even, odd if flipped / C')
-  int[]  rotas; // how many degrees must the target vertices be rotated, from Galebach
-  int[]  sweeps; // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
-/*Shas    
-  int[]  leShas; // shapes / polygones from the focus to the left  of the edge
-  int[]  riShas; // shapes / polygones from the focus to the right of the edge
-Shas*/
-  String galId; // e.g. "Gal.2.1.1"
-  String name; // for example "A" for normal or "a" (lowercase) for flipped version
-  String aSeqNo; // OEIS A-number of {@link #sequence}
-  String sequence; // list of terms of the coordination sequence
-
   /**
    * Empty constructor
    */
@@ -57,59 +57,6 @@ Shas*/
     aSeqNo   = "";
     sequence = "";
   } // VertexType()
-
-  /**
-   * Returns a simple representation of the VertexType
-   * @return the most important properties
-   */
-  public String toString() {
-    return "{" + index + name + "}";
-  } // VertexType.toString
-
-  /**
-   * Returns a representation of the VertexType
-   * @return JSON for all properties
-   */
-  public String toJSON() {
-    Tiling.pushIndent();
-    String result
-        = "{ \"i\": \""     + index + "\""
-        + ", \"name\": \""  + name  + "\""
-        + ", \"vid\": \""   + vertexId + "\""
-        + ", \"polys\": "   + Tiling.join(",", polys)
-        + ", \"sweeps\": "  + Tiling.join(",", sweeps)
-        + ", \"rotas\": "   + Tiling.join(",", rotas)
-        + ", \"tipes\": "   + Tiling.join(",", tipes)
-    /*
-        + ", \"leShas\": "  + Tiling.join(",", leShas)
-        + ", \"riShas\": "  + Tiling.join(",", riShas)
-    */
-        + ", \"galId\": \"" + galId + "\""
-        + " }\n";
-    Tiling.popIndent();
-    return result;
-  } // VertexType.toJSON
-
-  /**
-   * Limits the index of an edge of <em>this</em> VertexType to the range 0..edgeNo - 1.
-   * @param iedge number of edge, maybe negative
-   * @return an edge number in the range 0..edgeNo - 1
-   */
-  public int normEdge(int iedge) {
-    int result = iedge;
-    while (result < 0) { // ensure non-negative
-      result += edgeNo;
-    } // while negative
-    return result % edgeNo;
-  } // normEdge
-  
-  /**
-   * Determines whether <em>this</em> {@link VertexType} is flipped
-   * @return true if the index is odd, false otherwise
-   */
-  public boolean isFlipped() {
-    return  (index & 1) == 1;
-  } // isFlipped
 
   /**
    * Constructor from input file parameters
@@ -214,6 +161,59 @@ Shas*/
     result.name     = chiral ? name.toLowerCase() : name;
     return result;
   } // getFlippedClone
+
+  /**
+   * Returns a simple representation of the VertexType
+   * @return the most important properties
+   */
+  public String toString() {
+    return "{" + index + name + "}";
+  } // VertexType.toString
+
+  /**
+   * Returns a representation of the VertexType
+   * @return JSON for all properties
+   */
+  public String toJSON() {
+    Tiling.pushIndent();
+    String result
+        = "{ \"i\": \""     + index + "\""
+        + ", \"name\": \""  + name  + "\""
+        + ", \"vid\": \""   + vertexId + "\""
+        + ", \"polys\": "   + Tiling.join(",", polys)
+        + ", \"sweeps\": "  + Tiling.join(",", sweeps)
+        + ", \"rotas\": "   + Tiling.join(",", rotas)
+        + ", \"tipes\": "   + Tiling.join(",", tipes)
+    /*
+        + ", \"leShas\": "  + Tiling.join(",", leShas)
+        + ", \"riShas\": "  + Tiling.join(",", riShas)
+    */
+        + ", \"galId\": \"" + galId + "\""
+        + " }\n";
+    Tiling.popIndent();
+    return result;
+  } // VertexType.toJSON
+
+  /**
+   * Limits the index of an edge of <em>this</em> VertexType to the range 0..edgeNo - 1.
+   * @param iedge number of edge, maybe negative
+   * @return an edge number in the range 0..edgeNo - 1
+   */
+  public int normEdge(int iedge) {
+    int result = iedge;
+    while (result < 0) { // ensure non-negative
+      result += edgeNo;
+    } // while negative
+    return result % edgeNo;
+  } // normEdge
+  
+  /**
+   * Determines whether <em>this</em> {@link VertexType} is flipped
+   * @return true if the index is odd, false otherwise
+   */
+  public boolean isFlipped() {
+    return  (index & 1) == 1;
+  } // isFlipped
 
 } // class VertexType
 

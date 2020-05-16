@@ -22,13 +22,15 @@ public class Vertex implements Serializable {
   public static int sDebug;
   
   int index; // in mVertices
-  int iType; // 0, 1 are reserved; iType is even for clockwise, odd for counter-clockwise variant
+  VertexType vtype; // general properties for the vertex
+  int iType; // index of vtype; 0, 1 are reserved; iType is even for clockwise, odd for counter-clockwise variant
   int flip;  // 0 for clockwise, 1 for counter-clockwise orientation
   int distance; // length of shortest path to origin, for coloring
   int rotate; // the vertex type was rotated clockwise by so many degrees
   Position expos; // exact Position of the Vertex
   int fixedEdges; // number of allocated neighbours = edges
-  int[] succs; // list of indices in successor vertices
+  Vertex[] proxies; // array of neighbouring vertices at the end of the edges
+  int[] succs; // array of indices of proxies
 /*
   int[] shapes; // list of indices in left shapes
   int[] preds; // list of indices in predecessor vertices
@@ -36,27 +38,26 @@ public class Vertex implements Serializable {
   int bedge; // temporary edge pointing backwards to the last focus of this successor
 
   /**
-   * Empty constructor, only a placeholder in order to avoid vertex index 0
+   * Empty constructor, not used
    */
   public Vertex() {
-    this(0);
+    iType = 0;
   } // Vertex()
 
   /**
-   * Constructor with an index of a VertexType
-   * @param itype index of type of the new vertex,
+   * Constructor with a {@link VertexType}.
+   * @param vtype type of vertex with general properties,
    * is even for clockwise, odd for clockwise orientation
-   * @param ipred index of predecessor vertex which needs <em>this</em> new successor vertex
-   * @param iedge which edge of the predecessor leads to <em>this</em> new successor vertex
    */
-  public Vertex(int iType) {
-    // setting 'index' is postponed to addVertex
-    this.iType = iType;
+  public Vertex(VertexType vtype) {
+    this.vtype = vtype;
+    iType      = vtype.index;
     flip       = iType & 1; // lowest bit
     distance   = 0;
     rotate     = 0;
     expos      = new Position();
     int edgeNo = iType == 0 ? 0 : getType().edgeNo;
+    proxies    = new Vertex[edgeNo];
     succs      = new int[edgeNo];
     Arrays.fill(succs , 0);
   /*
@@ -65,14 +66,14 @@ public class Vertex implements Serializable {
     Arrays.fill(shapes, 0);
     Arrays.fill(preds , 0);
   */
-  } // Vertex(int)
+   } // Vertex(VertexType)
 
   /**
    * Gets the type of <em>this</em> Vertex
    * @return a {@link VertexType}
    */
   public VertexType getType() {
-    return Tiling.mVertexTypes[iType];
+    return vtype;
   } // getType
 
   /**
@@ -123,25 +124,12 @@ public class Vertex implements Serializable {
     return index + getName() + " @" + rotate + expos + "->" + Tiling.join(",", succs).replaceAll("[\\[\\]]", "");
   } // Vertex.toString
 
-  /**
-   * Draws the edges of <em>this</em> rotated {@link #Vertex} with thin
-   * lines for debugging purposes
-   */
-  public void showSVGVertex() {
-     VertexType vtype = getType();
-     for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
-       Vertex succ = this.getSuccessor(iedge);
-       SVGFile.writeEdge(this, succ, iedge, 2); // mode = test
-     } // for iedge
-     SVGFile.writeVertex(this, 2); // mode = test
-  } // showSVGVertex
-
-  /**
+ /**
    * Normalizes an angle
    * @param angle in degrees, maybe negative or >= 360
    * @return non-negative degrees mod 360
    */
-  public int normAngle(int angle) {
+  private static int normAngle(int angle) {
     while (angle < 0) {
       angle += 360;
     }
@@ -179,7 +167,6 @@ public class Vertex implements Serializable {
       } else {
         sum += - vtype.sweeps[vtype.normEdge(- iedge)];
       }
-
     } else {
       if (suFlip) {
         sum += + vtype.sweeps[vtype.normEdge(+ iedge)];
@@ -265,7 +252,7 @@ public class Vertex implements Serializable {
       System.out.println("#     getSuccessor(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
           + " start: siType " + siType + ", suRota " + suRota);
     }
-    Vertex succ = new Vertex(siType); // create a new Vertex
+    Vertex succ = new Vertex(suType); // create a new Vertex
     succ.expos  = expos.moveUnit(fAngle);
     succ.rotate = normAngle(rotate + suRota);
     int bangle  = normAngle(fAngle + 180); // points backwards to the focus
@@ -276,5 +263,6 @@ public class Vertex implements Serializable {
     }
     return succ;
   } // getSuccessor
+  
 } // class Vertex
 

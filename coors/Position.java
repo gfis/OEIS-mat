@@ -56,11 +56,12 @@ public class Position implements Serializable {
    * @return a double value
    */
   public Double cartesian(int/*s*/[] tuple) {
-    return ( tuple[0]
-         + tuple[1] * SQRT2
-         + tuple[2] * SQRT3
-         + tuple[3] * SQRT6
-         ) / 4.0;
+    return 
+        ( tuple[0]
+        + tuple[1] * SQRT2
+        + tuple[2] * SQRT3
+        + tuple[3] * SQRT6
+        ) / 4.0;
   } // cartesian
 
   /**
@@ -125,7 +126,7 @@ public class Position implements Serializable {
   } // getY
 
   /** Positions in the unit circle = increments for the next {@link Vertex} */
-  private static final Position[] mUnitCirclePoints = new Position[]
+  private static final Position[] sUnitCirclePoints = new Position[]
       { new Position(new int/*s*/[] { 4, 0, 0, 0}, new int/*s*/[] { 0, 0, 0, 0}) // [ 0]   0     1.0000,    0.0000
       , new Position(new int/*s*/[] { 0, 1, 0, 1}, new int/*s*/[] { 0,-1, 0, 1}) // [ 1]  15     0.9659,    0.2588
       , new Position(new int/*s*/[] { 0, 0, 2, 0}, new int/*s*/[] { 2, 0, 0, 0}) // [ 2]  30     0.8660,    0.5000
@@ -175,7 +176,7 @@ public class Position implements Serializable {
    */
   public Position moveUnit(int angle) {
     int icircle = Math.round(angle / 15) % 24;
-    return add(mUnitCirclePoints[icircle]);
+    return add(sUnitCirclePoints[icircle]);
   } // moveUnit
 
   /**
@@ -183,19 +184,25 @@ public class Position implements Serializable {
    */
   public static void testCirclePositions() {
     Position origin = new Position();
-    for (int ipos = 0; ipos < mUnitCirclePoints.length + 1; ipos ++) {
+    SVGFile.sEnabled = true;
+    if (SVGFile.sEnabled) {
+      SVGFile.fileName = "circle.svg";
+      SVGFile.open(2, "");
+    }
+    for (int ipos = 0; ipos < sUnitCirclePoints.length + 1; ipos ++) {
       Position pos = origin.moveUnit(ipos * 15);
       System.out.println(String.format("[%2d], %3d = %s", ipos, ipos * 15, pos.toString()));
-    /*
       if (SVGFile.sEnabled) {
-        SVGFile.write("<line class=\"k" + String.valueOf(ipos % 8)
-             + " x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY() + "\"></line>");
+        SVGFile.write("<line class=\"l" + String.valueOf(ipos % 4)
+             + "\" x1=\"0.0\" y1=\"0.0\" x2=\"" + pos.getX() + "\" y2=\"" + pos.getY() + "\"></line>");
       }
-    */
     } // for ipos
-    for (int ipos = 0; ipos < mUnitCirclePoints.length; ipos += 4) {
+    if (SVGFile.sEnabled) {
+      SVGFile.close();
+    }
+    for (int ipos = 0; ipos < sUnitCirclePoints.length; ipos += 4) {
       int ipos8 = (ipos + 8) % 24;
-      Position hexPos = mUnitCirclePoints[ipos].add(mUnitCirclePoints[ipos8]);
+      Position hexPos = sUnitCirclePoints[ipos].add(sUnitCirclePoints[ipos8]);
       System.out.println(String.format("[%2d] + [%2d] = %8s,%8s"
           , ipos, ipos8, hexPos.getX(), hexPos.getY()));
     } // for ipos

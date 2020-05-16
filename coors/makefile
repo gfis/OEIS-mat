@@ -280,18 +280,18 @@ test: test1 test2
 test1: compile1 run1
 test2: compile2 run2
 compile: compile1 compile2
-	ls -al *.class
 compile1:
 	javac Tiler1.java 
 compile2:
 	javac Tiler2.java 
+	ls -al *.class
 #----
 run: run1 run2
 run1: select
 	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -bfile bfile1/ -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 run2:
-	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -bfile bfile2/ -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f select.tst > $@.tmp 
+	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -bfile bfile2/ -dist $(DIST)            -d $(D) $(SVG) -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	# diff -wy --suppress-common-lines run1.tmp run2.tmp || :
 	ls -tc1r bfile/* | tail -n1 | cut -b8- \

@@ -10,7 +10,9 @@
  * 2020-04-21, Georg Fischer
  */
 // package ;
+// import BFile;
 // import Position;
+// import SVGFile;
 // import Tiling;
 // import Vertex;
 // import VertexType;
@@ -20,11 +22,6 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 // import  org.apache.log4j.Logger;
 
 /**
@@ -86,8 +83,9 @@ public class Tiler2 implements Serializable {
       if (gutv[3].equals("1")) { // first of new tiling
         mTiling = new Tiling(Integer.parseInt(gutv[1]), mMaxDistance, mASeqNo);
       }
-      mTiling.addTypeVariants(aSeqNo, galId, vertexId, taRotList, sequence);
+      mTiling.addVertexType(aSeqNo, galId, vertexId, taRotList, sequence);
       if (gutv[3].equals(gutv[1])) { // last of new tiling
+      	mTiling.completeVertexTypes();
         if (sDebug >= 1) {
           System.out.println(mTiling.toJSON());
         }
@@ -95,7 +93,13 @@ public class Tiler2 implements Serializable {
         for (int ind = 2; ind < mTiling.ffVertexTypes; ind += 2) {
           if (mGalId == null || mTiling.getVertexType(ind).galId.equals(mGalId)) { 
             // either all in the input file, or only the specified mGalId
+            if (SVGFile.sEnabled) {
+              SVGFile.open(mMaxDistance, mGalId);
+            }
             mTiling.computeNet(ind);
+            if (SVGFile.sEnabled) {
+              SVGFile.close(); 
+            }
           }
         } // for itype
       }
@@ -149,9 +153,8 @@ public class Tiler2 implements Serializable {
     try {
       int iarg = 0;
       String fileName = "-"; // assume STDIN/STDOUT
-      String svgFileName = "-"; // assume STDIN/STDOUT
       while (iarg < args.length) { // consume all arguments
-        String opt        = args[iarg ++];
+        String opt            = args[iarg ++];
         if (false) {
         } else if (opt.equals("-a")     ) {
           tiler.mASeqNo       = args[iarg ++];
@@ -170,7 +173,7 @@ public class Tiler2 implements Serializable {
           String dummy       = args[iarg ++]; // ignore
         } else if (opt.equals("-svg")   ) {
           SVGFile.sEnabled   = true;
-          svgFileName        = args[iarg ++];
+          SVGFile.fileName   = args[iarg ++];
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }
@@ -178,13 +181,7 @@ public class Tiler2 implements Serializable {
       Tiling    .sDebug = sDebug;
       Vertex    .sDebug = sDebug;
       VertexType.sDebug = sDebug;
-      if (SVGFile.sEnabled) {
-        SVGFile.open(svgFileName, tiler.mMaxDistance, tiler.mGalId);
-        tiler.processFile(fileName);
-        SVGFile.close(); 
-      } else {
-        tiler.processFile(fileName);
-      }
+      tiler.processFile(fileName);
     } catch (Exception exc) {
       // log.error(exc.getMessage(), exc);
       System.err.println(exc.getMessage());
