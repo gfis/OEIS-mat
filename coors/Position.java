@@ -186,7 +186,7 @@ public class Position implements Serializable {
     Position origin = new Position();
     SVGFile.sEnabled = true;
     if (SVGFile.sEnabled) {
-      SVGFile.fileName = "circle.svg";
+      SVGFile.sFileName = "circle.svg";
       SVGFile.open(2, "");
     }
     for (int ipos = 0; ipos < sUnitCirclePoints.length + 1; ipos ++) {

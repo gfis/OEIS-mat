@@ -9,9 +9,10 @@ import java.io.PrintWriter;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
- * THis class opens, writes to and closes an OEIS b-file.
+ * This class opens, writes to and closes an OEIS b-file.
  * The data lines in b-files have the form <em>index space term newline</em>.
  * There may be comment lines at the beginning of the file starting with "#".
  * @author Georg Fischer
@@ -19,28 +20,37 @@ import java.text.SimpleDateFormat;
 public class BFile {
   public final static String CVSID = "@(#) $Id: BFile.java $";
 
-  /** Encoding of the file */
-  private static final String sEncoding = "UTF-8";
-  
   /** Number of terms which were written to the b-file */
   private static int sBFileCount;
 
-  /** Prefix ("directory/") for b-file names */
-  private static String sBFilePrefix;
-
-  /** Writer for b-file output */
-  private static PrintWriter sBFileWriter;
-
   /** Whether b-file output is enabled */
   public static boolean sEnabled;
+
+  /** Encoding of the file */
+  private static final String sEncoding = "UTF-8";
+  
+  /** Prefix ("directory/") for b-file names */
+  private static String sBFilePrefix;
 
   /** Sets the directory prefix.
    * @param prefix usually "directory/" before the filename
    */
   public static void setPrefix(String prefix) {
-  	sBFilePrefix = prefix;
+    sBFilePrefix = prefix;
   } // setPrefix
   
+  /** Writer for b-file output */
+  private static PrintWriter sBFileWriter;
+
+  /**
+   * Empty Constructor.
+   */
+  public BFile() {
+    // sEnabled = false;
+    setPrefix("./");
+    sBFileCount = 0;
+  } // Constructor()
+
   /**
    * Opens the b-file
    * @param param "-" for STDIN or a filename
@@ -61,6 +71,8 @@ public class BFile {
         }
         WritableByteChannel channel = (new FileOutputStream (sBFilePrefix + fileName, false)).getChannel();
         sBFileWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
+        String timestamp = (new SimpleDateFormat("yyyy-MM-dd' 'HH:mm")).format(new java.util.Date());
+        sBFileWriter.println("# " + fileName + " written with Tiler2 at " + timestamp);
       } // not stdout
     } catch (Exception exc) {
       // log.error(exc.getMessage(), exc);

@@ -288,14 +288,16 @@ compile2:
 #----
 run: run1 run2
 run1: select
-	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -bfile bfile1/ -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f select.tst > $@.tmp 
+	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -bfile bfile1/ -dist $(DIST) -n $(NMAX) -d $(D)        -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
-run2:
+run2: select
+	#---------------- 
 	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -bfile bfile2/ -dist $(DIST)            -d $(D) $(SVG) -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	# diff -wy --suppress-common-lines run1.tmp run2.tmp || :
-	ls -tc1r bfile/* | tail -n1 | cut -b8- \
+	ls -tc1r bfile2/* | tail -n1 | cut -b8- \
 	| xargs -l -i{} diff -wy --suppress-common-lines bfile1/{} bfile2/{} || :
+	ls -tclr *.svg bfile2/*
 #-----------------
 pave: compave pavr
 compave:

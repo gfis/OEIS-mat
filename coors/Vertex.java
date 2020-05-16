@@ -21,21 +21,21 @@ public class Vertex implements Serializable {
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
   
-  int index; // in mVertices
-  VertexType vtype; // general properties for the vertex
-  int iType; // index of vtype; 0, 1 are reserved; iType is even for clockwise, odd for counter-clockwise variant
-  int flip;  // 0 for clockwise, 1 for counter-clockwise orientation
-  int distance; // length of shortest path to origin, for coloring
-  int rotate; // the vertex type was rotated clockwise by so many degrees
-  Position expos; // exact Position of the Vertex
-  int fixedEdges; // number of allocated neighbours = edges
-  Vertex[] proxies; // array of neighbouring vertices at the end of the edges
-  int[] succs; // array of indices of proxies
+  public int index;        // in mVertices
+  public VertexType vtype; // general properties for the vertex
+  public int iType;        // index of vtype; 0, 1 are reserved; iType is even for clockwise, odd for counter-clockwise variant
+  public int orient;       // 0 for normal (clockwise), 1 for opposite (counter-clockwise) orientation
+  public int distance;     // length of shortest path to origin, for coloring
+  public int rotate;       // the vertex type was rotated clockwise by so many degrees
+  public Position expos;   // exact Position of the Vertex
+  public int fixedEdges;   // number of allocated neighbours = edges
+  public Vertex[] proxies; // array of neighbouring vertices at the end of the edges
+  public int[] succs;      // array of indices of proxies
 /*
-  int[] shapes; // list of indices in left shapes
-  int[] preds; // list of indices in predecessor vertices
+  public int[] shapes;     // list of indices in left shapes
+  public int[] preds;      // list of indices in predecessor vertices
 */
-  int bedge; // temporary edge pointing backwards to the last focus of this successor
+  public int bedge;        // temporary edge pointing backwards to the last focus of this successor
 
   /**
    * Empty constructor, not used
@@ -52,7 +52,7 @@ public class Vertex implements Serializable {
   public Vertex(VertexType vtype) {
     this.vtype = vtype;
     iType      = vtype.index;
-    flip       = iType & 1; // lowest bit
+    orient     = iType & 1; // lowest bit
     distance   = 0;
     rotate     = 0;
     expos      = new Position();
@@ -69,6 +69,16 @@ public class Vertex implements Serializable {
    } // Vertex(VertexType)
 
   /**
+   * Constructor with a {@link VertexType} and an orientation.
+   * @param vtype type of vertex with general properties,
+   * is even for clockwise, odd for clockwise orientation
+   */
+  public Vertex(VertexType vtype, int orient) {
+    this(vtype);
+    this.orient = orient;
+  } // Vertex(VertexType,int)
+
+  /**
    * Gets the type of <em>this</em> Vertex
    * @return a {@link VertexType}
    */
@@ -77,19 +87,11 @@ public class Vertex implements Serializable {
   } // getType
 
   /**
-   * Gets the some VertexType
-   * @return a {@link VertexType}
-   */
-  public VertexType getType(int index) {
-    return Tiling.mVertexTypes[index];
-  } // getType
-
-  /**
    * Gets the name (via the {@link #VertexType}) of <em>this</em> Vertex
    * @return uppercase letter (for non-flipped) or lowercase letter (for flipped)
    */
   public String getName() {
-    return flip == 0 
+    return orient == 0 
         ? getType().name
         : getType().name.toLowerCase();
   } // getName
@@ -103,12 +105,13 @@ public class Vertex implements Serializable {
     String result
         = "{ \"i\": "        + String.format("%4d", index)
         + ", \"type\": "     + String.format("%2d", iType)
-      //  + ", \"name\": "     + String.format("%2d", getName()
+    //  + ", \"name\": "     + String.format("%2d", getName()
+        + ", \"orient\": "   + String.format("%3d", orient)
         + ", \"rot\": "      + String.format("%3d", rotate)
         + ", \"fix\": "      + fixedEdges
         + ", \"succs\": \""  + Tiling.join(",", succs ) + "\""
-      //  + ", \"preds\": \""  + Tiling.join(",", preds ) + "\""
-      //  + ", \"shapes\": \"" + Tiling.join(",", shapes) + "\""
+    //  + ", \"preds\": \""  + Tiling.join(",", preds ) + "\""
+    //  + ", \"shapes\": \"" + Tiling.join(",", shapes) + "\""
         + ", \"pos\": \""    + expos.toString()  + "\""
         + ", \"dist\": \""   + distance + "\""
         + " }\n";
@@ -148,14 +151,14 @@ public class Vertex implements Serializable {
    * turning clockwise := positive (downwards, because of SVG's y axis)
    */
   public int getAngle(int iedge) {
-    VertexType vtype = getType();
-    int siType  = vtype.tipes[
+    VertexType vtype = this.getType();
+    int siType  = vtype.pxTinds[
         vtype.isFlipped() ? vtype.normEdge(- iedge) : vtype.normEdge(+ iedge)
         ];
     if (vtype.isFlipped()) {
       siType ^= 1;
     }
-    VertexType suType = getType(siType);
+    VertexType suType = Tiling.mVertexTypes[siType];
     int sum       = rotate;
     int swFlipped = - vtype.sweeps[vtype.normEdge(- iedge)];
     int swNormal  =   vtype.sweeps[vtype.normEdge(+ iedge)];
@@ -220,7 +223,7 @@ public class Vertex implements Serializable {
       if (iedge >= 0) {
         System.out.println("#       getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + expos
             + " -> " + iedge + " -> "
-            + getType(vtype.tipes[iedge]).name);
+            + vtype.pxTypes[iedge].name);
       } else {
         System.out.println("# ** assertion 5: getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + expos
             + " -> " + iedge + " -> edge not found");
@@ -236,14 +239,14 @@ public class Vertex implements Serializable {
    */
   public Vertex getSuccessor(int iedge) {
     VertexType vtype = getType(); // of the focus
-    int siType  = vtype.tipes[vtype.isFlipped() 
+    int siType  = vtype.pxTinds[vtype.isFlipped() 
         ? vtype.normEdge(- iedge) 
         : vtype.normEdge(+ iedge)];
     if (vtype.isFlipped()) {
       siType ^= 1; // normal -> flipped or flipped -> normal
     }
-    VertexType suType = getType(siType);
-    int suRota  = normAngle(vtype.rotas[vtype.isFlipped() 
+    VertexType suType = Tiling.mVertexTypes[siType];
+    int suRota  = normAngle(vtype.pxAngles[vtype.isFlipped() 
         ? vtype.normEdge(- iedge) 
         : vtype.normEdge(+ iedge)
         ] * (vtype.isFlipped() ? -1 : +1));
@@ -263,6 +266,14 @@ public class Vertex implements Serializable {
     }
     return succ;
   } // getSuccessor
+
+  /**
+   * Determines the {@link Position} of a proxy {@link Vertex} at the end of the specified edge
+   * @param iedge=0..edgeNo -1; the successor is at the end of this edge
+   * @return exact Position which is then checked whether it is occupied
+   */
+  public Position getProxyPosition(int iedge) {
+    return this.expos.moveUnit(this.getAngle(iedge));
+  } // getProxyPosition
   
 } // class Vertex
-

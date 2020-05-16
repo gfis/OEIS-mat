@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * THis class opens, writes to and closes an Scalable Vector Graphics file.
+ * This class opens, writes to and closes an Scalable Vector Graphics file.
  * The format is XML, maybe with an embedded stylesheet or a reference to one.
  * @author Georg Fischer
  */
@@ -29,7 +29,15 @@ public class SVGFile {
   public static boolean sEnabled;
   
   /** Filename for SVG output */
-  public static String fileName;
+  public static String sFileName;
+
+  /**
+   * Empty Constructor.
+   */
+  public SVGFile() {
+    // sEnabled  = true;
+    sFileName = "Test.svg";
+  } // Constructor()
 
   /**
    * Opens the SVG file
@@ -38,13 +46,13 @@ public class SVGFile {
    */
   public static void open(int maxDistance, String galId) {
     try {
-      if (fileName.equals("-")) { // stdout
+      if (sFileName.equals("-")) { // stdout
          sSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), sEncoding));
       } else { // not stdout
-        if (! fileName.endsWith(".svg")) {
-          fileName += ".svg";
+        if (! sFileName.endsWith(".svg")) {
+          sFileName += ".svg";
         }
-        WritableByteChannel channel = (new FileOutputStream (fileName, false)).getChannel();
+        WritableByteChannel channel = (new FileOutputStream (sFileName, false)).getChannel();
         sSVGWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
       } // not stdout
 
@@ -64,7 +72,8 @@ public class SVGFile {
           + "<title>Uniform Tiling</title>\n"
           + "<g id=\"tile\">\n"
           + "<rect x=\"-" + w1 +"\" y=\"-" + w1 + "\" width=\"" + w2 +"\" height=\"" + w2 + "\" />\n"
-          + "<text class=\"nota\" x=\"-" + w1 +"\" y=\"-" + (w1 - 1) + "\">&#xa0;" + galId + "</text>"
+          + "<text class=\"nota\" x=\"-" + (w1 * 0.95) +"\" y=\"-" + (w1 * 0.85) + "\" style=\"font-size: " + (w1 / 20.0)
+          + "pt\">" + galId + "</text>"
           );
     } catch (Exception exc) {
       // log.error(exc.getMessage(), exc);

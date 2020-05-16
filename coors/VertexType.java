@@ -19,11 +19,13 @@ public class VertexType implements Serializable {
   String vertexId; // e.g. "12.6.4"
   int    edgeNo;   // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
   int[]  polys;    // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
-                   // are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type.
+                   // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type.
                    // First edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
-  VertexType[] proxyTypes; // VertexTypes of target vertices - set only in completeVertexTypes
-  int[]  tipes;    // VertexType indices of target vertices (normally even, odd if flipped / C')
-  int[]  rotas;    // how many degrees must the target vertices be rotated, from Galebach
+  VertexType[] pxTypes; // VertexTypes of target vertices - set only in completeVertexTypes
+  int[]  pxAngles; // how many degrees must the proxy vertices be rotated, from Galebach
+  int[]  pxEdges;  // which edge of the proxy is connected
+  int[]  pxFlips;  // whether the proxy vertex must be flipped (1) or not (0)
+  int[]  pxTinds;  // VertexType indices of target vertices (normally even, odd if flipped / C')
   int[]  sweeps;   // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
 /*Shas    
   int[]  leShas;   // shapes / polygones from the focus to the left  of the edge
@@ -31,8 +33,8 @@ public class VertexType implements Serializable {
 Shas*/
   String galId;    // e.g. "Gal.2.1.1"
   String name;     // for example "A" for normal or "a" (lowercase) for flipped version
-  String aSeqNo;   // OEIS A-number of {@link #sequence}
-  String sequence; // list of terms of the coordination sequence
+  String aSeqNo;   // OEIS A-number of the coordination sequence
+  String sequence; // list of terms of the coordination sequence (standard is 50 terms)
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
@@ -45,8 +47,10 @@ Shas*/
     vertexId = "";
     edgeNo   = 0;
     polys    = new int[0];
-    tipes    = new int[0];
-    rotas    = new int[0];
+    pxAngles = new int[0];
+    pxEdges  = new int[0];
+    pxFlips  = new int[0];
+    pxTinds  = new int[0];
   /*Shas    
     leShas   = new int[0];
     riShas   = new int[0];
@@ -73,31 +77,37 @@ Shas*/
     this.vertexId    = vertexId;
     String[] corners = vertexId.split("\\.");
     String[] parts   = taRotList.split("\\;\\s*");
-    index  = Tiling.ffVertexTypes; // even = not flipped
-    name   = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
+    index       = Tiling.ffVertexTypes; // even = not flipped
+    name        = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
     this.aSeqNo = aSeqNo;
     this.galId  = galId;
     this.sequence = sequence;
-    edgeNo = parts.length;
-    polys  = new int[edgeNo];
-    tipes  = new int[edgeNo];
-    rotas  = new int[edgeNo];
+    edgeNo      = parts.length;
+    polys       = new int[edgeNo];
+    pxAngles    = new int[edgeNo];
+    pxEdges     = new int[edgeNo];
+    pxFlips     = new int[edgeNo];
+    pxTinds     = new int[edgeNo];
   /*Shas    
-    leShas = new int[edgeNo];
-    riShas = new int[edgeNo];
+    leShas      = new int[edgeNo];
+    riShas      = new int[edgeNo];
   Shas*/
-    sweeps = new int[edgeNo];
+    sweeps      = new int[edgeNo];
     for (int iedge = 0; iedge < edgeNo; iedge ++) {
       try {
-        tipes[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
+        pxEdges[iedge] = -1; // undefined
+        pxTinds[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
         if (parts[iedge].endsWith("'")) { // with apostrophe => is flipped
-          tipes[iedge] ++; // make it odd
-          parts[iedge] = parts[iedge].replaceAll("\\'",""); // remove apostrophe
+          parts[iedge]   = parts[iedge].replaceAll("\\'",""); // remove apostrophe
+          pxTinds[iedge] ++; // make it odd
+          pxFlips[iedge] = 1; // proxy must be flipped - opposite orientation
+        } else {
+          pxFlips[iedge] = 0; // proxy is in the same orientation
         }
-        polys[iedge] = 0;
-        rotas[iedge] = 0;
-        polys[iedge] = Integer.parseInt(corners[iedge]);
-        rotas[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits only
+        polys[iedge]    = 0;
+        pxAngles[iedge] = 0;
+        polys[iedge]    = Integer.parseInt(corners[iedge]);
+        pxAngles[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits only
       } catch (Exception exc) {
         if (sDebug >= 1) {
           System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
@@ -129,8 +139,10 @@ Shas*/
     result.sequence = sequence;
     result.edgeNo   = edgeNo;
     result.polys    = new int[edgeNo];
-    result.tipes    = new int[edgeNo];
-    result.rotas    = new int[edgeNo];
+    result.pxAngles = new int[edgeNo];
+    result.pxEdges  = new int[edgeNo];
+    result.pxFlips  = new int[edgeNo];
+    result.pxTinds  = new int[edgeNo];
   /*Shas    
     result.leShas   = new int[edgeNo];
     result.riShas   = new int[edgeNo];
@@ -141,14 +153,16 @@ Shas*/
     result.sweeps   = new int[edgeNo];
     for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
       int dedge = edgeNo - 1 - iedge; // decreasing
-      result.tipes [iedge] =   tipes [iedge];
-      result.rotas [iedge] =   rotas [iedge];
-      result.sweeps[iedge] =   sweeps[iedge];
-      result.polys [iedge] =   polys [iedge];
-      /*Shas    
-        result.riShas[iedge] =   polys [iedge];
-        result.leShas[iedge] =   polys [iedge];
-      Shas*/
+      result.pxAngles[iedge] = pxAngles[iedge];
+      result.pxEdges [iedge] = pxEdges [iedge];
+      result.pxFlips [iedge] = pxFlips [iedge] ^ 1; // XOR
+      result.pxTinds [iedge] = pxTinds [iedge];
+      result.sweeps  [iedge] = sweeps  [iedge];
+      result.polys   [iedge] = polys   [iedge];
+    /*Shas    
+      result.riShas[iedge] = polys   [iedge];
+      result.leShas[iedge] = polys   [iedge];
+    Shas*/
       revId.append('.');
       revId.append(String.valueOf(polys[dedge]));
     } // for iedge
@@ -177,18 +191,20 @@ Shas*/
   public String toJSON() {
     Tiling.pushIndent();
     String result
-        = "{ \"i\": \""     + index + "\""
-        + ", \"name\": \""  + name  + "\""
-        + ", \"vid\": \""   + vertexId + "\""
-        + ", \"polys\": "   + Tiling.join(",", polys)
-        + ", \"sweeps\": "  + Tiling.join(",", sweeps)
-        + ", \"rotas\": "   + Tiling.join(",", rotas)
-        + ", \"tipes\": "   + Tiling.join(",", tipes)
+        = "{ \"i\": \""      + index + "\""
+        + ", \"name\": \""   + name  + "\""
+        + ", \"vid\": \""    + vertexId + "\""
+        + ", \"polys\": "    + Tiling.join(",", polys)
+        + ", \"sweeps\": "   + Tiling.join(",", sweeps)
+        + ", \"pxAngles\": " + Tiling.join(",", pxAngles)
+        + ", \"pxEdges\": "  + Tiling.join(",", pxEdges)
+        + ", \"pxFlips\": "  + Tiling.join(",", pxFlips)
+        + ", \"pxTinds\": "  + Tiling.join(",", pxTinds)
     /*
-        + ", \"leShas\": "  + Tiling.join(",", leShas)
-        + ", \"riShas\": "  + Tiling.join(",", riShas)
+        + ", \"leShas\": "   + Tiling.join(",", leShas)
+        + ", \"riShas\": "   + Tiling.join(",", riShas)
     */
-        + ", \"galId\": \"" + galId + "\""
+        + ", \"galId\": \""  + galId + "\""
         + " }\n";
     Tiling.popIndent();
     return result;

@@ -69,6 +69,7 @@ public class Tiler2 implements Serializable {
    * @param line record to be processed
    */
   private void processRecord(String line) {
+    SVGFile.sEnabled = true;
     // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     String[] fields   = line.split("\\t");
     int ifield = 0;
@@ -85,11 +86,12 @@ public class Tiler2 implements Serializable {
       }
       mTiling.addVertexType(aSeqNo, galId, vertexId, taRotList, sequence);
       if (gutv[3].equals(gutv[1])) { // last of new tiling
-      	mTiling.completeVertexTypes();
+        mTiling.completeVertexTypes();
         if (sDebug >= 1) {
           System.out.println(mTiling.toJSON());
         }
         // compute the nets
+        int netCount = 0;
         for (int ind = 2; ind < mTiling.ffVertexTypes; ind += 2) {
           if (mGalId == null || mTiling.getVertexType(ind).galId.equals(mGalId)) { 
             // either all in the input file, or only the specified mGalId
@@ -97,11 +99,15 @@ public class Tiler2 implements Serializable {
               SVGFile.open(mMaxDistance, mGalId);
             }
             mTiling.computeNet(ind);
+            netCount ++;
             if (SVGFile.sEnabled) {
               SVGFile.close(); 
             }
           }
         } // for itype
+        if (netCount == 0) {
+          System.err.println("# assertion 9: no net computed");
+        }
       }
     } catch(Exception exc) {
       // log.error(exc.getMessage(), exc);
@@ -147,8 +153,10 @@ public class Tiler2 implements Serializable {
    * @param args command line arguments
    */
   public static void main(String[] args) {
-    long startTime = System.currentTimeMillis();
-    Tiler2 tiler = new Tiler2();
+    long startTime  = System.currentTimeMillis();
+    Tiler2 tiler    = new Tiler2();
+    BFile bFile     = new BFile();
+    SVGFile svgFile = new SVGFile();
     sDebug = 0;
     try {
       int iarg = 0;
@@ -173,7 +181,10 @@ public class Tiler2 implements Serializable {
           String dummy       = args[iarg ++]; // ignore
         } else if (opt.equals("-svg")   ) {
           SVGFile.sEnabled   = true;
-          SVGFile.fileName   = args[iarg ++];
+          SVGFile.sFileName  = args[iarg ++];
+          if (sDebug >= 3) {
+            System.err.println("# SVG written to " + SVGFile.sFileName);
+          }
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }
