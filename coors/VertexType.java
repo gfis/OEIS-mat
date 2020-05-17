@@ -15,26 +15,26 @@ import java.io.Serializable;
 public class VertexType implements Serializable {
   public final static String CVSID = "@(#) $Id: Vertex.java $";
 
-  int    index;    // even for normal type, odd for flipped version
-  String vertexId; // e.g. "12.6.4"
-  int    edgeNo;   // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
-  int[]  polys;    // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
-                   // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type.
-                   // First edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
-  VertexType[] pxTypes; // VertexTypes of target vertices - set only in completeVertexTypes
-  int[]  pxAngles; // how many degrees must the proxy vertices be rotated, from Galebach
-  int[]  pxEdges;  // which edge of the proxy is connected
-  int[]  pxFlips;  // whether the proxy vertex must be flipped (1) or not (0)
-  int[]  pxTinds;  // VertexType indices of target vertices (normally even, odd if flipped / C')
-  int[]  sweeps;   // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
+  int    index;         // sequential number of type, starting at 0
+  String vertexId;      // e.g. "12.6.4" - decreasing polygone edge numbers at the moment
+  int    edgeNo;        // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
+  int[]  polys;         // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
+                            // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type;
+                            // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
+  int[]  pxRotats;      // how many degrees must the proxy vertices be rotated, from Galebach
+  int[]  pxEdges;       // which edge of the proxy is connected - not used yet
+  int[]  pxOrients;     // whether the proxy vertex must be oriented normally (1) or flipped (-1)
+  int[]  pxTinds;       // VertexType indices of proxy vertices; preliminary during VT creation, later pxTypes are used
+  VertexType[] pxTypes; // VertexTypes of proxyt vertices
+  int[]  pxSweeps;      // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
 /*Shas    
-  int[]  leShas;   // shapes / polygones from the focus to the left  of the edge
-  int[]  riShas;   // shapes / polygones from the focus to the right of the edge
-Shas*/
-  String galId;    // e.g. "Gal.2.1.1"
-  String name;     // for example "A" for normal or "a" (lowercase) for flipped version
-  String aSeqNo;   // OEIS A-number of the coordination sequence
-  String sequence; // list of terms of the coordination sequence (standard is 50 terms)
+  int[]  leShas;        // shapes / polygones from the focus to the left  of the edge
+  int[]  riShas;        // shapes / polygones from the focus to the right of the edge
+Shas*/                  
+  String galId;         // e.g. "Gal.2.1.1"
+  String name;          // for example "A" for normal or "a" (lowercase) for flipped version
+  String aSeqNo;        // OEIS A-number of the coordination sequence
+  String sequence;      // list of terms of the coordination sequence (standard is 50 terms)
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
@@ -43,27 +43,27 @@ Shas*/
    * Empty constructor
    */
   VertexType() {
-    index    = 0;
-    vertexId = "";
-    edgeNo   = 0;
-    polys    = new int[0];
-    pxAngles = new int[0];
-    pxEdges  = new int[0];
-    pxFlips  = new int[0];
-    pxTinds  = new int[0];
+    index     = 0;
+    vertexId  = "";
+    edgeNo    = 0;
+    polys     = new int[0];
+    pxRotats  = new int[0];
+    pxEdges   = new int[0];
+    pxOrients = new int[0];
+    pxTinds   = new int[0];
   /*Shas    
-    leShas   = new int[0];
-    riShas   = new int[0];
+    leShas    = new int[0];
+    riShas    = new int[0];
   Shas*/
-    sweeps   = new int[0];
-    galId    = "Gal.0.0.0";
-    name     = "Z";
-    aSeqNo   = "";
-    sequence = "";
+    pxSweeps  = new int[0];
+    galId     = "Gal.0.0.0";
+    name      = "Z";
+    aSeqNo    = "";
+    sequence  = "";
   } // VertexType()
 
   /**
-   * Constructor from input file parameters
+   * Modify an existing {@link VertexType} and set the parameters of the angle notation
    * @param aSeqNo OEIS A-number of the sequence
    * @param galId Galebach's identification of a vertex type: "Gal.u.t.v"
    * @param vertexId clockwise dot-separated list of
@@ -72,109 +72,49 @@ Shas*/
    *     vertex type names and angles (and apostrophe if flipped)
    * @param sequence a list of initial terms of the coordination sequence
    */
-  VertexType(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
+  public void setAngleNotation(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
     // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
+    // this.index and this.name are filled in VertexTypeArray.add()
     this.vertexId    = vertexId;
     String[] corners = vertexId.split("\\.");
     String[] parts   = taRotList.split("\\;\\s*");
-    index       = Tiling.ffVertexTypes; // even = not flipped
-    name        = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
     this.aSeqNo = aSeqNo;
     this.galId  = galId;
     this.sequence = sequence;
     edgeNo      = parts.length;
     polys       = new int[edgeNo];
-    pxAngles    = new int[edgeNo];
+    pxRotats    = new int[edgeNo];
     pxEdges     = new int[edgeNo];
-    pxFlips     = new int[edgeNo];
+    pxOrients   = new int[edgeNo];
     pxTinds     = new int[edgeNo];
   /*Shas    
     leShas      = new int[edgeNo];
     riShas      = new int[edgeNo];
   Shas*/
-    sweeps      = new int[edgeNo];
+    pxSweeps      = new int[edgeNo];
     for (int iedge = 0; iedge < edgeNo; iedge ++) {
+      pxEdges[iedge]    = -1; // undefined
+      pxTinds[iedge]    = parts[iedge].charAt(0) - 'A'; // A -> 0
+      pxOrients[iedge]  = parts[iedge].endsWith("'") ? -1 : 1; // with apostrophe => proxy must be flipped
+      polys[iedge]      = 0;
+      pxRotats[iedge]   = 0;
       try {
-        pxEdges[iedge] = -1; // undefined
-        pxTinds[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
-        if (parts[iedge].endsWith("'")) { // with apostrophe => is flipped
-          parts[iedge]   = parts[iedge].replaceAll("\\'",""); // remove apostrophe
-          pxTinds[iedge] ++; // make it odd
-          pxFlips[iedge] = 1; // proxy must be flipped - opposite orientation
-        } else {
-          pxFlips[iedge] = 0; // proxy is in the same orientation
-        }
-        polys[iedge]    = 0;
-        pxAngles[iedge] = 0;
         polys[iedge]    = Integer.parseInt(corners[iedge]);
-        pxAngles[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits only
+        pxRotats[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits only
       } catch (Exception exc) {
-        if (sDebug >= 1) {
-          System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
-        }
+        System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
       }
     } // for iedge
     for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
-      sweeps[iedge] = iedge == 0
+      pxSweeps[iedge] = iedge == 0
           ? 0
-          : sweeps[iedge - 1] + Position.mRegularAngles[polys[iedge - 1]];
+          : pxSweeps[iedge - 1] + Position.mRegularAngles[polys[iedge - 1]];
     /*Shas    
-      int dedge = edgeNo - 1 - iedge; // decreasing
       riShas[iedge] = polys[iedge];
-      leShas[iedge] = polys[dedge];
+      leShas[iedge] = polys[oedge];
     Shas*/
     } // for iedge
-  } // VertexType(String, String, String)
-
-  /**
-   * Returns a new, flipped version of <em>this</em> VertexType,
-   * which must be normal.
-   * @return a VertexType which is a deep copy of <em>this</em>.
-   * The index becomes odd, and all edges are visited in reverse orientation.
-   */
-  public VertexType getFlippedClone() {
-    VertexType result = new VertexType();
-    result.index    = index + 1; // odd -> edges turn counter-clockwise
-    result.galId    = galId;
-    result.sequence = sequence;
-    result.edgeNo   = edgeNo;
-    result.polys    = new int[edgeNo];
-    result.pxAngles = new int[edgeNo];
-    result.pxEdges  = new int[edgeNo];
-    result.pxFlips  = new int[edgeNo];
-    result.pxTinds  = new int[edgeNo];
-  /*Shas    
-    result.leShas   = new int[edgeNo];
-    result.riShas   = new int[edgeNo];
-  Shas*/
-
-    // now determine chirality; reverse the vertexId
-    StringBuffer revId = new StringBuffer(128);
-    result.sweeps   = new int[edgeNo];
-    for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
-      int dedge = edgeNo - 1 - iedge; // decreasing
-      result.pxAngles[iedge] = pxAngles[iedge];
-      result.pxEdges [iedge] = pxEdges [iedge];
-      result.pxFlips [iedge] = pxFlips [iedge] ^ 1; // XOR
-      result.pxTinds [iedge] = pxTinds [iedge];
-      result.sweeps  [iedge] = sweeps  [iedge];
-      result.polys   [iedge] = polys   [iedge];
-    /*Shas    
-      result.riShas[iedge] = polys   [iedge];
-      result.leShas[iedge] = polys   [iedge];
-    Shas*/
-      revId.append('.');
-      revId.append(String.valueOf(polys[dedge]));
-    } // for iedge
-    revId.append(revId.substring(0, revId.length())); // duplicate it
-    revId.append('.');
-    boolean chiral = revId.indexOf("." + vertexId + ".") < 0; // is it found in some rotation?
-    if (sDebug >= 3) {
-      System.out.println("# determine chiral: \"." + vertexId + ".\" contained in \"" + revId + "\" ? -> " + chiral);
-    }
-    result.name     = chiral ? name.toLowerCase() : name;
-    return result;
-  } // getFlippedClone
+  } // setAngleNotation
 
   /**
    * Returns a simple representation of the VertexType
@@ -189,40 +129,27 @@ Shas*/
    * @return JSON for all properties
    */
   public String toJSON() {
-    Tiling.pushIndent();
+    Tiling.pushIndent(); 
     String result
-        = "{ \"i\": \""      + index + "\""
-        + ", \"name\": \""   + name  + "\""
-        + ", \"vid\": \""    + vertexId + "\""
-        + ", \"polys\": "    + Tiling.join(",", polys)
-        + ", \"sweeps\": "   + Tiling.join(",", sweeps)
-        + ", \"pxAngles\": " + Tiling.join(",", pxAngles)
-        + ", \"pxEdges\": "  + Tiling.join(",", pxEdges)
-        + ", \"pxFlips\": "  + Tiling.join(",", pxFlips)
-        + ", \"pxTinds\": "  + Tiling.join(",", pxTinds)
+        = "{ \"i\": \""       + index + "\""
+        + ", \"name\": \""    + name  + "\""
+        + ", \"vid\": \""     + vertexId + "\""
+        + ", \"polys\": "     + Tiling.join(",", polys)
+        + ", \"pxSweeps\": "  + Tiling.join(",", pxSweeps)
+        + ", \"pxRotats\": "  + Tiling.join(",", pxRotats)
+        + ", \"pxEdges\": "   + Tiling.join(",", pxEdges)
+        + ", \"pxOrients\": " + Tiling.join(",", pxOrients)
+        + ", \"pxTipes\": "   + Tiling.join(",", pxTinds)
     /*
-        + ", \"leShas\": "   + Tiling.join(",", leShas)
-        + ", \"riShas\": "   + Tiling.join(",", riShas)
+        + ", \"leShas\": "    + Tiling.join(",", leShas)
+        + ", \"riShas\": "    + Tiling.join(",", riShas)
     */
-        + ", \"galId\": \""  + galId + "\""
+        + ", \"galId\": \""   + galId + "\""
         + " }\n";
     Tiling.popIndent();
     return result;
   } // VertexType.toJSON
 
-  /**
-   * Limits the index of an edge of <em>this</em> VertexType to the range 0..edgeNo - 1.
-   * @param iedge number of edge, maybe negative
-   * @return an edge number in the range 0..edgeNo - 1
-   */
-  public int normEdge(int iedge) {
-    int result = iedge;
-    while (result < 0) { // ensure non-negative
-      result += edgeNo;
-    } // while negative
-    return result % edgeNo;
-  } // normEdge
-  
   /**
    * Determines whether <em>this</em> {@link VertexType} is flipped
    * @return true if the index is odd, false otherwise

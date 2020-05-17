@@ -33,7 +33,7 @@ public class Tiler2 implements Serializable {
   public final static String CVSID = "@(#) $Id: Tiler2.java $";
   /** log4j logger (category) */
   // private Logger log;
-
+ 
   /**
    * Empty constructor.
    */
@@ -69,7 +69,6 @@ public class Tiler2 implements Serializable {
    * @param line record to be processed
    */
   private void processRecord(String line) {
-    SVGFile.sEnabled = true;
     // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     String[] fields   = line.split("\\t");
     int ifield = 0;
@@ -84,15 +83,16 @@ public class Tiler2 implements Serializable {
       if (gutv[3].equals("1")) { // first of new tiling
         mTiling = new Tiling(Integer.parseInt(gutv[1]), mMaxDistance, mASeqNo);
       }
-      mTiling.addVertexType(aSeqNo, galId, vertexId, taRotList, sequence);
+      mTiling.mTypeArray.setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
       if (gutv[3].equals(gutv[1])) { // last of new tiling
-        mTiling.completeVertexTypes();
         if (sDebug >= 1) {
           System.out.println(mTiling.toJSON());
         }
+        mTiling.mTypeArray.complete();
+
         // compute the nets
         int netCount = 0;
-        for (int ind = 2; ind < mTiling.ffVertexTypes; ind += 2) {
+        for (int ind = 0; ind < mTiling.mTypeArray.size(); ind ++) {
           if (mGalId == null || mTiling.getVertexType(ind).galId.equals(mGalId)) { 
             // either all in the input file, or only the specified mGalId
             if (SVGFile.sEnabled) {
@@ -182,9 +182,6 @@ public class Tiler2 implements Serializable {
         } else if (opt.equals("-svg")   ) {
           SVGFile.sEnabled   = true;
           SVGFile.sFileName  = args[iarg ++];
-          if (sDebug >= 3) {
-            System.err.println("# SVG written to " + SVGFile.sFileName);
-          }
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }

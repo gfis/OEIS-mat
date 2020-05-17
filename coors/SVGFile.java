@@ -30,12 +30,11 @@ public class SVGFile {
   
   /** Filename for SVG output */
   public static String sFileName;
-
+ 
   /**
    * Empty Constructor.
    */
   public SVGFile() {
-    // sEnabled  = true;
     sFileName = "Test.svg";
   } // Constructor()
 
@@ -159,9 +158,10 @@ public class SVGFile {
   /**
    * Writes a circle centered at the position of a {@link Vertex} to the SVG file.
    * @param focus Vertex to be drawn
+   * @param maxBase number of base vertices (drawn with a bigger circle if index is less this value)
    * @param mode  0=normal, 1=tentative, 2=test
    */
-  public static void writeVertex(Vertex focus, int mode) {
+  public static void writeVertex(Vertex focus, int maxBase, int mode) {
     String color = focus.fixedEdges > 0 ? String.valueOf(focus.distance % COLOR_MOD) : "8";
     String name  = focus.getName();
     switch (mode) {
@@ -170,7 +170,7 @@ public class SVGFile {
         write("<g><circle class=\"c" + color
             + "\" cx=\"" + focus.expos.getX()
             + "\" cy=\"" + focus.expos.getY()
-            + "\" r=\""  + (focus.index == 2 ? "0.3" : "0.15") + "\">" // bigger if baseVertex
+            + "\" r=\""  + (focus.index < maxBase ? "0.3" : "0.15") + "\">" // bigger if baseVertex
             + "</circle>"
             + "<text     class=\"t" + color
             + "\" x=\""  + focus.expos.getX()

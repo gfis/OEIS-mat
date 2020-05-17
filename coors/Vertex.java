@@ -1,4 +1,4 @@
-/* Node in a tiling 
+/* Node in a tiling
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-15, Georg Fischer: extracted from Tiler.java
@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * This class represents a vertex in a tiling. 
+ * This class represents a vertex in a tiling.
  * A vertex is a node where 3 to 6 (for uniform tilings) edges meet.
  * @author Georg Fischer
  */
@@ -20,28 +20,21 @@ public class Vertex implements Serializable {
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
-  
+
   public int index;        // in mVertices
   public VertexType vtype; // general properties for the vertex
-  public int iType;        // index of vtype; 0, 1 are reserved; iType is even for clockwise, odd for counter-clockwise variant
-  public int orient;       // 0 for normal (clockwise), 1 for opposite (counter-clockwise) orientation
+  public int orient;       // 1 for normal (clockwise), -1 for opposite (counter-clockwise) orientation
   public int distance;     // length of shortest path to origin, for coloring
   public int rotate;       // the vertex type was rotated clockwise by so many degrees
   public Position expos;   // exact Position of the Vertex
   public int fixedEdges;   // number of allocated neighbours = edges
   public Vertex[] proxies; // array of neighbouring vertices at the end of the edges
-  public int[] succs;      // array of indices of proxies
-/*
-  public int[] shapes;     // list of indices in left shapes
-  public int[] preds;      // list of indices in predecessor vertices
-*/
-  public int bedge;        // temporary edge pointing backwards to the last focus of this successor
 
   /**
    * Empty constructor, not used
    */
   public Vertex() {
-    iType = 0;
+    index = -1;
   } // Vertex()
 
   /**
@@ -51,27 +44,17 @@ public class Vertex implements Serializable {
    */
   public Vertex(VertexType vtype) {
     this.vtype = vtype;
-    iType      = vtype.index;
-    orient     = iType & 1; // lowest bit
+    orient     = 1; // assume normal orientation
     distance   = 0;
     rotate     = 0;
     expos      = new Position();
-    int edgeNo = iType == 0 ? 0 : getType().edgeNo;
-    proxies    = new Vertex[edgeNo];
-    succs      = new int[edgeNo];
-    Arrays.fill(succs , 0);
-  /*
-    shapes     = new int[edgeNo];
-    preds      = new int[edgeNo];
-    Arrays.fill(shapes, 0);
-    Arrays.fill(preds , 0);
-  */
+    proxies    = new Vertex[vtype.edgeNo];
    } // Vertex(VertexType)
 
   /**
    * Constructor with a {@link VertexType} and an orientation.
-   * @param vtype type of vertex with general properties,
-   * is even for clockwise, odd for clockwise orientation
+   * @param vtype type of vertex with general properties
+   * @param orient 1 for normal (clockwise), -1 for opposite (counter-clockwise) orientation
    */
   public Vertex(VertexType vtype, int orient) {
     this(vtype);
@@ -91,10 +74,23 @@ public class Vertex implements Serializable {
    * @return uppercase letter (for non-flipped) or lowercase letter (for flipped)
    */
   public String getName() {
-    return orient == 0 
-        ? getType().name
-        : getType().name.toLowerCase();
+    return orient == 1
+        ? vtype.name
+        : vtype.name.toLowerCase();
   } // getName
+
+  /**
+   * Returns a representation of the proxies
+   * @return JSON array with indices of the proxies
+   */
+  private String getProxyList() {
+    StringBuffer result = new StringBuffer(128);
+    for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
+      result.append(',');
+      result.append(String.valueOf(proxies[iedge] == null ? -1 : proxies[iedge].index));
+    } // for iedge
+    return result.substring(1);
+  } // getProxyList
 
   /**
    * Returns a JSON representation of the Vertex
@@ -103,17 +99,15 @@ public class Vertex implements Serializable {
   public String toJSON() {
     Tiling.pushIndent();
     String result
-        = "{ \"i\": "        + String.format("%4d", index)
-        + ", \"type\": "     + String.format("%2d", iType)
-    //  + ", \"name\": "     + String.format("%2d", getName()
-        + ", \"orient\": "   + String.format("%3d", orient)
-        + ", \"rot\": "      + String.format("%3d", rotate)
-        + ", \"fix\": "      + fixedEdges
-        + ", \"succs\": \""  + Tiling.join(",", succs ) + "\""
-    //  + ", \"preds\": \""  + Tiling.join(",", preds ) + "\""
-    //  + ", \"shapes\": \"" + Tiling.join(",", shapes) + "\""
-        + ", \"pos\": \""    + expos.toString()  + "\""
-        + ", \"dist\": \""   + distance + "\""
+        = "{ \"i\": "          + String.format("%4d", index)
+        + ", \"type\": "       + String.format("%2d", vtype.index)
+        + ", \"name\": "       + getName()
+        + ", \"orient\": "     + String.format("%3d", orient)
+        + ", \"rot\": "        + String.format("%3d", rotate)
+        + ", \"fix\": "        + fixedEdges
+        + ", \"proxies\": ["   + getProxyList() + "]"
+        + ", \"pos\": \""      + expos.toString()  + "\""
+        + ", \"dist\": \""     + distance + "\""
         + " }\n";
     Tiling.popIndent();
     return result;
@@ -124,7 +118,7 @@ public class Vertex implements Serializable {
    * @return JSON for edges
    */
   public String toString() {
-    return index + getName() + " @" + rotate + expos + "->" + Tiling.join(",", succs).replaceAll("[\\[\\]]", "");
+    return index + getName() + " @" + rotate + expos + "->" + getProxyList();
   } // Vertex.toString
 
  /**
@@ -132,7 +126,7 @@ public class Vertex implements Serializable {
    * @param angle in degrees, maybe negative or >= 360
    * @return non-negative degrees mod 360
    */
-  private static int normAngle(int angle) {
+  protected static int normAngle(int angle) {
     while (angle < 0) {
       angle += 360;
     }
@@ -140,7 +134,7 @@ public class Vertex implements Serializable {
   } // normAngle
 
   /**
-   * Gets the absolute angle where an edge of <em>this</em> {@link #Vertex}
+   * Gets the absolute angle where an edge of <em>this</em> {@link Vertex}
    * (which is already rotated) is pointing to.
    * This is the only place where the orientation of the Vertex is relevant.
    * The orientation is implemented by a proper access to <em>sweeps</em>.
@@ -150,122 +144,14 @@ public class Vertex implements Serializable {
    * relative to a right horizontal edge from (x,y)=(0,0) to (x,y)=(0,1),
    * turning clockwise := positive (downwards, because of SVG's y axis)
    */
-  public int getAngle(int iedge) {
-    VertexType vtype = this.getType();
-    int siType  = vtype.pxTinds[
-        vtype.isFlipped() ? vtype.normEdge(- iedge) : vtype.normEdge(+ iedge)
-        ];
-    if (vtype.isFlipped()) {
-      siType ^= 1;
-    }
-    VertexType suType = Tiling.mVertexTypes[siType];
-    int sum       = rotate;
-    int swFlipped = - vtype.sweeps[vtype.normEdge(- iedge)];
-    int swNormal  =   vtype.sweeps[vtype.normEdge(+ iedge)];
-    boolean foFlip =  vtype.isFlipped();
-    boolean suFlip = suType.isFlipped();
-    if (foFlip) {
-      if (suFlip) {
-        sum += - vtype.sweeps[vtype.normEdge(- iedge)];
-      } else {
-        sum += - vtype.sweeps[vtype.normEdge(- iedge)];
-      }
-    } else {
-      if (suFlip) {
-        sum += + vtype.sweeps[vtype.normEdge(+ iedge)];
-      } else {
-        sum += + vtype.sweeps[vtype.normEdge(+ iedge)];
-      }
-    }
-    sum = normAngle(sum);
+  protected int getAngle(int iedge) {
+    int result = normAngle(rotate + orient * vtype.pxSweeps[iedge]);
     if (sDebug >= 2) {
-        System.out.println("#         getAngle(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
-            + ", suType " + suType.toString()
-            + " -> swNormal " + normAngle(swNormal) + ", swFlipped " + normAngle(swFlipped)
-            + ", focus.flipped " + vtype.isFlipped() + ", succ.flipped " + suType.isFlipped()
-            + ", sum " + sum);
+        System.out.println("#         getAngle(iedge "         + iedge + ")." + index + getName() + "@" + rotate + expos
+            + ", focus.orient " + orient + ", => " + result);
     }
-    return sum;
+    return result;
   } // getAngle
-
-  /**
-   * Gets the matching edge of <em>this</em> {@link Vertex} (which is already rotated)
-   * for a given absolute angle, or -1 if no such edge was found
-   * This method corresponds with {@link #getAngle}.
-   * @param angle degrees 0..360 where the edge points to,
-   * already inverted,
-   * counted from (x,y)=(0,0) to (x,y)=(0,1), clockwise
-   * @return iedge=0..edgeNo -1 if a fitting edge was found, or -1 otherwise
-   */
-  public int getEdge(int angle) {
-    angle = normAngle(angle);
-    VertexType vtype = getType();
-    if (sDebug >= 3) {
-        System.out.println("#       try getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + " ?");
-    }
-    int iedge = 0;
-    boolean busy = true;
-    while (busy && iedge < vtype.edgeNo) {
-      int edgeAngle = getAngle(iedge);
-      if (sDebug >= 3) {
-        System.out.println("#         compare " + edgeAngle + " with " + angle);
-      }
-      if (edgeAngle == angle) {
-        busy = false;
-      } else { // angles still different
-        iedge ++;
-      } // still different
-    } // while +
-    if (busy) {
-      iedge = -1; // no matching angle found
-    }
-    if (sDebug >= 2) {
-      if (iedge >= 0) {
-        System.out.println("#       getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + expos
-            + " -> " + iedge + " -> "
-            + vtype.pxTypes[iedge].name);
-      } else {
-        System.out.println("# ** assertion 5: getEdge(angle " + angle + ")." + index + getName() + "@" + rotate + expos
-            + " -> " + iedge + " -> edge not found");
-      }
-    }
-    return iedge;
-  } // getEdge
-
-  /**
-   * Creates and returns a new successor {@link #Vertex} of <em>this</em> Vertex (which is already rotated).
-   * @param iedge=0..edgeNo -1; the successor is at the end of this edge
-   * @return successor Vertex which is properly rotated and linked back to <em>this</em>
-   */
-  public Vertex getSuccessor(int iedge) {
-    VertexType vtype = getType(); // of the focus
-    int siType  = vtype.pxTinds[vtype.isFlipped() 
-        ? vtype.normEdge(- iedge) 
-        : vtype.normEdge(+ iedge)];
-    if (vtype.isFlipped()) {
-      siType ^= 1; // normal -> flipped or flipped -> normal
-    }
-    VertexType suType = Tiling.mVertexTypes[siType];
-    int suRota  = normAngle(vtype.pxAngles[vtype.isFlipped() 
-        ? vtype.normEdge(- iedge) 
-        : vtype.normEdge(+ iedge)
-        ] * (vtype.isFlipped() ? -1 : +1));
-    int fAngle  = getAngle(iedge); // points to the successor
-    if (sDebug >= 2) {
-      System.out.println("#     getSuccessor(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
-          + " start: siType " + siType + ", suRota " + suRota);
-    }
-    Vertex succ = new Vertex(suType); // create a new Vertex
-    succ.expos  = expos.moveUnit(fAngle);
-    succ.rotate = normAngle(rotate + suRota);
-    int bangle  = normAngle(fAngle + 180); // points backwards to the focus
-    succ.bedge  = succ.getEdge(bangle);
-    if (sDebug >= 2) {
-      System.out.println("#             got (iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
-          + " -> " + succ.toString() + ", fAngle " + fAngle + ", bangle " + bangle + ", bedge " + bedge);
-    }
-    return succ;
-  } // getSuccessor
 
   /**
    * Determines the {@link Position} of a proxy {@link Vertex} at the end of the specified edge
@@ -273,7 +159,32 @@ public class Vertex implements Serializable {
    * @return exact Position which is then checked whether it is occupied
    */
   public Position getProxyPosition(int iedge) {
-    return this.expos.moveUnit(this.getAngle(iedge));
+    Position result = expos.moveUnit(getAngle(iedge));
+    if (sDebug >= 2) {
+        System.out.println("#         getProxyPosition(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
+            + ", focus.orient " + orient + " => " + result.toString());
+    }
+    return result;
   } // getProxyPosition
-  
+
+  /**
+   * Creates and returns a new successor {@link #Vertex} of <em>this</em> Vertex (which is already rotated).
+   * @param iedge=0..edgeNo -1; the successor is at the end of this edge
+   * @return successor Vertex which is properly rotated and linked back to <em>this</em>
+   */
+  public Vertex createProxy(int iedge, Position proxyPos) {
+    Vertex proxy = new Vertex(vtype.pxTypes[iedge], orient * vtype.pxOrients[iedge]); // create a new Vertex
+    int pxAngle  = this.getAngle(iedge); // points to the proxy
+    proxy.expos  = expos.moveUnit(pxAngle);
+    int pxRota   = orient * vtype.pxRotats[iedge];
+    proxy.rotate = normAngle(rotate + pxRota);
+    if (sDebug >= 2) {
+      System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
+          + ")." + index + getName() + "@" + rotate + expos
+          + " -> pxType " + proxy.vtype.index + ", pxRota " + pxRota + ", pxAngle " + pxAngle
+          + " => " + proxy.toString());
+    }
+    return proxy;
+  } // createProxy
+
 } // class Vertex

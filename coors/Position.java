@@ -178,7 +178,7 @@ public class Position implements Serializable {
     int icircle = Math.round(angle / 15) % 24;
     return add(sUnitCirclePoints[icircle]);
   } // moveUnit
-
+ 
   /**
    * Tests the computation of all 24 exact {@link Position}s
    */

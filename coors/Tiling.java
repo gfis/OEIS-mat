@@ -7,7 +7,9 @@
 // import Position;
 // import PositionMap;
 // import Vertex;
+// import VertexList;
 // import VertexType;
+// import VertexTypeArray;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,13 +32,11 @@ public class Tiling implements Serializable {
   /** Maximum distance from origin */
   private int mMaxDistance;
 
-  /** Allowed vertex types for this tiling */
-  public static VertexType[] mVertexTypes; // [0] is reserved
-  /** first free allowed VertexType */
-  public static int ffVertexTypes;
-
+  /** Possible {@link VertexType}s in this tiling */
+  public VertexTypeArray mTypeArray;
+  
   /** Allocated vertices */
-  public static ArrayList<Vertex> mVertices; // [0] is reserved
+  private VertexList mVertexList;
 
   /** Positions to vertices */
   private PositionMap mPosMap; 
@@ -66,21 +66,18 @@ public class Tiling implements Serializable {
 
   /**
    * Initializes the data structures of <em>this</em> Tiling.
-   * @param numTypes number of {@link VertexTypes},
-   * or 0 if only the dynamic structures are to be cleared
+   * @param numTypes number of {@link VertexType}s,
+   * or 0 if only the dynamic structures, but not the VertexTypes, are to be cleared.
    */
   public void initialize(int numTypes) {
     if (numTypes > 0) { // full init
-      mVertexTypes  = new VertexType[(numTypes + 1) * 2]; // "+1": [0..1] are not used / reserved
-      ffVertexTypes = 0;
-      addVertexType(new VertexType()); // the reserved elements [0..1]
+      mTypeArray = new VertexTypeArray(numTypes); 
     } // full init
+
     // (only) clear the dynamic structures:
-    sIndent  = "";
-    mPosMap = new PositionMap();
-    mVertices     = new ArrayList<Vertex>(256);
-    addVertex(new Vertex(mVertexTypes[0])); // [0] is not used / reserved
-    addVertex(new Vertex(mVertexTypes[0])); // [1] is not used / reserved
+    sIndent     = "";
+    mPosMap     = new PositionMap();
+    mVertexList = new VertexList();
   } // initialize
 
   /**
@@ -120,53 +117,12 @@ public class Tiling implements Serializable {
   } // popIndent
 
   /**
-   * Adds an existing VertexType and creates and adds the flipped version
-   * @param normalType the VertexType to be added
-   * @return iType of the resulting, normal VertexType
+   * Gets a {@link VertexType}
+   * @param index of the VertexType, 0=A, 1=B and so on.
+   * @return a number &gt;= 0, 
    */
-  public int addVertexType(VertexType normalType) {
-    int result = ffVertexTypes;
-    mVertexTypes[ffVertexTypes ++] = normalType;
-    mVertexTypes[ffVertexTypes ++] = normalType.getFlippedClone();
-    return result;
-  } // addVertexType
-
-  /**
-   * Creates and adds a new VertexType from Galebach's parameters
-   * together with the flipped version
-   * @param aSeqNo OIES A-number of the sequence
-   * @param galId Galebach's id "Gal.u.t.v"
-   * @param vertexId clockwise dot-separated list of
-   *     the polygones followed by the list of types and angles
-   * @param taRotList clockwise semicolon-separated list of
-   *     vertex type names and angles (and apostrophe if flipped)
-   * @param sequence a list of initial terms of the coordination sequence
-   * @return iType of the resulting VertexType
-   */
-  public int addVertexType(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
-    return addVertexType(new VertexType(aSeqNo, galId, vertexId, taRotList, sequence));
-  } // addVertexType
-
-  /**
-   * Completes all {@link VertexType}s, that is fills the pxTypes from pxTinds
-   */
-  public void completeVertexTypes() {
-    for (int iType = 0; iType < ffVertexTypes; iType ++) {
-      VertexType vtype = getVertexType(iType);
-      vtype.pxTypes = new VertexType[vtype.edgeNo];
-      for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
-        vtype.pxTypes[iedge] = mVertexTypes[vtype.pxTinds[iedge]];
-      } // for iedge
-    } // for iType
-  } // completeVertexTypes
-
-  /**
-   * Gets a VertexType
-   * @param iType index of type, even for normal, odd for flipped variant
-   * @return the corresponding VertexType with edges rotated clockwise in both versions
-   */
-  public static VertexType getVertexType(int iType) {
-    return mVertexTypes[iType];
+  public VertexType getVertexType(int index) {
+    return mTypeArray.get(index);
   } // getVertexType
 
   /**
@@ -175,175 +131,51 @@ public class Tiling implements Serializable {
    * @return index of added Vertex in {@link #mVertices}
    */
   public int addVertex(Vertex vertex) {
-    vertex.index = mVertices.size();
-    mVertices.add(vertex);
-    mPosMap.put(vertex);
+    vertex.index = mVertexList.size();
+    mVertexList.put(vertex);
+    mPosMap    .put(vertex);
     return vertex.index;
   } // addVertex
 
   /**
    * Returns a JSON representation of the tiling
-   * @return JSON for {@link #mVertexTypes} and {@link #mVertices}
+   * @return JSON for all major data structures
    */
   public String toJSON() {
-    // pushIndent();
-    String result  = sIndent + "{ \"ffVertexTypes\": " + ffVertexTypes  + "\n"
-                   + sIndent + ", \"mVertexTypes\":\n";
-    String sep = "  , ";
-    for (int ind = 0; ind < ffVertexTypes; ind ++) { // even (normal) and odds (flipped) versions
-      result += sIndent + (ind == 0 ? "  [ " : sep) + getVertexType(ind).toJSON();
-    } // for types
-    result += sIndent + "  ]\n";
-
-    int ffVertices = mVertices.size();
-    result += sIndent + ", \"ffVertices\": " + ffVertices + "\n" +  sIndent + ", \"mVertices\":\n";
-    for (int ind = 0; ind < ffVertices; ind ++) {
-      Vertex focus = mVertices.get(ind);
-      result += sIndent + (ind == 0 ? "  [ " : sep) + focus.toJSON();
-    } // for vertices
-    result += sIndent + "  ]\n";
-    result += mPosMap.toJSON();
-    return result;
+    return mTypeArray .toJSON()
+        +  mVertexList.toJSON()
+        +  mPosMap    .toJSON();
   } // toJSON
 
-  /**
-   * Draws the edges of <em>this</em> rotated {@link #Vertex} with thin
-   * lines for debugging purposes.
-   * @param focus Vertex to be shown
-   */
-  public void showSVGVertex(Vertex focus) {
-     VertexType vtype = focus.getType();
-     for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
-       Vertex succ = focus.getSuccessor(iedge);
-       SVGFile.writeEdge(focus, succ, iedge, 2); // mode = test
-     } // for iedge
-     SVGFile.writeVertex(focus, 2); // mode = test
-  } // showSVGVertex
-
    /**
    * Creates a successor {@link Vertex} of the focus and connects the successor back to the focus
    * @param focus the Vertex which gets the new successor
    * @param iedge attach the successor at this edge of the focus
    * @param distance from the origin Vertex
-   * @return index of new successor vertex, or 0 if attached to an existing vertex
-   */
-  public int attach_99(Vertex focus, int iedge, int distance) {
-    int isucc = 0; // future result; assume that the successor already exists
-    VertexType foType = focus.getType();
-    if (focus.succs[iedge] == 0) { // determine successor
-      Vertex succ = focus.getSuccessor(iedge);
-      if (sDebug >= 2) {
-        System.out.println("#--------\n# call attach(vertex " + focus.toString() + ", iedge " + iedge + ")");
-        System.out.println("#     candidate successor is "
-            + succ.getName() + "@" + succ.rotate + succ.expos + ", bedge " + succ.bedge);
-      }
-      int suEdge = succ.bedge;
-      if (suEdge < 0) { // not found
-        if (SVGFile.sEnabled) {
-          showSVGVertex(succ);
-        }
-        if (sDebug >= 0) {
-          System.out.println("# ** assertion 1 in attach(focus " + focus.index + focus.getName() + "\t, edge " + iedge
-              + "): no match in succ " + succ.toString());
-        }
-        if (SVGFile.sEnabled) {
-          SVGFile.writeEdge(focus, succ, iedge, 1);
-        }
-      } else { // matching angles
-        Vertex proxy = mPosMap.get(succ.expos);
-        int ioldv = proxy == null ? -1 : proxy.index; // does the successor Vertex already exist?
-        if (ioldv < 0) { // not found
-          isucc = addVertex(succ);
-          focus.succs[iedge] = isucc; // set forward link
-        } else { // old, successor Vertex already exist
-          // succ  = mVertices.get(ioldv);
-          focus.succs[iedge] = ioldv; // set forward link
-          isucc = 0; // do not enqueue it
-        } // successor Vertex already exist
-        if (succ.succs[suEdge] == 0) { // edge was not yet connected
-          succ.succs[suEdge] = focus.index; // set backward link
-        } else if (succ.succs[suEdge] != focus.index) {
-          if (SVGFile.sEnabled) {
-            showSVGVertex(succ);
-          }
-          if (sDebug >= 0) { // always show bad assertion
-            System.out.println("# ** assertion 2 in attach(focus " + focus.toString()
-            + "\t, edge " + iedge + "): focus not in succ " + succ.toString()
-            + "[" + suEdge + "]=" + succ.succs[suEdge] + " <> " + focus.index);
-          }
-          succ.succs[suEdge] = focus.index;
-        }
-        if (sDebug >= 2) {
-          System.out.println("#   attached focus " + focus.toString()
-              + ", iedge "  + iedge
-              + " -> succ " + succ.toString()
-              + ", suEdge " + suEdge
-              );
-        }
-        if (SVGFile.sEnabled) {
-          SVGFile.writeEdge(focus, succ, distance, 0); // normal
-        }
-      } // matching angles
-      focus.fixedEdges ++;
-    } else { // focus.succs[iedge] != 0 - ignore
-    /*
-      if (sDebug >= 2) {
-        System.out.println("#   attach(" + focus.toString() + ", " + iedge
-            + "): ignore attached edge " + iedge + " -> " + focus.succs[iedge]);
-      }
-    */
-    }
-    return isucc;
-  } // attach_99
-
-   /**
-   * Creates a successor {@link Vertex} of the focus and connects the successor back to the focus
-   * @param focus the Vertex which gets the new successor
-   * @param iedge attach the successor at this edge of the focus
-   * @param distance from the origin Vertex
-   * @return index of new successor vertex, or 0 if attached to an existing vertex
+   * @return index of new successor vertex, or -1 if attached to an existing vertex
    */
   public int attach(Vertex focus, int iedge, int distance) {
-    int result = 0; // future result; assume that the successor already exists
-    VertexType foType = focus.getType();
-    if (focus.succs[iedge] == 0) { // successor for this edge not yet determined
+    int result = -1; // future result; assume that the successor already exists
+    if (focus.proxies[iedge] == null) { // proxy for this edge not yet determined
       Position proxyPos = focus.getProxyPosition(iedge);
-      Vertex succ = mPosMap.get(proxyPos);
-      if (succ != null) { // found, old
-        focus.succs[iedge]   = succ.index; // set forward link
-        focus.proxies[iedge] = succ;
-        result = 0; // do not enqueue it
-      } else { // attach new successor
-        succ = focus.getSuccessor(iedge);
+      Vertex proxy = mPosMap.get(proxyPos);
+      if (proxy != null) { // found, old 
+        result = -1; // do not enqueue it
+      } else { // not found - create new 
+        proxy = focus.createProxy(iedge, proxyPos);
         if (sDebug >= 2) {
           System.out.println("#--------\n# call attach(vertex " + focus.toString() + ", iedge " + iedge + ")");
-          System.out.println("#     candidate successor is "
-              + succ.getName() + "@" + succ.rotate + succ.expos + ", bedge " + succ.bedge);
+          System.out.println("#     createProxy "
+              + proxy.getName() + "@" + proxy.rotate + proxy.expos);
         }
-        int suEdge = succ.bedge;
-        if (suEdge < 0) { // not found
-          if (SVGFile.sEnabled) {
-            showSVGVertex(succ);
-          }
-          if (sDebug >= 0) {
-            System.out.println("# ** assertion 1 in attach(focus " + focus.index + focus.getName() + "\t, edge " + iedge
-                + "): no match in succ " + succ.toString());
-          }
-          if (SVGFile.sEnabled) {
-            SVGFile.writeEdge(focus, succ, iedge, 1);
-          }
-        } else { // matching angles
-        } // matching angles
-        result = addVertex(succ);
-        focus.succs[iedge]   = result; // set forward link
-        focus.proxies[iedge] = succ;
-      } // not found - attach new successor
-      
-      focus.fixedEdges ++;
+        result = addVertex(proxy); // enqueue new
+      } // not found - create new
+      focus.proxies[iedge] = proxy; // attach it
       if (SVGFile.sEnabled) {
-        SVGFile.writeEdge(focus, succ, distance, 0); // normal
+        SVGFile.writeEdge(focus, proxy, distance, 0); // normal
       }
-    } else { // focus.succs[iedge] != 0 - ignore
+      focus.fixedEdges ++;
+    } else { // focus.proxies[iedge] != null  - ignore
     }
     return result;
   } // attach
@@ -351,11 +183,12 @@ public class Tiling implements Serializable {
   private static final int MAX_ERROR = 2;
 
   /**
-   * Computes the neighbourhood of the start vertex up to some distance
-   * @param iBaseType index of the initial vertex type
+   * Computes the neighbourhood of the start {@link Vertex} up to some distance
+   * @param iBaseType index of the initial {@link VertexType}
    */
   public void computeNet(int iBaseType) {
     VertexType baseType = getVertexType(iBaseType);
+    int maxBase = 1; // only one base vertex at the moment
     int errorCount = MAX_ERROR;
     LinkedList<Integer> queue = new LinkedList<Integer>();
     initialize(0); // reset dynamic structures only
@@ -379,17 +212,9 @@ public class Tiling implements Serializable {
     }
     if (sDebug >= 3) {
       System.out.println("# compute neighbours of vertex type " + iBaseType + " up to distance " + mMaxDistance);
-      String result  = sIndent + "# \"ffVertexTypes\": " + ffVertexTypes  + "\n"
-                   + sIndent + ", \"mVertexTypes\":\n";
-      String sep = "  , ";
-      for (int ind = 0; ind < ffVertexTypes; ind ++) { // even (normal) and odds (flipped) versions
-        result += sIndent + (ind == 0 ? "  [ " : sep) + getVertexType(ind).toJSON();
-      } // for types
-      result += sIndent + "  ]\n";
-      System.out.println(result);
     }
     int distance = 0; // also index for terms
-    queue.add(addVertex(new Vertex(mVertexTypes[iBaseType])));
+    queue.add(addVertex(new Vertex(mTypeArray.get(iBaseType))));
     int addedVertices = 1;
     StringBuffer coordSeq = new StringBuffer(256);
     coordSeq.append("1");
@@ -404,19 +229,21 @@ public class Tiling implements Serializable {
       while (levelPortion > 0 && queue.size() > 0) { // queue not empty
         int ifocus = queue.poll();
         if (sDebug >= 2) {
+          System.out.println("# VertexList: " + mVertexList.toJSON());
           System.out.println("# dequeue ifocus " + ifocus);
         }
-        Vertex focus = mVertices.get(ifocus);
+        Vertex focus = mVertexList.get(ifocus);
         focus.distance = distance;
-        VertexType foType = mVertexTypes[focus.iType];
-        for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
-          int isucc = attach(focus, iedge, distance);
-          if (isucc > 0) { // did not yet exist
+        for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
+          int iproxy = attach(focus, iedge, distance);
+          if (iproxy >= 0) { // did not yet exist
             addedVertices ++;
-            queue.add(isucc);
+            queue.add(iproxy);
             if (sDebug >= 2) {
-              System.out.println("# enqueue isucc " + isucc + ", attached to ifocus " + ifocus + " at edge " + iedge);
+              System.out.println("# enqueue iproxy " + iproxy + ", attached to ifocus " + ifocus + " at edge " + iedge);
             }
+          } else {
+            // successor existed - ignore
           }
         } // for iedge
         levelPortion --;
@@ -436,18 +263,18 @@ public class Tiling implements Serializable {
       }
       distance ++;
     } // while distance
-    int ffVertices = mVertices.size();
-    if (mPosMap.size() != ffVertices - 2) {
-      if (sDebug >= 3) {
-        System.out.println("# ** assertion 3 in tiling.toString: " + mPosMap.size()
-            + " different positions, but " + (ffVertices - 2) + " vertices\n");
+    int vlSize = mVertexList.size();
+    if (mPosMap.size() != vlSize) {
+      if (sDebug >= 0) {
+        System.err.println("# ** assertion 3 in tiling.toString: " + mPosMap.size()
+            + " different positions, but " + vlSize + " vertices\n");
       }
     }
-    if (sDebug >= 3) {
+    if (sDebug >= 1) {
       System.out.println("# final net\n" + toJSON());
     }
     if (true) { // this is always output
-      System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mVertexTypes[iBaseType].galId + "\t" + coordSeq.toString());
+      System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mTypeArray.get(iBaseType).galId + "\t" + coordSeq.toString());
     }
     if (BFile.sEnabled) { // close b-file
       BFile.close();
@@ -457,9 +284,9 @@ public class Tiling implements Serializable {
           + String.valueOf(mMaxDistance + 1) + " terms verified");
     }
     if (SVGFile.sEnabled) {
-      for (int ind = 2; ind < ffVertices; ind ++) { // ignore reserved [0..1]
-        Vertex focus = mVertices.get(ind);
-        SVGFile.writeVertex(focus, 0);
+      for (int ind = 0; ind < vlSize; ind ++) { // ignore reserved [0..1]
+        Vertex focus = mVertexList.get(ind);
+        SVGFile.writeVertex(focus, maxBase, 0);
       } // for vertices
     } // SVG
   } // computeNet

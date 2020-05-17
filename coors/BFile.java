@@ -41,12 +41,11 @@ public class BFile {
   
   /** Writer for b-file output */
   private static PrintWriter sBFileWriter;
-
+ 
   /**
    * Empty Constructor.
    */
   public BFile() {
-    // sEnabled = false;
     setPrefix("./");
     sBFileCount = 0;
   } // Constructor()

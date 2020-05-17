@@ -1084,7 +1084,7 @@ public class Tiler1 implements Serializable {
         } // getSuccessor
 
     } // class Vertex
-
+ 
     //----------------------------------------------------------------
 
     /**

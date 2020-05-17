@@ -52,44 +52,22 @@ public class PositionMap {
   public Vertex get(Position expos) {
     return mLocationHash.get(expos.toString());
   } // get
-
+ 
   /**
    * Returns a JSON representation of the tiling
    * @return JSON for {@link #mVertexTypes} and {@link #mVertices}
    */
   public String toJSON() {
-    String sep = "  , ";
     String result  = "{ \"size\": " + mLocationHash.size() + ", \"mLocationHash\": \n";
     Iterator<String> piter = mLocationHash.keySet().iterator();
     while (piter.hasNext()) {
       String pos = piter.next();
       int ind = mLocationHash.get(pos).index;
-      result += (ind == 0 ? "  [ " : sep) + "{ \"pos\": \"" + pos + ", index: " + ind + " }\n";
+      result += (ind == 0 ? "  [ " : "  , ") + "{ \"pos\": \"" + pos + ", index: " + ind + " }\n";
     } // while piter
     result += "  ]\n}\n";
     return result;
   } // toJSON
 
-  /**
-   * Main method - tests the unit circle Positions.
-   * @param args command line arguments: -circle
-   */
-  public static void main(String[] args) {
-    try {
-      int iarg = 0;
-      while (iarg < args.length) { // consume all arguments
-        String opt        = args[iarg ++];
-        if (false) {
-        } else if (opt.equals("-circle")) {
-        } else {
-          System.err.println("??? invalid option: \"" + opt + "\"");
-        }
-      } // while args
-    } catch (Exception exc) {
-      // log.error(exc.getMessage(), exc);
-      System.err.println(exc.getMessage());
-      exc.printStackTrace();
-    }
-  } // main
-
 } // class PositionMap
+
