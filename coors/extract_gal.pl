@@ -7,7 +7,7 @@
 # 2020-04-17, Georg Fischer
 #
 #:# usage:
-#:#   perl extract_gb.pl break.tmp > extract.tmp
+#:#   perl extract_gal.pl break.tmp > extract.tmp
 #---------------------------------
 use strict;
 use integer;

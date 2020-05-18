@@ -23,10 +23,10 @@ public class VertexType implements Serializable {
                             // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
   int[]  pxRotats;      // how many degrees must the proxy vertices be rotated, from Galebach
   int[]  pxEdges;       // which edge of the proxy is connected - not used yet
-  int[]  pxOrients;     // whether the proxy vertex must be oriented normally (1) or flipped (-1)
+  int[]  pxOrients;     // whether the proxy vertex is oriented normally (+1) or flipped (-1)
+  int[]  pxSweeps;      // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
   int[]  pxTinds;       // VertexType indices of proxy vertices; preliminary during VT creation, later pxTypes are used
   VertexType[] pxTypes; // VertexTypes of proxyt vertices
-  int[]  pxSweeps;      // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
 /*Shas    
   int[]  leShas;        // shapes / polygones from the focus to the left  of the edge
   int[]  riShas;        // shapes / polygones from the focus to the right of the edge
@@ -50,12 +50,12 @@ Shas*/
     pxRotats  = new int[0];
     pxEdges   = new int[0];
     pxOrients = new int[0];
+    pxSweeps  = new int[0];
     pxTinds   = new int[0];
   /*Shas    
     leShas    = new int[0];
     riShas    = new int[0];
   Shas*/
-    pxSweeps  = new int[0];
     galId     = "Gal.0.0.0";
     name      = "Z";
     aSeqNo    = "";
@@ -86,21 +86,28 @@ Shas*/
     pxRotats    = new int[edgeNo];
     pxEdges     = new int[edgeNo];
     pxOrients   = new int[edgeNo];
+    pxSweeps    = new int[edgeNo];
     pxTinds     = new int[edgeNo];
   /*Shas    
     leShas      = new int[edgeNo];
     riShas      = new int[edgeNo];
   Shas*/
-    pxSweeps      = new int[edgeNo];
     for (int iedge = 0; iedge < edgeNo; iedge ++) {
-      pxEdges[iedge]    = -1; // undefined
-      pxTinds[iedge]    = parts[iedge].charAt(0) - 'A'; // A -> 0
-      pxOrients[iedge]  = parts[iedge].endsWith("'") ? -1 : 1; // with apostrophe => proxy must be flipped
-      polys[iedge]      = 0;
-      pxRotats[iedge]   = 0;
+      // parts[iedge] has the form: "letter angle [,edge] [']", e.g. "A270,2'" 
+      pxEdges    [iedge] = -1; // undefined so far
+      pxTinds    [iedge] = parts[iedge].charAt(0) - 'A'; // A -> 0
+      pxOrients  [iedge] = parts[iedge].contains("'") ? -1 : 1; // with apostrophe => proxy must be flipped
+      polys      [iedge] = 0;
+      pxRotats   [iedge] = 0;
       try {
-        polys[iedge]    = Integer.parseInt(corners[iedge]);
-        pxRotats[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits only
+        int commaPos = parts[iedge].indexOf(',');
+        if (commaPos >= 0) {
+          pxEdges[iedge] = parts[iedge].charAt(commaPos + 1) - '0';
+        } else {
+          pxEdges[iedge] = -1;
+        }
+        polys    [iedge] = Integer.parseInt(corners[iedge]);
+        pxRotats [iedge] = Integer.parseInt(parts[iedge].replaceAll("[\\-\\D]", "")); // keep "-" and the digits only
       } catch (Exception exc) {
         System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
       }

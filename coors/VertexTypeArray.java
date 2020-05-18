@@ -76,6 +76,7 @@ public class VertexTypeArray {
       vtype.pxTypes = new VertexType[vtype.edgeNo];
       for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
         vtype.pxTypes[iedge] = get(vtype.pxTinds[iedge]);
+        // fill ptEdges ???
       } // for iedge
     } // for index
   } // complete

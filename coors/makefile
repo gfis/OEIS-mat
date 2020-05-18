@@ -247,6 +247,19 @@ check2un:
 check_unk:
 	$(DBAT) "SELECT aseqno, galid, tilingno, rseqno, SUBSTR(sequence, 1, 64) FROM coors WHERE aseqno LIKE 'unk%'"
 #----
+lshow:
+	$(DBAT) -x "SELECT galid, stdnot, vtype, tilingno \
+	    FROM coors\
+	    ORDER BY tilingno, galid" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+l2a:
+	perl letter2angle.pl unmarked_codes-1.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	# | sort -k7 -k2 
 #================
 program:
 	$(DBAT) -x "SELECT DISTINCT i.aseqno, c.tileid || '.' || c.galv, b.bfimin, b.bfimax, i.program \
@@ -298,6 +311,12 @@ run2: select
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
 	ls -tclr *.svg run2/*
+#----
+speed: speed1 speed2
+speed1: select
+	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d 0 -f select.tst 
+speed2: select
+	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
 #-----------------
 pave: compave pavr
 compave:

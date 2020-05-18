@@ -286,14 +286,12 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
-joeis_list: joeis_pull joeis_load joeis_names joeis_count joeis_stamp
-joeis_loct: joeis_list_local joeis_load joeis_names joeis_count joeis_stamp
+joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_count joeis_stamp
+joeis_local:
+	cd $(JOEIS) ; git pull ; ant jar
 joeis_pull:
 	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
-joeis_list_local:
-	cd ../../joeis ; git pull ; make joeis_list
-	cp -v ../../joeis/joeis_list.txt .
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	cat joeis_list.txt | sort \
