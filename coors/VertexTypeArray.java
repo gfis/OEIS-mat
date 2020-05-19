@@ -54,18 +54,27 @@ public class VertexTypeArray {
 
   /**
    * Modify an existing {@link VertexType} and set the parameters of the angle notation
-   * @param index index of the VertexType to be modified
    * @param aSeqNo OEIS A-number of the sequence
    * @param galId Galebach's id "Gal.u.t.v"
    * @param vertexId clockwise dot-separated list of the polygones followed by the list of types and angles
-   * @param taRotList clockwise semicolon-separated list of vertex type names and angles (and apostrophe if flipped)
+   * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * @param sequence list of initial terms of the coordination sequence
    */
   public void setAngleNotation(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
     mVertexTypes[mTAFree].setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence);
     mVertexTypes[mTAFree].name = Character.toString((char) ('A' + mTAFree));
     mTAFree ++;
-  } // setAngleNotation
+  } // setAngleNotation(String^5)
+
+  /**
+   * Modify an existing {@link VertexType} and set the parameters of the angle notation
+   * @param vertexId clockwise dot-separated list of the polygones followed by the list of types and angles
+   * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
+   * aSeqno, galId and sequence are set to dummy values.
+   */
+  public void setAngleNotation(String vertexId, String taRotList) {
+    setAngleNotation("A000000", "Gal.u.t.v.", vertexId, taRotList, "1");
+  } // setAngleNotation(String^2)
 
   /**
    * Completes all {@link VertexType}s, that is fills the pxTypes from pxTinds

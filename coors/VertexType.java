@@ -77,7 +77,7 @@ Shas*/
     // this.index and this.name are filled in VertexTypeArray.add()
     this.vertexId    = vertexId;
     final String[] corners = vertexId.split("\\.");
-    final String[] parts   = taRotList.split("\\;\\s*");
+    final String[] parts   = taRotList.split("[\\;\\,]\\s*");
     this.aSeqNo = aSeqNo;
     this.galId  = galId;
     this.sequence = sequence;
@@ -94,20 +94,22 @@ Shas*/
   Shas*/
     for (int iedge = 0; iedge < edgeNo; iedge ++) {
       // parts[iedge] has the form: "letter angle [,edge] [']", e.g. "A270,2'" 
+      String part  = parts[iedge];
       pxEdges    [iedge] = -1; // undefined so far
-      pxTinds    [iedge] = parts[iedge].charAt(0) - 'A'; // A -> 0
-      pxOrients  [iedge] = parts[iedge].contains("'") ? -1 : 1; // with apostrophe => proxy must be flipped
+      pxTinds    [iedge] = part.charAt(0) - 'A'; // A -> 0
+      pxOrients  [iedge] = part.contains("+") ? +1 : -1; // contains "+" or "-"
       polys      [iedge] = 0;
       pxRotats   [iedge] = 0;
       try {
-        final int commaPos = parts[iedge].indexOf(',');
-        if (commaPos >= 0) {
-          pxEdges[iedge] = parts[iedge].charAt(commaPos + 1) - '0';
+        final char last  = part.charAt(part.length() - 1);
+        if (Character.isDigit(last)) {
+          pxEdges[iedge] = last - '0' - 1; // external edge numbers start at 1
+          part = part.replaceAll("[\\+\\-]\\d+\\Z", ""); // remove edge, for angle, below
         } else {
           pxEdges[iedge] = -1;
         }
         polys    [iedge] = Integer.parseInt(corners[iedge]);
-        pxRotats [iedge] = Integer.parseInt(parts[iedge].replaceAll("[\\-\\D]", "")); // keep "-" and the digits only
+        pxRotats [iedge] = Integer.parseInt(part.replaceAll("\\D", "")); // keep the digits only
       } catch (Exception exc) {
         System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
       }

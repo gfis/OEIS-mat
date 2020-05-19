@@ -742,7 +742,7 @@ public class Tiler1 implements Serializable {
         VertexType(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
             // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
             String[] corners = vertexId.split("\\.");
-            String[] parts   = taRotList.split("\\;\\s*");
+            String[] parts   = taRotList.split("[\\;\\,]\\s*");
             index  = ffVertexTypes; // even = not flipped
             name   = "ZABCDEFGHIJKLMNOP".substring(index >> 1, (index >> 1) + 1);
             this.aSeqNo = aSeqNo;
@@ -758,16 +758,17 @@ public class Tiler1 implements Serializable {
         Shas*/
             sweeps = new int[edgeNo];
             for (int iedge = 0; iedge < edgeNo; iedge ++) {
+                String part  = parts[iedge];
+                tipes[iedge] = (part.charAt(0) - 'A' + 1) * 2; // even, A -> 2
+                if (part.contains("-")) { // reverse orientation
+                    tipes[iedge] ++; // make it odd
+                }
+                part = part.replaceAll("[\\+\\-]\\d+\\Z", ""); // remove edge, for angle, below
+                polys[iedge] = 0;
+                rotas[iedge] = 0;
                 try {
-                    tipes[iedge] = (parts[iedge].charAt(0) - 'A' + 1) * 2; // even, A -> 2
-                    if (parts[iedge].endsWith("'")) { // with apostrophe => is flipped
-                        tipes[iedge] ++; // make it odd
-                        parts[iedge] = parts[iedge].replaceAll("\\'",""); // remove apostrophe
-                    }
-                    polys[iedge] = 0;
-                    rotas[iedge] = 0;
                     polys[iedge] = Integer.parseInt(corners[iedge]);
-                    rotas[iedge] = Integer.parseInt(parts[iedge].replaceAll("\\D", "")); // keep the digits only
+                    rotas[iedge] = Integer.parseInt(part.replaceAll("\\D", "")); // keep the digits only
                 } catch (Exception exc) {
                     if (sDebug >= 1) {
                         System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");

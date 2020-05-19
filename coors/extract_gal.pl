@@ -3,6 +3,7 @@
 # Extract parameters from Galebach's website
 # https://oeis.org/A250120/a250120.html
 # @(#) $Id$
+# 2020-05-19: slight modification without spaces, comma in tarotlist
 # 2020-05-09: new format of a250120.html
 # 2020-04-17, Georg Fischer
 #
@@ -32,7 +33,7 @@ my $state = "init";
 my %tiles = ();
 my $rest;
 my $ind;
-my $std_notation;
+my $stdnot;
 my $tiling_no; # tiling #
 my $gal_id;
 my $vertex_letter;
@@ -54,24 +55,31 @@ while (<>) {
         $tiling_no = $1;
     } elsif ($state eq "init" and ($line =~ m{^Standard Notation\:\s*(.*)}i)) {
         $rest =   $1;
-        $rest =~ s{[\[\]]}{}g;
-        $std_notation = $rest;
+        $rest =~ s{[\[\] ]}{}g;
+        $stdnot = $rest;
+        
     } elsif ($state eq "init" and ($line =~ m{^Expanded Notation}i)) {
         %tiles = ();
         $state       = "expa";
     } elsif ($state eq "expa" and ($line =~ m{^(Gal[\.\d]+)\:\s*([A-Z])\:\s*(.*)}i)) { # gal_id, letter, vertex type, angles
         $gal_id = $1;
-        $vertex_letter = $2;
-        $rest =   $3;
-        my @edges  = split(/\;\s*/, $rest);
+        $vertex_letter = $2; # ignored at the moment
+        $rest = $3;
+        $rest =~ s{\s}{}g;
+        my @edges    = split(/\;/, $rest);
         my $vertexId = shift(@edges);
-        my @vtypes = split(/\./, $vertexId);
-        my $eno = scalar(@edges);
-        my $vno = scalar(@vtypes);
+        my @vtypes   = split(/\./, $vertexId);
+        my $eno      = scalar(@edges);
+        my $vno      = scalar(@vtypes);
         if ($eno != $vno) {
             print STDERR "eno=$eno != vno=$vno in $gal_id\n";
         }
-        $tiles{$gal_id} = join("\t", $std_notation, $vertexId, join(";", @edges));
+        @edges = map {
+            $_ .= "+";
+            s{\'\+}{\-};
+            $_
+            } @edges;
+        $tiles{$gal_id} = join("\t", $stdnot, $vertexId, join(",", @edges));
     } elsif ($state eq "expa" and ($line =~ m{^(Coord)}i)) {
         $state =       "cseq";
     } elsif ($state eq "cseq" and ($line =~ m{^(Gal[\.\d]+)\:\s*(.*)}i)) { # cs follows

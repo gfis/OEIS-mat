@@ -26,7 +26,7 @@ my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 200
 #                                             0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 #----
-my $mapnum  = 64;
+my $mapnum  = 256;
 my $timeout = 16;
 my $maple   = "\"C:/Program Files/Maple 2019/bin.X86_64_WINDOWS/cmaple.exe\"";
 my $pattern_file = "";

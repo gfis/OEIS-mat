@@ -28,7 +28,7 @@ wget:
 	rm -f a250120.html
 	wget https://oeis.org/A250120/a250120.html
 #----
-gather: break extract extract_load count 
+gather: break extract extract_load 
 #   update_noflip
 break:
 	perl -pe "s{\<br\>}{\<br \/\>\n}ig;" a250120.html > $@.tmp
@@ -50,13 +50,6 @@ extract_load:
 	| $(DBAT) -m csv -r coors
 	$(DBAT) -4 coors
 	$(DBAT) -n coors
-count:
-	perl tilings.pl extract.tmp \
-	>        $@.tmp
-	tail -n4 $@.tmp
-	wc -l    $@.tmp
-	cut -f 2 $@.tmp | sort -n | uniq -c \
-	| tee count_cut.tmp
 check:
 	$(DBAT) -x "SELECT aseqno, rseqno, galid, tilingno \
 	  FROM coors \
@@ -445,6 +438,27 @@ denfactor:
 demfactor:
 	perl demfactor.pl densimma2.tmp \
 	| sort | uniq -c | sort -rn > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+decr_factor:
+	perl callmaple.pl -p $@.mpat denpoly.tmp \
+	| grep -E "^A[0-9]" \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+incr_factor:
+	perl callmaple.pl -p $@.mpat denpoly.tmp \
+	| grep -E "^A[0-9]" \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+decr_uniq:
+	perl denfactor.pl $(GCD) decr_factor.tmp \
+	| sort | uniq -c \
+	| perl -pe 's{x\^(\d+)}{x\^ \1 };' \
+	| sort -k3n -k4 \
+	| perl -pe 's{x\^ (\d+) }{x\^\1};' \
+	> $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #================
