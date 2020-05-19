@@ -76,8 +76,8 @@ Shas*/
     // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     // this.index and this.name are filled in VertexTypeArray.add()
     this.vertexId    = vertexId;
-    String[] corners = vertexId.split("\\.");
-    String[] parts   = taRotList.split("\\;\\s*");
+    final String[] corners = vertexId.split("\\.");
+    final String[] parts   = taRotList.split("\\;\\s*");
     this.aSeqNo = aSeqNo;
     this.galId  = galId;
     this.sequence = sequence;
@@ -100,7 +100,7 @@ Shas*/
       polys      [iedge] = 0;
       pxRotats   [iedge] = 0;
       try {
-        int commaPos = parts[iedge].indexOf(',');
+        final int commaPos = parts[iedge].indexOf(',');
         if (commaPos >= 0) {
           pxEdges[iedge] = parts[iedge].charAt(commaPos + 1) - '0';
         } else {
@@ -156,14 +156,6 @@ Shas*/
     Tiling.popIndent();
     return result;
   } // VertexType.toJSON
-
-  /**
-   * Determines whether <em>this</em> {@link VertexType} is flipped
-   * @return true if the index is odd, false otherwise
-   */
-  public boolean isFlipped() {
-    return  (index & 1) == 1;
-  } // isFlipped
 
 } // class VertexType
 

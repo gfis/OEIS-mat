@@ -59,10 +59,10 @@ public class PositionMap {
    */
   public String toJSON() {
     String result  = "{ \"size\": " + mLocationHash.size() + ", \"mLocationHash\": \n";
-    Iterator<String> piter = mLocationHash.keySet().iterator();
+    final Iterator<String> piter = mLocationHash.keySet().iterator();
     while (piter.hasNext()) {
-      String pos = piter.next();
-      int ind = mLocationHash.get(pos).index;
+      final String pos = piter.next();
+      final int ind = mLocationHash.get(pos).index;
       result += (ind == 0 ? "  [ " : "  , ") + "{ \"pos\": \"" + pos + ", index: " + ind + " }\n";
     } // while piter
     result += "  ]\n}\n";

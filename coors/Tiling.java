@@ -157,7 +157,7 @@ public class Tiling implements Serializable {
   public int attach(Vertex focus, int iedge, int distance) {
     int result = -1; // future result; assume that the successor already exists
     if (focus.proxies[iedge] == null) { // proxy for this edge not yet determined
-      Position proxyPos = focus.getProxyPosition(iedge);
+      final Position proxyPos = focus.getProxyPosition(iedge);
       Vertex proxy = mPosMap.get(proxyPos);
       if (proxy != null) { // found, old 
         result = -1; // do not enqueue it
@@ -187,13 +187,13 @@ public class Tiling implements Serializable {
    * @param iBaseType index of the initial {@link VertexType}
    */
   public void computeNet(int iBaseType) {
-    VertexType baseType = getVertexType(iBaseType);
+    final VertexType baseType = getVertexType(iBaseType);
     int maxBase = 1; // only one base vertex at the moment
     int errorCount = MAX_ERROR;
     LinkedList<Integer> queue = new LinkedList<Integer>();
     initialize(0); // reset dynamic structures only
-    String[] parts = baseType.sequence.split("\\,");
-    int termNo = parts.length;
+    final String[] parts = baseType.sequence.split("\\,");
+    final int termNo = parts.length;
     int[] terms = new int[termNo];
     for (int iterm = 0; iterm < termNo; iterm ++) {
       try {
@@ -227,12 +227,12 @@ public class Tiling implements Serializable {
       addedVertices = 0;
       int levelPortion = queue.size();
       while (levelPortion > 0 && queue.size() > 0) { // queue not empty
-        int ifocus = queue.poll();
+        final int ifocus = queue.poll();
         if (sDebug >= 2) {
           System.out.println("# VertexList: " + mVertexList.toJSON());
           System.out.println("# dequeue ifocus " + ifocus);
         }
-        Vertex focus = mVertexList.get(ifocus);
+        final Vertex focus = mVertexList.get(ifocus);
         focus.distance = distance;
         for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
           int iproxy = attach(focus, iedge, distance);
@@ -263,7 +263,7 @@ public class Tiling implements Serializable {
       }
       distance ++;
     } // while distance
-    int vlSize = mVertexList.size();
+    final int vlSize = mVertexList.size();
     if (mPosMap.size() != vlSize) {
       if (sDebug >= 0) {
         System.err.println("# ** assertion 3 in tiling.toString: " + mPosMap.size()

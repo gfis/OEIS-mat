@@ -72,7 +72,7 @@ public class VertexTypeArray {
    */
   public void complete() {
     for (int index = 0; index < mVertexTypes.length; index ++) {
-      VertexType vtype = get(index);
+      final VertexType vtype = get(index);
       vtype.pxTypes = new VertexType[vtype.edgeNo];
       for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
         vtype.pxTypes[iedge] = get(vtype.pxTinds[iedge]);
@@ -112,4 +112,3 @@ public class VertexTypeArray {
   } // toJSON
 
 } // class VertexTypeArray
-

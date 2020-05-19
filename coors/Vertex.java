@@ -98,7 +98,7 @@ public class Vertex implements Serializable {
    */
   public String toJSON() {
     Tiling.pushIndent();
-    String result
+    final String result
         = "{ \"i\": "          + String.format("%4d", index)
         + ", \"type\": "       + String.format("%2d", vtype.index)
         + ", \"name\": "       + getName()
@@ -145,7 +145,7 @@ public class Vertex implements Serializable {
    * turning clockwise := positive (downwards, because of SVG's y axis)
    */
   protected int getAngle(int iedge) {
-    int result = normAngle(rotate + orient * vtype.pxSweeps[iedge]);
+    final int result = normAngle(rotate + orient * vtype.pxSweeps[iedge]);
     if (sDebug >= 2) {
         System.out.println("#         getAngle(iedge "         + iedge + ")." + index + getName() + "@" + rotate + expos
             + ", focus.orient " + orient + ", => " + result);
@@ -159,7 +159,7 @@ public class Vertex implements Serializable {
    * @return exact Position which is then checked whether it is occupied
    */
   public Position getProxyPosition(int iedge) {
-    Position result = expos.moveUnit(getAngle(iedge));
+    final Position result = expos.moveUnit(getAngle(iedge));
     if (sDebug >= 2) {
         System.out.println("#         getProxyPosition(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
             + ", focus.orient " + orient + " => " + result.toString());
@@ -173,10 +173,10 @@ public class Vertex implements Serializable {
    * @return successor Vertex which is properly rotated and linked back to <em>this</em>
    */
   public Vertex createProxy(int iedge, Position proxyPos) {
-    Vertex proxy = new Vertex(vtype.pxTypes[iedge], orient * vtype.pxOrients[iedge]); // create a new Vertex
-    int pxAngle  = this.getAngle(iedge); // points to the proxy
+    final Vertex proxy = new Vertex(vtype.pxTypes[iedge], orient * vtype.pxOrients[iedge]); // create a new Vertex
+    final int pxAngle  = this.getAngle(iedge); // points to the proxy
     proxy.expos  = expos.moveUnit(pxAngle);
-    int pxRota   = orient * vtype.pxRotats[iedge];
+    final int pxRota   = orient * vtype.pxRotats[iedge];
     proxy.rotate = normAngle(rotate + pxRota);
     if (sDebug >= 2) {
       System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()

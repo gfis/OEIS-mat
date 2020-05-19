@@ -70,16 +70,16 @@ public class Tiler2 implements Serializable {
    */
   private void processRecord(String line) {
     // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
-    String[] fields   = line.split("\\t");
+    final String[] fields   = line.split("\\t");
     int ifield = 0;
-    String aSeqNo     = fields[ifield ++];
-    String galId      = fields[ifield ++];
+    final String aSeqNo     = fields[ifield ++];
+    final String galId      = fields[ifield ++];
     ifield ++; // skip standard notation
-    String vertexId   = fields[ifield ++];
-    String taRotList  = fields[ifield ++];
-    String sequence   = fields[ifield ++];
+    final String vertexId   = fields[ifield ++];
+    final String taRotList  = fields[ifield ++];
+    final String sequence   = fields[ifield ++];
     try {                                 //  0      1    2    3
-      String[] gutv = galId.split("\\."); // "Gal", "2", "9", "1"
+      final String[] gutv = galId.split("\\."); // "Gal", "2", "9", "1"
       if (gutv[3].equals("1")) { // first of new tiling
         mTiling = new Tiling(Integer.parseInt(gutv[1]), mMaxDistance, mASeqNo);
       }
@@ -153,10 +153,10 @@ public class Tiler2 implements Serializable {
    * @param args command line arguments
    */
   public static void main(String[] args) {
-    long startTime  = System.currentTimeMillis();
-    Tiler2 tiler    = new Tiler2();
-    BFile bFile     = new BFile();
-    SVGFile svgFile = new SVGFile();
+    final long startTime  = System.currentTimeMillis();
+    final Tiler2 tiler    = new Tiler2();
+    final BFile bFile     = new BFile();
+    final SVGFile svgFile = new SVGFile();
     sDebug = 0;
     try {
       int iarg = 0;
@@ -199,4 +199,3 @@ public class Tiler2 implements Serializable {
   } // main
 
 } // Tiler2
-

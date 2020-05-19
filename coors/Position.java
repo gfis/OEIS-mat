@@ -175,7 +175,7 @@ public class Position implements Serializable {
    * @return new Position
    */
   public Position moveUnit(int angle) {
-    int icircle = Math.round(angle / 15) % 24;
+    final int icircle = Math.round(angle / 15) % 24;
     return add(sUnitCirclePoints[icircle]);
   } // moveUnit
  
@@ -190,7 +190,7 @@ public class Position implements Serializable {
       SVGFile.open(2, "");
     }
     for (int ipos = 0; ipos < sUnitCirclePoints.length + 1; ipos ++) {
-      Position pos = origin.moveUnit(ipos * 15);
+      final Position pos = origin.moveUnit(ipos * 15);
       System.out.println(String.format("[%2d], %3d = %s", ipos, ipos * 15, pos.toString()));
       if (SVGFile.sEnabled) {
         SVGFile.write("<line class=\"l" + String.valueOf(ipos % 4)
@@ -201,8 +201,8 @@ public class Position implements Serializable {
       SVGFile.close();
     }
     for (int ipos = 0; ipos < sUnitCirclePoints.length; ipos += 4) {
-      int ipos8 = (ipos + 8) % 24;
-      Position hexPos = sUnitCirclePoints[ipos].add(sUnitCirclePoints[ipos8]);
+      final int ipos8 = (ipos + 8) % 24;
+      final Position hexPos = sUnitCirclePoints[ipos].add(sUnitCirclePoints[ipos8]);
       System.out.println(String.format("[%2d] + [%2d] = %8s,%8s"
           , ipos, ipos8, hexPos.getX(), hexPos.getY()));
     } // for ipos
@@ -232,4 +232,3 @@ public class Position implements Serializable {
   } // main
 
 } // class Position
-

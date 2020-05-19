@@ -78,8 +78,8 @@ my $oldu = 0; # old $galu
 my $itiling = 0;
 my $block_offset = 0;
 while (<>) {
-	$itiling ++;
-	last if $itiling > $tiling6;
+    $itiling ++;
+    last if $itiling > $tiling6;
     s{\s+\Z}{}; # chompr
     s{\s}{}g; # remove all spaces
     next if m{\A\#}; # ignore comments
@@ -98,13 +98,15 @@ while (<>) {
         ord($_) - ord('A')
         } split(//, $vertex_letters);
     foreach my $base_vertex(@vertices) {
-        my @pxnames = map { s{([A-Z])}{chr(2*ord('A') + $galu - 1 - ord($1))}ge ; $_ } split(//, shift(@parts));
+        my @pxnames = map { s{([A-Z])}{chr(2*ord('A') + $galu - 1 - ord($1))}ge ; $_ 
+                          } split(//, shift(@parts));
         my @pxedges = map { s{([a-z])}{uc($1) . "\'"}ge; 
-        	                s{([A-Z])}{ord($1) - ord('A') + 1}ge          ; $_ } split(//, shift(@parts));
+                            s{([A-Z])}{ord($1) - ord('A') + 1}ge; $_ 
+                          } split(//, shift(@parts));
         my $iedge = 0;
         my $angles = join("\;", map { 
-        	$_ . ',' . $pxedges[$iedge ++] 
-        	} @pxnames);
+            $_ . ',' . $pxedges[$iedge ++] 
+            } @pxnames);
         # A265035   Gal.2.1.1   3.4.6.4; 4.6.12 12.6.4  A 180';A 120';B 90  1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147  12  xnewnot A265035 xname
         print join("\t"
             , "Ano"

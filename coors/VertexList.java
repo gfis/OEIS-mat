@@ -13,7 +13,7 @@ import java.util.ArrayList;
  * @author Georg Fischer
  */
 public class VertexList {
-  public  final static String CVSID = "@(#) $Id: VertexList.java $";
+  public final static String CVSID = "@(#) $Id: VertexList.java $";
   
   /** Allocated vertices */
   private ArrayList<Vertex> mVertices; // [0] is reserved
@@ -54,7 +54,7 @@ public class VertexList {
    * @return JSON for all vertices in linear order
    */
   public String toJSON() {
-    int ffVertices = mVertices.size();
+    final int ffVertices = mVertices.size();
     String result  = "{ \"size\": " + ffVertices + "\n" +  ", \"mVertices\":\n";
     for (int ind = 0; ind < ffVertices; ind ++) {
       result += (ind == 0 ? "  [ " : "  , ") + mVertices.get(ind).toJSON();
