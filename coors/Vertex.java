@@ -3,10 +3,10 @@
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-15, Georg Fischer: extracted from Tiler.java
  */
-// package org.teherba.ramath.tiling
-// import Position;
-// import SVGFile;
-// import VertexType;
+// package $(PACK);
+// import $(PACK).Position;
+// import $(PACK).SVGFile;
+// import $(PACK).VertexType;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -42,7 +42,7 @@ public class Vertex implements Serializable {
    * @param vtype type of vertex with general properties,
    * is even for clockwise, odd for clockwise orientation
    */
-  public Vertex(VertexType vtype) {
+  public Vertex(final VertexType vtype) {
     this.vtype = vtype;
     orient     = 1; // assume normal orientation
     distance   = 0;
@@ -56,7 +56,7 @@ public class Vertex implements Serializable {
    * @param vtype type of vertex with general properties
    * @param orient 1 for normal (clockwise), -1 for opposite (counter-clockwise) orientation
    */
-  public Vertex(VertexType vtype, int orient) {
+  public Vertex(final VertexType vtype, final int orient) {
     this(vtype);
     this.orient = orient;
   } // Vertex(VertexType,int)
@@ -97,7 +97,6 @@ public class Vertex implements Serializable {
    * @return JSON for all properties
    */
   public String toJSON() {
-    Tiling.pushIndent();
     final String result
         = "{ \"i\": "          + String.format("%4d", index)
         + ", \"type\": "       + String.format("%2d", vtype.index)
@@ -109,7 +108,6 @@ public class Vertex implements Serializable {
         + ", \"pos\": \""      + expos.toString()  + "\""
         + ", \"dist\": \""     + distance + "\""
         + " }\n";
-    Tiling.popIndent();
     return result;
   } // Vertex.toJSON
 
@@ -144,7 +142,7 @@ public class Vertex implements Serializable {
    * relative to a right horizontal edge from (x,y)=(0,0) to (x,y)=(0,1),
    * turning clockwise := positive (downwards, because of SVG's y axis)
    */
-  protected int getAngle(int iedge) {
+  protected int getAngle(final int iedge) {
     final int result = normAngle(rotate + orient * vtype.pxSweeps[iedge]);
     if (sDebug >= 2) {
         System.out.println("#         getAngle(iedge "         + iedge + ")." + index + getName() + "@" + rotate + expos
@@ -158,7 +156,7 @@ public class Vertex implements Serializable {
    * @param iedge=0..edgeNo -1; the successor is at the end of this edge
    * @return exact Position which is then checked whether it is occupied
    */
-  public Position getProxyPosition(int iedge) {
+  public Position getProxyPosition(final int iedge) {
     final Position result = expos.moveUnit(getAngle(iedge));
     if (sDebug >= 2) {
         System.out.println("#         getProxyPosition(iedge " + iedge + ")." + index + getName() + "@" + rotate + expos
@@ -172,7 +170,7 @@ public class Vertex implements Serializable {
    * @param iedge=0..edgeNo -1; the successor is at the end of this edge
    * @return successor Vertex which is properly rotated and linked back to <em>this</em>
    */
-  public Vertex createProxy(int iedge, Position proxyPos) {
+  public Vertex createProxy(final int iedge, final Position proxyPos) {
     final Vertex proxy = new Vertex(vtype.pxTypes[iedge], orient * vtype.pxOrients[iedge]); // create a new Vertex
     final int pxAngle  = this.getAngle(iedge); // points to the proxy
     proxy.expos  = expos.moveUnit(pxAngle);

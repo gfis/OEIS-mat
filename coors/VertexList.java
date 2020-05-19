@@ -1,10 +1,10 @@
 /* Store for vertices
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
- * 2020-05-16, Georg Fischer: extracted from Tiling.java
+ * 2020-05-16, Georg Fischer: extracted from TilingSequence.java
  */
-// package ;
-// import Vertex;
+// package $(PACK);
+// import $(PACK).Vertex;
 import java.util.ArrayList;
 
 /**
@@ -36,7 +36,7 @@ public class VertexList {
   /**
    * Stores a {@link Vertex} at the next free element.
    */
-  public void put(Vertex vertex) {
+  public void put(final Vertex vertex) {
     mVertices.add(vertex);
   } // put
  
@@ -45,7 +45,7 @@ public class VertexList {
    * @param index sequential number (0 is reserved)
    * @return the Vertex with that index
    */
-  public Vertex get(int index) {
+  public Vertex get(final int index) {
     return mVertices.get(index);
   } // get
 

@@ -3,8 +3,8 @@
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-16, Georg Fischer: extracted from Tiling.java
  */
-// package ;
-// import VertexType;
+// package $(PACK);
+// import $(PACK).VertexType;
 
 /**
  * This class provides an array of fixed size
@@ -32,7 +32,7 @@ public class VertexTypeArray {
    * Constructor with number of {@link VertexType}s.
    * @param noTypes number of types to be stored
    */
-  public VertexTypeArray(int noTypes) {
+  public VertexTypeArray(final int noTypes) {
     mVertexTypes = new VertexType[noTypes];
     for (int index = 0; index < noTypes; index ++) {
       mVertexTypes[index] = new VertexType(); // preset because of pxTinds
@@ -45,7 +45,7 @@ public class VertexTypeArray {
    * @param vtype the VertexType to be added
    * @return index of the resulting VertexType
    */
-  public int add(VertexType vtype) {
+  public int add(final VertexType vtype) {
     vtype.index = mTAFree; // complete index and name
     vtype.name  = "ABCDEFGHIJKLMNOPQ".substring(vtype.index, vtype.index + 1);
     mVertexTypes[mTAFree ++] = vtype;
@@ -60,7 +60,8 @@ public class VertexTypeArray {
    * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * @param sequence list of initial terms of the coordination sequence
    */
-  public void setAngleNotation(String aSeqNo, String galId, String vertexId, String taRotList, String sequence) {
+  public void setAngleNotation(final String aSeqNo, final String galId, final String vertexId
+      , final String taRotList, final String sequence) {
     mVertexTypes[mTAFree].setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence);
     mVertexTypes[mTAFree].name = Character.toString((char) ('A' + mTAFree));
     mTAFree ++;
@@ -72,7 +73,7 @@ public class VertexTypeArray {
    * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * aSeqno, galId and sequence are set to dummy values.
    */
-  public void setAngleNotation(String vertexId, String taRotList) {
+  public void setAngleNotation(final String vertexId, final String taRotList) {
     setAngleNotation("A000000", "Gal.u.t.v.", vertexId, taRotList, "1");
   } // setAngleNotation(String^2)
 
@@ -95,7 +96,7 @@ public class VertexTypeArray {
    * @param index sequential number 
    * @return the VertexType with that index
    */
-  public VertexType get(int index) {
+  public VertexType get(final int index) {
     return mVertexTypes[index];
   } // get
 

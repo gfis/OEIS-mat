@@ -3,9 +3,9 @@
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-16, Georg Fischer: extracted from Tiling.java
  */
-// package ;
-// import Position;
-// import Vertex;
+// package $(PACK);
+// import $(PACK).Position;
+// import $(PACK).Vertex;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -40,7 +40,7 @@ public class PositionMap {
   /**
    * Stores a {@link Vertex} at some {@link Position}.
    */
-  public void put(Vertex vertex) {
+  public void put(final Vertex vertex) {
     mLocationHash.put(vertex.expos.toString(), vertex);
   } // put
 
@@ -49,7 +49,7 @@ public class PositionMap {
    * @param expos the Position where a vertex is expected
    * @return the Vertex at expos, or null if the position is empty
    */
-  public Vertex get(Position expos) {
+  public Vertex get(final Position expos) {
     return mLocationHash.get(expos.toString());
   } // get
  

@@ -289,16 +289,16 @@ compile: compile1 compile2
 compile1:
 	javac Tiler1.java 
 compile2:
-	javac Tiler2.java 
+	javac TilingTest.java 
 	ls -al *.class
 #----
 run: run1 run2
 run1: select
-	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 run2: select
 	#---------------- 
-	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST)            -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST)            -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	# diff -wy --suppress-common-lines run1.tmp run2.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
@@ -307,9 +307,9 @@ run2: select
 #----
 speed: speed1 speed2
 speed1: select
-	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d 0 -f select.tst 
+	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d 0 -f select.tst 
 speed2: select
-	java -cp . Tiler2 -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
 #-----------------
 pave: compave pavr
 compave:

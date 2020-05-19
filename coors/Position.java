@@ -3,7 +3,7 @@
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-15, Georg Fischer: extracted from Tiler.java
  */
-// package org.teherba.ramath.tiling
+// package $(PACK);
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -46,7 +46,7 @@ public class Position implements Serializable {
    * @param xparm tuple for exact x representation
    * @param yparm tuple for exact y representation
    */
-  public Position(int/*s*/[] xparm, int/*s*/[]yparm) {
+  public Position(final int/*s*/[] xparm, final int/*s*/[]yparm) {
     xtuple = xparm;
     ytuple = yparm;
   } // Position(int/*s*/[], int/*s*/[])
@@ -55,7 +55,7 @@ public class Position implements Serializable {
    * Computes the cartesian coordinate value from an exact position tuple
    * @return a double value
    */
-  public Double cartesian(int/*s*/[] tuple) {
+  public Double cartesian(final int/*s*/[] tuple) {
     return 
         ( tuple[0]
         + tuple[1] * SQRT2
@@ -69,7 +69,7 @@ public class Position implements Serializable {
    * @param pos2 Position to be added
    * @return this + pos2
    */
-  public Position add(Position pos2) {
+  public Position add(final Position pos2) {
     Position result = new Position();
     for (int ipos = 0; ipos < 4; ipos ++) {
       result.xtuple[ipos] = (xtuple[ipos] + pos2.xtuple[ipos]);
@@ -83,7 +83,7 @@ public class Position implements Serializable {
    * @param pos2 Position to be subtracted
    * @return this - pos2
    */
-  public Position subtract(Position pos2) {
+  private Position subtract(final Position pos2) {
     Position result = new Position();
     for (int ipos = 0; ipos < 4; ipos ++) {
       result.xtuple[ipos] = (xtuple[ipos] - pos2.xtuple[ipos]);
@@ -174,7 +174,7 @@ public class Position implements Serializable {
    * @param angle in degrees 0..360
    * @return new Position
    */
-  public Position moveUnit(int angle) {
+  public Position moveUnit(final int angle) {
     final int icircle = Math.round(angle / 15) % 24;
     return add(sUnitCirclePoints[icircle]);
   } // moveUnit
