@@ -153,7 +153,7 @@ public class Position implements Serializable {
       , new Position(new int/*s*/[] { 0, 1, 0, 1}, new int/*s*/[] { 0, 1, 0,-1}) // [23] 345     0.9659,   -0.2588
       };
 
-  /** Angles in degrees for regular polygones */
+  /** Angles in degrees for regular polygons */
   public static final int[] mRegularAngles = new int[] { 0
       , 360 // [ 1] full circle
       , 180 // [ 2] half circle

@@ -15,6 +15,7 @@
 // import $(PACK).TilingSequence;
 // import $(PACK).VertexType;
 // import $(PACK).VertexTypeArray;
+// import $(PACK).Z;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
@@ -79,7 +80,7 @@ public class TilingTest implements Serializable {
     int maxBase = 1; // only one base vertex at the moment
     int errorCount = MAX_ERROR;
     LinkedList<Integer> queue = new LinkedList<Integer>();
-    mTiling.initialize(baseIndex); // reset dynamic structures
+    mTiling.setBaseIndex(baseIndex); // reset dynamic structures
     final String[] parts = baseType.sequence.split("\\,");
     final int termNo = parts.length;
     int[] terms = new int[termNo];
@@ -94,9 +95,6 @@ public class TilingTest implements Serializable {
     }
     if (mASeqNo != null) {
       baseType.aSeqNo = mASeqNo;
-    }
-    if (BFile.sEnabled) { // open b-file
-      BFile.open(baseType.aSeqNo);
     }
     if (sDebug >= 3) {
       System.out.println("# compute neighbours of vertex type " + baseIndex + " up to distance " + mMaxDistance);
@@ -143,9 +141,6 @@ public class TilingTest implements Serializable {
       }
       coordSeq.append(',');
       coordSeq.append(String.valueOf(addedVertices));
-      if (BFile.sEnabled) { // data line
-        BFile.write(distance + " " + addedVertices);
-      }
       if (sDebug >= 2) {
         System.out.println("# distance " + distance + ": " + addedVertices + " vertices added\n");
       }
@@ -164,9 +159,6 @@ public class TilingTest implements Serializable {
     if (true) { // this is always output
       System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mTiling.mTypeArray.get(baseIndex).galId 
           + "\t" + coordSeq.toString());
-    }
-    if (BFile.sEnabled) { // close b-file
-      BFile.close();
     }
     if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
       System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t"
@@ -193,45 +185,54 @@ public class TilingTest implements Serializable {
     ifield ++; // skip standard notation
     final String vertexId   = fields[ifield ++];
     final String taRotList  = fields[ifield ++];
-    final String sequence   = fields[ifield ++];
-    try {                                 //  0      1    2    3
-      final String[] gutv = galId.split("\\."); // "Gal", "2", "9", "1"
-      if (gutv[3].equals("1")) { // first of new tiling
+    final String sequence   = fields[ifield ++]; 
+    final String[] gutv        //         u    t    v
+        = galId.split("\\.");  // "Gal", "2", "9", "1"; the trailing v runs from 1 to u, the t is the sequential number in u
+    if (gutv[3].equals("1")) { // first of new tiling
+      try {                                 //  0      1    2    3
         mTypeArray = new VertexTypeArray(Integer.parseInt(gutv[1]));
+      } catch(Exception exc) {
+        System.err.println(exc.getMessage());
       }
-      mTypeArray.setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
-      if (gutv[3].equals(gutv[1])) { // last of new tiling
-        if (sDebug >= 1) {
-          System.out.println(mTiling.toJSON());
-        }
-        mTiling = new TilingSequence(mTypeArray);
-        TilingSequence.sDebug = sDebug;
-        Vertex.sDebug = sDebug;
-        VertexType.sDebug = sDebug;
-        // compute the nets
-        int netCount = 0;
-        for (int baseIndex = 0; baseIndex < mTypeArray.size(); baseIndex ++) {
-          if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) { 
-            // either all in the input file, or only the specified mGalId
+    } // first
+    mTypeArray.setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
+    if (gutv[3].equals(gutv[1])) { // last of new tiling
+      mTiling = new TilingSequence(0, mTypeArray);
+      TilingSequence.sDebug = sDebug;
+      Vertex.sDebug = sDebug;
+      VertexType.sDebug = sDebug;
+      if (sDebug >= 1) {
+        System.out.println(mTiling.toJSON());
+      }
+      // compute the nets
+      for (int baseIndex = 0; baseIndex < mTypeArray.size(); baseIndex ++) {
+        if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) { 
+          // either all in the input file, or only the specified mGalId
+          final VertexType baseType = mTiling.getVertexType(baseIndex);
+          mASeqNo = baseType.aSeqNo;
+          mTiling.setBaseIndex(baseIndex); // reset dynamic structures
+          if (false) { // case for different actions
+          } else if (BFile.sEnabled) {
+            BFile.open(mASeqNo);
+            if (sDebug >= 1) {
+              System.out.println("# writing b-file for " + mASeqNo);
+            }
+            for (int index = 0; index < mMaxDistance; index ++) {
+              BFile.write(index + " " + mTiling.next());
+            } // for index
+            BFile.close();
+          } else { // default: old processing
             if (SVGFile.sEnabled) {
               SVGFile.open(mMaxDistance, mGalId);
             }
             computeNet(mTiling, baseIndex);
-            netCount ++;
             if (SVGFile.sEnabled) {
               SVGFile.close(); 
             }
-          }
-        } // for itype
-        if (netCount == 0) {
-          System.err.println("# assertion 9: no net computed");
+          } // default
         }
-      }
-    } catch(Exception exc) {
-      // log.error(exc.getMessage(), exc);
-      System.err.println(exc.getMessage());
-      exc.printStackTrace();
-    }
+      } // for itype
+    } // last
   } // processRecord
 
   /**

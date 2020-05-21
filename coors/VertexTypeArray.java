@@ -30,6 +30,7 @@ public class VertexTypeArray {
   
   /** 
    * Constructor with number of {@link VertexType}s.
+   * The VertexTypes should subsequently be filled with {@link #setAngleNotation}.
    * @param noTypes number of types to be stored
    */
   public VertexTypeArray(final int noTypes) {
@@ -56,7 +57,7 @@ public class VertexTypeArray {
    * Modify an existing {@link VertexType} and set the parameters of the angle notation
    * @param aSeqNo OEIS A-number of the sequence
    * @param galId Galebach's id "Gal.u.t.v"
-   * @param vertexId clockwise dot-separated list of the polygones followed by the list of types and angles
+   * @param vertexId clockwise dot-separated list of the polygons followed by the list of types and angles
    * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * @param sequence list of initial terms of the coordination sequence
    */
@@ -69,19 +70,21 @@ public class VertexTypeArray {
 
   /**
    * Modify an existing {@link VertexType} and set the parameters of the angle notation
-   * @param vertexId clockwise dot-separated list of the polygones followed by the list of types and angles
-   * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
+   * @param param a pair of Strings "vertexId;taRotList",
+   * where vertexId is a clockwise dot-separated list of the polygons followed by the list of types and angles,
+   * and  taRotList is a clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * aSeqno, galId and sequence are set to dummy values.
    */
-  public void setAngleNotation(final String vertexId, final String taRotList) {
-    setAngleNotation("A000000", "Gal.u.t.v.", vertexId, taRotList, "1");
+  public void setAngleNotation(final String param) {
+    final String[] pair = param.split(";");
+    setAngleNotation("A000000", "Gal.u.t.v.", pair[0], pair[1], "1");
   } // setAngleNotation(String^2)
 
   /**
    * Completes all {@link VertexType}s, that is fills the pxTypes from pxTinds
    */
   public void complete() {
-    for (int index = 0; index < mVertexTypes.length; index ++) {
+    for (int index = 0; index < mTAFree; index ++) {
       final VertexType vtype = get(index);
       vtype.pxTypes = new VertexType[vtype.edgeNo];
       for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {

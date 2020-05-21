@@ -16,9 +16,9 @@ public class VertexType implements Serializable {
   public final static String CVSID = "@(#) $Id: Vertex.java $";
 
   int    index;         // sequential number of type, starting at 0
-  String vertexId;      // e.g. "12.6.4" - decreasing polygone edge numbers at the moment
+  String vertexId;      // e.g. "12.6.4" - decreasing polygon edge numbers at the moment
   int    edgeNo;        // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
-  int[]  polys;         // number of corners of the regular (3,4,6,8, or 12) polygones (shapes)
+  int[]  polys;         // number of corners of the regular (3,4,6,8, or 12) polygons (shapes)
                             // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type;
                             // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
   int[]  pxRotats;      // how many degrees must the proxy vertices be rotated, from Galebach
@@ -28,8 +28,8 @@ public class VertexType implements Serializable {
   int[]  pxTinds;       // VertexType indices of proxy vertices; preliminary during VT creation, later pxTypes are used
   VertexType[] pxTypes; // VertexTypes of proxyt vertices
 /*Shas    
-  int[]  leShas;        // shapes / polygones from the focus to the left  of the edge
-  int[]  riShas;        // shapes / polygones from the focus to the right of the edge
+  int[]  leShas;        // shapes / polygons from the focus to the left  of the edge
+  int[]  riShas;        // shapes / polygons from the focus to the right of the edge
 Shas*/                  
   String galId;         // e.g. "Gal.2.1.1"
   String name;          // for example "A" for normal or "a" (lowercase) for flipped version
@@ -67,7 +67,7 @@ Shas*/
    * @param aSeqNo OEIS A-number of the sequence
    * @param galId Galebach's identification of a vertex type: "Gal.u.t.v"
    * @param vertexId clockwise dot-separated list of
-   *     the polygones followed by the list of types and angles
+   *     the polygons followed by the list of types and angles
    * @param taRotList clockwise semicolon-separated list of
    *     vertex type names and angles (and apostrophe if flipped)
    * @param sequence a list of initial terms of the coordination sequence

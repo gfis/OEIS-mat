@@ -10,6 +10,7 @@
 // import $(PACK).VertexList;
 // import $(PACK).VertexType;
 // import $(PACK).VertexTypeArray;
+// import $(PACK).Sequence;
 // import $(PACK).Z;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,22 +21,25 @@ import java.util.LinkedList;
 /**
  * This class generates coordination sequences for k-uniform tilings
  * in the OEIS as specified by Brian Galebach.
- * A uniform tiling is built from a subset of the regular polygones
- * triangle, square, hexagon and dodecagon (other regular polygones like
+ * A uniform tiling is built from a subset of the regular polygons
+ * triangle, square, hexagon and dodecagon (other regular polygons like
  * the pentagon cannot be used). All edges are of unit length.
  * At the corners one of the 11 archimedian vertex types occur,
  * maybe in reverse (flipped) orientation. 
  * A coordination sequence enumerates the number of vertices
  * which have a certain minimal distance to the base vertex.
+ *
  * @author Georg Fischer
  */
-public class TilingSequence implements Serializable
-    // , Sequence
+public class TilingSequence implements Serializable, Sequence
     {
   public final static String CVSID = "@(#) $Id: Vertex.java $";
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
+
+  /** index of the first sequence element */
+  protected int mOffset;
 
   /** Possible {@link VertexType}s in this tiling */
   public VertexTypeArray mTypeArray;
@@ -50,7 +54,7 @@ public class TilingSequence implements Serializable
   public int mBaseIndex; 
 
   /** Queue for vertices which must be investigated for next shell */
-  private LinkedList<Integer> mQueue = new LinkedList<Integer>();
+  private LinkedList<Integer> mQueue;
   
   /** Distance of the current shell to the baseVertex */
   private int mDistance; 
@@ -65,38 +69,98 @@ public class TilingSequence implements Serializable
   } // Constructor(int)
 
   /**
-   * Constructor.
+   * Constructor from {@link VertexTypeArray}.
    * Initializes the data structures of <em>this</em> TilingSequence.
+   * @param offset index of first sequence element
    * @param typeArray array of {@link VertexTypes} for this TilingSequence
-   * @param maxDistance maximum distance to be computed,
-   * number of terms in coordination sequence
    */
-  public TilingSequence(final VertexTypeArray typeArray) {
+  public TilingSequence(final int offset, final VertexTypeArray typeArray) {
+    mOffset = offset;
+    mDistance = 0;
+    configure(typeArray);
+    sDebug = 0;
+  } // Constructor(int)
+
+  /**
+   * Constructor from pairs of Strings.
+   * Initializes the data structures of <em>this</em> TilingSequence.
+   * @param offset index of first sequence element
+   * @param pairs String array of (vertexId, taRotList)
+   */
+  public TilingSequence(final int offset, String[] pairs) {
+    mOffset = offset;
+    final int vertexTypeNo = pairs.length;
+    VertexTypeArray typeArray = new VertexTypeArray(vertexTypeNo);
+    for (int ipair = 0; ipair < vertexTypeNo; ipair ++) {
+      typeArray.setAngleNotation(pairs[ipair]);
+    } // for ipair
     mDistance = 0;
     configure(typeArray);
   } // Constructor(int)
 
   /**
-   * Configures the data structures of <em>this</em> TilingSequence.
-   * @param typeArray array of {@link VertexTypes} for this TilingSequence
+   * Configures the data structures of <em>this</em> {@link TilingSequence},
+   * and sets the first {@link VertexType} as base vertex.
+   * @param typeArray array of VertexType for this TilingSequence
    */
   protected void configure(final VertexTypeArray typeArray) {
     mTypeArray = typeArray;
     mTypeArray.complete();
-    initialize(1);
-  } // initialize(VertexTypeArray)
+    setBaseIndex(0);
+  } // configure(VertexTypeArray)
 
   /**
-   * Initializes the tiling's dynamic data structures only.
-   * @param baseIndex {@link Vertex} for the start of the coordination sequence
+   * Sets one base index, and initializes the tiling's dynamic data structures.
+   * @param baseIndex {@link Vertex} for the start of the coordination sequence.
+   * This index starts at 0! 
+   * @return index of base Vertex
    */
-  protected void initialize(final int baseIndex) {
+  protected int setBaseIndex(final int baseIndex) {
     mBaseIndex  = baseIndex;
     mPosMap     = new PositionMap();
     mVertexList = new VertexList();
-    mQueue.add(addVertex(new Vertex(mTypeArray.get(baseIndex))));
+    mQueue      = new LinkedList<Integer>();
+    int result  = addVertex(new Vertex(mTypeArray.get(baseIndex)));
+    mQueue.add(result);
     mShellCount = 1;
-  } // initialize(int)
+    if (sDebug >= 1) {
+        System.out.println(toJSON());
+    }
+    return result;
+  } // setBaseIndex(int)
+
+  /**
+   * Sets one base index, and initializes the tiling's dynamic data structures.
+   * @param baseIndex {@link Vertex} for the start of the coordination sequence.
+   * @param baseEdge number of an edge of the vertex with {@link VertexType} index <em>baseIndex</em>;
+   * the polygon is to the right of this edge viewed in the direction of the proxy
+   * at the end of the edge.<br />
+   * All vertices belonging to this polygon constitute the first shell
+   * (with offset 1), so these "loose" coordination sequences start with either 
+   * 3, 4, 6 or 12.<br />
+   * <em>baseIndex</em> and <em>iedge</em> start at 0! 
+   */
+  protected void setBasePolygon(final int baseIndex, final int baseEdge) {
+    int ifocus = setBaseIndex(baseIndex);
+    final int distance = 0;
+    Vertex focus = mVertexList.get(ifocus);
+    int iedge = baseEdge;
+    final int rightPolygon = focus.vtype.polys[iedge]; // number of corners of the polygon to the right of the edge
+    for (int ipoly = 0; ipoly < rightPolygon; ipoly ++) { // enqueue all corners of the polygon
+      int iproxy = attach(focus, iedge, distance);
+      if (iproxy >= 0) { // did not yet exist
+        mShellCount ++;
+        mQueue.add(iproxy);
+        Vertex proxy = mVertexList.get(iproxy);
+        // ??? iedge = ... such that the polygon continues
+        focus = proxy;
+      // else (last) successor existed - ignore
+      }
+    } // for ipoly
+    if (sDebug >= 1) {
+        System.out.println(toJSON());
+    }
+  } // setBasePolygon(int)
 
   /**
    * Gets a {@link VertexType}
@@ -123,10 +187,11 @@ public class TilingSequence implements Serializable
    * Returns a JSON representation of the tiling
    * @return JSON for all major data structures
    */
-  public String toxJSON() {
+  public String toJSON() {
     return mTypeArray .toJSON()
         +  mVertexList.toJSON()
-        +  mPosMap    .toJSON();
+        +  mPosMap    .toJSON()
+        +  "\n, mBaseIndex: " + mBaseIndex;
   } // toJSON
 
   /**
@@ -183,6 +248,52 @@ public class TilingSequence implements Serializable
     mDistance ++;
     return result;
   } // next()
+  
+  /**
+   * Main method, filters a file, selects a {@link VertexTypeArray] for a tiling,
+   * dumps the progress of the tilings' generation and
+   * possibly writes an SVG drawing file.
+   * @param args command line arguments
+   */
+  public static void main(String[] args) {
+    final long startTime  = System.currentTimeMillis();
+    int mMaxDistance = 16;
+    try {
+      int iarg = 0;
+      while (iarg < args.length) { // consume all arguments
+        String opt       = args[iarg ++];
+        if (false) {
+        } else if (opt.equals("-d")     ) {
+          TilingSequence.sDebug = Integer.parseInt(args[iarg ++]);
+        } else if (opt.equals("-n")     ) {
+          mMaxDistance   = Integer.parseInt(args[iarg ++]);
+        } else {
+          System.err.println("??? invalid option: \"" + opt + "\"");
+        }
+      } // while args
+      
+    } catch (Exception exc) {
+      // log.error(exc.getMessage(), exc);
+      System.err.println(exc.getMessage());
+      exc.printStackTrace();
+    }
+
+    final TilingSequence mTiling = new TilingSequence(0, new String[] // Gal.2.1.1:
+        { "12.6.4;A180-,A120-,B90+"
+        , "6.4.3.4;A270+,A210-,B120+,B240+"
+        });
+    mTiling.setBaseIndex(0);
+    for (int index = 0; index < mMaxDistance; index ++) {
+      System.out.println(index + " " + mTiling.next());
+    } // for index
+/*
+    mTiling.setBasePolygon(0, 0);
+    for (int index = 0; index < mMaxDistance; index ++) {
+      System.out.println(index + " " + mTiling.next());
+    } // for index
+*/
+    System.err.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
+  } // main
 
 } // class TilingSequence
 

@@ -3,7 +3,7 @@
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-15, Georg Fischer: extracted from Tiler.java
  */
-// package org.teherba.ramath.tiling
+// package $(PACK);
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.nio.channels.Channels;
@@ -48,6 +48,7 @@ public class BFile {
   public BFile() {
     setPrefix("./");
     sBFileCount = 0;
+    sEnabled    = false;
   } // Constructor()
 
   /**
@@ -71,7 +72,7 @@ public class BFile {
         WritableByteChannel channel = (new FileOutputStream (sBFilePrefix + fileName, false)).getChannel();
         sBFileWriter = new PrintWriter(Channels.newWriter(channel, sEncoding));
         String timestamp = (new SimpleDateFormat("yyyy-MM-dd' 'HH:mm")).format(new java.util.Date());
-        sBFileWriter.println("# " + fileName + " written with Tiler2 at " + timestamp);
+        sBFileWriter.println("# " + fileName + " written with TilingTest at " + timestamp);
       } // not stdout
     } catch (Exception exc) {
       // log.error(exc.getMessage(), exc);
