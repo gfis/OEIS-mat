@@ -282,6 +282,7 @@ SELECT=1
 #----------------
 select:
 	grep -E "Gal\.$(GAL)\." extract.tmp > $@.tst
+	# cp select.man $@.tst
 test: test1 test2
 test1: compile1 run1
 test2: compile2 run2
