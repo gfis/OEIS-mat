@@ -132,12 +132,12 @@ public class Vertex implements Serializable {
   } // normAngle
 
   /**
-   * Gets the absolute angle where an edge of <em>this</em> {@link Vertex}
+   * Gets the absolute angle where an edge from <em>this</em> {@link Vertex}
    * (which is already rotated) is pointing to.
    * This is the only place where the orientation of the Vertex is relevant.
    * The orientation is implemented by a proper access to <em>sweeps</em>.
    * This method corresponds with {@link #getEdge}.
-   * @param iedge number of the edge
+   * @param iedge number of the edge, 0 based
    * @return degrees [0..360) where the edge points to,
    * relative to a right horizontal edge from (x,y)=(0,0) to (x,y)=(0,1),
    * turning clockwise := positive (downwards, because of SVG's y axis)
@@ -153,7 +153,7 @@ public class Vertex implements Serializable {
 
   /**
    * Determines the {@link Position} of a proxy {@link Vertex} at the end of the specified edge
-   * @param iedge=0..edgeNo -1; the successor is at the end of this edge
+   * @param iedge=0..edgeNo -1; the proxy is at the end of this edge
    * @return exact Position which is then checked whether it is occupied
    */
   public Position getProxyPosition(final int iedge) {
@@ -164,25 +164,5 @@ public class Vertex implements Serializable {
     }
     return result;
   } // getProxyPosition
-
-  /**
-   * Creates and returns a new successor {@link #Vertex} of <em>this</em> Vertex (which is already rotated).
-   * @param iedge=0..edgeNo -1; the successor is at the end of this edge
-   * @return successor Vertex which is properly rotated and linked back to <em>this</em>
-   */
-  public Vertex createProxy(final int iedge, final Position proxyPos) {
-    final Vertex proxy = new Vertex(vtype.pxTypes[iedge], orient * vtype.pxOrients[iedge]); // create a new Vertex
-    final int pxAngle  = this.getAngle(iedge); // points to the proxy
-    proxy.expos  = expos.moveUnit(pxAngle);
-    final int pxRota   = orient * vtype.pxRotats[iedge];
-    proxy.rotate = normAngle(rotate + pxRota);
-    if (sDebug >= 2) {
-      System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
-          + ")." + index + getName() + "@" + rotate + expos
-          + " -> pxType " + proxy.vtype.index + ", pxRota " + pxRota + ", pxAngle " + pxAngle
-          + " => " + proxy.toString());
-    }
-    return proxy;
-  } // createProxy
 
 } // class Vertex

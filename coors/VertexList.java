@@ -35,10 +35,14 @@ public class VertexList {
 
   /**
    * Stores a {@link Vertex} at the next free element.
+   * @return index where the Vertex was stored
    */
-  public void put(final Vertex vertex) {
+  public int add(final Vertex vertex) {
+    final int result = mVertices.size();
+    vertex.index = result;
     mVertices.add(vertex);
-  } // put
+    return result;
+  } // add
  
   /**
    * Gets a {@link Vertex} specified by its index.

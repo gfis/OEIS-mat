@@ -1,14 +1,14 @@
 #!perl
 
-# Extract parameters from Galebach's letter-based notation (unmarked_codes.txt) 
-# and convert it to old angle-based notation
+# Convert between Galebach's tiling notations
+# - letter-based notation (unmarked_codes.txt) 
+# - angle-based  notaatin (a250120.html)
 # @(#) $Id$
 # 2020-05-18, Georg Fischer
 #
 #:# usage:
-#:#   perl letter2angle.pl unmarked_codes.txt > extract_letters.tmp
-#
-# The ordering of the base vertices and of the tiling numbers is reversed.
+#:#   perl notation.pl -l unmarked_codes.txt > notation.tmp
+#:#   perl notation.pl -a a250120.tmp        > notation.tmp
 #---------------------------------
 use strict;
 use integer;
@@ -77,7 +77,7 @@ my $oldu = 0; # old $galu
 
 my $itiling = 0;
 my $block_offset = 0;
-while (<>) {
+while (<DATA>) {
     $itiling ++;
     last if $itiling > $tiling6;
     s{\s+\Z}{}; # chompr

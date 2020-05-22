@@ -121,7 +121,8 @@ public class TilingTest implements Serializable {
         final Vertex focus = mTiling.mVertexList.get(ifocus);
         focus.distance = distance;
         for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
-          int iproxy = mTiling.attach(focus, iedge, distance);
+          final int[] pair = mTiling.attach(focus, iedge, distance);
+          final int iproxy = pair[0];
           if (iproxy >= 0) { // did not yet exist
             addedVertices ++;
             queue.add(iproxy);
@@ -170,6 +171,7 @@ public class TilingTest implements Serializable {
         SVGFile.writeVertex(focus, maxBase, 0);
       } // for vertices
     } // SVG
+    System.err.println("# " + mTiling.mVertexList.size() + " vertices generated");
   } // computeNet
 
   /**
