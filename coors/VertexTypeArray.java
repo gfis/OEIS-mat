@@ -14,6 +14,9 @@
 public class VertexTypeArray {
   public final static String CVSID = "@(#) $Id: VertexTypeArray.java $";
   
+  /** Debugging mode: 0=none, 1=some, 2=more */
+  protected static int sDebug;
+
   /** Allocated vertices */
   private VertexType[] mVertexTypes; // [0], [1] are reserved
 
@@ -81,15 +84,57 @@ public class VertexTypeArray {
   } // setAngleNotation(String^2)
 
   /**
-   * Completes all {@link VertexType}s, that is fills the pxTypes from pxTinds
+   * Completes all {@link VertexType}s, that is, if necessary
+   * computes proxy edges from proxy angles and vice versa.
    */
   public void complete() {
     for (int index = 0; index < mTAFree; index ++) {
-      final VertexType vtype = get(index);
-      vtype.pxTypes = new VertexType[vtype.edgeNo];
-      for (int iedge = 0; iedge < vtype.edgeNo; iedge ++) {
-        vtype.pxTypes[iedge] = get(vtype.pxTinds[iedge]);
-        // fill ptEdges ???
+      final VertexType foType = get(index);
+      for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
+        if (sDebug >= 3) {
+          System.out.println("# complete(" + index + ", iedge=" + iedge + ") - " + foType.name);
+        } 
+        final VertexType pxType = this.get(foType.pxTinds[iedge]);
+        int pxRota = foType.pxRotas[iedge];
+        int pxEdge = foType.pxEdges[iedge];
+        if (false) {
+        } else if (pxRota < 0 && pxEdge >= 0) { // compute angle from edge
+          pxRota            = Vertex.normAngle(180 
+                + foType.sweeps   [iedge] - pxType.sweeps   [pxEdge]
+                * foType.pxOrients[iedge] 
+          //    * pxType.pxOrients[pxEdge]
+                );
+          foType.pxRotas[iedge] = pxRota;
+        } else if (pxEdge < 0 && pxRota >= 0) { // compute edge  from angle
+          int kedge = 0;
+          boolean busy = true;
+          while (busy && kedge < pxType.edgeNo) { // search for matching angle
+            final int kRota = Vertex.normAngle(180 
+                + foType.sweeps   [iedge] - pxType.sweeps   [kedge ]
+                * foType.pxOrients[iedge] 
+            //  * pxType.pxOrients[kedge ]
+                );
+            if (pxRota == kRota ) { // found
+              busy = false;
+            } else {
+              if (sDebug >= 3) {
+                System.out.println("#     complete(kedge=" + kedge + "): pxRota=" + pxRota + " <> kRota=" + kRota);
+              } 
+              kedge ++;
+            }
+          } // while busy and searching
+          if (! busy) { // found
+            pxEdge = kedge;
+            if (sDebug >= 3) {
+              System.out.println(  "#     complete(kedge=" + kedge + "): found");
+            } 
+          } else { // not found
+            if (sDebug >= 3) {
+              System.out.println("# complete(kedge=" + kedge + "): pxRota=" + pxRota + " not found");
+            } 
+          }
+          foType.pxEdges[iedge] = pxEdge;
+        }
       } // for iedge
     } // for index
   } // complete

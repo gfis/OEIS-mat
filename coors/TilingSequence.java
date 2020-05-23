@@ -95,6 +95,9 @@ public class TilingSequence implements Serializable, Sequence
       typeArray.setAngleNotation(pairs[ipair]);
     } // for ipair
     mDistance = 0;
+    Vertex         .sDebug = sDebug;
+    VertexType     .sDebug = sDebug;
+    VertexTypeArray.sDebug = sDebug;
     configure(typeArray);
   } // Constructor(int)
 
@@ -201,12 +204,12 @@ public class TilingSequence implements Serializable, Sequence
    * its edge number which points back to <em>focus</em>.
    */
   public int[] createProxy(final Vertex focus, final int iedge, final Position proxyPos) {
-  	int[] result = new int[2];
-  	VertexType ftype   = focus.vtype;
-    final Vertex proxy = new Vertex(ftype.pxTypes[iedge], focus.orient * ftype.pxOrients[iedge]); // create a new Vertex
+    int[] result = new int[2];
+    VertexType foType   = focus.vtype;
+    final Vertex proxy = new Vertex(mTypeArray.get(foType.pxTinds[iedge]), focus.orient * foType.pxOrients[iedge]); // create a new Vertex
     final int pxAngle  = focus.getAngle(iedge); // points to the proxy
     proxy.expos        = focus.expos.moveUnit(pxAngle);
-    final int pxRota   = focus.orient * ftype.pxRotats[iedge];
+    final int pxRota   = focus.orient * foType.pxRotas[iedge];
     proxy.rotate       = focus.normAngle(focus.rotate + pxRota);
     if (sDebug >= 2) {
       System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
@@ -215,7 +218,7 @@ public class TilingSequence implements Serializable, Sequence
           + " => " + proxy.toString());
     }
     result[0] = addVertex(proxy);
-    result[1] = -1; // nyi ???
+    result[1] = foType.pxEdges[iedge]; // edge number of the proxy
     return result;
   } // createProxy
 
@@ -235,12 +238,13 @@ public class TilingSequence implements Serializable, Sequence
       if (iproxy < 0) { // not found - create new 
         result = createProxy(focus, iedge, proxyPos);; // enqueue new
         iproxy = result[0];
+        proxy  = mVertexList.get(iproxy);
       } else { // found, old 
+        proxy  = mVertexList.get(iproxy);
         result[0] = -1; // do not enqueue it
-        result[1] = -1; // nyi - edge number of the proxy ???
+        result[1] = focus.vtype.pxEdges[iedge]; // edge number of the proxy ???
       } // found
-      proxy = mVertexList.get(iproxy);
-      focus.proxies[iedge] = proxy; // attach it
+      focus.proxies[iedge] = proxy; // attach it - forward link
       if (SVGFile.sEnabled) {
         SVGFile.writeEdge(focus, proxy, distance, 0); // normal
       }
@@ -292,10 +296,10 @@ public class TilingSequence implements Serializable, Sequence
       while (iarg < args.length) { // consume all arguments
         String opt       = args[iarg ++];
         if (false) {
+        } else if (opt.equals("-dist")  ) {
+          mMaxDistance          = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals("-d")     ) {
           TilingSequence.sDebug = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals("-n")     ) {
-          mMaxDistance   = Integer.parseInt(args[iarg ++]);
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }
@@ -325,4 +329,3 @@ public class TilingSequence implements Serializable, Sequence
   } // main
 
 } // class TilingSequence
-

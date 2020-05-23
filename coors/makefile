@@ -282,7 +282,7 @@ SELECT=1
 #----------------
 select:
 	grep -E "Gal\.$(GAL)\." extract.tmp > $@.tst
-	# cp select.man $@.tst
+	# cp -v select.man $@.tst
 test: test1 test2
 test1: compile1 run1
 test2: compile2 run2
@@ -311,6 +311,9 @@ runb2: select
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
 	ls -tclr *.svg run2/*
+#----
+single:
+	java -cp . TilingSequence -dist $(DIST) -d $(D) > $@.tmp
 #----
 speed: speed1 speed2
 speed1: select

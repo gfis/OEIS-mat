@@ -199,10 +199,11 @@ public class TilingTest implements Serializable {
     } // first
     mTypeArray.setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
     if (gutv[3].equals(gutv[1])) { // last of new tiling
+      TilingSequence .sDebug = sDebug;
+      Vertex         .sDebug = sDebug;
+      VertexType     .sDebug = sDebug;
+      VertexTypeArray.sDebug = sDebug;
       mTiling = new TilingSequence(0, mTypeArray);
-      TilingSequence.sDebug = sDebug;
-      Vertex.sDebug = sDebug;
-      VertexType.sDebug = sDebug;
       if (sDebug >= 1) {
         System.out.println(mTiling.toJSON());
       }
@@ -286,23 +287,23 @@ public class TilingTest implements Serializable {
         String opt            = args[iarg ++];
         if (false) {
         } else if (opt.equals("-a")     ) {
-          tester.mASeqNo       = args[iarg ++];
+          tester.mASeqNo      = args[iarg ++];
         } else if (opt.equals("-bfile") ) {
           BFile.sEnabled      = true;
           BFile.setPrefix(      args[iarg ++]);
         } else if (opt.equals("-dist")  ) {
           tester.mMaxDistance = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals("-d")     ) {
-          sDebug             = Integer.parseInt(args[iarg ++]);
+          sDebug              = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals("-f")     ) {
-          fileName           = args[iarg ++];
+          fileName            = args[iarg ++];
         } else if (opt.equals("-id")    ) {
           tester.mGalId       = args[iarg ++];
         } else if (opt.equals("-n")     ) {
-          String dummy       = args[iarg ++]; // ignore
+          String dummy        = args[iarg ++]; // ignore
         } else if (opt.equals("-svg")   ) {
-          SVGFile.sEnabled   = true;
-          SVGFile.sFileName  = args[iarg ++];
+          SVGFile.sEnabled    = true;
+          SVGFile.sFileName   = args[iarg ++];
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }

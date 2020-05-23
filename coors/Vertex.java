@@ -143,7 +143,7 @@ public class Vertex implements Serializable {
    * turning clockwise := positive (downwards, because of SVG's y axis)
    */
   protected int getAngle(final int iedge) {
-    final int result = normAngle(rotate + orient * vtype.pxSweeps[iedge]);
+    final int result = normAngle(rotate + orient * vtype.sweeps[iedge]);
     if (sDebug >= 2) {
         System.out.println("#         getAngle(iedge "         + iedge + ")." + index + getName() + "@" + rotate + expos
             + ", focus.orient " + orient + ", => " + result);

@@ -1,4 +1,4 @@
-/* Type of a vertex in a tiling 
+/* Type of a vertex in a tiling
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
  * 2020-05-15, Georg Fischer: extracted from Tiler.java
@@ -9,36 +9,31 @@
 import java.io.Serializable;
 
 /**
- * This class represents some type of a {@link Vertex} in a tiling. 
+ * This class represents some type of a {@link Vertex} in a tiling.
  * @author Georg Fischer
  */
 public class VertexType implements Serializable {
   public final static String CVSID = "@(#) $Id: Vertex.java $";
 
-  int    index;         // sequential number of type, starting at 0
-  String vertexId;      // e.g. "12.6.4" - decreasing polygon edge numbers at the moment
-  int    edgeNo;        // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
-  int[]  polys;         // number of corners of the regular (3,4,6,8, or 12) polygons (shapes)
-                            // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type;
-                            // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
-  int[]  pxRotats;      // how many degrees must the proxy vertices be rotated, from Galebach
-  int[]  pxEdges;       // which edge of the proxy is connected - not used yet
-  int[]  pxOrients;     // whether the proxy vertex is oriented normally (+1) or flipped (-1)
-  int[]  pxSweeps;      // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
-  int[]  pxTinds;       // VertexType indices of proxy vertices; preliminary during VT creation, later pxTypes are used
-  VertexType[] pxTypes; // VertexTypes of proxyt vertices
-/*Shas    
-  int[]  leShas;        // shapes / polygons from the focus to the left  of the edge
-  int[]  riShas;        // shapes / polygons from the focus to the right of the edge
-Shas*/                  
-  String galId;         // e.g. "Gal.2.1.1"
-  String name;          // for example "A" for normal or "a" (lowercase) for flipped version
-  String aSeqNo;        // OEIS A-number of the coordination sequence
-  String sequence;      // list of terms of the coordination sequence (standard is 50 terms)
+  int    index;     // sequential number of type, starting at 0
+  String vertexId;  // e.g. "12.6.4" - decreasing polygon edge numbers at the moment
+  int    edgeNo;    // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
+  int[]  polys;     // number of corners of the regular (3,4,6,8, or 12) polygons (shapes)
+                        // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type;
+                        // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
+  int[]  sweeps;    // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
+  int[]  pxTinds;   // VertexType indices of proxy vertices
+  int[]  pxRotas;   // how many degrees must the proxy vertices be rotated, from Galebach
+  int[]  pxEdges;   // which edge of the proxy is connected - not used yet
+  int[]  pxOrients; // whether the proxy vertex is oriented normally (+1) or flipped (-1)
+  String galId;     // e.g. "Gal.2.1.1"
+  String name;      // for example "A" for normal or "a" (lowercase) for flipped version
+  String aSeqNo;    // OEIS A-number of the coordination sequence
+  String sequence;  // list of terms of the coordination sequence (standard is 50 terms)
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
-  
+
   /**
    * Empty constructor
    */
@@ -47,15 +42,11 @@ Shas*/
     vertexId  = "";
     edgeNo    = 0;
     polys     = new int[0];
-    pxRotats  = new int[0];
+    sweeps    = new int[0];
+    pxTinds   = new int[0];
+    pxRotas   = new int[0];
     pxEdges   = new int[0];
     pxOrients = new int[0];
-    pxSweeps  = new int[0];
-    pxTinds   = new int[0];
-  /*Shas    
-    leShas    = new int[0];
-    riShas    = new int[0];
-  Shas*/
     galId     = "Gal.0.0.0";
     name      = "Z";
     aSeqNo    = "";
@@ -76,7 +67,7 @@ Shas*/
       , final String taRotList, final String sequence) {
     // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     // this.index and this.name are filled in VertexTypeArray.add()
-    this.vertexId    = vertexId;
+    this.vertexId = vertexId;
     final String[] corners = vertexId.split("\\.");
     final String[] parts   = taRotList.split("[\\;\\,]\\s*");
     this.aSeqNo = aSeqNo;
@@ -84,45 +75,45 @@ Shas*/
     this.sequence = sequence;
     edgeNo      = parts.length;
     polys       = new int[edgeNo];
-    pxRotats    = new int[edgeNo];
-    pxEdges     = new int[edgeNo];
-    pxOrients   = new int[edgeNo];
-    pxSweeps    = new int[edgeNo];
+    sweeps      = new int[edgeNo];
     pxTinds     = new int[edgeNo];
-  /*Shas    
-    leShas      = new int[edgeNo];
-    riShas      = new int[edgeNo];
-  Shas*/
+    pxRotas     = new int[edgeNo];
+    pxOrients   = new int[edgeNo];
+    pxEdges     = new int[edgeNo];
     for (int iedge = 0; iedge < edgeNo; iedge ++) {
-      // parts[iedge] has the form: "letter angle [,edge] [']", e.g. "A270,2'" 
+      // parts[iedge] has the form: "Ucletter [angle] +- [edge]", that is "A270-", "A270-1" or "A-1"
       String part  = parts[iedge];
-      pxEdges    [iedge] = -1; // undefined so far
-      pxTinds    [iedge] = part.charAt(0) - 'A'; // A -> 0
-      pxOrients  [iedge] = part.contains("+") ? +1 : -1; // contains "+" or "-"
-      polys      [iedge] = 0;
-      pxRotats   [iedge] = 0;
-      try {
-        final char last  = part.charAt(part.length() - 1);
-        if (Character.isDigit(last)) {
-          pxEdges[iedge] = last - '0' - 1; // external edge numbers start at 1
-          part = part.replaceAll("[\\+\\-]\\d+\\Z", ""); // remove edge, for angle, below
-        } else {
-          pxEdges[iedge] = -1;
+      int signPos = part.indexOf('+');
+      if (signPos >= 0) {
+        pxOrients [iedge] = +1; // "+" => same     orientation
+      } else {
+        pxOrients [iedge] = -1; // "-" => opposite orientation
+        signPos   = part.indexOf('-');
+        if (signPos < 0) { // no "-"
+          System.err.println("# assertion 9: no sign found, galId=" + galId + ", taRotList=" + taRotList);
+          signPos = part.length() - 1;
         }
-        polys    [iedge] = Integer.parseInt(corners[iedge]);
-        pxRotats [iedge] = Integer.parseInt(part.replaceAll("\\D", "")); // keep the digits only
+      }
+      polys       [iedge] = 0;
+      pxTinds     [iedge] = part.charAt(0) - 'A'; // A -> 0
+      pxRotas     [iedge] = -1; // undefined so far
+      pxEdges     [iedge] = -1; // undefined so far
+      final String sangle = part.substring(1, signPos);
+      final String sedge  = part.substring(signPos + 1);
+      try {
+        polys     [iedge] = Integer.parseInt(corners[iedge]);
+        if (sangle.length() > 0) {
+          pxRotas [iedge] = Integer.parseInt(sangle);
+        }
+        if (sedge .length() > 0) {
+          pxEdges [iedge] = Integer.parseInt(sedge) - 1; // external edge numbers started at 1
+        }
       } catch (Exception exc) {
         System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
       }
     } // for iedge
     for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
-      pxSweeps[iedge] = iedge == 0
-          ? 0
-          : pxSweeps[iedge - 1] + Position.mRegularAngles[polys[iedge - 1]];
-    /*Shas    
-      riShas[iedge] = polys[iedge];
-      leShas[iedge] = polys[oedge];
-    Shas*/
+      sweeps[iedge] = iedge == 0 ? 0 : sweeps[iedge - 1] + Position.mRegularAngles[polys[iedge - 1]];
     } // for iedge
   } // setAngleNotation
 
@@ -163,11 +154,11 @@ Shas*/
         + ", \"name\": \""    + name  + "\""
         + ", \"vid\": \""     + vertexId + "\""
         + ", \"polys\": "     + join(",", polys)
-        + ", \"pxSweeps\": "  + join(",", pxSweeps)
-        + ", \"pxRotats\": "  + join(",", pxRotats)
-        + ", \"pxEdges\": "   + join(",", pxEdges)
+        + ", \"sweeps\": "    + join(",", sweeps)
+        + ", \"pxTinds\": "   + join(",", pxTinds)
+        + ", \"pxRotas\": "   + join(",", pxRotas)
         + ", \"pxOrients\": " + join(",", pxOrients)
-        + ", \"pxTipes\": "   + join(",", pxTinds)
+        + ", \"pxEdges\": "   + join(",", pxEdges)
     /*
         + ", \"leShas\": "    + join(",", leShas)
         + ", \"riShas\": "    + join(",", riShas)
