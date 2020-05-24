@@ -63,7 +63,7 @@ public class VertexType implements Serializable {
    *     vertex type names and angles (and apostrophe if flipped)
    * @param sequence a list of initial terms of the coordination sequence
    */
-  public void setAngleNotation(final String aSeqNo, final String galId, final String vertexId
+  public void decodeNotation(final String aSeqNo, final String galId, final String vertexId
       , final String taRotList, final String sequence) {
     // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     // this.index and this.name are filled in VertexTypeArray.add()
@@ -115,7 +115,7 @@ public class VertexType implements Serializable {
     for (int iedge = 0; iedge < edgeNo; iedge ++) { // increasing
       sweeps[iedge] = iedge == 0 ? 0 : sweeps[iedge - 1] + Position.mRegularAngles[polys[iedge - 1]];
     } // for iedge
-  } // setAngleNotation
+  } // decodeNotation
 
   /**
    * Join an array of integers
@@ -123,7 +123,7 @@ public class VertexType implements Serializable {
    * @param vector integer array
    * @return a String of the form "[elem1,elem2.elem3]"
    */
-  public static String join(final String delim, final int[] vector) {
+  private static String join(final String delim, final int[] vector) {
     StringBuffer result = new StringBuffer(128);
     result.append('[');
     for (int ind = 0; ind < vector.length; ind ++) {
@@ -159,10 +159,6 @@ public class VertexType implements Serializable {
         + ", \"pxRotas\": "   + join(",", pxRotas)
         + ", \"pxOrients\": " + join(",", pxOrients)
         + ", \"pxEdges\": "   + join(",", pxEdges)
-    /*
-        + ", \"leShas\": "    + join(",", leShas)
-        + ", \"riShas\": "    + join(",", riShas)
-    */
         + ", \"galId\": \""   + galId + "\""
         + " }\n";
     return result;

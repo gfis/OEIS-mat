@@ -121,17 +121,20 @@ public class TilingTest implements Serializable {
         final Vertex focus = mTiling.mVertexList.get(ifocus);
         focus.distance = distance;
         for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
-          final int[] pair = mTiling.attach(focus, iedge, distance);
-          final int iproxy = pair[0];
-          if (iproxy >= 0) { // did not yet exist
-            addedVertices ++;
-            queue.add(iproxy);
-            if (sDebug >= 2) {
-              System.out.println("# enqueue iproxy " + iproxy + ", attached to ifocus " + ifocus + " at edge " + iedge);
+          if (focus.pxInds[iedge] < 0) { // proxy for this edge not yet determined
+            final Vertex proxy = mTiling.attach(focus, iedge);
+            if (SVGFile.sEnabled) {
+              SVGFile.writeEdge(focus, proxy, distance, 0); // normal
             }
-          } else {
-            // successor existed - ignore
-          }
+            if (proxy.distance < 0) { // did not yet exist
+            	proxy.distance = distance;
+              addedVertices ++;
+              queue.add(proxy.index);
+              if (sDebug >= 2) {
+                System.out.println("# enqueue iproxy " + proxy.index + ", attached to ifocus " + ifocus + " at edge " + iedge);
+              }
+            }
+          } // proxy not yet determined
         } // for iedge
         levelPortion --;
       } // while portion not exhausted and queue not empty
@@ -197,7 +200,7 @@ public class TilingTest implements Serializable {
         System.err.println(exc.getMessage());
       }
     } // first
-    mTypeArray.setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
+    mTypeArray.decodeNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
     if (gutv[3].equals(gutv[1])) { // last of new tiling
       TilingSequence .sDebug = sDebug;
       Vertex         .sDebug = sDebug;
@@ -224,7 +227,8 @@ public class TilingTest implements Serializable {
               BFile.write(index + " " + mTiling.next());
             } // for index
             BFile.close();
-          } else { // default: old processing
+          } 
+          { // default: old processing
             if (SVGFile.sEnabled) {
               SVGFile.open(mMaxDistance, mGalId);
             }
@@ -275,10 +279,10 @@ public class TilingTest implements Serializable {
    * @param args command line arguments
    */
   public static void main(String[] args) {
-    final long startTime  = System.currentTimeMillis();
+    final long startTime    = System.currentTimeMillis();
     final TilingTest tester = new TilingTest();
-    final BFile bFile     = new BFile();
-    final SVGFile svgFile = new SVGFile();
+    final BFile bFile       = new BFile();
+    final SVGFile svgFile   = new SVGFile();
     sDebug = 0;
     try {
       int iarg = 0;

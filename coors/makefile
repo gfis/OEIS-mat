@@ -299,7 +299,7 @@ run1: select
 	grep -i assertion $@.tmp || :
 run2: select
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID)            -dist $(DIST)            -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST)            -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :

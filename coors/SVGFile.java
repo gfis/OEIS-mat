@@ -163,7 +163,7 @@ public class SVGFile {
    * @param mode  0=normal, 1=tentative, 2=test
    */
   public static void writeVertex(Vertex focus, int maxBase, int mode) {
-    String color = focus.fixedEdges > 0 ? String.valueOf(focus.distance % COLOR_MOD) : "8";
+    String color = String.valueOf(focus.distance % COLOR_MOD);
     String name  = focus.getName();
     switch (mode) {
       default:

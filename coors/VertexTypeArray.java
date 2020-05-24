@@ -33,7 +33,7 @@ public class VertexTypeArray {
   
   /** 
    * Constructor with number of {@link VertexType}s.
-   * The VertexTypes should subsequently be filled with {@link #setAngleNotation}.
+   * The VertexTypes should subsequently be filled with {@link #decodeNotation}.
    * @param noTypes number of types to be stored
    */
   public VertexTypeArray(final int noTypes) {
@@ -41,7 +41,7 @@ public class VertexTypeArray {
     for (int index = 0; index < noTypes; index ++) {
       mVertexTypes[index] = new VertexType(); // preset because of pxTinds
     } // for mTAFree
-    mTAFree = 0; // incremented by setAngleNotation 
+    mTAFree = 0; // incremented by decodeNotation 
   } // Constructor(int)
   
   /**
@@ -64,12 +64,12 @@ public class VertexTypeArray {
    * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * @param sequence list of initial terms of the coordination sequence
    */
-  public void setAngleNotation(final String aSeqNo, final String galId, final String vertexId
+  public void decodeNotation(final String aSeqNo, final String galId, final String vertexId
       , final String taRotList, final String sequence) {
-    mVertexTypes[mTAFree].setAngleNotation(aSeqNo, galId, vertexId, taRotList, sequence);
+    mVertexTypes[mTAFree].decodeNotation(aSeqNo, galId, vertexId, taRotList, sequence);
     mVertexTypes[mTAFree].name = Character.toString((char) ('A' + mTAFree));
     mTAFree ++;
-  } // setAngleNotation(String^5)
+  } // decodeNotation(String^5)
 
   /**
    * Modify an existing {@link VertexType} and set the parameters of the angle notation
@@ -78,10 +78,10 @@ public class VertexTypeArray {
    * and  taRotList is a clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * aSeqno, galId and sequence are set to dummy values.
    */
-  public void setAngleNotation(final String param) {
+  public void decodeNotation(final String param) {
     final String[] pair = param.split(";");
-    setAngleNotation("A000000", "Gal.u.t.v.", pair[0], pair[1], "1");
-  } // setAngleNotation(String^2)
+    decodeNotation("A000000", "Gal.u.t.v.", pair[0], pair[1], "1");
+  } // decodeNotation(String^2)
 
   /**
    * Completes all {@link VertexType}s, that is, if necessary
@@ -91,7 +91,7 @@ public class VertexTypeArray {
     for (int index = 0; index < mTAFree; index ++) {
       final VertexType foType = get(index);
       for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
-        if (sDebug >= 3) {
+        if (sDebug >= 4) {
           System.out.println("# complete(" + index + ", iedge=" + iedge + ") - " + foType.name);
         } 
         final VertexType pxType = this.get(foType.pxTinds[iedge]);
@@ -117,7 +117,7 @@ public class VertexTypeArray {
             if (pxRota == kRota ) { // found
               busy = false;
             } else {
-              if (sDebug >= 3) {
+              if (sDebug >= 4) {
                 System.out.println("#     complete(kedge=" + kedge + "): pxRota=" + pxRota + " <> kRota=" + kRota);
               } 
               kedge ++;
@@ -125,11 +125,11 @@ public class VertexTypeArray {
           } // while busy and searching
           if (! busy) { // found
             pxEdge = kedge;
-            if (sDebug >= 3) {
+            if (sDebug >= 4) {
               System.out.println(  "#     complete(kedge=" + kedge + "): found");
             } 
           } else { // not found
-            if (sDebug >= 3) {
+            if (sDebug >= 4) {
               System.out.println("# complete(kedge=" + kedge + "): pxRota=" + pxRota + " not found");
             } 
           }

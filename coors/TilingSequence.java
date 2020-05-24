@@ -92,7 +92,7 @@ public class TilingSequence implements Serializable, Sequence
     final int vertexTypeNo = pairs.length;
     VertexTypeArray typeArray = new VertexTypeArray(vertexTypeNo);
     for (int ipair = 0; ipair < vertexTypeNo; ipair ++) {
-      typeArray.setAngleNotation(pairs[ipair]);
+      typeArray.decodeNotation(pairs[ipair]);
     } // for ipair
     mDistance = 0;
     Vertex         .sDebug = sDebug;
@@ -149,9 +149,9 @@ public class TilingSequence implements Serializable, Sequence
     Vertex focus = mVertexList.get(ifocus);
     int iedge = baseEdge;
     final int rightPolygon = focus.vtype.polys[iedge]; // number of corners of the polygon to the right of the edge
+/*
     for (int ipoly = 0; ipoly < rightPolygon; ipoly ++) { // enqueue all corners of the polygon
-      final int[] pair = attach(focus, iedge, distance);
-      final int iproxy = pair[0];
+      final int iproxy = attach(focus, iedge, distance);
       if (iproxy >= 0) { // did not yet exist
         mShellCount ++;
         mQueue.add(iproxy);
@@ -161,6 +161,7 @@ public class TilingSequence implements Serializable, Sequence
       // else (last) successor existed - ignore
       }
     } // for ipoly
+*/
     if (sDebug >= 1) {
         System.out.println(toJSON());
     }
@@ -198,60 +199,46 @@ public class TilingSequence implements Serializable, Sequence
   } // toJSON
 
   /**
-   * Creates and returns a new proxy {@link #Vertex} of the <em>focus</em> (which is already rotated).
-   * @param iedge=0..edgeNo -1; the proxy is the Vertex at the end of this edge
-   * @return index of new proxy which is properly rotated, together with
-   * its edge number which points back to <em>focus</em>.
-   */
-  public int[] createProxy(final Vertex focus, final int iedge, final Position proxyPos) {
-    int[] result = new int[2];
-    VertexType foType   = focus.vtype;
-    final Vertex proxy = new Vertex(mTypeArray.get(foType.pxTinds[iedge]), focus.orient * foType.pxOrients[iedge]); // create a new Vertex
-    final int pxAngle  = focus.getAngle(iedge); // points to the proxy
-    proxy.expos        = focus.expos.moveUnit(pxAngle);
-    final int pxRota   = focus.orient * foType.pxRotas[iedge];
-    proxy.rotate       = focus.normAngle(focus.rotate + pxRota);
-    if (sDebug >= 2) {
-      System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
-          + ")." + focus.index + focus.getName() + "@" + focus.rotate + focus.expos
-          + " -> pxType " + proxy.vtype.index + ", pxRota " + pxRota + ", pxAngle " + pxAngle
-          + " => " + proxy.toString());
-    }
-    result[0] = addVertex(proxy);
-    result[1] = foType.pxEdges[iedge]; // edge number of the proxy
-    return result;
-  } // createProxy
-
-  /**
    * Creates a successor {@link Vertex} of the focus and connects the successor back to the focus
-   * @param focus the Vertex which gets the new successor
-   * @param iedge attach the successor at this edge of the focus
-   * @param distance from the origin Vertex
-   * @return index of new successor vertex, or -1 if attached to an existing vertex
+   * @param focus the Vertex which gets the new proxy (successor)
+   * @param iedge attach the proxy at this edge of the focus
+   * @return proxy vertex, either already existing or new created.
    */
-  public int[] attach(final Vertex focus, final int iedge, final int distance) {
-    int[] result = new int[2]; // future result; assume that the proxy already exists
-    if (focus.proxies[iedge] == null) { // proxy for this edge not yet determined
-      final Position proxyPos = focus.getProxyPosition(iedge);
-      int iproxy = mPosMap.get(proxyPos);
-      Vertex proxy = null;
-      if (iproxy < 0) { // not found - create new 
-        result = createProxy(focus, iedge, proxyPos);; // enqueue new
-        iproxy = result[0];
-        proxy  = mVertexList.get(iproxy);
-      } else { // found, old 
-        proxy  = mVertexList.get(iproxy);
-        result[0] = -1; // do not enqueue it
-        result[1] = focus.vtype.pxEdges[iedge]; // edge number of the proxy ???
-      } // found
-      focus.proxies[iedge] = proxy; // attach it - forward link
-      if (SVGFile.sEnabled) {
-        SVGFile.writeEdge(focus, proxy, distance, 0); // normal
+  public Vertex attach(final Vertex focus, final int iedge) {
+    final VertexType foType = focus.vtype;
+    final int pxAngle       = // focus.getAngle(iedge); // points to the proxy
+        Vertex.normAngle(focus.rotate + focus.orient * foType.sweeps[iedge]); 
+    final Position proxyPos = focus.expos.moveUnit(pxAngle);
+    int iproxy              = mPosMap.get(proxyPos); // future result
+    final int pxEdge        = foType.pxEdges[iedge];
+    Vertex proxy = null;
+    if (iproxy >= 0) { // found old
+      proxy  = mVertexList.get(iproxy);
+    } else { // iproxy < 0: not found, create new 
+      // *** begin inlined method: iproxy = createProxy(focus, iedge, proxyPos); // sets back link to focus
+      proxy              = new Vertex(mTypeArray.get(foType.pxTinds[iedge]), focus.orient * foType.pxOrients[iedge]); // create a new Vertex
+      proxy.expos        = focus.expos.moveUnit(pxAngle);
+      final int pxRota   = focus.orient * foType.pxRotas[iedge];
+      proxy.rotate       = focus.normAngle(focus.rotate + pxRota);
+      if (sDebug >= 2) {
+        System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
+            + ")." + focus.index + focus.getName() + "@" + focus.rotate + focus.expos
+            + " -> pxType " + proxy.vtype.index + ", pxRota " + pxRota + ", pxAngle " + pxAngle
+            + " => " + proxy.toString());
       }
-      focus.fixedEdges ++;
-    // else focus.proxies[iedge] != null - ignore
+      iproxy = addVertex(proxy);
+      // *** end inlined method: return result;
+      proxy  = mVertexList.get(iproxy); 
+    } // not found
+    focus.pxInds[iedge] = proxy.index; // attach it - link forward to the proxy
+    final int backIndex = proxy.pxInds[pxEdge]; 
+    if (backIndex != focus.index) { // set link back to the focus
+      if (backIndex >= 0) {
+        System.err.println("# assertion 10: wrong backIndex=" + backIndex + " replaced by " + focus.index);
+      }
+      proxy.pxInds[pxEdge] = focus.index;
     }
-    return result;
+    return proxy;
   } // attach
 
   /**
@@ -260,7 +247,7 @@ public class TilingSequence implements Serializable, Sequence
    */
   // @Override
   public Z next() {
-    Z result = Z.valueOf(mShellCount); // return previous shell count
+    final Z result = Z.valueOf(mShellCount); // return previous shell count
     mShellCount = 0; // start to count vertices in next shell
     int mustProcess = mQueue.size();
     while (mustProcess > 0 && mQueue.size() > 0) { // mQueue not empty
@@ -269,13 +256,14 @@ public class TilingSequence implements Serializable, Sequence
       final Vertex focus = mVertexList.get(ifocus);
       focus.distance = mDistance;
       for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
-        final int[] pair = attach(focus, iedge, mDistance);
-        final int iproxy = pair[0];
-        if (iproxy >= 0) { // did not yet exist
-          mShellCount ++;
-          mQueue.add(iproxy);
-        // else successor existed - ignore
-        }
+        if (focus.pxInds[iedge] < 0) { // proxy for this edge not yet determined
+          final Vertex proxy = attach(focus, iedge);
+          if (proxy.distance < 0) { // is not yet in the set of shells
+            proxy.distance = mDistance;
+            mShellCount ++;
+            mQueue.add(proxy.index);
+          }
+        } // proxy not yet determined
       } // for iedge
     } // while portion not exhausted and mQueue not empty
     mDistance ++;
