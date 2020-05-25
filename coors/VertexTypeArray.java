@@ -157,6 +157,20 @@ public class VertexTypeArray {
   } // size
 
   /**
+   * Returns a String representation of <em>this</em> VertexTypeArray
+   * @return a tab-separated line for each {@link VertexType} with the fields
+   * of the long call to {@link #decodeNotation}
+   */
+  public String toString() {
+    StringBuffer result = new StringBuffer(1024);
+    for (int ind = 0; ind < size(); ind ++) { 
+      result.append(get(ind).toString());
+      result.append("\n");
+    } // for ind
+    return result.toString();
+  } // toString
+  
+  /**
    * Returns a JSON representation of <em>this</em> VertexTypeArray
    * @return JSON for all vertices in linear order
    */

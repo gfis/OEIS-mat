@@ -103,10 +103,10 @@ public class VertexType implements Serializable {
       try {
         polys     [iedge] = Integer.parseInt(corners[iedge]);
         if (sangle.length() > 0) {
-          pxRotas [iedge] = Integer.parseInt(sangle);
+          pxRotas [iedge] = Integer.parseInt(sangle); // 0..359
         }
         if (sedge .length() > 0) {
-          pxEdges [iedge] = Integer.parseInt(sedge) - 1; // external edge numbers started at 1
+          pxEdges [iedge] = Integer.parseInt(sedge) - 1; // >= 0, external edge numbers started at 1
         }
       } catch (Exception exc) {
         System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
@@ -116,6 +116,23 @@ public class VertexType implements Serializable {
       sweeps[iedge] = iedge == 0 ? 0 : sweeps[iedge - 1] + Position.mRegularAngles[polys[iedge - 1]];
     } // for iedge
   } // decodeNotation
+
+  /**
+   * Gets the terms of the sequence.
+   * @return an int array with the parsed terms 
+   */
+  public int[] getSequence() {
+    final String[] parts = sequence.split("\\,");
+    final int termNo = parts.length;
+    int[] terms = new int[termNo];
+    for (int iterm = 0; iterm < termNo; iterm ++) {
+      try {
+        terms[iterm] = Integer.parseInt(parts[iterm]);
+      } catch (Exception exc) {
+      }
+    } // for iterm
+    return terms;
+  } // getSequence
 
   /**
    * Join an array of integers
@@ -137,12 +154,37 @@ public class VertexType implements Serializable {
   } // join
 
   /**
-   * Returns a simple representation of the VertexType
-   * @return the most important properties
+   * Returns a String representation of <em>this</em> VertexTypeArray
+   * @return a tab-separated line for each {@link VertexType} with the fields
+   * of the long call to VertexTypeArray.decodeNotation
    */
   public String toString() {
-    return "{" + index + name + "}";
-  } // VertexType.toString
+    StringBuffer result = new StringBuffer(1024);
+    result.append(aSeqNo);
+    result.append("\t");
+    result.append(galId);
+    result.append("\t");
+    result.append("stdnot");
+    result.append("\t");
+    result.append(vertexId);
+    result.append("\t");
+    for (int iedge = 0; iedge < edgeNo; iedge ++) {
+      if (iedge > 0) {
+        result.append(",");
+      }
+      result.append((char) (pxTinds[iedge] + 'A'));
+      if (pxRotas[iedge] >= 0) {
+        result.append(String.valueOf(pxRotas[iedge]));
+      }
+      result.append(pxOrients[iedge] < 0 ? '-' : '+');
+      if (pxEdges[iedge] >= 0) {
+        result.append(String.valueOf(pxEdges[iedge]));
+      }
+    } // for iedge
+    result.append("\t");
+    result.append(sequence);
+    return result.toString();
+  } // toString()
 
   /**
    * Returns a representation of the VertexType

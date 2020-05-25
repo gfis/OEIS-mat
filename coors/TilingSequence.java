@@ -117,21 +117,59 @@ public class TilingSequence implements Serializable, Sequence
    * Sets one base index, and initializes the tiling's dynamic data structures.
    * @param baseIndex {@link Vertex} for the start of the coordination sequence.
    * This index starts at 0! 
-   * @return index of base Vertex
+   * @return number of queued vertices (1)
    */
   public int setBaseIndex(final int baseIndex) {
     mBaseIndex  = baseIndex;
     mPosMap     = new PositionMap();
     mVertexList = new VertexList();
     mQueue      = new LinkedList<Integer>();
-    int result  = addVertex(new Vertex(mTypeArray.get(baseIndex)));
-    mQueue.add(result);
+    int ifocus  = addVertex(new Vertex(mTypeArray.get(baseIndex)));
+    mQueue.add(ifocus);
     mShellCount = mQueue.size();
     if (sDebug >= 1) {
         System.out.println(toJSON());
     }
-    return result;
+    return mShellCount;
   } // setBaseIndex(int)
+
+  /**
+   * Sets one base index, and initializes the tiling's dynamic data structures.
+   * @param baseIndex {@link Vertex} for the start of the coordination sequence.
+   * @param baseEdge number of an edge of the vertex with {@link VertexType} index <em>baseIndex</em>;
+   * the polygon is to the right of this edge viewed in the direction of the proxy
+   * at the end of the edge.<br />
+   * All vertices belonging to this polygon constitute the first shell
+   * (with offset 1), so these "loose" coordination sequences start with either 
+   * 3, 4, 6 or 12.<br />
+   * <em>baseIndex</em> and <em>iedge</em> start at 0! 
+   * @return number of queued vertices (number of corners of base polygon)
+   */
+  public int setBasePolygon(final int baseIndex, final int baseEdge) {
+    int ifocus = setBaseIndex(baseIndex);
+    final int distance = 1;
+    Vertex focus = mVertexList.get(ifocus);
+    focus.distance = distance;
+    int iedge = baseEdge;
+    final int cornerNo = focus.vtype.polys[baseEdge]; // number of corners of the polygon to the right of the edge
+    for (int ipoly = 1; ipoly < cornerNo; ipoly ++) { // enqueue all corners of the polygon
+      final Vertex proxy = attach(focus, iedge);
+      mQueue.add(proxy.index);
+      iedge = focus.vtype.pxEdges[iedge] - proxy.orient;
+      if (iedge < 0) {
+        iedge += proxy.vtype.edgeNo;
+      } else if (iedge >= proxy.vtype.edgeNo) {
+        iedge = 0;
+      }
+      focus = proxy;
+      focus.distance = distance;
+    } // for ipoly
+    mShellCount = mQueue.size();
+    if (sDebug >= 1) {
+        System.out.println(toJSON());
+    }
+    return mShellCount;
+  } // setBasePolygon(int)
 
   /**
    * Gets a {@link VertexType}
@@ -202,12 +240,14 @@ public class TilingSequence implements Serializable, Sequence
         backIndex != focus.index) { // set link back to the focus
       if (backIndex >= 0) {
         if (sDebug >= 1) {
-          System.out.println("# assertion 10: wrong backIndex=" + backIndex + "\t:= " + focus.index 
-              + ",\ttype " + foType.name + " iedge=" + iedge + ", pxEdge=" + pxEdge);
+          System.out.println("# assertion 10: " + proxy.getName() + proxy.index + "[" + pxEdge + "] -> " 
+              + backIndex
+              + "\toverwritten by -> " + focus.getName() + focus.index + ", iedge=" + iedge);
         } else {
   /*
-          System.err.println("# assertion 10: wrong backIndex=" + backIndex + "\t:= " + focus.index 
-              + ",\ttype " + foType.name + " iedge=" + iedge + ", pxEdge=" + pxEdge);
+          System.err.println("# assertion 11: " + proxy.getName() + proxy.index + "[" + pxEdge + "] -> " 
+              + backIndex
+              + "\toverwritten by -> " + focus.getName() + focus.index + ", iedge=" + iedge);
   */
         }
         proxy.pxInds[pxEdge] = focus.index;
@@ -215,43 +255,6 @@ public class TilingSequence implements Serializable, Sequence
     }
     return proxy;
   } // attach
-
-  /**
-   * Sets one base index, and initializes the tiling's dynamic data structures.
-   * @param baseIndex {@link Vertex} for the start of the coordination sequence.
-   * @param baseEdge number of an edge of the vertex with {@link VertexType} index <em>baseIndex</em>;
-   * the polygon is to the right of this edge viewed in the direction of the proxy
-   * at the end of the edge.<br />
-   * All vertices belonging to this polygon constitute the first shell
-   * (with offset 1), so these "loose" coordination sequences start with either 
-   * 3, 4, 6 or 12.<br />
-   * <em>baseIndex</em> and <em>iedge</em> start at 0! 
-   */
-  public int setBasePolygon(final int baseIndex, final int baseEdge) {
-    int ifocus = setBaseIndex(baseIndex);
-    final int distance = 1;
-    Vertex focus = mVertexList.get(ifocus);
-    focus.distance = distance;
-    int iedge = baseEdge;
-    final int cornerNo = focus.vtype.polys[baseEdge]; // number of corners of the polygon to the right of the edge
-    for (int ipoly = 1; ipoly < cornerNo; ipoly ++) { // enqueue all corners of the polygon
-      final Vertex proxy = attach(focus, iedge);
-      mQueue.add(proxy.index);
-      iedge = focus.vtype.pxEdges[iedge] - proxy.orient;
-      if (iedge < 0) {
-        iedge += proxy.vtype.edgeNo;
-      } else if (iedge >= proxy.vtype.edgeNo) {
-        iedge = 0;
-      }
-      focus = proxy;
-      focus.distance = distance;
-    } // for ipoly
-    mShellCount = mQueue.size();
-    if (sDebug >= 1) {
-        System.out.println(toJSON());
-    }
-    return cornerNo;
-  } // setBasePolygon(int)
 
   /**
    * Gets the next term of the sequence.

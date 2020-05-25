@@ -135,7 +135,7 @@ public class SVGFile {
             + "</title></line>");
         break;
       default:
-      case 1: // tentative
+      case 1: // test     
         write("<line class=\"l" + String.valueOf(iedge)
             + "\" x1=\"" + focus.expos.getX()
             + "\" y1=\"" + focus.expos.getY()
@@ -146,7 +146,7 @@ public class SVGFile {
             + "->"         + proxy.index + proxy .getName()
             + "</title></line>");
         break;
-      case 2: // test
+      case 2: // dashed
         write("<line class=\"test dash"
             + "\" x1=\"" + focus.expos.getX()
             + "\" y1=\"" + focus.expos.getY()
@@ -170,7 +170,6 @@ public class SVGFile {
     String color = String.valueOf(focus.distance % COLOR_MOD);
     String name  = focus.getName();
     switch (mode) {
-      default:
       case 0:
         write("<g><circle class=\"c" + color
             + "\" cx=\"" + focus.expos.getX()
@@ -185,17 +184,18 @@ public class SVGFile {
             + "</g>"
             );
         break;
+      default:
       case 1:
       case 2:
-        write("<g><circle class=\"test"
+        write("<g><circle class=\"c" + color
             + "\" cx=\"" + focus.expos.getX()
             + "\" cy=\"" + focus.expos.getY()
-            + "\" r=\""  + (focus.index == 2 ? "0.3" : "0.15") + "\">"
+            + "\" r=\""  + (focus.index < maxBase ? "0.22" : "0.15") + "\">" // bigger if baseVertex
             + "</circle>"
             + "<text class=\"t"  + color
             + "\" x=\""  + focus.expos.getX()
             + "\" y=\""  + focus.expos.getY()
-            + "\" dy=\"0.03px\">" + name + "</text>"
+            + "\" dy=\"0.03px\">" + name + String.valueOf(focus.index) + "</text>"
             + "<title>"  + String.valueOf(focus.index) + name + focus.rotate + "</title>"
             + "</g>"
             );

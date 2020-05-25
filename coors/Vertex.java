@@ -72,7 +72,7 @@ public class Vertex implements Serializable {
 
   /**
    * Gets the name (via the {@link #VertexType}) of <em>this</em> Vertex
-   * @return uppercase letter (for normal orientation) or lowercase letter (for ooposite orientation)
+   * @return uppercase letter (for normal orientation) or lowercase letter (for opposite orientation)
    */
   public String getName() {
     return orient == 1 ? vtype.name : vtype.name.toLowerCase();

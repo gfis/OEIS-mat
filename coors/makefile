@@ -295,23 +295,33 @@ compile2:
 #----
 run: run1 run2
 run1: select
-	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 POLY="-1"
+OPER=net
 run2: select
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST) -poly $(POLY) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -poly $(POLY) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
 	ls -tclr *.svg run2/*
-runb2: select
+rub2: select
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile run2/ -dist $(DIST)            -d $(D)             -f select.tst > $@.tmp 
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile run2/ -dist $(DIST) -poly $(POLY) -d $(D)             -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
 	ls -tclr *.svg run2/*
+#----
+notae:
+	cat              run2.tmp
+	perl notae.pl -e run2.tmp | tee nota.tmp
+	perl notae.pl -a run2.tmp | tee note.tmp
+	#........
+	java -cp . TilingTest -notae -f nota.tmp
+	#........
+	java -cp . TilingTest -notae -f note.tmp
 #----
 single:
 	java -cp . TilingSequence -dist $(DIST) -id $(ID) -poly $(POLY) -d $(D) | tee $@.tmp

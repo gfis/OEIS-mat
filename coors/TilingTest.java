@@ -54,23 +54,26 @@ public class TilingTest implements Serializable {
   /** OEIS A-number of the coordination sequence */
   private String mASeqNo;
 
-  /** Brian Galebach's identification of a VertexType, of the form "Gal.u.t.v" */
-  private String mGalId;
-
   /** Number of the edge of the Vertex with baseIndex which defines the base polygon */
   private int mBasePoly;
-
-  /** Maximum distance from origin */
-  private int mMaxDistance;
 
   /** Encoding of the input file */
   private static final String sEncoding = "UTF-8";
   
+  /** Brian Galebach's identification of a VertexType, of the form "Gal.u.t.v" */
+  private String mGalId;
+
+  /** Maximum distance from origin */
+  private int mMaxDistance;
+
+  /** Operation to be performed: "net", "bfile", "note" ... */
+  private String mOperation;
+
   /** Current {@link TilingSequence} */
   private TilingSequence mTiling;
 
   /** Current {@link VertexTypeArray} */
-  private VertexTypeArray mTypeArray;
+  private VertexTypeArray mTypeNotas;
 
   private static final int MAX_ERROR = 2;
 
@@ -90,14 +93,8 @@ public class TilingTest implements Serializable {
       maxBase = mTiling.setBasePolygon(baseIndex, mBasePoly); // corners of a polygon are base, "loose" coordination sequence
     }
     final String[] parts = baseType.sequence.split("\\,");
-    final int termNo = parts.length;
-    int[] terms = new int[termNo];
-    for (int iterm = 0; iterm < termNo; iterm ++) {
-      try {
-        terms[iterm] = Integer.parseInt(parts[iterm]);
-      } catch (Exception exc) {
-      }
-    } // for iterm
+    final int[] terms = baseType.getSequence();
+    final int termNo = terms.length;
     if (mMaxDistance == -1) {
       mMaxDistance = termNo - 1;
     }
@@ -181,7 +178,7 @@ public class TilingTest implements Serializable {
     if (SVGFile.sEnabled) {
       for (int ind = 0; ind < vlSize; ind ++) { // ignore reserved [0..1]
         Vertex focus = mTiling.mVertexList.get(ind);
-        SVGFile.writeVertex(focus, maxBase, 0);
+        SVGFile.writeVertex(focus, maxBase, sDebug);
       } // for vertices
     } // SVG
     System.err.println("# " + mTiling.mVertexList.size() + " vertices generated");
@@ -205,39 +202,38 @@ public class TilingTest implements Serializable {
         = galId.split("\\.");  // "Gal", "2", "9", "1"; the trailing v runs from 1 to u, the t is the sequential number in u
     if (gutv[3].equals("1")) { // first of new tiling
       try {                                 //  0      1    2    3
-        mTypeArray = new VertexTypeArray(Integer.parseInt(gutv[1]));
+        mTypeNotas = new VertexTypeArray(Integer.parseInt(gutv[1]));
       } catch(Exception exc) {
         System.err.println(exc.getMessage());
       }
     } // first
-    mTypeArray.decodeNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
-    if (gutv[3].equals(gutv[1])) { // last of new tiling
+    mTypeNotas.decodeNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
+    if (gutv[3].equals(gutv[1])) { // last of new tiling - save it, and perform some operation
+      
       TilingSequence .sDebug = sDebug;
       Vertex         .sDebug = sDebug;
       VertexType     .sDebug = sDebug;
       VertexTypeArray.sDebug = sDebug;
-      mTiling = new TilingSequence(0, mTypeArray);
+      mTiling = new TilingSequence(0, mTypeNotas);
       if (sDebug >= 1) {
         System.out.println(mTiling.toJSON());
       }
       // compute the nets
-      for (int baseIndex = 0; baseIndex < mTypeArray.size(); baseIndex ++) {
+      for (int baseIndex = 0; baseIndex < mTypeNotas.size(); baseIndex ++) {
         if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) { 
           // either all in the input file, or only the specified mGalId
           final VertexType baseType = mTiling.getVertexType(baseIndex);
           mASeqNo = baseType.aSeqNo;
-          if (false) { // case for different actions
-          } else if (BFile.sEnabled) {
+          if (false) { // switche for different operations
+          //--------
+          } else if (mOperation.startsWith("bfile")) {
             BFile.open(mASeqNo);
-            if (sDebug >= 1) {
-              System.out.println("# writing b-file for " + mASeqNo);
-            }
             for (int index = 0; index < mMaxDistance; index ++) {
               BFile.write(index + " " + mTiling.next());
             } // for index
             BFile.close();
-          } 
-          { // default: old processing
+          //--------
+          } else if (mOperation.startsWith("net"  )) {
             if (SVGFile.sEnabled) {
               SVGFile.open(mMaxDistance, mGalId);
             }
@@ -245,10 +241,15 @@ public class TilingTest implements Serializable {
             if (SVGFile.sEnabled) {
               SVGFile.close(); 
             }
-          } // default
+          //--------
+          } else if (mOperation.startsWith("notae")) {
+            System.out.println(mTiling.mTypeArray.toString());
+          //--------
+          } // switch for operations
         }
       } // for itype
-    } // last
+      
+    } // last of new tiling - operation performed
   } // processRecord
 
   /**
@@ -292,33 +293,37 @@ public class TilingTest implements Serializable {
     final TilingTest tester = new TilingTest();
     final BFile bFile       = new BFile();
     final SVGFile svgFile   = new SVGFile();
+    tester.mOperation = "net"; // default
     sDebug = 0;
     try {
       int iarg = 0;
       String fileName = "-"; // assume STDIN/STDOUT
       while (iarg < args.length) { // consume all arguments
-        String opt            = args[iarg ++];
+        String opt             = args[iarg ++];
         if (false) {
-        } else if (opt.equals("-a")     ) {
-          tester.mASeqNo      = args[iarg ++];
-        } else if (opt.equals("-bfile") ) {
-          BFile.sEnabled      = true;
-          BFile.setPrefix(      args[iarg ++]);
-        } else if (opt.equals("-dist")  ) {
-          tester.mMaxDistance = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals("-d")     ) {
-          sDebug              = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals("-f")     ) {
-          fileName            = args[iarg ++];
-        } else if (opt.equals("-id")    ) {
-          tester.mGalId       = args[iarg ++];
-        } else if (opt.equals("-n")     ) {
-          String dummy        = args[iarg ++]; // ignore
-        } else if (opt.equals("-poly")  ) {
-          tester.mBasePoly    = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals("-svg")   ) {
-          SVGFile.sEnabled    = true;
-          SVGFile.sFileName   = args[iarg ++];
+        } else if (opt.equals    ("-a")     ) {
+          tester.mASeqNo       = args[iarg ++];
+        } else if (opt.startsWith("-bf") ) {
+          BFile.sEnabled       = true;
+          BFile.setPrefix(       args[iarg ++]);
+          tester.mOperation    = "bfile";
+        } else if (opt.equals    ("-dist")  ) {
+          tester.mMaxDistance  = Integer.parseInt(args[iarg ++]);
+        } else if (opt.equals    ("-d")     ) {
+          sDebug               = Integer.parseInt(args[iarg ++]);
+        } else if (opt.equals    ("-f")     ) {
+          fileName             = args[iarg ++];
+        } else if (opt.equals    ("-id")    ) {
+          tester.mGalId        = args[iarg ++];
+        } else if (opt.equals    ("-n")     ) {
+          String dummy         = args[iarg ++]; // ignore
+        } else if (opt.startsWith("-n")     ) { // net, nota, note, notae
+          tester.mOperation    = opt.substring(1);
+        } else if (opt.equals    ("-poly")  ) {
+          tester.mBasePoly     = Integer.parseInt(args[iarg ++]);
+        } else if (opt.equals    ("-svg")   ) {
+          SVGFile.sEnabled     = true;
+          SVGFile.sFileName    = args[iarg ++];
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }
