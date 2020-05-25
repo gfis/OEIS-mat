@@ -27,9 +27,9 @@ public class Position implements Serializable {
   private static final Double SQRT6 = Math.sqrt(6.0);
 
   /** Horizontal coordinate, left is negative */
-  protected int/*s*/[] xtuple;
+  public int/*s*/[] xtuple;
   /** Vertical coordinate, up is negative */
-  protected int/*s*/[] ytuple;
+  public int/*s*/[] ytuple;
 
   /**
    * Empty constructor - creates the origin (0,0).
@@ -55,7 +55,7 @@ public class Position implements Serializable {
    * Computes the cartesian coordinate value from an exact position tuple
    * @return a double value
    */
-  public Double cartesian(final int/*s*/[] tuple) {
+  public static Double cartesian(final int/*s*/[] tuple) {
     return 
         ( tuple[0]
         + tuple[1] * SQRT2
@@ -108,6 +108,15 @@ public class Position implements Serializable {
     result.setCharAt(0, '[');
     return result.toString();
   } // Position.toString
+
+  /**
+   * Gets the cartesian coordinate from a double
+   * @param parm double value
+   * @return a String with 4 decimal digits
+   */
+  public static String get(double parm) {
+    return String.format("%.4f", parm).replaceAll("\\,", "."); // for German Locale
+  } // getX
 
   /**
    * Gets the cartesian x coordinate (to the right) from <em>this</em> Position

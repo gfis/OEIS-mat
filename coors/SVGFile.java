@@ -117,29 +117,32 @@ public class SVGFile {
    * Writes an edge from the focus to a neighbouring {@link Vertex} to the SVG file.
    * @param focus starting Vertex
    * @param proxy ending   Vertex
+   * @param iedge number of edge in <em>focus</em>
    * @param distance distance from baseVertex, for coloring
    * @param mode 0=normal, 1=tentative, 2=test
    */
-  public static void writeEdge(Vertex focus, Vertex proxy, int distance, int mode) {
+  public static void writeEdge(Vertex focus, Vertex proxy, int iedge, int distance, int mode) {
     switch (mode) {
-      default:
       case 0: // normal
         write("<line class=\"l" + String.valueOf(distance % COLOR_MOD)
             + "\" x1=\"" + focus.expos.getX()
             + "\" y1=\"" + focus.expos.getY()
-            + "\" x2=\"" + proxy.expos.getX()
-            + "\" y2=\"" + proxy.expos.getY()
+            + "\" x2=\"" + Position.get(Position.cartesian(focus.expos.xtuple) + (Position.cartesian(proxy.expos.xtuple) - Position.cartesian(focus.expos.xtuple)) / 2.0)
+            + "\" y2=\"" + Position.get(Position.cartesian(focus.expos.ytuple) + (Position.cartesian(proxy.expos.ytuple) - Position.cartesian(focus.expos.ytuple)) / 2.0)
             + "\"><title>" + focus.index + focus.getName()
+            + "-" + iedge 
             + "->"         + proxy.index + proxy .getName()
             + "</title></line>");
         break;
+      default:
       case 1: // tentative
-        write("<line class=\"tent dash"
+        write("<line class=\"l" + String.valueOf(iedge)
             + "\" x1=\"" + focus.expos.getX()
             + "\" y1=\"" + focus.expos.getY()
-            + "\" x2=\"" + proxy.expos.getX()
-            + "\" y2=\"" + proxy.expos.getY()
+            + "\" x2=\"" + Position.get(Position.cartesian(focus.expos.xtuple) + (Position.cartesian(proxy.expos.xtuple) - Position.cartesian(focus.expos.xtuple)) / 2.0)
+            + "\" y2=\"" + Position.get(Position.cartesian(focus.expos.ytuple) + (Position.cartesian(proxy.expos.ytuple) - Position.cartesian(focus.expos.ytuple)) / 2.0)
             + "\"><title>" + focus.index + focus.getName()
+            + "-" + iedge 
             + "->"         + proxy.index + proxy .getName()
             + "</title></line>");
         break;
@@ -150,6 +153,7 @@ public class SVGFile {
             + "\" x2=\"" + proxy.expos.getX()
             + "\" y2=\"" + proxy.expos.getY()
             + "\"><title>" + focus.index + focus.getName()
+            + "-" + iedge 
             + "->"         + proxy.index + proxy .getName()
             + "</title></line>");
         break;
@@ -171,7 +175,7 @@ public class SVGFile {
         write("<g><circle class=\"c" + color
             + "\" cx=\"" + focus.expos.getX()
             + "\" cy=\"" + focus.expos.getY()
-            + "\" r=\""  + (focus.index < maxBase ? "0.3" : "0.15") + "\">" // bigger if baseVertex
+            + "\" r=\""  + (focus.index < maxBase ? "0.22" : "0.15") + "\">" // bigger if baseVertex
             + "</circle>"
             + "<text     class=\"t" + color
             + "\" x=\""  + focus.expos.getX()

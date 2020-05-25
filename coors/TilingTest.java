@@ -45,6 +45,7 @@ public class TilingTest implements Serializable {
     mASeqNo      = null; // not specified
     mMaxDistance = 16;
     mTiling      = null;
+    mBasePoly    = -1; // not specified
   } // TilingTest()
 
   /** Debugging mode: 0=none, 1=some, 2=more */
@@ -55,6 +56,9 @@ public class TilingTest implements Serializable {
 
   /** Brian Galebach's identification of a VertexType, of the form "Gal.u.t.v" */
   private String mGalId;
+
+  /** Number of the edge of the Vertex with baseIndex which defines the base polygon */
+  private int mBasePoly;
 
   /** Maximum distance from origin */
   private int mMaxDistance;
@@ -77,10 +81,14 @@ public class TilingTest implements Serializable {
   public void computeNet(final TilingSequence mTiling, final int baseIndex) {
     final VertexType baseType = mTiling.getVertexType(baseIndex);
     mASeqNo = baseType.aSeqNo;
-    int maxBase = 1; // only one base vertex at the moment
     int errorCount = MAX_ERROR;
     LinkedList<Integer> queue = new LinkedList<Integer>();
-    mTiling.setBaseIndex(baseIndex); // reset dynamic structures
+    int maxBase = 0;
+    if (mBasePoly < 0) {
+      maxBase = mTiling.setBaseIndex  (baseIndex); // 1 base vertex, normal coordination sequence
+    } else {
+      maxBase = mTiling.setBasePolygon(baseIndex, mBasePoly); // corners of a polygon are base, "loose" coordination sequence
+    }
     final String[] parts = baseType.sequence.split("\\,");
     final int termNo = parts.length;
     int[] terms = new int[termNo];
@@ -100,10 +108,12 @@ public class TilingTest implements Serializable {
       System.out.println("# compute neighbours of vertex type " + baseIndex + " up to distance " + mMaxDistance);
     }
     int distance = 0; // also index for terms
-    queue.add(mTiling.addVertex(new Vertex(mTiling.mTypeArray.get(baseIndex))));
-    int addedVertices = 1;
+    for (int ifocus = 0; ifocus < mTiling.mVertexList.size(); ifocus ++) {
+      queue.add(ifocus); // those which were stored by setBase(Index|Polygon)
+    }
+    int addedVertices = queue.size();
     StringBuffer coordSeq = new StringBuffer(256);
-    coordSeq.append("1");
+    coordSeq.append(String.valueOf(addedVertices));
     if (BFile.sEnabled) { // data line
       BFile.write(distance + " " + addedVertices);
     }
@@ -124,10 +134,10 @@ public class TilingTest implements Serializable {
           if (focus.pxInds[iedge] < 0) { // proxy for this edge not yet determined
             final Vertex proxy = mTiling.attach(focus, iedge);
             if (SVGFile.sEnabled) {
-              SVGFile.writeEdge(focus, proxy, distance, 0); // normal
+              SVGFile.writeEdge(focus, proxy, iedge, distance, sDebug);
             }
             if (proxy.distance < 0) { // did not yet exist
-            	proxy.distance = distance;
+              proxy.distance = distance;
               addedVertices ++;
               queue.add(proxy.index);
               if (sDebug >= 2) {
@@ -216,7 +226,6 @@ public class TilingTest implements Serializable {
           // either all in the input file, or only the specified mGalId
           final VertexType baseType = mTiling.getVertexType(baseIndex);
           mASeqNo = baseType.aSeqNo;
-          mTiling.setBaseIndex(baseIndex); // reset dynamic structures
           if (false) { // case for different actions
           } else if (BFile.sEnabled) {
             BFile.open(mASeqNo);
@@ -305,6 +314,8 @@ public class TilingTest implements Serializable {
           tester.mGalId       = args[iarg ++];
         } else if (opt.equals("-n")     ) {
           String dummy        = args[iarg ++]; // ignore
+        } else if (opt.equals("-poly")  ) {
+          tester.mBasePoly    = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals("-svg")   ) {
           SVGFile.sEnabled    = true;
           SVGFile.sFileName   = args[iarg ++];

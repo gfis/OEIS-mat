@@ -117,7 +117,7 @@ public class VertexTypeArray {
             if (pxRota == kRota ) { // found
               busy = false;
             } else {
-              if (sDebug >= 4) {
+              if (sDebug >= 3) {
                 System.out.println("#     complete(kedge=" + kedge + "): pxRota=" + pxRota + " <> kRota=" + kRota);
               } 
               kedge ++;
@@ -125,11 +125,11 @@ public class VertexTypeArray {
           } // while busy and searching
           if (! busy) { // found
             pxEdge = kedge;
-            if (sDebug >= 4) {
+            if (sDebug >= 3) {
               System.out.println(  "#     complete(kedge=" + kedge + "): found");
             } 
           } else { // not found
-            if (sDebug >= 4) {
+            if (sDebug >= 3) {
               System.out.println("# complete(kedge=" + kedge + "): pxRota=" + pxRota + " not found");
             } 
           }

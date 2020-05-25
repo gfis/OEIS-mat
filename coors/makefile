@@ -297,9 +297,10 @@ run: run1 run2
 run1: select
 	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
+POLY="-1"
 run2: select
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST)            -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile $@/ -dist $(DIST) -poly $(POLY) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
@@ -313,7 +314,7 @@ runb2: select
 	ls -tclr *.svg run2/*
 #----
 single:
-	java -cp . TilingSequence -dist $(DIST) -d $(D) > $@.tmp
+	java -cp . TilingSequence -dist $(DIST) -id $(ID) -poly $(POLY) -d $(D) | tee $@.tmp
 #----
 speed: speed1 speed2
 speed1: select
