@@ -92,14 +92,10 @@ public class TilingTest implements Serializable {
     } else {
       maxBase = mTiling.setBasePolygon(baseIndex, mBasePoly); // corners of a polygon are base, "loose" coordination sequence
     }
-    final String[] parts = baseType.sequence.split("\\,");
     final int[] terms = baseType.getSequence();
-    final int termNo = terms.length;
+    final int termNo  = terms.length;
     if (mMaxDistance == -1) {
-      mMaxDistance = termNo - 1;
-    }
-    if (mASeqNo != null) {
-      baseType.aSeqNo = mASeqNo;
+      mMaxDistance    = termNo - 1;
     }
     if (sDebug >= 3) {
       System.out.println("# compute neighbours of vertex type " + baseIndex + " up to distance " + mMaxDistance);
@@ -108,16 +104,16 @@ public class TilingTest implements Serializable {
     for (int ifocus = 0; ifocus < mTiling.mVertexList.size(); ifocus ++) {
       queue.add(ifocus); // those which were stored by setBase(Index|Polygon)
     }
-    int addedVertices = queue.size();
+    int shellCount = queue.size();
     StringBuffer coordSeq = new StringBuffer(256);
-    coordSeq.append(String.valueOf(addedVertices));
+    coordSeq.append(String.valueOf(shellCount));
     if (BFile.sEnabled) { // data line
-      BFile.write(distance + " " + addedVertices);
+      BFile.write(distance + " " + shellCount);
     }
 
     distance ++;
     while (distance <= mMaxDistance) {
-      addedVertices = 0;
+      shellCount = 0;
       int levelPortion = queue.size();
       while (levelPortion > 0 && queue.size() > 0) { // queue not empty
         final int ifocus = queue.poll();
@@ -135,7 +131,7 @@ public class TilingTest implements Serializable {
             }
             if (proxy.distance < 0) { // did not yet exist
               proxy.distance = distance;
-              addedVertices ++;
+              shellCount ++;
               queue.add(proxy.index);
               if (sDebug >= 2) {
                 System.out.println("# enqueue iproxy " + proxy.index + ", attached to ifocus " + ifocus + " at edge " + iedge);
@@ -145,15 +141,15 @@ public class TilingTest implements Serializable {
         } // for iedge
         levelPortion --;
       } // while portion not exhausted and queue not empty
-      if (distance < terms.length && terms[distance] != addedVertices && errorCount > 0) {
+      if (distance < terms.length && terms[distance] != shellCount && errorCount > 0) {
         System.out.println("# ** assertion 6: " + baseType.aSeqNo + " " + baseType.galId
-            + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " +addedVertices);
+            + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " + shellCount);
         errorCount --;
       }
       coordSeq.append(',');
-      coordSeq.append(String.valueOf(addedVertices));
+      coordSeq.append(String.valueOf(shellCount));
       if (sDebug >= 2) {
-        System.out.println("# distance " + distance + ": " + addedVertices + " vertices added\n");
+        System.out.println("# distance " + distance + ": " + shellCount + " vertices added\n");
       }
       distance ++;
     } // while distance
@@ -190,14 +186,14 @@ public class TilingTest implements Serializable {
    */
   private void processRecord(final String line) {
     // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
-    final String[] fields   = line.split("\\t");
-    int ifield = 0;
-    final String aSeqNo     = fields[ifield ++];
-    final String galId      = fields[ifield ++];
-    ifield ++; // skip standard notation
-    final String vertexId   = fields[ifield ++];
-    final String taRotList  = fields[ifield ++];
-    final String sequence   = fields[ifield ++]; 
+    final String[] fields    = line.split("\\t");
+    int ifield = 0;          
+    final String aSeqNo      = fields[ifield ++];
+    final String galId       = fields[ifield ++];
+    final String stdNotation = fields[ifield ++];
+    final String vertexId    = fields[ifield ++];
+    final String taRotList   = fields[ifield ++];
+    final String sequence    = fields[ifield ++]; 
     final String[] gutv        //         u    t    v
         = galId.split("\\.");  // "Gal", "2", "9", "1"; the trailing v runs from 1 to u, the t is the sequential number in u
     if (gutv[3].equals("1")) { // first of new tiling
@@ -207,7 +203,7 @@ public class TilingTest implements Serializable {
         System.err.println(exc.getMessage());
       }
     } // first
-    mTypeNotas.decodeNotation(aSeqNo, galId, vertexId, taRotList, sequence); // increments mTAFree
+    mTypeNotas.decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence); // increments mTAFree
     if (gutv[3].equals(gutv[1])) { // last of new tiling - save it, and perform some operation
       
       TilingSequence .sDebug = sDebug;
@@ -233,6 +229,9 @@ public class TilingTest implements Serializable {
             } // for index
             BFile.close();
           //--------
+          } else if (mOperation.equals    ("fini")) {
+            // ignore
+          //--------
           } else if (mOperation.startsWith("net"  )) {
             if (SVGFile.sEnabled) {
               SVGFile.open(mMaxDistance, mGalId);
@@ -243,8 +242,11 @@ public class TilingTest implements Serializable {
             }
           //--------
           } else if (mOperation.startsWith("notae")) {
-            System.out.println(mTiling.mTypeArray.toString());
+            System.out.print(mTiling.mTypeArray.toString());
+            mOperation = "fini"; // only once
           //--------
+          } else {
+            System.err.println("# TilingTest: invalid operation \"" + mOperation + "\"");
           } // switch for operations
         }
       } // for itype
@@ -325,7 +327,7 @@ public class TilingTest implements Serializable {
           SVGFile.sEnabled     = true;
           SVGFile.sFileName    = args[iarg ++];
         } else {
-          System.err.println("??? invalid option: \"" + opt + "\"");
+          System.err.println("# ??? TilingTest, invalid option: \"" + opt + "\"");
         }
       } // while args
       tester.processFile(fileName);
@@ -334,7 +336,7 @@ public class TilingTest implements Serializable {
       System.err.println(exc.getMessage());
       exc.printStackTrace();
     }
-    System.err.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
+    System.out.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
   } // main
 
 } // TilingTest

@@ -26,7 +26,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 while (<>) {
     s{\s+\Z}{}; # chompr
     my $line = $_;
-    if ($line !~ m{\A\s*\#?\s*\Z}) { # no comment, not empty
+    if ($line =~  m{\AA\d\d+\t}) { # no comment, not empty
         my ($aseqno, $galid, $stdnot, $vertexid, $tarotlist, $sequence) = split(/\t/, $line);
         my @tarots = map {
                 if (0) {

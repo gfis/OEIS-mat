@@ -15,21 +15,22 @@ import java.io.Serializable;
 public class VertexType implements Serializable {
   public final static String CVSID = "@(#) $Id: Vertex.java $";
 
-  int    index;     // sequential number of type, starting at 0
-  String vertexId;  // e.g. "12.6.4" - decreasing polygon edge numbers at the moment
-  int    edgeNo;    // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
-  int[]  polys;     // number of corners of the regular (3,4,6,8, or 12) polygons (shapes)
-                        // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type;
-                        // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
-  int[]  sweeps;    // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
-  int[]  pxTinds;   // VertexType indices of proxy vertices
-  int[]  pxRotas;   // how many degrees must the proxy vertices be rotated, from Galebach
-  int[]  pxEdges;   // which edge of the proxy is connected - not used yet
-  int[]  pxOrients; // whether the proxy vertex is oriented normally (+1) or flipped (-1)
-  String galId;     // e.g. "Gal.2.1.1"
-  String name;      // for example "A" for normal or "a" (lowercase) for flipped version
-  String aSeqNo;    // OEIS A-number of the coordination sequence
-  String sequence;  // list of terms of the coordination sequence (standard is 50 terms)
+  int    index;       // sequential number of type, starting at 0
+  String stdNotation; // e.g. "3.4.6.4;4.6.12" - all involved vertex types with increasing polygons
+  String vertexId;    // e.g. "12.6.4" - decreasing polygon edge numbers at the moment
+  int    edgeNo;      // number of edges; the following arrays are indexed by iedge=0..edgeNo-1
+  int[]  polys;       // number of corners of the regular (3,4,6,8, or 12) polygons (shapes)
+                          // which are arranged clockwise (for SVG, counter-clockwise by Galebach) around this vertex type;
+                          // first edge goes from (x,y)=(0,0) to (1,0); the shape is to the left of the edge
+  int[]  sweeps;      // positive angles from iedge to iedge+1 for (iedge=0..edgeNo) mod edgeNo
+  int[]  pxTinds;     // VertexType indices of proxy vertices
+  int[]  pxRotas;     // how many degrees must the proxy vertices be rotated, from Galebach
+  int[]  pxEdges;     // which edge of the proxy is connected - not used yet
+  int[]  pxOrients;   // whether the proxy vertex is oriented normally (+1) or flipped (-1)
+  String galId;       // e.g. "Gal.2.1.1"
+  String name;        // for example "A" for normal or "a" (lowercase) for flipped version
+  String aSeqNo;      // OEIS A-number of the coordination sequence
+  String sequence;    // list of terms of the coordination sequence (standard is 50 terms)
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
@@ -38,35 +39,38 @@ public class VertexType implements Serializable {
    * Empty constructor
    */
   VertexType() {
-    index     = 0;
-    vertexId  = "";
-    edgeNo    = 0;
-    polys     = new int[0];
-    sweeps    = new int[0];
-    pxTinds   = new int[0];
-    pxRotas   = new int[0];
-    pxEdges   = new int[0];
-    pxOrients = new int[0];
-    galId     = "Gal.0.0.0";
-    name      = "Z";
-    aSeqNo    = "";
-    sequence  = "";
+    index       = 0;
+    stdNotation = "stdnot";
+    vertexId    = "";
+    edgeNo      = 0;
+    polys       = new int[0];
+    sweeps      = new int[0];
+    pxTinds     = new int[0];
+    pxRotas     = new int[0];
+    pxEdges     = new int[0];
+    pxOrients   = new int[0];
+    galId       = "Gal.0.0.0";
+    name        = "Z";
+    aSeqNo      = "";
+    sequence    = "";
   } // VertexType()
 
   /**
    * Modify an existing {@link VertexType} and set the parameters of the angle notation
    * @param aSeqNo OEIS A-number of the sequence
    * @param galId Galebach's identification of a vertex type: "Gal.u.t.v"
+   * @param stdNotation all involved vertex types with increasing polygons
    * @param vertexId clockwise dot-separated list of
    *     the polygons followed by the list of types and angles
    * @param taRotList clockwise semicolon-separated list of
    *     vertex type names and angles (and apostrophe if flipped)
    * @param sequence a list of initial terms of the coordination sequence
    */
-  public void decodeNotation(final String aSeqNo, final String galId, final String vertexId
+  public void decodeNotation(final String aSeqNo, final String galId, final String stdNotation, final String vertexId
       , final String taRotList, final String sequence) {
     // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     // this.index and this.name are filled in VertexTypeArray.add()
+    this.stdNotation = stdNotation;
     this.vertexId = vertexId;
     final String[] corners = vertexId.split("\\.");
     final String[] parts   = taRotList.split("[\\;\\,]\\s*");
@@ -106,7 +110,7 @@ public class VertexType implements Serializable {
           pxRotas [iedge] = Integer.parseInt(sangle); // 0..359
         }
         if (sedge .length() > 0) {
-          pxEdges [iedge] = Integer.parseInt(sedge) - 1; // >= 0, external edge numbers started at 1
+          pxEdges [iedge] = Integer.parseInt(sedge) - 1; // internal edge no >= 0, external edge nos start at 1
         }
       } catch (Exception exc) {
         System.err.println("# ** assertion 4: descriptor for \"" + galId + "\" bad");
@@ -164,7 +168,7 @@ public class VertexType implements Serializable {
     result.append("\t");
     result.append(galId);
     result.append("\t");
-    result.append("stdnot");
+    result.append(stdNotation);
     result.append("\t");
     result.append(vertexId);
     result.append("\t");
@@ -178,7 +182,7 @@ public class VertexType implements Serializable {
       }
       result.append(pxOrients[iedge] < 0 ? '-' : '+');
       if (pxEdges[iedge] >= 0) {
-        result.append(String.valueOf(pxEdges[iedge]));
+        result.append(String.valueOf(pxEdges[iedge] + 1)); // external edge no
       }
     } // for iedge
     result.append("\t");
@@ -192,8 +196,9 @@ public class VertexType implements Serializable {
    */
   public String toJSON() {
     String result
-        = "{ \"i\": \""       + index + "\""
+        = "{ \"i\": "         + index       
         + ", \"name\": \""    + name  + "\""
+        + ", \"stdnot\": \""  + stdNotation + "\""
         + ", \"vid\": \""     + vertexId + "\""
         + ", \"polys\": "     + join(",", polys)
         + ", \"sweeps\": "    + join(",", sweeps)

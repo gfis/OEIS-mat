@@ -117,9 +117,9 @@ public class Vertex implements Serializable {
     return index + getName() + " @" + rotate + expos + "->" + getProxyList();
   } // Vertex.toString
 
- /**
+  /**
    * Normalizes an angle
-   * @param angle in degrees, maybe negative or >= 360
+   * @param angle in degrees, maybe negative or &gt;= 360
    * @return non-negative degrees mod 360
    */
   protected static int normAngle(int angle) {
@@ -128,6 +128,18 @@ public class Vertex implements Serializable {
     }
     return angle % 360;
   } // normAngle
+
+  /**
+   * Normalizes an edge
+   * @param iedge, zero based, maybe negative or &gt;= edgeNo
+   * @return integer between 0 and edgeNo - 1. 
+   */
+  protected int normEdge(int iedge) {
+    while (iedge < 0) {
+      iedge += vtype.edgeNo;
+    }
+    return iedge % vtype.edgeNo;
+  } // normEdge
 
   /**
    * Gets the absolute angle where an edge from <em>this</em> {@link Vertex}
@@ -149,4 +161,26 @@ public class Vertex implements Serializable {
     return result;
   } // getAngle
 
+  /**
+   * Searches for the focus in the array <em>pxInds</em> of a proxy 
+   * @param proxy a neighbour of the focus Vertex
+   * @return the index where the focus is stored in the proxy,
+   * or -1 if it was not found
+   */
+  protected int findProxyEdge(final Vertex proxy) {
+    int result = -1; // assume: not found
+    boolean busy = true;
+    int kedge = 0;
+    while (busy && kedge < proxy.vtype.edgeNo) {
+      if (index == proxy.pxInds[kedge]) { // found
+        busy = false;
+        result = kedge;
+      } else {
+        kedge ++;
+      }
+    } // while busy
+    return result;
+  } // findProxyEdge
+
 } // class Vertex
+

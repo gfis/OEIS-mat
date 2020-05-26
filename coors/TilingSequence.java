@@ -146,7 +146,7 @@ public class TilingSequence implements Serializable, Sequence
    * @return number of queued vertices (number of corners of base polygon)
    */
   public int setBasePolygon(final int baseIndex, final int baseEdge) {
-    int ifocus = setBaseIndex(baseIndex);
+    int ifocus = setBaseIndex(baseIndex) - 1;
     final int distance = 1;
     Vertex focus = mVertexList.get(ifocus);
     focus.distance = distance;
@@ -223,7 +223,7 @@ public class TilingSequence implements Serializable, Sequence
       proxy              = new Vertex(mTypeArray.get(foType.pxTinds[iedge]), focus.orient * foType.pxOrients[iedge]); // create a new Vertex
       proxy.expos        = focus.expos.moveUnit(pxAngle);
       final int pxRota   = focus.orient * foType.pxRotas[iedge];
-      proxy.rotate       = focus.normAngle(focus.rotate + pxRota);
+      proxy.rotate       = Vertex.normAngle(focus.rotate + pxRota);
       if (sDebug >= 2) {
         System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
             + ")." + focus.index + focus.getName() + "@" + focus.rotate + focus.expos
@@ -235,24 +235,28 @@ public class TilingSequence implements Serializable, Sequence
       proxy  = mVertexList.get(iproxy); 
     } // not found
     focus.pxInds[iedge] = proxy.index; // attach it - link forward to the proxy
-    final int backIndex = proxy.pxInds[pxEdge]; 
+    final int trialEdge = proxy.normEdge(pxEdge);
+    int backLink = proxy.pxInds[trialEdge]; 
     if (// false && 
-        backIndex != focus.index) { // set link back to the focus
-      if (backIndex >= 0) {
+        backLink != focus.index) { // correct the link back to the focus
+      if (backLink >= 0) { // was set previously, but differently
+      	final int foundEdge = focus.findProxyEdge(proxy);
         if (sDebug >= 1) {
-          System.out.println("# assertion 10: " + proxy.getName() + proxy.index + "[" + pxEdge + "] -> " 
-              + backIndex
-              + "\toverwritten by -> " + focus.getName() + focus.index + ", iedge=" + iedge);
+          System.out.println("# assertion 10: dist=" + focus.distance + " focus " + focus.getName() + focus.index 
+              + "\texpected in proxy " + proxy.getName() + proxy.index + ".vtInds[" + trialEdge + "] " 
+              + "\tbut found in [" + foundEdge + "]");
         } else {
-  /*
-          System.err.println("# assertion 11: " + proxy.getName() + proxy.index + "[" + pxEdge + "] -> " 
-              + backIndex
-              + "\toverwritten by -> " + focus.getName() + focus.index + ", iedge=" + iedge);
-  */
+          System.out.println("# assertion 10: dist=" + focus.distance + " focus " + focus.getName() + focus.index 
+              + "\texpected in proxy " + proxy.getName() + proxy.index + ".vtInds[" + trialEdge + "] " 
+              + "\tbut found in [" + foundEdge + "]");
         }
-        proxy.pxInds[pxEdge] = focus.index;
+        if (foundEdge >= 0) {
+          proxy.pxInds[foundEdge] = focus.index;
+        }
+      } else { // backLink < 0
+        proxy.pxInds[trialEdge] = focus.index;
       }
-    }
+    } // else backLink is ok
     return proxy;
   } // attach
 

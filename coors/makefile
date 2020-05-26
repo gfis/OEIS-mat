@@ -288,10 +288,9 @@ test1: compile1 run1
 test2: compile2 run2
 compile: compile1 compile2
 compile1:
-	javac Tiler1.java 
+	# javac Tiler1.java 
 compile2:
 	javac TilingTest.java 
-	ls -al *.class
 #----
 run: run1 run2
 run1: select
@@ -305,23 +304,26 @@ run2: select
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
-	ls -tclr *.svg run2/*
+	# ls -tclr *.svg run2/*
 rub2: select
 	#---------------- 
 	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile run2/ -dist $(DIST) -poly $(POLY) -d $(D)             -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
-	ls -tclr *.svg run2/*
+	ls -tclr run2/*
 #----
+WID=80
 notae:
-	cat              run2.tmp
-	perl notae.pl -e run2.tmp | tee nota.tmp
-	perl notae.pl -a run2.tmp | tee note.tmp
+	grep -E "^A[0-9][0-9]*	Gal" run2.tmp    | tee notae0.tmp | cut -b1-$(WID)
+	perl notae.pl -e notae0.tmp              | tee nota.tmp   | cut -b1-$(WID)
+	perl notae.pl -a notae0.tmp              | tee note.tmp   | cut -b1-$(WID)
 	#........
-	java -cp . TilingTest -notae -f nota.tmp
-	#........
-	java -cp . TilingTest -notae -f note.tmp
+	java -cp . TilingTest -notae -f nota.tmp | tee notae1.tmp | cut -b1-$(WID)
+	diff -wC0 notae0.tmp notae1.tmp || :
+	#........                                   
+	java -cp . TilingTest -notae -f note.tmp | tee notae2.tmp | cut -b1-$(WID)
+	diff -wC0 notae0.tmp notae2.tmp || :
 #----
 single:
 	java -cp . TilingSequence -dist $(DIST) -id $(ID) -poly $(POLY) -d $(D) | tee $@.tmp

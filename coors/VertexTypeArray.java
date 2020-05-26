@@ -60,13 +60,14 @@ public class VertexTypeArray {
    * Modify an existing {@link VertexType} and set the parameters of the angle notation
    * @param aSeqNo OEIS A-number of the sequence
    * @param galId Galebach's id "Gal.u.t.v"
+   * @param stdNotation all involved vertex types with increasing polygons
    * @param vertexId clockwise dot-separated list of the polygons followed by the list of types and angles
    * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * @param sequence list of initial terms of the coordination sequence
    */
-  public void decodeNotation(final String aSeqNo, final String galId, final String vertexId
+  public void decodeNotation(final String aSeqNo, final String galId, final String stdNotation, final String vertexId
       , final String taRotList, final String sequence) {
-    mVertexTypes[mTAFree].decodeNotation(aSeqNo, galId, vertexId, taRotList, sequence);
+    mVertexTypes[mTAFree].decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence);
     mVertexTypes[mTAFree].name = Character.toString((char) ('A' + mTAFree));
     mTAFree ++;
   } // decodeNotation(String^5)
@@ -80,11 +81,11 @@ public class VertexTypeArray {
    */
   public void decodeNotation(final String param) {
     final String[] pair = param.split(";");
-    decodeNotation("A000000", "Gal.u.t.v.", pair[0], pair[1], "1");
+    decodeNotation("A000000", "Gal.u.t.v.", "stdnot", pair[0], pair[1], "1");
   } // decodeNotation(String^2)
 
   /**
-   * Completes all {@link VertexType}s, that is, if necessary
+   * Completes all {@link VertexType}s, that is - if necessary - 
    * computes proxy edges from proxy angles and vice versa.
    */
   public void complete() {
@@ -100,7 +101,7 @@ public class VertexTypeArray {
         if (false) {
         } else if (pxRota < 0 && pxEdge >= 0) { // compute angle from edge
           pxRota            = Vertex.normAngle(180 
-                + foType.sweeps   [iedge] - pxType.sweeps   [pxEdge]
+                + foType.sweeps   [iedge] - pxType.sweeps[pxEdge]
                 * foType.pxOrients[iedge] 
           //    * pxType.pxOrients[pxEdge]
                 );
@@ -110,7 +111,7 @@ public class VertexTypeArray {
           boolean busy = true;
           while (busy && kedge < pxType.edgeNo) { // search for matching angle
             final int kRota = Vertex.normAngle(180 
-                + foType.sweeps   [iedge] - pxType.sweeps   [kedge ]
+                + foType.sweeps   [iedge] - pxType.sweeps[kedge ]
                 * foType.pxOrients[iedge] 
             //  * pxType.pxOrients[kedge ]
                 );
