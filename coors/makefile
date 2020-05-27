@@ -279,6 +279,7 @@ SVG=-svg Test.svg
 BFILE=-bfile bfile/
 BFILP=-bfile bfilp/
 SELECT=1
+TILTES=java -cp . TilingTest
 #----------------
 select:
 	grep -E "Gal\.$(GAL)\." extract.tmp > $@.tst
@@ -296,44 +297,53 @@ run: run1 run2
 run1: select
 	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
-POLY="-1"
+EDGE="-1"
 OPER=net
 run2: 
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -poly $(POLY) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
+	$(TILTES) -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -edge $(EDGE) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
 	# ls -tclr *.svg run2/*
 rub2: select
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile run2/ -dist $(DIST) -poly $(POLY) -d $(D)             -f select.tst > $@.tmp 
+	$(TILTES) -id Gal.$(GAL).$(ID) -bfile rub2/ -dist $(DIST) -edge $(EDGE) -d $(D)             -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r rub2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} rub2/{} || :
 	ls -tclr rub2/*
 #----
+central:
+	$(TILTES) -central -e 0 -dist $(DIST) -d $(D) -f extract.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+cens:
+	sort -k2 -k1 central.tmp > central.sort
+cenu:
+	cut -f2 central.sort | uniq -c | sort -rn > $@.tmp
+#----
 WID=80
 notae: select
-	java -cp . TilingTest -notae -f select.tst | tee notae0.tmp | cut -b1-$(WID)
+	$(TILTES) -notae -f select.tst | tee notae0.tmp | cut -b1-$(WID)
 	# grep -E "^A[0-9][0-9]*	Gal" select.tst  | tee notae0.tmp | cut -b1-$(WID)
 	perl notae.pl -e notae0.tmp              | tee nota.tmp   | cut -b1-$(WID)
 	perl notae.pl -a notae0.tmp              | tee note.tmp   | cut -b1-$(WID)
 	#........
-	java -cp . TilingTest -notae -f nota.tmp | tee notae1.tmp | cut -b1-$(WID)
+	$(TILTES) -notae -f nota.tmp | tee notae1.tmp | cut -b1-$(WID)
 	diff -wC0 notae0.tmp notae1.tmp || :
 	#........                                   
-	java -cp . TilingTest -notae -f note.tmp | tee notae2.tmp | cut -b1-$(WID)
+	$(TILTES) -notae -f note.tmp | tee notae2.tmp | cut -b1-$(WID)
 	diff -wC0 notae0.tmp notae2.tmp || :
 #----
 single:
-	java -cp . TilingSequence -dist $(DIST) -id $(ID) -poly $(POLY) -d $(D) | tee $@.tmp
+	java -cp . TilingSequence -dist $(DIST) -id $(ID) -edge $(EDGE) -d $(D) 2> x.tmp | tee $@.tmp
 #----
 speed: speed1 speed2
 speed1: select
 	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d 0 -f select.tst 
 speed2: select
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
+	$(TILTES) -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
 #----
 newn: 
 	make newna | grep -E "tiler" | tee $@1.tmp

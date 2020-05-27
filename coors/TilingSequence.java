@@ -294,6 +294,42 @@ public class TilingSequence implements Serializable, Sequence
   } // next()
 
   /**
+   * Expands and prints the sequence(s) for <em>this</em> tiling.
+   * @param gal identification of the tiling, for example "Gal.2.1"
+   * @param baseIndex index of the {@link VertexType} (zero-based)
+   * @param baseEdge  index of the edge in the base vertex which defines the central polygon (zero-based),
+   * -1 means all edges, -2 means unspecified / generate normal coordinations sequence
+   * @param maxDistance number of terms to be generated
+   */
+  public void printSequences(final String gal, final int baseIndex, final int baseEdge, final int maxDistance) {
+    final VertexType baseType = mTypeArray.get(baseIndex);
+    if (baseEdge < -1) { // single coordination sequence
+      setBaseIndex(baseIndex);
+      System.out.print(gal + "\t-1\t" + baseType.vertexId + "\t");
+      for (int index = 0; index < maxDistance; index ++) {
+        System.out.print((index == 0 ? "" : ",") + next());
+      } // for index
+      System.out.println();
+    } else { // baseEdge >= -1: centered in polygon; -1 means all edges
+      int minEdge = 0; 
+      int maxEdge = baseType.polys.length - 1;
+      if (baseEdge >= 0) {
+        minEdge = baseEdge;
+        maxEdge = baseEdge;
+      }
+      for (int iedge = minEdge; iedge <= maxEdge; iedge ++) {
+        setBaseIndex(baseIndex);
+        setBaseEdge(baseIndex, iedge);
+        System.out.print(gal + "\t" + String.valueOf(iedge + 1) + "\t" + baseType.vertexId + "\t");
+        for (int index = 0; index < maxDistance; index ++) {
+          System.out.print((index == 0 ? "" : ",") + next());
+        } // for index
+        System.out.println();
+      } // for iedge
+    } // baseEdge >= -1
+  } // printSequences
+  
+  /**
    * Main method, computes one specific sequence 
    * for a base vertex and optional base edge in 
    * the specified tiling
@@ -301,24 +337,28 @@ public class TilingSequence implements Serializable, Sequence
    */
   public static void main(String[] args) {
     final long startTime  = System.currentTimeMillis();
-    int mMaxDistance = 16;
-    int baseIndex    =  0;
-    int baseEdge     = -1; // not specified
+    String gal      = "Gal.2.1";
+    String notation = "12.6.4;A180-,A120-,B90+~~6.4.3.4;A270+,A210-,B120+,B240+"; // Gal.2.1
+    int baseIndex   =  0;
+    int baseEdge    = -1; // not specified
+    int maxDistance = 16;
     try {
       int iarg = 0;
       while (iarg < args.length) { // consume all arguments
         String opt       = args[iarg ++];
         if (false) {
-        } else if (opt.equals("-dist")  ) {
-          mMaxDistance          = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals("-d")     ) {
+        } else if (opt.equals     ("-dist")  ) {
+          maxDistance           = Integer.parseInt(args[iarg ++]);
+        } else if (opt.equals     ("-d")     ) {
           TilingSequence.sDebug = Integer.parseInt(args[iarg ++]);
-        } else if (opt.equals("-id")    ) {
-          baseIndex             = Integer.parseInt(args[iarg ++]);
-          baseIndex --; // external vertex type indices start at 1, internal at 0
-        } else if (opt.equals("-poly")  ) {
-          baseEdge              = Integer.parseInt(args[iarg ++]);
-          baseEdge --;  // external edge numbers start at 1, internal at 0
+        } else if (opt.startsWith ("-e")     ) {
+          baseEdge              = Integer.parseInt(args[iarg ++]) - 1; // start at 0 internally
+        } else if (opt.equals     ("-gal")   ) {
+          gal                   = args[iarg ++];
+        } else if (opt.equals     ("-id")    ) {
+          baseIndex             = Integer.parseInt(args[iarg ++]) - 1; // start at 0 internally
+        } else if (opt.startsWith ("-not")   ) {
+          notation              = args[iarg ++];
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }
@@ -328,20 +368,8 @@ public class TilingSequence implements Serializable, Sequence
       System.err.println(exc.getMessage());
       exc.printStackTrace();
     }
-
-    final TilingSequence mTiling = new TilingSequence(0, new String[] // Gal.2.1:
-        { "12.6.4;A180-,A120-,B90+"
-        , "6.4.3.4;A270+,A210-,B120+,B240+"
-        });
-    mTiling.setBaseIndex(baseIndex);
-    if (baseEdge >= 0) {
-      mTiling.setBaseEdge(baseIndex, baseEdge);
-    }
-    for (int index = 0; index < mMaxDistance; index ++) {
-      System.out.print((index == 0 ? "" : ",") + mTiling.next());
-    } // for index
-    System.out.println();
-
+    final TilingSequence mTiling = new TilingSequence(0, notation.split("~~"));
+    mTiling.printSequences(gal + "." + String.valueOf(baseIndex + 1), baseIndex, baseEdge, maxDistance);
     System.err.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
   } // main
 
