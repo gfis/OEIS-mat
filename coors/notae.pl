@@ -16,7 +16,7 @@ my $oper = "-e";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
-    } elsif ($opt  =~ m{e|a}) {
+    } elsif ($opt =~ m{e|a}) {
         $oper = $opt;
     } else {
         die "invalid option \"$opt\"\n";
@@ -28,14 +28,12 @@ while (<>) {
     my $line = $_;
     if ($line =~  m{\AA\d\d+\t}) { # no comment, not empty
         my ($aseqno, $galid, $stdnot, $vertexid, $tarotlist, $sequence) = split(/\t/, $line);
-        my @tarots = map {
+        my @tarots = map { my $elem = $_;
                 if (0) {
-                } elsif ($oper eq "-a") {
-                	s{\A(\w)(\d*)([\+\-])(\d*)}{$1$3$4};
-                } elsif ($oper eq "-e") {
-                	s{\A(\w)(\d*)([\+\-])(\d*)}{$1$2$3};
+                } elsif ($oper eq "-a") { $elem =~ s{\A([A-Z])(\d+)([\+\-])(\d+)}{$1$3$4}; 
+                } elsif ($oper eq "-e") { $elem =~ s{\A([A-Z])(\d+)([\+\-])(\d+)}{$1$2$3}; 
                 }
-                $_
+                $elem
             } split(/\,/, $tarotlist);
         $tarotlist = join(",", @tarots);
         print join("\t", ($aseqno, $galid, $stdnot, $vertexid, $tarotlist, $sequence)) . "\n";

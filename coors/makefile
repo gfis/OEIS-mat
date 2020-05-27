@@ -298,9 +298,9 @@ run1: select
 	grep -i assertion $@.tmp || :
 POLY="-1"
 OPER=net
-run2: select
+run2: 
 	#---------------- 
-	java -cp . TilingTest -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -poly $(POLY) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . TilingTest -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -poly $(POLY) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
@@ -309,13 +309,14 @@ rub2: select
 	#---------------- 
 	java -cp . TilingTest -id Gal.$(GAL).$(ID) -bfile run2/ -dist $(DIST) -poly $(POLY) -d $(D)             -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
-	ls -tc1r run2/* | tail -n1 | cut -b6- \
-	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
-	ls -tclr run2/*
+	ls -tc1r rub2/* | tail -n1 | cut -b6- \
+	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} rub2/{} || :
+	ls -tclr rub2/*
 #----
 WID=80
-notae:
-	grep -E "^A[0-9][0-9]*	Gal" run2.tmp    | tee notae0.tmp | cut -b1-$(WID)
+notae: select
+	java -cp . TilingTest -notae -f select.tst | tee notae0.tmp | cut -b1-$(WID)
+	# grep -E "^A[0-9][0-9]*	Gal" select.tst  | tee notae0.tmp | cut -b1-$(WID)
 	perl notae.pl -e notae0.tmp              | tee nota.tmp   | cut -b1-$(WID)
 	perl notae.pl -a notae0.tmp              | tee note.tmp   | cut -b1-$(WID)
 	#........
@@ -333,6 +334,17 @@ speed1: select
 	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d 0 -f select.tst 
 speed2: select
 	java -cp . TilingTest -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
+#----
+newn: 
+	make newna | grep -E "tiler" | tee $@1.tmp
+	make newne | grep -E "tiler" | tee $@2.tmp
+	diff -wC0 $@1.tmp $@2.tmp || :
+newna: 
+	perl notation.pl    | tee $@.tmp
+	java -cp . Tiler1 -dist $(DIST)  -f $@.tmp
+newne: select
+	perl notation.pl -e | tee $@.tmp
+	java -cp . Tiler1 -dist $(DIST)  -f $@.tmp
 #-----------------
 pave: compave pavr
 compave:

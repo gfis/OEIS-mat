@@ -34,7 +34,7 @@ public class TilingTest implements Serializable {
   public final static String CVSID = "@(#) $Id: TilingTest.java $";
   /** log4j logger (category) */
   // private Logger log;
- 
+
   /**
    * Empty constructor.
    */
@@ -45,7 +45,7 @@ public class TilingTest implements Serializable {
     mASeqNo      = null; // not specified
     mMaxDistance = 16;
     mTiling      = null;
-    mBasePoly    = -1; // not specified
+    mBaseEdge    = -1; // not specified
   } // TilingTest()
 
   /** Debugging mode: 0=none, 1=some, 2=more */
@@ -55,11 +55,11 @@ public class TilingTest implements Serializable {
   private String mASeqNo;
 
   /** Number of the edge of the Vertex with baseIndex which defines the base polygon */
-  private int mBasePoly;
+  private int mBaseEdge;
 
   /** Encoding of the input file */
   private static final String sEncoding = "UTF-8";
-  
+
   /** Brian Galebach's identification of a VertexType, of the form "Gal.u.t.v" */
   private String mGalId;
 
@@ -87,10 +87,9 @@ public class TilingTest implements Serializable {
     int errorCount = MAX_ERROR;
     LinkedList<Integer> queue = new LinkedList<Integer>();
     int maxBase = 0;
-    if (mBasePoly < 0) {
-      maxBase = mTiling.setBaseIndex  (baseIndex); // 1 base vertex, normal coordination sequence
-    } else {
-      maxBase = mTiling.setBasePolygon(baseIndex, mBasePoly); // corners of a polygon are base, "loose" coordination sequence
+    maxBase = mTiling.setBaseIndex(baseIndex); // 1 base vertex, normal coordination sequence
+    if (mBaseEdge >= 0) {
+      maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
     }
     final int[] terms = baseType.getSequence();
     final int termNo  = terms.length;
@@ -164,7 +163,7 @@ public class TilingTest implements Serializable {
       System.out.println("# final net\n" + mTiling.toJSON());
     }
     if (true) { // this is always output
-      System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mTiling.mTypeArray.get(baseIndex).galId 
+      System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mTiling.mTypeArray.get(baseIndex).galId
           + "\t" + coordSeq.toString());
     }
     if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
@@ -185,15 +184,15 @@ public class TilingTest implements Serializable {
    * @param line record to be processed
    */
   private void processRecord(final String line) {
-    // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
+    // e.g. line = A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4; A 180'; A 120'; B 90 tab 1,3,6,9,11, ...
     final String[] fields    = line.split("\\t");
-    int ifield = 0;          
+    int ifield = 0;
     final String aSeqNo      = fields[ifield ++];
     final String galId       = fields[ifield ++];
     final String stdNotation = fields[ifield ++];
     final String vertexId    = fields[ifield ++];
     final String taRotList   = fields[ifield ++];
-    final String sequence    = fields[ifield ++]; 
+    final String sequence    = fields[ifield ++];
     final String[] gutv        //         u    t    v
         = galId.split("\\.");  // "Gal", "2", "9", "1"; the trailing v runs from 1 to u, the t is the sequential number in u
     if (gutv[3].equals("1")) { // first of new tiling
@@ -205,7 +204,7 @@ public class TilingTest implements Serializable {
     } // first
     mTypeNotas.decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence); // increments mTAFree
     if (gutv[3].equals(gutv[1])) { // last of new tiling - save it, and perform some operation
-      
+
       TilingSequence .sDebug = sDebug;
       Vertex         .sDebug = sDebug;
       VertexType     .sDebug = sDebug;
@@ -216,11 +215,11 @@ public class TilingTest implements Serializable {
       }
       // compute the nets
       for (int baseIndex = 0; baseIndex < mTypeNotas.size(); baseIndex ++) {
-        if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) { 
+        if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) {
           // either all in the input file, or only the specified mGalId
           final VertexType baseType = mTiling.getVertexType(baseIndex);
           mASeqNo = baseType.aSeqNo;
-          if (false) { // switche for different operations
+          if (false) { // switch for different operations
           //--------
           } else if (mOperation.startsWith("bfile")) {
             BFile.open(mASeqNo);
@@ -238,7 +237,7 @@ public class TilingTest implements Serializable {
             }
             computeNet(mTiling, baseIndex);
             if (SVGFile.sEnabled) {
-              SVGFile.close(); 
+              SVGFile.close();
             }
           //--------
           } else if (mOperation.startsWith("notae")) {
@@ -250,7 +249,7 @@ public class TilingTest implements Serializable {
           } // switch for operations
         }
       } // for itype
-      
+
     } // last of new tiling - operation performed
   } // processRecord
 
@@ -305,6 +304,8 @@ public class TilingTest implements Serializable {
         if (false) {
         } else if (opt.equals    ("-a")     ) {
           tester.mASeqNo       = args[iarg ++];
+        } else if (opt.startsWith("-back")  ) {
+          TilingSequence.sBackLink = true;
         } else if (opt.startsWith("-bf") ) {
           BFile.sEnabled       = true;
           BFile.setPrefix(       args[iarg ++]);
@@ -322,7 +323,8 @@ public class TilingTest implements Serializable {
         } else if (opt.startsWith("-n")     ) { // net, nota, note, notae
           tester.mOperation    = opt.substring(1);
         } else if (opt.equals    ("-poly")  ) {
-          tester.mBasePoly     = Integer.parseInt(args[iarg ++]);
+          tester.mBaseEdge     = Integer.parseInt(args[iarg ++]);
+          tester.mBaseEdge --; // external edge numbers start at 1, internal at 0
         } else if (opt.equals    ("-svg")   ) {
           SVGFile.sEnabled     = true;
           SVGFile.sFileName    = args[iarg ++];

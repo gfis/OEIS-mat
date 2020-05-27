@@ -123,7 +123,7 @@ public class VertexType implements Serializable {
 
   /**
    * Gets the terms of the sequence.
-   * @return an int array with the parsed terms 
+   * @return an int array with the parsed terms
    */
   public int[] getSequence() {
     final String[] parts = sequence.split("\\,");
@@ -196,7 +196,7 @@ public class VertexType implements Serializable {
    */
   public String toJSON() {
     String result
-        = "{ \"i\": "         + index       
+        = "{ \"i\": "         + index
         + ", \"name\": \""    + name  + "\""
         + ", \"stdnot\": \""  + stdNotation + "\""
         + ", \"vid\": \""     + vertexId + "\""

@@ -1,14 +1,16 @@
 #!perl
 
 # Convert between Galebach's tiling notations
-# - letter-based notation (unmarked_codes.txt)
-# - angle-based  notaatin (a250120.html)
 # @(#) $Id$
+# 2020-05-27: -e, -a
 # 2020-05-18, Georg Fischer
 #
 #:# usage:
-#:#   perl notation.pl -l unmarked_codes.txt > notation.tmp
-#:#   perl notation.pl -a a250120.tmp        > notation.tmp
+#:#   perl notation.pl -a unmarked_codes.txt > notation.tmp
+#:#   perl notation.pl -e a250120.tmp        > notation.tmp
+#:#       -e omit the edges (nyi)
+#:#       -a omit the angles
+#:#       default: write angles and edges
 #---------------------------------
 use strict;
 use integer;
@@ -16,12 +18,19 @@ my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday) = gmtime (time);
 my $utc_stamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\z"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 my $debug = 0;
-my $nmax = 16;
+my $nmax  = 16;
+my $ebase = 1;
+my $abase = 1;
+my $seqno = 900000; # start for virtual A-numbers
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug = shift(@ARGV);
+    } elsif ($opt  =~ m{a}) {
+        $abase = 0;
+    } elsif ($opt  =~ m{e}) {
+        $ebase = 0;
     } elsif ($opt  =~ m{n}) {
         $nmax = shift(@ARGV);
     } else {
@@ -135,13 +144,18 @@ while (<DATA>) {
             $jedge ++;
             &insert_angle(chr(ord('A') + $vtind) . "+$jedge")
             } split(/\,/, $pxnotas[$vtind]);
+        $seqno ++;
         print join("\t"
-            , "A000000"
+            , sprintf("A%06d", $seqno)
             , "Gal.$galu.$galt." . ($vtind + 1)
             , join(";", map { $incr_vtcodes[$_] } @vertices)
         #   , chr(ord('A') + $vtind) . "="
             , $incr_vtcodes[$base_vertex]
-            , join(",", @specs)
+            , join(",", map { 
+                      if ($abase == 0) { s{\A([A-Z])(\d+)([\+\-])(\d+)}{$1$3$4}; }
+                      if ($ebase == 0) { s{\A([A-Z])(\d+)([\+\-])(\d+)}{$1$2$3}; }
+                      $_
+                      } @specs)
             , "1"
             , sprintf("%d", $block_offset + $galt)
             , "xnewnot"
