@@ -52,7 +52,8 @@ public class Position implements Serializable {
   } // Position(int/*s*/[], int/*s*/[])
 
   /**
-   * Computes the cartesian coordinate value from an exact position tuple
+   * Computes the cartesian coordinate value from an exact {@link Position} tuple
+   * @param tuple x or y values of the vector defining the exact position
    * @return a double value
    */
   public static Double cartesian(final int/*s*/[] tuple) {
@@ -192,6 +193,7 @@ public class Position implements Serializable {
    * Tests the computation of all 24 exact {@link Position}s
    */
   public static void testCirclePositions() {
+  // start test code */
     Position origin = new Position();
     SVGFile.sEnabled = true;
     if (SVGFile.sEnabled) {
@@ -215,6 +217,7 @@ public class Position implements Serializable {
       System.out.println(String.format("[%2d] + [%2d] = %8s,%8s"
           , ipos, ipos8, hexPos.getX(), hexPos.getY()));
     } // for ipos
+  // end   test code */
   } // testCirclePositions
 
   /**
@@ -222,6 +225,7 @@ public class Position implements Serializable {
    * @param args command line arguments: -circle
    */
   public static void main(String[] args) {
+  // start test code */
     try {
       int iarg = 0;
       while (iarg < args.length) { // consume all arguments
@@ -238,6 +242,7 @@ public class Position implements Serializable {
       System.err.println(exc.getMessage());
       exc.printStackTrace();
     }
+  // end   test code */
   } // main
 
 } // class Position

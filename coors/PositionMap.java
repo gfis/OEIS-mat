@@ -40,6 +40,7 @@ public class PositionMap {
 
   /**
    * Stores a {@link Vertex} at some {@link Position}.
+   * @param vertex the Vertex to be stored
    */
   public void put(final Vertex vertex) {
     mPositionHash.put(vertex.expos.toString(), new Integer(vertex.index));
@@ -57,7 +58,7 @@ public class PositionMap {
  
   /**
    * Returns a JSON representation of the tiling
-   * @return JSON for {@link #mVertexTypes} and {@link #mVertices}
+   * @return JSON for this PositionMap
    */
   public String toJSON() {
     String result  = "{ \"size\": " + mPositionHash.size() + ", \"mPositionHash\": \n";

@@ -35,6 +35,7 @@ public class VertexList {
 
   /**
    * Stores a {@link Vertex} at the next free element.
+   * @param vertex store this Vertex
    * @return index where the Vertex was stored
    */
   public int add(final Vertex vertex) {

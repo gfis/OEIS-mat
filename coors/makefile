@@ -289,7 +289,7 @@ test1: compile1 run1
 test2: compile2 run2
 compile: compile1 compile2
 compile1:
-	# javac Tiler1.java 
+	javac Tiler1.java 
 compile2:
 	javac TilingTest.java 
 #----
@@ -297,31 +297,23 @@ run: run1 run2
 run1: select
 	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
-EDGE="-1"
+EDGE=
+POLY=
 OPER=net
 run2: 
 	#---------------- 
-	$(TILTES) -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -edge $(EDGE) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
+	$(TILTES) -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) $(EDGE) $(POLY) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
 	# ls -tclr *.svg run2/*
 rub2: select
 	#---------------- 
-	$(TILTES) -id Gal.$(GAL).$(ID) -bfile rub2/ -dist $(DIST) -edge $(EDGE) -d $(D)             -f select.tst > $@.tmp 
+	$(TILTES) -id Gal.$(GAL).$(ID) -bfile rub2/ -dist $(DIST) $(EDGE) $(POLY) -d $(D)             -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r rub2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} rub2/{} || :
 	ls -tclr rub2/*
-#----
-central:
-	$(TILTES) -central -e 0 -dist $(DIST) -d $(D) -f extract.tmp > $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-cens:
-	sort -k2 -k1 central.tmp > central.sort
-cenu:
-	cut -f2 central.sort | uniq -c | sort -rn > $@.tmp
 #----
 WID=80
 notae: select
@@ -337,7 +329,7 @@ notae: select
 	diff -wC0 notae0.tmp notae2.tmp || :
 #----
 single:
-	java -cp . TilingSequence -dist $(DIST) -id $(ID) -edge $(EDGE) -d $(D) 2> x.tmp | tee $@.tmp
+	java -cp . TilingSequence -dist $(DIST) -id $(ID) $(EDGE) $(POLY) -d $(D) 2> x.tmp | tee $@.tmp
 #----
 speed: speed1 speed2
 speed1: select
@@ -388,13 +380,72 @@ test_mma:
 	scp pi@piras:out.tmp .
 	cat out.tmp
 #================
-runall:
-	rm -f $@.tmp
-	head -n$(NMAX) extract.tmp > $@.in.tmp
-	java -cp . Tiler -dist $(DIST) -d $(D) -f $@.in.tmp >> $@.tmp
+cenall: # compute all central sequences
+	$(TILTES) -central -e 0 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).txt
+	head -n4 $@.$(DIST).txt
+	wc -l    $@.*.t*
+cendiv:
+	# remove aseqno, callcode, offset; keep galid, vertexid, edge=-1, substr(seq, 2)
+	cut -f1- cenall.128.txt \
+	>        $@.tmp
+	make divall LIST=$@.tmp
+	mv divall.tmp $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp 
+	wc   -l  $@.tmp
+#--
+cens:
+	sort -k2 -k1 central.tmp > central.sort
+cenu:
+	cut -f2 central.sort | uniq -c | sort -rn > $@.tmp
+cenguess:
+	perl callmaple.pl -p guessgf.mpat central.128.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#================
+netall: # compute all coordination sequences
+	rm -f $@.$(DIST).txt
+	head -n$(NMAX) extract.tmp > $@.in.tmp
+	$(TILTES) -net -dist $(DIST) -d $(D) -f $@.in.tmp >> $@.$(DIST).txt
+	head -n4 $@.$(DIST).txt
+	wc -l    $@.$(DIST).txt
 #----
+netdiv:
+	# remove aseqno, callcode, offset; keep galid, edge=-1, vertexid, substr(seq, 2)
+	cut -f4- netall.128.txt \
+	| perl -ne 'my @parts = split(/\t/); $$parts[2] = substr($$parts[2], 2); $$parts[0] .= "\t-1"; print join("\t", @parts);' \
+	>        $@.tmp
+	make divall LIST=$@.tmp
+	mv divall.tmp $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----
+divall:
+	perl divall.pl -c 4 $(LIST)\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f1  $@.tmp \
+	| sort | uniq -c
+#----
+diveval: # input is gcd, galid, edge, vertexid, seq
+	cat netdiv.tmp cendiv.tmp \
+	| grep -vE "1=gcd" \
+	| gawk '{ print $$2, $$3, $$4, $$1, $$5 }' | sort \
+	| perl -ne 's{\A(Gal\.\d+\.\d+)\.}{$$1\t}; print; '\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f1  $@.tmp | sort | uniq -c > $@.2.tmp
+	head -n4 $@.2.tmp
+	wc -l    $@.2.tmp
+divmiss:
+	cut -b9- diveval.2.tmp \
+	| perl missing.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#---#----
 guessall:
 	perl tilemaple.pl runall.tmp | tee $@.tmp
 #================

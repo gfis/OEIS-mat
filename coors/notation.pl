@@ -97,7 +97,7 @@ my @pxnames = ();
 my @pxedges = ();
 my @specs   = ();
 
-while (<DATA>) {
+while (<>) {
     $itiling ++;
     last if $itiling > $tiling6;
     s{\s+\Z}{}; # chompr

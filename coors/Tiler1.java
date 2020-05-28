@@ -406,7 +406,7 @@ public class Tiler1 implements Serializable {
         /**
          * Compares <em>this</em> Position with a second
          * @param pos2 second Position
-         * @return -1, 0, 1 if this < = > pos2 in lexicographical order of the tuple elements
+         * @return -1, 0, 1 if this &lt; = &gt; pos2 in lexicographical order of the tuple elements
          */
         public int compareTo(Position pos2) {
             int result = 0; // assume equality
@@ -433,6 +433,7 @@ public class Tiler1 implements Serializable {
 
         /**
          * Computes the cartesian coordinate value from an exact position tuple
+         * @param tuple defining the exact coordinate
          * @return a double value
          */
         public Double cartesian(int/*s*/[] tuple) {
@@ -579,7 +580,8 @@ public class Tiler1 implements Serializable {
     // public TreeMap<String, Integer> mTreePosition;
     
     /** 
-     * Gets the size of the position map.
+     * Gets the size of <em>this</em> {@link PositionMap}.
+     * @return number of stored entries
      */ 
     public int positionSize() {
     	return mHashPosition.size();
@@ -609,7 +611,7 @@ public class Tiler1 implements Serializable {
 
     /**
      * Normalizes an angle
-     * @param angle in degrees, maybe negative or >= 360
+     * @param angle in degrees, maybe negative or &gt;= 360
      * @return non-negative degrees mod 360
      */
     public int normAngle(int angle) {
@@ -883,8 +885,6 @@ public class Tiler1 implements Serializable {
          * Constructor with an index of a VertexType
          * @param itype index of type of the new vertex,
          * is even for clockwise, odd for clockwise orientation
-         * @param ipred index of predecessor vertex which needs <em>this</em> new successor vertex
-         * @param iedge which edge of the predecessor leads to <em>this</em> new successor vertex
          */
         public Vertex(int itype) {
             // setting 'index' is postponed to addVertex
@@ -942,7 +942,7 @@ public class Tiler1 implements Serializable {
         } // Vertex.toString
 
         /**
-         * Draws the edges of <em>this</em> rotated {@link #Vertex} with thin
+         * Draws the edges of <em>this</em> rotated {@link Vertex} with thin
          * lines for debugging purposes
          */
         public void showSVGVertex() {
@@ -956,7 +956,7 @@ public class Tiler1 implements Serializable {
 
         //--------
         /**
-         * Gets the absolute angle where an edge of <em>this</em> {@link #Vertex}
+         * Gets the absolute angle where an edge of <em>this</em> {@link Vertex}
          * (which is already rotated) is pointing to.
          * This is the only place where the orientation of the Vertex is relevant.
          * The orientation is implemented by a proper access to <em>sweeps</em>.
@@ -1050,7 +1050,7 @@ public class Tiler1 implements Serializable {
         } // getEdge
 
         /**
-         * Creates and returns a new successor {@link #Vertex} of <em>this</em> Vertex (which is already rotated).
+         * Creates and returns a new successor {@link Vertex} of <em>this</em> Vertex (which is already rotated).
          * @param iedge=0..edgeNo -1; the successor is at the end of this edge
          * @return successor Vertex which is properly rotated and linked back to <em>this</em>
          */
@@ -1327,7 +1327,7 @@ public class Tiler1 implements Serializable {
 
     /**
      * Initializes the dynamic data structures of <em>this</em> Tiling.
-     * @param numTypes number of {@link VertexTypes},
+     * @param numTypes number of {@link VertexType}s,
      * or 0 if only the dynamic structures are to be cleared
      */
     public void initializeTiling(int numTypes) {
@@ -1357,7 +1357,7 @@ public class Tiler1 implements Serializable {
 
     /**
      * Adds a Vertex
-     * @param itype index in {@link mVertexTypes}
+     * @param vertex Vertex to be added
      * @return index of added Vertex in {@link mVertices}
      */
     public int addVertex(Vertex vertex) {

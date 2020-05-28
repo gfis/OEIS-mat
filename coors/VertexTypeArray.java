@@ -92,9 +92,11 @@ public class VertexTypeArray {
     for (int index = 0; index < mTAFree; index ++) {
       final VertexType foType = get(index);
       for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
+      // start test code */
         if (sDebug >= 4) {
           System.out.println("# complete(" + index + ", iedge=" + iedge + ") - " + foType.name);
         }
+      // end   test code */
         final VertexType pxType = this.get(foType.pxTinds[iedge]);
         int pxRota = foType.pxRotas[iedge];
         int pxEdge = foType.pxEdges[iedge];
@@ -118,21 +120,27 @@ public class VertexTypeArray {
             if (pxRota == kRota ) { // found
               busy = false;
             } else {
+            // start test code */
               if (sDebug >= 3) {
                 System.out.println("#     complete(kedge=" + kedge + "): pxRota=" + pxRota + " <> kRota=" + kRota);
               }
+            // end   test code */
               kedge ++;
             }
           } // while busy and searching
           if (! busy) { // found
             pxEdge = kedge;
+          // start test code */
             if (sDebug >= 3) {
               System.out.println(  "#     complete(kedge=" + kedge + "): found");
             }
+          // end   test code */
           } else { // not found
+          // start test code */
             if (sDebug >= 3) {
               System.out.println("# complete(kedge=" + kedge + "): pxRota=" + pxRota + " not found");
             }
+          // end   test code */
           }
           foType.pxEdges[iedge] = pxEdge;
         }

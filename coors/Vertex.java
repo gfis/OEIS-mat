@@ -71,7 +71,7 @@ public class Vertex implements Serializable {
   } // getType
 
   /**
-   * Gets the name (via the {@link #VertexType}) of <em>this</em> Vertex
+   * Gets the name (via the {@link VertexType}) of <em>this</em> Vertex
    * @return uppercase letter (for normal orientation) or lowercase letter (for opposite orientation)
    */
   public String getName() {
@@ -146,7 +146,6 @@ public class Vertex implements Serializable {
    * (which is already rotated) is pointing to.
    * This is the only place where the orientation of the Vertex is relevant.
    * The orientation is implemented by a proper access to <em>sweeps</em>.
-   * This method corresponds with {@link #getEdge}.
    * @param iedge number of the edge, 0 based
    * @return degrees [0..360) where the edge points to,
    * relative to a right horizontal edge from (x,y)=(0,0) to (x,y)=(0,1),
@@ -154,10 +153,12 @@ public class Vertex implements Serializable {
    */
   protected int getAngle(final int iedge) {
     final int result = normAngle(rotate + orient * vtype.sweeps[iedge]);
+  // start test code */
     if (sDebug >= 2) {
         System.out.println("#         getAngle(iedge "         + iedge + ")." + index + getName() + "@" + rotate + expos
             + ", focus.orient " + orient + ", => " + result);
     }
+  // end   test code */
     return result;
   } // getAngle
 

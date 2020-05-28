@@ -47,6 +47,7 @@ public class TilingTest implements Serializable {
     mMaxDistance = 16;
     mTiling      = null;
     mBaseEdge    = -1; // not specified
+    mMode        =  0; // baseIndex
   } // TilingTest()
 
   /** Debugging mode: 0=none, 1=some, 2=more */
@@ -67,6 +68,18 @@ public class TilingTest implements Serializable {
   /** Maximum distance from origin */
   private int mMaxDistance;
 
+  /** 
+   * Defines the set of vertices for the initial shell:
+   * <ul>
+   * <li>0 = one base vertex</li>
+   * <li>1 = polygon defined by the base vertex and the edge - the polygon is to the right</li>
+   * <li>2 = all polygons around the base vertex</li>
+   * <li>3 = the base vertex and the proxy at the end of the edge</li>
+   * <li>4 = all pairs base vertex, proxy</li>
+   * </ul>
+   */
+  private int mMode;
+
   /** Operation to be performed: "net", "bfile", "note" ... */
   private String mOperation;
 
@@ -80,6 +93,7 @@ public class TilingTest implements Serializable {
 
   /**
    * Computes the neighbourhood of the start {@link Vertex} up to some distance
+   * @param mTiling data structures for the tiling to be computed
    * @param baseIndex index of the initial {@link VertexType}
    */
   public void computeNet(final TilingSequence mTiling, final int baseIndex) {
@@ -89,7 +103,7 @@ public class TilingTest implements Serializable {
     int maxBase = 0;
     maxBase = mTiling.setBaseIndex(baseIndex); // 1 base vertex, normal coordination sequence
     if (mBaseEdge >= 0) {
-      maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
+      maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge, mMode); // corners of a polygon are base, "loose" coordination sequence
     }
     final int[] terms = baseType.getSequence();
     final int termNo  = terms.length;
@@ -163,8 +177,8 @@ public class TilingTest implements Serializable {
       System.out.println("# final net\n" + mTiling.toJSON());
     }
     if (true) { // this is always output
-      System.out.println(baseType.aSeqNo + "\ttiler\t0\t" + mTiling.mTypeArray.get(baseIndex).galId
-          + "\t" + coordSeq.toString());
+      System.out.println(baseType.aSeqNo + "\ttiltes\t0\t" + baseType.galId
+          + "\t" + baseType.vertexId + "\t" + coordSeq.toString());
     }
     if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
       System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t"
@@ -224,7 +238,7 @@ public class TilingTest implements Serializable {
             int maxBase = 0;
             maxBase = mTiling.setBaseIndex(baseIndex); // 1 base vertex, normal coordination sequence
             if (mBaseEdge >= 0) {
-              maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
+              maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge, mMode); // subset from polygon or edge
             }
             BFile.open(baseType.aSeqNo);
             for (int index = 0; index < mMaxDistance; index ++) {
@@ -233,7 +247,7 @@ public class TilingTest implements Serializable {
             BFile.close();
           //--------
           } else if (mOperation.startsWith("cent")) {
-            mTiling.printSequences(mTiling.getVertexType(baseIndex).galId, baseIndex, mBaseEdge, mMaxDistance);
+            mTiling.printSequences(mTiling.getVertexType(baseIndex).galId, baseIndex, mBaseEdge, mMode, mMaxDistance);
           //--------
           } else if (mOperation.equals    ("fini")) {
             // ignore
@@ -291,7 +305,7 @@ public class TilingTest implements Serializable {
   } // processFile
 
   /**
-   * Main method, filters a file, selects a {@link VertexTypeArray] for a tiling,
+   * Main method, filters a file, selects a {@link VertexTypeArray} for a tiling,
    * dumps the progress of the tilings' generation and
    * possibly writes an SVG drawing file.
    * @param args command line arguments
@@ -320,9 +334,10 @@ public class TilingTest implements Serializable {
           tester.mMaxDistance  = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals    ("-d")     ) {
           sDebug               = Integer.parseInt(args[iarg ++]);
-        } else if (opt.startsWith("-e")     ) {
+        } else if (opt.startsWith("-edge")  ) {
           tester.mBaseEdge     = Integer.parseInt(args[iarg ++]);
           tester.mBaseEdge --; // external edge numbers start at 1, internal at 0
+          tester.mMode         = tester.mBaseEdge == -1 ? 4 : 3;
         } else if (opt.equals    ("-f")     ) {
           fileName             = args[iarg ++];
         } else if (opt.equals    ("-id")    ) {
@@ -331,6 +346,10 @@ public class TilingTest implements Serializable {
           String dummy         = args[iarg ++]; // ignore
         } else if (opt.startsWith("-n")     ) { // net, nota, note, notae
           tester.mOperation    = opt.substring(1);
+        } else if (opt.startsWith("-poly")  ) {
+          tester.mBaseEdge     = Integer.parseInt(args[iarg ++]);
+          tester.mBaseEdge --; // external edge numbers start at 1, internal at 0
+          tester.mMode         = tester.mBaseEdge == -1 ? 2 : 1;
         } else if (opt.equals    ("-svg")   ) {
           SVGFile.sEnabled     = true;
           SVGFile.sFileName    = args[iarg ++];

@@ -94,8 +94,7 @@ public class Z extends BigInteger {
   }
 
   /**
-   * Return the product of this integer and <code>n</code>.
-   * @param n number to multiply
+   * Return the negative of this integer.
    * @return product of this and <code>n</code>.
    */
   public Z negate() {
@@ -113,7 +112,7 @@ public class Z extends BigInteger {
   }
 
   /**
-   * Return whether <code>this</code number is equal to a second.
+   * Return whether <code>this</code> number is equal to a second.
    * @param val2 2nd comparision operand
    * @return true if the two numbers are equal, false otherwise
    */

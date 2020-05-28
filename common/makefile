@@ -21,8 +21,8 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
 G=n
-NMAX=200
-CMAX=500
+NMAX=80
+CMAX=200
 #-------------
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -101,6 +101,7 @@ history: # Fetch new or recently changed JSONs
 	make    history5  DIR=bulk
 #--
 hinlin0: # estimate NMAX; CMAX
+	ping -c2 atair 
 	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
 	| grep -E "\"time\"" | sort 
 	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \

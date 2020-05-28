@@ -6,9 +6,9 @@
 # 
 #:# Usage:
 #:#   perl callmaple.pl [-n num] [-t timeout] [-p patternfile.mpat] inputfile ... > outputfile
-#:#       -n    number of lines to be processed b one Maple activation (default 64)
+#:#       -n    number of lines to be processed by one Maple activation (default 64)
 #:#       -p    file with the pattern for Maple, maybe preceeded by a header and an empty line
-#:#       -t    timeout for Maple in s (default 16)
+#:#       -t    timeout for Maple in s (default 32)
 #
 # The pattern file may contain variables of the form $(PARM0), $(PARM1), $(PARM2) ...
 # which correspond with the fields in the inputfile.
@@ -27,7 +27,7 @@ my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 200
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 #----
 my $mapnum  = 256;
-my $timeout = 16;
+my $timeout = 32;
 my $maple   = "\"C:/Program Files/Maple 2019/bin.X86_64_WINDOWS/cmaple.exe\"";
 my $pattern_file = "";
 my $pattern = <<'Gfis';
@@ -77,7 +77,7 @@ my ($pat1, $pat5) = split(/\n\n/, $pattern);
 my $buffer = ""; # for $mapnum input lines
 my $count = 0;
 while (<>) {
-    next if ! m{\AA\d\d+\t};
+    next if m{\A\s*(\#.*|\Z)};
     my $line = $_;
     $line =~ s{\s+\Z}{}; # chompr
     my @parms = split(/\t/, $line);
