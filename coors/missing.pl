@@ -19,6 +19,7 @@ my %hash = ();
 while (<>) {
     s{\s+\Z}{}; # chompr
     next if m{\A\s*(\#.*)?\Z}; # ignore comments end empty lines
+    s{\.\d+\Z}{}; # remove ".v" of "Gal.u.t.v"
     $hash{$_} = $_;
 } # while <>
 

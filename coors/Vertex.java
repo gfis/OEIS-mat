@@ -5,10 +5,8 @@
  */
 // package $(PACK);
 // import $(PACK).Position;
-// import $(PACK).SVGFile;
 // import $(PACK).VertexType;
 import java.io.Serializable;
-import java.util.Arrays;
 
 /**
  * This class represents a vertex in a tiling.
@@ -107,15 +105,15 @@ public class Vertex implements Serializable {
         + ", \"dist\": \""  + distance + "\""
         + " }\n";
     return result;
-  } // Vertex.toJSON
+  } // toJSON
 
   /**
    * Returns a representation of the Vertex
-   * @return JSON for edges
+   * @return the more important propertiesin human readable form
    */
   public String toString() {
     return index + getName() + " @" + rotate + expos + "->" + getProxyList();
-  } // Vertex.toString
+  } // toString
 
   /**
    * Normalizes an angle

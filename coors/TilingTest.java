@@ -1,6 +1,7 @@
-/* Generate tilings from Galebach's list
+/* Generate tilings from Galebach's list https://oeis.org/A250120/a250120.html
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
+ * 2020-05-29: -mode, drawNet
  * 2020-05-15: splitted in different classes
  * 2020-05-14: new colors
  * 2020-05-12: mHashPosition only, comparing Position.toString()
@@ -11,8 +12,10 @@
  */
 // package $(PACK);
 // import $(PACK).BFile;
+// import $(PACK).EdgeList;
 // import $(PACK).SVGFile;
 // import $(PACK).TilingSequence;
+// import $(PACK).VertexList;
 // import $(PACK).VertexType;
 // import $(PACK).VertexTypeArray;
 // import $(PACK).Z;
@@ -43,7 +46,7 @@ public class TilingTest implements Serializable {
     BFile.setPrefix("./");
     mOperation   = "net";
     mGalId       = null;
-    mSeqNo       = 900000; // start preliminary A-numbers
+    mSeqNo       = 900000; // start of preliminary A-numbers
     mMaxDistance = 16;
     mTiling      = null;
     mBaseEdge    = -1; // not specified
@@ -58,6 +61,9 @@ public class TilingTest implements Serializable {
 
   /** Number of the edge of the Vertex with baseIndex which defines the base polygon */
   private int mBaseEdge;
+
+  /** Number of vertices defined as the base set */
+  private int mMaxBase;
 
   /** Encoding of the input file */
   private static final String sEncoding = "UTF-8";
@@ -100,29 +106,19 @@ public class TilingTest implements Serializable {
     final VertexType baseType = mTiling.getVertexType(baseIndex);
     int errorCount = MAX_ERROR;
     LinkedList<Integer> queue = new LinkedList<Integer>();
-    int maxBase = 0;
-    maxBase = mTiling.setBaseIndex(baseIndex); // 1 base vertex, normal coordination sequence
-    if (mBaseEdge >= 0) {
-      maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge, mMode); // corners of a polygon are base, "loose" coordination sequence
-    }
+    mMaxBase = mTiling.defineBaseSet(mMode, baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
     final int[] terms = baseType.getSequence();
     final int termNo  = terms.length;
     if (mMaxDistance == -1) {
       mMaxDistance    = termNo - 1;
     }
-    if (sDebug >= 3) {
-      System.out.println("# compute neighbours of vertex type " + baseIndex + " up to distance " + mMaxDistance);
-    }
     int distance = 0; // also index for terms
     for (int ifocus = 0; ifocus < mTiling.mVertexList.size(); ifocus ++) {
-      queue.add(ifocus); // those which were stored by setBase(Index|Polygon)
+      queue.add(ifocus); // those which were stored by defineBaseSet
     }
     int shellCount = queue.size();
-    StringBuffer coordSeq = new StringBuffer(256);
-    coordSeq.append(String.valueOf(shellCount));
-    if (BFile.sEnabled) { // data line
-      BFile.write(distance + " " + shellCount);
-    }
+    StringBuffer termList = new StringBuffer(256);
+    termList.append(String.valueOf(shellCount));
 
     distance ++;
     while (distance <= mMaxDistance) {
@@ -131,7 +127,6 @@ public class TilingTest implements Serializable {
       while (levelPortion > 0 && queue.size() > 0) { // queue not empty
         final int ifocus = queue.poll();
         if (sDebug >= 2) {
-          System.out.println("# VertexList: " + mTiling.mVertexList.toJSON());
           System.out.println("# dequeue ifocus " + ifocus);
         }
         final Vertex focus = mTiling.mVertexList.get(ifocus);
@@ -139,8 +134,8 @@ public class TilingTest implements Serializable {
         for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
           if (focus.pxInds[iedge] < 0) { // proxy for this edge not yet determined
             final Vertex proxy = mTiling.attach(focus, iedge);
-            if (SVGFile.sEnabled) {
-              SVGFile.writeEdge(focus, proxy, iedge, distance, sDebug);
+            if (mTiling.mStoreEdges) {
+              mTiling.mEdgeList.add(new Edge(ifocus, proxy.index, iedge, distance));
             }
             if (proxy.distance < 0) { // did not yet exist
               proxy.distance = distance;
@@ -159,13 +154,14 @@ public class TilingTest implements Serializable {
             + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " + shellCount);
         errorCount --;
       }
-      coordSeq.append(',');
-      coordSeq.append(String.valueOf(shellCount));
+      termList.append(',');
+      termList.append(String.valueOf(shellCount));
       if (sDebug >= 2) {
         System.out.println("# distance " + distance + ": " + shellCount + " vertices added\n");
       }
       distance ++;
     } // while distance
+
     final int vlSize = mTiling.mVertexList.size();
     if (mTiling.mPosMap.size() != vlSize) {
       if (sDebug >= 0) {
@@ -173,26 +169,97 @@ public class TilingTest implements Serializable {
             + " different positions, but " + vlSize + " vertices\n");
       }
     }
-    if (sDebug >= 1) {
-      System.out.println("# final net\n" + mTiling.toJSON());
-    }
     if (true) { // this is always output
       System.out.println(baseType.aSeqNo + "\ttiltes\t0\t" + baseType.galId
-          + "\t" + baseType.vertexId + "\t" + coordSeq.toString());
+          + "\t" + baseType.vertexId + "\t" + termList.toString());
     }
     if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
       System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t"
           + String.valueOf(mMaxDistance + 1) + " terms verified");
     }
-    if (SVGFile.sEnabled) {
-      for (int ind = 0; ind < vlSize; ind ++) { // ignore reserved [0..1]
-        Vertex focus = mTiling.mVertexList.get(ind);
-        SVGFile.writeVertex(focus, maxBase, sDebug);
-      } // for vertices
-    } // SVG
     System.err.println("# " + mTiling.mVertexList.size() + " vertices generated");
   } // computeNet
 
+  /**
+   * Computes the neighbourhood of the start {@link Vertex} up to some distance
+   * @param mTiling data structures for the tiling to be computed
+   * @param baseIndex index of the initial {@link VertexType}
+   */
+  public void computeNet_88(final TilingSequence mTiling, final int baseIndex) {
+    final VertexType baseType = mTiling.getVertexType(baseIndex);
+    int errorCount = MAX_ERROR;
+    mMaxBase = mTiling.defineBaseSet(mMode, baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
+    final int[] terms = baseType.getSequence();
+    final int termNo  = terms.length;
+    if (mMaxDistance == -1) {
+      mMaxDistance    = termNo - 1;
+    }
+    int shellCount = mMaxBase;
+    StringBuffer termList = new StringBuffer(256);
+    termList.append(String.valueOf(shellCount));
+    int distance = mMode == 0 ? 0 : 1; // offset
+    while (distance <= mMaxDistance) {
+      shellCount = mTiling.next().intValue();
+      termList.append(',');
+      termList.append(String.valueOf(shellCount));
+      if (distance < terms.length && terms[distance] != shellCount && errorCount > 0) {
+        System.out.println("# ** assertion 6: " + baseType.aSeqNo + " " + baseType.galId
+            + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " + shellCount);
+        errorCount --;
+      }
+      if (sDebug >= 2) {
+        System.out.println("# distance " + distance + ": " + shellCount + " vertices added\n");
+      }
+      distance ++;
+    } // while distance
+
+    final int vlSize = mTiling.mVertexList.size();
+    if (mTiling.mPosMap.size() != vlSize) {
+      if (sDebug >= 0) {
+        System.err.println("# ** assertion 3 in tiling.toString: " + mTiling.mPosMap.size()
+            + " different positions, but " + vlSize + " vertices\n");
+      }
+    }
+    if (true) { // this is always output
+      System.out.println(baseType.aSeqNo + "\ttiltes\t0\t" + baseType.galId
+          + "\t" + baseType.vertexId + "\t" + termList.toString());
+    }
+    if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
+      System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t"
+          + String.valueOf(mMaxDistance + 1) + " terms verified");
+    }
+    System.err.println("# " + mTiling.mVertexList.size() + " vertices generated");
+  } // computeNet
+
+  /**
+   * Expands and prints the sequence(s) for <em>this</em> tiling.
+   * @param mode defines the set of vertices for the initial shell:
+   * <ul>
+   * <li>0 = one base vertex</li>
+   * <li>1 = polygon defined by the base vertex and the edge - the polygon is to the right</li>
+   * <li>2 = all polygons around the base vertex</li>
+   * <li>3 = the base vertex and the proxy at the end of the edge</li>
+   * <li>4 = all pairs base vertex, proxy</li>
+   * </ul>
+   */
+  public void drawNet(final int mode) {
+    final int elSize = mTiling.mEdgeList.size();
+    SVGFile.open(mMaxDistance, mGalId);
+    for (int ind = 0; ind < elSize; ind ++) { // draw all edges
+      Edge edge = mTiling.mEdgeList.get(ind);
+      Vertex focus = mTiling.mVertexList.get(edge.ifocus);
+      Vertex proxy = mTiling.mVertexList.get(edge.iproxy);
+      SVGFile.writeEdge(focus, proxy, edge.iedge, edge.distance, sDebug);
+    } // for edges
+    
+    final int vlSize = mTiling.mVertexList.size();
+    for (int ind = 0; ind < vlSize; ind ++) { // draw all vertices
+      Vertex focus = mTiling.mVertexList.get(ind);
+      SVGFile.writeVertex(focus, mMaxBase, sDebug);
+    } // for vertices
+    SVGFile.close();
+  } // drawNet
+  
   /**
    * Process one record from the file
    * @param line record to be processed
@@ -220,14 +287,11 @@ public class TilingTest implements Serializable {
     if (gutv[3].equals(gutv[1])) { // last of new tiling - save it, and perform some operation
 
       TilingSequence .sDebug = sDebug;
-      Vertex         .sDebug = sDebug;
-      VertexType     .sDebug = sDebug;
-      VertexTypeArray.sDebug = sDebug;
-      mTiling = new TilingSequence(0, mTypeNotas);
-      if (sDebug >= 1) {
-        System.out.println(mTiling.toJSON());
+      mTiling = new TilingSequence(mMode == 0 ? 0 : 1, mTypeNotas);
+      if (SVGFile.sEnabled) {
+        mTiling.mStoreEdges = true;
       }
-      // compute the nets
+      // compute the net(s)
       for (int baseIndex = 0; baseIndex < mTypeNotas.size(); baseIndex ++) {
         if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) {
           // either all in the input file, or only the specified mGalId
@@ -235,42 +299,37 @@ public class TilingTest implements Serializable {
           if (false) { // switch for different operations
           //--------
           } else if (mOperation.startsWith("bfile")) {
-            int maxBase = 0;
-            maxBase = mTiling.setBaseIndex(baseIndex); // 1 base vertex, normal coordination sequence
-            if (mBaseEdge >= 0) {
-              maxBase = mTiling.setBaseEdge(baseIndex, mBaseEdge, mMode); // subset from polygon or edge
-            }
+            mMaxBase = mTiling.defineBaseSet(mMode, baseIndex, mBaseEdge); 
             BFile.open(baseType.aSeqNo);
             for (int index = 0; index < mMaxDistance; index ++) {
               BFile.write(index + " " + mTiling.next());
             } // for index
             BFile.close();
           //--------
-          } else if (mOperation.startsWith("cent")) {
-            mTiling.printSequences(mTiling.getVertexType(baseIndex).galId, baseIndex, mBaseEdge, mMode, mMaxDistance);
-          //--------
           } else if (mOperation.equals    ("fini")) {
             // ignore
           //--------
           } else if (mOperation.startsWith("net"  )) {
-            if (SVGFile.sEnabled) {
-              SVGFile.open(mMaxDistance, mGalId);
-            }
             computeNet(mTiling, baseIndex);
             if (SVGFile.sEnabled) {
-              SVGFile.close();
+              drawNet(mMode);
             }
           //--------
           } else if (mOperation.startsWith("notae")) {
             System.out.print(mTiling.mTypeArray.toString());
             mOperation = "fini"; // only once
           //--------
+          } else if (mOperation.startsWith("seq")) {
+            mTiling.printSequences(mMode, mTiling.getVertexType(baseIndex).galId, baseIndex, mBaseEdge, mMaxDistance);
+          //--------
           } else {
             System.err.println("# TilingTest: invalid operation \"" + mOperation + "\"");
           } // switch for operations
         }
       } // for itype
-
+      if (sDebug >= 1) {
+        System.out.println("final net:\n" + mTiling.toJSON());
+      }
     } // last of new tiling - operation performed
   } // processRecord
 
@@ -312,9 +371,8 @@ public class TilingTest implements Serializable {
    */
   public static void main(String[] args) {
     final long startTime    = System.currentTimeMillis();
-    final BFile bFile       = new BFile();
-    final SVGFile svgFile   = new SVGFile();
     final TilingTest tester = new TilingTest();
+    tester.mMode = 0; 
     sDebug = 0;
     try {
       int iarg = 0;
@@ -325,34 +383,28 @@ public class TilingTest implements Serializable {
         } else if (opt.startsWith("-back")  ) {
           TilingSequence.sBackLink = true;
         } else if (opt.startsWith("-bf")    ) {
-          BFile.sEnabled       = true;
           BFile.setPrefix(       args[iarg ++]);
+          BFile.sEnabled       = true;
           tester.mOperation    = "bfile";
-        } else if (opt.startsWith("-cent")  ) { 
-          tester.mOperation    = opt.substring(1);
         } else if (opt.equals    ("-dist")  ) {
           tester.mMaxDistance  = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals    ("-d")     ) {
           sDebug               = Integer.parseInt(args[iarg ++]);
         } else if (opt.startsWith("-edge")  ) {
-          tester.mBaseEdge     = Integer.parseInt(args[iarg ++]);
-          tester.mBaseEdge --; // external edge numbers start at 1, internal at 0
-          tester.mMode         = tester.mBaseEdge == -1 ? 4 : 3;
+          tester.mBaseEdge     = Integer.parseInt(args[iarg ++]) - 1; // internal edge numbers start at 0
         } else if (opt.equals    ("-f")     ) {
           fileName             = args[iarg ++];
         } else if (opt.equals    ("-id")    ) {
           tester.mGalId        = args[iarg ++];
-        } else if (opt.equals    ("-n")     ) {
-          String dummy         = args[iarg ++]; // ignore
+        } else if (opt.startsWith("-mode")  ) {
+          tester.mMode         = Integer.parseInt(args[iarg ++]);
         } else if (opt.startsWith("-n")     ) { // net, nota, note, notae
           tester.mOperation    = opt.substring(1);
-        } else if (opt.startsWith("-poly")  ) {
-          tester.mBaseEdge     = Integer.parseInt(args[iarg ++]);
-          tester.mBaseEdge --; // external edge numbers start at 1, internal at 0
-          tester.mMode         = tester.mBaseEdge == -1 ? 2 : 1;
         } else if (opt.equals    ("-svg")   ) {
           SVGFile.sEnabled     = true;
           SVGFile.sFileName    = args[iarg ++];
+        } else if (opt.startsWith("-seq")   ) { 
+          tester.mOperation    = opt.substring(1);
         } else {
           System.err.println("# ??? TilingTest, invalid option: \"" + opt + "\"");
         }

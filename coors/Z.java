@@ -1,5 +1,6 @@
 /* Z - replacement for class irvine.math.z.Z implemented in Sean Irvine's jOEIS.
  * @(#) $Id$
+ * 2020-05-29: intValue()
  * 2020-05-19: minimal version,copied from org.teherba.ramath
  * 2019-06-04, Georg Fischer
  */
@@ -126,6 +127,13 @@ public class Z extends BigInteger {
    */
   public String toString() {
     return super.toString();
+  }
+
+  /**
+   * Converts this Z to an int.
+   */
+  public int intValue() {
+    return super.intValue();
   }
 
 } // Z

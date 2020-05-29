@@ -47,6 +47,12 @@ public class TilingSequence implements Serializable, Sequence
   /** Possible {@link VertexType}s in this tiling */
   public VertexTypeArray mTypeArray;
 
+  /** Allocated edges */
+  public EdgeList mEdgeList;
+
+  /** Whether to store edges */
+  public boolean mStoreEdges;
+
   /** Allocated vertices */
   public VertexList mVertexList;
 
@@ -78,109 +84,102 @@ public class TilingSequence implements Serializable, Sequence
    * @param typeArray array of {@link VertexType}s for this TilingSequence
    */
   public TilingSequence(final int offset, final VertexTypeArray typeArray) {
-    mOffset = offset;
-    sBackLink = false;
-    mDistance = 0;
-    mShellCount = 0;
-    configure(typeArray);
+    configure(offset, typeArray);
   } // Constructor(int,VertexTypeArray)
 
   /**
    * Constructor from pairs of Strings.
    * Initializes the data structures of <em>this</em> TilingSequence.
    * @param offset index of first sequence element
-   * @param pairs String array of (vertexId, taRotList)
+   * @param pairs String array of semicolon-separated pairs "vertexId;taRotList"
    */
   public TilingSequence(final int offset, String[] pairs) {
-    mOffset = offset;
-    sBackLink = false;
     final int vertexTypeNo = pairs.length;
     VertexTypeArray typeArray = new VertexTypeArray(vertexTypeNo);
     for (int ipair = 0; ipair < vertexTypeNo; ipair ++) {
       typeArray.decodeNotation(pairs[ipair]);
     } // for ipair
-    mDistance = 0;
-    mShellCount = 0;
-    Vertex         .sDebug = sDebug;
-    VertexType     .sDebug = sDebug;
-    VertexTypeArray.sDebug = sDebug;
-    configure(typeArray);
+    configure(offset, typeArray);
   } // Constructor(int,String[])
 
   /**
    * Configures the data structures of <em>this</em> {@link TilingSequence},
    * and sets the first {@link VertexType} as base vertex.
+   * @param offset index of first sequence element
    * @param typeArray array of VertexType for this TilingSequence
    */
-  protected void configure(final VertexTypeArray typeArray) {
+  protected void configure(final int offset, final VertexTypeArray typeArray) {
+    mStoreEdges = false;
+    mOffset = offset;
+    sBackLink = false;
+    mDistance = 0;
+    mShellCount = 0;
+    Vertex.sDebug = sDebug;
+    VertexType.sDebug = sDebug;
+    VertexTypeArray.sDebug = sDebug;
     mTypeArray = typeArray;
     mTypeArray.complete();
-    setBaseIndex(0);
   } // configure(VertexTypeArray)
 
   /**
-   * Sets one base index, and initializes the tiling's dynamic data structures.
-   * @param baseIndex {@link Vertex} for the start of the coordination sequence.
-   * This index starts at 0!
-   * @return number of queued vertices (1)
-   */
-  public int setBaseIndex(final int baseIndex) {
-    mBaseIndex  = baseIndex;
-    mPosMap     = new PositionMap();
-    mVertexList = new VertexList();
-    mQueue      = new LinkedList<Integer>();
-    int ifocus  = addVertex(new Vertex(mTypeArray.get(baseIndex)));
-    mQueue.add(ifocus);
-    mShellCount = mQueue.size();
-  // start test code */
-    if (sDebug >= 1) {
-        System.out.println(toJSON());
-    }
-  // end   test code */
-    return mShellCount;
-  } // setBaseIndex(int)
-
-  /**
-   * Sets one base index, and initializes the tiling's dynamic data structures.
-   * @param baseIndex {@link Vertex} for the start of the coordination sequence.
-   * @param baseEdge number of an edge of the vertex with {@link VertexType} index <em>baseIndex</em>;
-   * the polygon is to the right of this edge viewed in the direction of the proxy
+   * Defines the initial set of vertices, and initializes the tiling's dynamic data structures.
+   * @param mode defines the set of vertices for the initial shell:
+   * <ul>
+   * <li>0 = one base vertex</li>
+   * <li>1 = polygon defined by the base vertex and the edge - the polygon is to the right of the edge</li>
+   * <li>2 = all polygons around the base vertex (evaluated by the caller)</li>
+   * <li>3 = the base vertex and the proxy at the end of the edge</li>
+   * <li>4 = all pairs base vertex, proxy (evaluated by the caller)</li>
+   * </ul>
+   * @param baseIndex {@link VertexType} index of the first {@link Vertex}
+   * @param baseEdge number of an edge of the vertex with {@link VertexType} index <em>baseIndex</em>.
+   * This edge defines a polygon for modes 1,2. For modes 3,4, the proxy at the end of the edge is the second base vertex.
+   * the polygon is to the right of the edge viewed in the direction of the proxy
    * at the end of the edge.<br>
    * All vertices belonging to this polygon constitute the first shell
    * (with offset 1), so these "loose" coordination sequences start with either
    * 3, 4, 6 or 12.<br>
-   * <em>baseIndex</em> and <em>iedge</em> start at 0!
-   * @param mode defines the set of vertices for the initial shell:
-   * <ul>
-   * <li>0 = one base vertex</li>
-   * <li>1 = polygon defined by the base vertex and the edge - the polygon is to the right</li>
-   * <li>2 = all polygons around the base vertex (by the caller)</li>
-   * <li>3 = the base vertex and the proxy at the end of the edge</li>
-   * <li>4 = all pairs base vertex, proxy (by the caller)</li>
-   * </ul>
-   * @return number of queued vertices 
+   * Both <em>baseIndex</em> and <em>baseEdge</em> start at 0 internally!
+   * @return number of queued vertices: 1, 2 or corner number.
    */
-  public int setBaseEdge(final int baseIndex, final int baseEdge, final int mode) {
-    final int distance = 1;
-    Vertex focus = mVertexList.get(0);
-    focus.distance = distance;
-    int iedge = baseEdge;
-    int cornerRange = focus.vtype.polys[baseEdge]; // number of corners of the polygon to the right of the edge
-    if (mode == 3 || mode == 4) { // only the pair of the first edge
-      cornerRange = 2;
+  public int defineBaseSet(final int mode, final int baseIndex, final int baseEdge) {
+    mBaseIndex  = baseIndex;
+    mPosMap     = new PositionMap();
+    mVertexList = new VertexList();
+    if (mStoreEdges) {
+      mEdgeList = new EdgeList();
     }
-    for (int ipoly = 1; ipoly < cornerRange; ipoly ++) { // enqueue the first or all corners of the polygon
-      final Vertex proxy = attach(focus, iedge);
-      mQueue.add(proxy.index);
-      iedge = focus.vtype.pxEdges[iedge] - proxy.orient;
-      if (iedge < 0) {
-        iedge += proxy.vtype.edgeNo;
-      } else if (iedge >= proxy.vtype.edgeNo) {
-        iedge = 0;
-      }
-      focus = proxy;
+    mQueue      = new LinkedList<Integer>();
+    int ifocus  = addVertex(new Vertex(mTypeArray.get(baseIndex)));
+    mQueue.add(ifocus);
+    if (mode > 0) {
+      final int distance = 1;
+      Vertex focus = mVertexList.get(0);
       focus.distance = distance;
-    } // for ipoly
+      int iedge = baseEdge;
+      int cornerRange = focus.vtype.polys[baseEdge]; // number of corners of the polygon to the right of the edge
+      if (mode == 3 || mode == 4) { // only the pair of the first edge
+        cornerRange = 2;
+      }
+      for (int ipoly = 1; ipoly < cornerRange; ipoly ++) { // enqueue the first or all corners of the polygon
+        final Vertex proxy = attach(focus, iedge);
+        final int iproxy = proxy.index;
+        mQueue.add(iproxy);
+        if (mStoreEdges) {
+          mEdgeList.add(new Edge(ifocus, iproxy, iedge, mDistance));
+          mEdgeList.add(new Edge(iproxy, ifocus, iedge, mDistance));
+        }
+        iedge = focus.vtype.pxEdges[iedge] - proxy.orient;
+        if (iedge < 0) { // walk around the polygon
+          iedge += proxy.vtype.edgeNo;
+        } else if (iedge >= proxy.vtype.edgeNo) {
+          iedge = 0;
+        }
+        focus = proxy;
+        ifocus = focus.index;
+        focus.distance = distance;
+      } // for ipoly
+    } // mode > 0
     mShellCount = mQueue.size();
   // start test code */
     if (sDebug >= 1) {
@@ -188,8 +187,19 @@ public class TilingSequence implements Serializable, Sequence
     }
   // end   test code */
     return mShellCount;
-  } // setBaseEdge(int,int,int)
+  } // defineBaseSet(int,int,int)
 
+  /**
+   * Defines the initial set of vertices, and initializes the tiling's dynamic data structures 
+   * - convenience method.
+   * @param baseIndex {@link VertexType} index of a single {@link Vertex}
+   * <em>baseIndex</em> starts at 0 internally!
+   * @return number of queued vertices: 1.
+   */
+  public int defineBaseSet(final int baseIndex) {
+    return defineBaseSet(0, baseIndex, 0);
+  } // defineBaseSet(int)
+  
   /**
    * Gets a {@link VertexType}
    * @param index of the VertexType, 0=A, 1=B and so on.
@@ -217,6 +227,7 @@ public class TilingSequence implements Serializable, Sequence
   public String toJSON() {
     return mTypeArray .toJSON()
         +  mVertexList.toJSON()
+        +  mEdgeList  .toJSON()
         +  mPosMap    .toJSON()
         +  "\n, mBaseIndex: " + mBaseIndex;
   } // toJSON()
@@ -253,7 +264,7 @@ public class TilingSequence implements Serializable, Sequence
       iproxy = addVertex(proxy);
       proxy  = mVertexList.get(iproxy);
     } // not found
-    focus.pxInds[iedge] = proxy.index; // attach it - link forward to the proxy
+    focus.pxInds[iedge] = iproxy; // attach it - link forward to the proxy
   // start test code */
     final int trialEdge = proxy.normEdge(pxEdge);
     int backLink = proxy.pxInds[trialEdge];
@@ -302,6 +313,9 @@ public class TilingSequence implements Serializable, Sequence
           if (proxy.distance < 0) { // is not yet in the set of shells
             proxy.distance = mDistance;
             mQueue.add(proxy.index);
+            if (mStoreEdges) {
+              mEdgeList.add(new Edge(ifocus, proxy.index, iedge, mDistance));
+            }
             mShellCount ++;
           }
         } // proxy not yet determined
@@ -313,9 +327,6 @@ public class TilingSequence implements Serializable, Sequence
 
   /**
    * Expands and prints the sequence(s) for <em>this</em> tiling.
-   * @param gal identification of the tiling, for example "Gal.2.1"
-   * @param baseIndex index of the {@link VertexType} (zero-based)
-   * @param baseEdge  index of the edge in the base vertex which defines the central polygon (zero-based),
    * @param mode defines the set of vertices for the initial shell:
    * <ul>
    * <li>0 = one base vertex</li>
@@ -324,15 +335,18 @@ public class TilingSequence implements Serializable, Sequence
    * <li>3 = the base vertex and the proxy at the end of the edge</li>
    * <li>4 = all pairs base vertex, proxy</li>
    * </ul>
+   * @param galId identification of the tiling, for example "Gal.2.1"
+   * @param baseIndex index of the {@link VertexType} (zero-based)
+   * @param baseEdge  index of the edge in the base vertex which defines the central polygon (zero-based),
    * @param maxDistance number of terms to be generated
    */
-  public void printSequences(final String gal, final int baseIndex, final int baseEdge, final int mode
-      , final int maxDistance) {
+  public void printSequences(final int mode, final String galId
+      , final int baseIndex, final int baseEdge, final int maxDistance) {
   // start test code */
     final VertexType baseType = mTypeArray.get(baseIndex);
     if (mode == 0) { // normal coordination sequence
-      setBaseIndex(baseIndex);
-      System.out.print(gal + "\t-1\t" + baseType.vertexId + "\t");
+      defineBaseSet(mode, baseIndex, 0);
+      System.out.print(galId + "\t-1\t" + baseType.vertexId + "\t");
       for (int index = 0; index < maxDistance; index ++) {
         System.out.print((index == 0 ? "" : ",") + next());
       } // for index
@@ -346,9 +360,8 @@ public class TilingSequence implements Serializable, Sequence
         maxEdge = baseEdge;
       } // specific edge
       for (int iedge = minEdge; iedge <= maxEdge; iedge ++) {
-        setBaseIndex(baseIndex);
-        setBaseEdge(baseIndex, iedge, mode);
-        System.out.print(gal + "\t" + String.valueOf(iedge + 1) + "\t" + baseType.vertexId + "\t");
+        defineBaseSet(mode, baseIndex, iedge);
+        System.out.print(galId + "\t" + String.valueOf(iedge + 1) + "\t" + baseType.vertexId + "\t");
         for (int index = 0; index < maxDistance; index ++) {
           System.out.print((index == 0 ? "" : ",") + next());
         } // for index
@@ -367,12 +380,12 @@ public class TilingSequence implements Serializable, Sequence
   public static void main(String[] args) {
   // start test code */
     final long startTime  = System.currentTimeMillis();
-    String gal      = "Gal.2.1";
-    String notation = "12.6.4;A180-,A120-,B90+~~6.4.3.4;A270+,A210-,B120+,B240+"; // Gal.2.1
-    int baseIndex   =  0;
-    int baseEdge    = -1; // not specified
-    int maxDistance = 16;
-    int mode        =  0;
+    String gal        = "Gal.2.1";
+    String definition = "12.6.4;A180-,A120-,B90+~~6.4.3.4;A270+,A210-,B120+,B240+"; // Gal.2.1
+    int baseIndex     =  0;
+    int baseEdge      = -1; // not specified
+    int maxDistance   = 16;
+    int mode          =  0;
     try {
       int iarg = 0;
       while (iarg < args.length) { // consume all arguments
@@ -382,18 +395,16 @@ public class TilingSequence implements Serializable, Sequence
           maxDistance           = Integer.parseInt(args[iarg ++]);
         } else if (opt.equals     ("-d")     ) {
           TilingSequence.sDebug = Integer.parseInt(args[iarg ++]);
-        } else if (opt.startsWith ("-edge")  ) {
+        } else if (opt.startsWith ("-def")   ) {
+          definition            = args[iarg ++];
+        } else if (opt.startsWith ("-e")     ) {
           baseEdge              = Integer.parseInt(args[iarg ++]) - 1; // start at 0 internally
-          mode                  = baseEdge == -1 ? 4 : 3;
         } else if (opt.equals     ("-gal")   ) {
           gal                   = args[iarg ++];
         } else if (opt.equals     ("-id")    ) {
           baseIndex             = Integer.parseInt(args[iarg ++]) - 1; // start at 0 internally
-        } else if (opt.startsWith ("-not")   ) {
-          notation              = args[iarg ++];
-        } else if (opt.startsWith ("-poly")  ) {
-          baseEdge              = Integer.parseInt(args[iarg ++]) - 1; // start at 0 internally
-          mode                  = baseEdge == -1 ? 2 : 1;
+        } else if (opt.startsWith ("-m")     ) {
+          mode                  = Integer.parseInt(args[iarg ++]); 
         } else {
           System.err.println("??? invalid option: \"" + opt + "\"");
         }
@@ -403,8 +414,8 @@ public class TilingSequence implements Serializable, Sequence
       System.err.println(exc.getMessage());
       exc.printStackTrace();
     }
-    final TilingSequence mTiling = new TilingSequence(0, notation.split("~~"));
-    mTiling.printSequences(gal + "." + String.valueOf(baseIndex + 1), baseIndex, baseEdge, mode, maxDistance);
+    final TilingSequence mTiling = new TilingSequence(mode == 0 ? 0 : 1, definition.split("~~")); // offset, pairs
+    mTiling.printSequences(mode, gal + "." + String.valueOf(baseIndex + 1), baseIndex, baseEdge, maxDistance);
     System.err.println("# elapsed: " + String.valueOf(System.currentTimeMillis() - startTime) + " ms");
   // end   test code */
   } // main

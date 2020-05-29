@@ -5,7 +5,7 @@
 # 2020-05-13, Georg Fischer
 # 
 #:# Usage:
-#:#   perl denfactor.pl [-gcd] nputfile ... > outputfile
+#:#   perl denfactor.pl [-gcd] inputfile ... > outputfile
 #---------------------------------
 use strict;
 use integer;
@@ -31,7 +31,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 #----
 while (<>) {
-    next if ! m{\AA\d\d+\t};
+    next if ! m{\A[AG]};
     my $line = $_;
     $line =~ s{\s+\Z}{}; # chompr
     my ($aseqno, $galid, $denp) = split(/\t/, $line);

@@ -72,7 +72,7 @@ guess2:
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
-#--------
+#================
 # A310296 null    Coordination sequence Gal.6.52.1 where G.u.t.v
 update: updano1 updano2 updano3 update_same update_man check_unk
 updano1:
@@ -239,35 +239,6 @@ check2un:
 	wc l     $@.*
 check_unk:
 	$(DBAT) "SELECT aseqno, galid, tilingno, rseqno, SUBSTR(sequence, 1, 64) FROM coors WHERE aseqno LIKE 'unk%'"
-#----
-lshow:
-	$(DBAT) -x "SELECT galid, stdnot, vtype, tilingno \
-	    FROM coors\
-	    ORDER BY tilingno, galid" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-l2a:
-	perl letter2angle.pl unmarked_codes-1.txt \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-	# | sort -k7 -k2 
-#================
-program:
-	$(DBAT) -x "SELECT DISTINCT i.aseqno, c.tileid || '.' || c.galv, b.bfimin, b.bfimax, i.program \
-		, COALESCE(c.noflip, '-'), COALESCE(j.superclass, 'jnyi') \
-		FROM asinfo i, bfinfo b, coors c \
-		LEFT JOIN joeis j ON c.aseqno = j.aseqno \
-		WHERE i.aseqno = b.aseqno \
-		  AND b.aseqno = c.aseqno \
-		  AND ( b.bfimax > 50 OR LENGTH(i.program) > 0 \
-				OR i.aseqno IN (SELECT aseqno FROM cojec) \
-			  ) \
-		ORDER BY 1" \
-	>        $@.tmp
-	head -n100 $@.tmp
-	wc -l    $@.tmp
 #================
 DIST=8
 D=0
@@ -284,9 +255,6 @@ TILTES=java -cp . TilingTest
 select:
 	grep -E "Gal\.$(GAL)\." extract.tmp > $@.tst
 	# cp -v select.man $@.tst
-test: test1 test2
-test1: compile1 run1
-test2: compile2 run2
 compile: compile1 compile2
 compile1:
 	javac Tiler1.java 
@@ -295,21 +263,20 @@ compile2:
 #----
 run: run1 run2
 run1: select
-	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -n $(NMAX) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
-EDGE=
-POLY=
+EDGE=0
+MODE=0
 OPER=net
 run2: 
 	#---------------- 
-	$(TILTES) -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) $(EDGE) $(POLY) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
+	$(TILTES) -id Gal.$(GAL).$(ID) -$(OPER)     -dist $(DIST) -mode $(MODE) -edge $(EDGE) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r run2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} run2/{} || :
-	# ls -tclr *.svg run2/*
 rub2: select
 	#---------------- 
-	$(TILTES) -id Gal.$(GAL).$(ID) -bfile rub2/ -dist $(DIST) $(EDGE) $(POLY) -d $(D)             -f select.tst > $@.tmp 
+	$(TILTES) -id Gal.$(GAL).$(ID) -bfile rub2/ -dist $(DIST) -mode $(MODE) -edge $(EDGE) -d $(D) -f select.tst > $@.tmp 
 	grep -i assertion $@.tmp || :
 	ls -tc1r rub2/* | tail -n1 | cut -b6- \
 	| xargs -l -i{} diff -wy --suppress-common-lines run1/{} rub2/{} || :
@@ -329,14 +296,14 @@ notae: select
 	diff -wC0 notae0.tmp notae2.tmp || :
 #----
 single:
-	java -cp . TilingSequence -dist $(DIST) -id $(ID) $(EDGE) $(POLY) -d $(D) 2> x.tmp | tee $@.tmp
-#----
+	java -cp . TilingSequence -dist $(DIST) -id $(ID) -mode $(MODE) -edge $(EDGE) -d $(D) 2> x.tmp | tee $@.tmp
+#================
 speed: speed1 speed2
 speed1: select
-	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d 0 -f select.tst 
+	java -cp . Tiler1 -id Gal.$(GAL).$(ID) -dist $(DIST) -d 0 -f select.tst 
 speed2: select
-	$(TILTES) -id Gal.$(GAL).$(ID) -dist $(DIST)            -d 0 -f select.tst
-#----
+	$(TILTES)         -id Gal.$(GAL).$(ID) -dist $(DIST) -d 0 -f select.tst
+#================
 newn: 
 	make newna | grep -E "tiler" | tee $@1.tmp
 	make newne | grep -E "tiler" | tee $@2.tmp
@@ -348,67 +315,15 @@ newne: select
 	perl notation.pl -e | tee $@.tmp
 	java -cp . Tiler1 -dist $(DIST)  -f $@.tmp
 #-----------------
-pave: compave pavr
-compave:
-	javac Paver.java 
-pavr: selecp
-#--
-tile: compile tilr
-tilr: select 
-	java -cp . Tiler -id Gal.$(GAL).$(ID) $(BFILE) -dist $(DIST) -n $(NMAX) -d $(D) $(SVG) -f tiler.tst > test.tmp 
-	grep -i assertion test.tmp || :
-	head -n4 test.tmp
-	wc -l    test.tmp 
-#----
-#----
-tils: select 
-	java -cp . Tiler -id Gal.$(GAL).$(ID) -dist $(DIST) -n $(NMAX) -d $(D) -f tiler.tst
-run3:
-	rm 3.44.txt
-	java -cp . Tiler -id Gal.3.44.1 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
-	java -cp . Tiler -id Gal.3.44.2 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
-	java -cp . Tiler -id Gal.3.44.3 $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst | tee -a 3.44.txt
-runold: select
-	java -cp . Tiler -id $(GALID)   $(BFILE) -dist -1 -n $(NMAX) -d $(D) $(SVG) -f tiler.tst 
 deploy:
 	scp *est.svg tiling.css gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/coors
 #================
-test_mma:
-	echo "Print[InputForm[Simplify[(x-1)^2*(x^6+x^5+x^4+x^3+x^2+x+1)^2]]];" > test.mma
-	scp test.mma pi@piras:
-	ssh pi@piras 'cat test.mma | wolfram -noinit > out.tmp'
-	scp pi@piras:out.tmp .
-	cat out.tmp
-#================
-cenall: # compute all central sequences
-	$(TILTES) -central -e 0 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).txt
-	head -n4 $@.$(DIST).txt
-	wc -l    $@.*.t*
-cendiv:
-	# remove aseqno, callcode, offset; keep galid, vertexid, edge=-1, substr(seq, 2)
-	cut -f1- cenall.128.txt \
-	>        $@.tmp
-	make divall LIST=$@.tmp
-	mv divall.tmp $@.tmp
-	head -n4 $@.tmp
-	wc   -l  $@.tmp
-#--
-cens:
-	sort -k2 -k1 central.tmp > central.sort
-cenu:
-	cut -f2 central.sort | uniq -c | sort -rn > $@.tmp
-cenguess:
-	perl callmaple.pl -p guessgf.mpat central.128.txt \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc   -l  $@.tmp
-#================
 netall: # compute all coordination sequences
-	rm -f $@.$(DIST).txt
-	head -n$(NMAX) extract.tmp > $@.in.tmp
-	$(TILTES) -net -dist $(DIST) -d $(D) -f $@.in.tmp >> $@.$(DIST).txt
-	head -n4 $@.$(DIST).txt
-	wc -l    $@.$(DIST).txt
+	rm -f $@.$(DIST).tmp
+	head -n100000 extract.tmp > $@.in.tmp
+	$(TILTES) -net -mode 0 -dist $(DIST) -d $(D) -f $@.in.tmp >> $@.$(DIST).tmp
+	head -n4 $@.$(DIST).tmp
+	wc -l    $@.$(DIST).tmp
 #----
 netdiv:
 	# remove aseqno, callcode, offset; keep galid, edge=-1, vertexid, substr(seq, 2)
@@ -429,10 +344,12 @@ divall:
 	| sort | uniq -c
 #----
 diveval: # input is gcd, galid, edge, vertexid, seq
-	cat netdiv.tmp cendiv.tmp \
+	cat \
+	netdiv.tmp \
+	cendiv.tmp \
+	edgdiv.tmp \
 	| grep -vE "1=gcd" \
-	| gawk '{ print $$2, $$3, $$4, $$1, $$5 }' | sort \
-	| perl -ne 's{\A(Gal\.\d+\.\d+)\.}{$$1\t}; print; '\
+	| perl -ne 'my @parms = split(/\t/); my $$gcd = shift(@parms); $$parms[2] .= ";$$gcd"; print join("\t", @parms); ' | sort \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -442,9 +359,67 @@ diveval: # input is gcd, galid, edge, vertexid, seq
 divmiss:
 	cut -b9- diveval.2.tmp \
 	| perl missing.pl \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+divguess:
+	perl callmaple.pl -p guessgf.mpat diveval.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp
+	wc   -l  $@.tmp
+divfactor:
+	sed -e "s/\t/\;/" divguess.tmp \
+	| perl -ne 'my @parms = split(/\t/); $$parms[2] =~ s{\A[^\/]+\/([^\,]+)\,.*}{$$1}; print join("\t", @parms); ' \
+	| head -n100000 \
+	> $@.1.tmp
+	perl callmaple.pl -p decr_factor.mpat $@.1.tmp \
+	| grep -E "^Gal\." \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+divuniq:
+	perl denfactor.pl $(GCD) divfactor.tmp \
+	| sort | uniq -c \
+	| perl -pe 's{x\^(\d+)}{x\^ \1 };' \
+	| sort -k3n -k4 \
+	| perl -pe 's{x\^ (\d+) }{x\^\1};' \
+	> $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----------------
+cenall: # compute all central polygon sequences
+	$(TILTES) -mode 2 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).tmp
+	head -n4 $@.$(DIST).tmp
+	wc -l    $@.*.t*
+cendiv:
+	# remove aseqno, callcode, offset; keep galid, vertexid, edge=-1, substr(seq, 2)
+	cut -f1- cenall.128.txt \
+	>        $@.tmp
+	make divall LIST=$@.tmp
+	mv divall.tmp $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#--
+cenguess:
+	perl callmaple.pl -p guessgf.mpat central.128.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----------------
+edgall: # compute the remaining central edge sequences
+	sed -e "s/$$/\./" divmiss.tmp > $@.1.tmp
+	grep -f $@.1.tmp extract.tmp  > $@.2.tmp
+	$(TILTES) -mode 4 -dist $(DIST) -d $(D) -f $@.2.tmp > $@.$(DIST).tmp
+	head -n4 $@.$(DIST).tmp
+	wc -l    $@.*.t*
+edgdiv:
+	# remove aseqno, callcode, offset; keep galid, vertexid, edge=-1, substr(seq, 2)
+	cut -f1- edgall.128.txt \
+	>        $@.tmp
+	make divall LIST=$@.tmp
+	mv divall.tmp $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#================
 #---#----
 guessall:
 	perl tilemaple.pl runall.tmp | tee $@.tmp
@@ -603,13 +578,32 @@ circle:
 test488:
 	perl co488.pl -n $(MAXT) -d 0 \
 	| tee    $@.tmp
-recur3:
-	$(DBAT) -x "SELECT s.aseqno, 'recur', i.offset1, s.info, d.data, d.termno, s.number \
-		FROM seq3 s, asdata d, asinfo i \
-		WHERE s.aseqno = d.aseqno \
-		  AND s.aseqno = i.aseqno \
-		  AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
-		ORDER BY 1 " \
+#----
+lshow:
+	$(DBAT) -x "SELECT galid, stdnot, vtype, tilingno \
+	    FROM coors\
+	    ORDER BY tilingno, galid" \
 	>        $@.tmp
 	head -n4 $@.tmp
+	wc -l    $@.tmp
+l2a:
+	perl letter2angle.pl unmarked_codes-1.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	# | sort -k7 -k2 
+#================
+program:
+	$(DBAT) -x "SELECT DISTINCT i.aseqno, c.tileid || '.' || c.galv, b.bfimin, b.bfimax, i.program \
+		, COALESCE(c.noflip, '-'), COALESCE(j.superclass, 'jnyi') \
+		FROM asinfo i, bfinfo b, coors c \
+		LEFT JOIN joeis j ON c.aseqno = j.aseqno \
+		WHERE i.aseqno = b.aseqno \
+		  AND b.aseqno = c.aseqno \
+		  AND ( b.bfimax > 50 OR LENGTH(i.program) > 0 \
+				OR i.aseqno IN (SELECT aseqno FROM cojec) \
+			  ) \
+		ORDER BY 1" \
+	>        $@.tmp
+	head -n100 $@.tmp
 	wc -l    $@.tmp

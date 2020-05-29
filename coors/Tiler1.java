@@ -44,7 +44,6 @@ public class Tiler1 implements Serializable {
      */
     protected Tiler1() {
         // log = Logger.getLogger(Tiler1.class.getName());
-        mNumTerms = 32;
         mOffset   = 0;
         mBFile    = false;
         mBFilePrefix = "./";
@@ -89,9 +88,6 @@ public class Tiler1 implements Serializable {
             sIndent = sIndent.substring(4);
         }
     } // popIndent
-
-    /** number of terms to be generated */
-    private int mNumTerms;
 
     /** current number of generated edges (1 based) */
     private int mNumEdges;
@@ -182,9 +178,6 @@ public class Tiler1 implements Serializable {
     /** Whether an SVG image file should be written */
     private boolean mSVG;
 
-    /** How many &gt;line&lt; elements should be written */
-    private int mSVGCount;
-
     /** Writer for SVG output */
     private PrintWriter mSVGWriter;
 
@@ -198,15 +191,12 @@ public class Tiler1 implements Serializable {
         String text = param;
         try {
             if (! param.startsWith("<x-")) { // normal SVG XML element(s)
-                if (mNumEdges <= mSVGCount) { // number of <line> elements can be limited
-                    mSVGWriter.println(text);
-                }
+                mSVGWriter.println(text);
             } else if (param.startsWith("<x-head")) { // special tag
             	// viewBox="-w1 -w1 w2 w2"
                 int w1 = mMaxDistance;
                 int w2 = 2 * w1; 
                 param = param.replaceAll("\\<[^\\>]+\\>([^\\<]+)\\<.*", "$1");
-                mSVGCount = mNumTerms;
                 if (param.equals("-")) { // stdout
                      mSVGWriter = new PrintWriter(Channels.newWriter(Channels.newChannel(System.out), sEncoding));
                 } else { // not stdout
@@ -1515,8 +1505,6 @@ public class Tiler1 implements Serializable {
                     tiler.processFile(args[iarg ++]);
                 } else if (opt.equals("-id")    ) {
                     tiler.mGalId    = args[iarg ++];
-                } else if (opt.equals("-n")     ) {
-                    tiler.mNumTerms = Integer.parseInt(args[iarg ++]);
                 } else if (opt.equals("-svg")   ) {
                     tiler.mSVG = true;
                     tiler.writeSVG("<x-head>" + args[iarg ++] + "</x-head>");
