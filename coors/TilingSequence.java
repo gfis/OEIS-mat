@@ -181,7 +181,7 @@ public class TilingSequence implements Serializable, Sequence
       } // for ipoly
     } // mode > 0
     mShellCount = mQueue.size();
-  // start test code */
+  // start test code //
     if (sDebug >= 1) {
         System.out.println(toJSON());
     }
@@ -253,7 +253,7 @@ public class TilingSequence implements Serializable, Sequence
       proxy.expos        = focus.expos.moveUnit(pxAngle);
       final int pxRota   = focus.orient * foType.pxRotas[iedge];
       proxy.rotate       = Vertex.normAngle(focus.rotate + pxRota);
-    // start test code */
+    // start test code //
       if (sDebug >= 2) {
         System.out.println("#     createProxy(iedge " + iedge + "proxyPos " + proxyPos.toString()
             + ")." + focus.index + focus.getName() + "@" + focus.rotate + focus.expos
@@ -265,7 +265,7 @@ public class TilingSequence implements Serializable, Sequence
       proxy  = mVertexList.get(iproxy);
     } // not found
     focus.pxInds[iedge] = iproxy; // attach it - link forward to the proxy
-  // start test code */
+  // start test code //
     final int trialEdge = proxy.normEdge(pxEdge);
     int backLink = proxy.pxInds[trialEdge];
     if (sBackLink &&
@@ -310,12 +310,12 @@ public class TilingSequence implements Serializable, Sequence
       for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
         if (focus.pxInds[iedge] < 0) { // proxy for this edge not yet determined
           final Vertex proxy = attach(focus, iedge);
+          if (mStoreEdges) {
+            mEdgeList.add(new Edge(ifocus, proxy.index, iedge, mDistance));
+          }
           if (proxy.distance < 0) { // is not yet in the set of shells
             proxy.distance = mDistance;
             mQueue.add(proxy.index);
-            if (mStoreEdges) {
-              mEdgeList.add(new Edge(ifocus, proxy.index, iedge, mDistance));
-            }
             mShellCount ++;
           }
         } // proxy not yet determined
@@ -342,7 +342,7 @@ public class TilingSequence implements Serializable, Sequence
    */
   public void printSequences(final int mode, final String galId
       , final int baseIndex, final int baseEdge, final int maxDistance) {
-  // start test code */
+  // start test code //
     final VertexType baseType = mTypeArray.get(baseIndex);
     if (mode == 0) { // normal coordination sequence
       defineBaseSet(mode, baseIndex, 0);
@@ -378,7 +378,7 @@ public class TilingSequence implements Serializable, Sequence
    * @param args command line arguments
    */
   public static void main(String[] args) {
-  // start test code */
+  // start test code //
     final long startTime  = System.currentTimeMillis();
     String gal        = "Gal.2.1";
     String definition = "12.6.4;A180-,A120-,B90+~~6.4.3.4;A270+,A210-,B120+,B240+"; // Gal.2.1

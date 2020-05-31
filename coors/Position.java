@@ -193,7 +193,7 @@ public class Position implements Serializable {
    * Tests the computation of all 24 exact {@link Position}s
    */
   public static void testCirclePositions() {
-  // start test code */
+  // start test code //
     Position origin = new Position();
     SVGFile.sEnabled = true;
     if (SVGFile.sEnabled) {
@@ -225,7 +225,7 @@ public class Position implements Serializable {
    * @param args command line arguments: -circle
    */
   public static void main(String[] args) {
-  // start test code */
+  // start test code //
     try {
       int iarg = 0;
       while (iarg < args.length) { // consume all arguments

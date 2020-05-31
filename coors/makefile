@@ -50,13 +50,19 @@ extract_load:
 	| $(DBAT) -m csv -r coors
 	$(DBAT) -4 coors
 	$(DBAT) -n coors
-check:
-	$(DBAT) -x "SELECT aseqno, rseqno, galid, tilingno \
-	  FROM coors \
-	  WHERE aseqno <> rseqno \
-	  ORDER BY 1" \
-	| tee    $@.tmp
+expand:
+	$(TILTES) -notae -f extract.tmp \
+	| sed -e "s/$$/\tynewnot\trseqno\tyname/" \
+	>        $@.tmp
+	tail -n4 $@.tmp
 	wc -l    $@.tmp
+expand_load:
+	$(DBAT) -f coors.create.sql
+	grep -vE "^#" expand.tmp \
+	| sed -e "s/\t/\tcoors\t0\t/"  \
+	| $(DBAT) -m csv -r coors
+	$(DBAT) -4 coors
+	$(DBAT) -n coors
 #--------------------------------
 guess: guess1 guess2
 guess1:
@@ -263,7 +269,7 @@ compile2:
 #----
 run: run1 run2
 run1: select
-	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -d $(D) -svg $@.svg -f select.tst > $@.tmp 
+	java -cp . Tiler1     -id Gal.$(GAL).$(ID) -bfile $@/   -dist $(DIST) -d $(D) -svg $@.svg -f select.tst | tee $@.tmp 
 	grep -i assertion $@.tmp || :
 EDGE=0
 MODE=0

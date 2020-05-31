@@ -105,90 +105,7 @@ public class TilingTest implements Serializable {
   public void computeNet(final TilingSequence mTiling, final int baseIndex) {
     final VertexType baseType = mTiling.getVertexType(baseIndex);
     int errorCount = MAX_ERROR;
-    LinkedList<Integer> queue = new LinkedList<Integer>();
-    mMaxBase = mTiling.defineBaseSet(mMode, baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
-    final int[] terms = baseType.getSequence();
-    final int termNo  = terms.length;
-    if (mMaxDistance == -1) {
-      mMaxDistance    = termNo - 1;
-    }
-    int distance = 0; // also index for terms
-    for (int ifocus = 0; ifocus < mTiling.mVertexList.size(); ifocus ++) {
-      queue.add(ifocus); // those which were stored by defineBaseSet
-    }
-    int shellCount = queue.size();
-    StringBuffer termList = new StringBuffer(256);
-    termList.append(String.valueOf(shellCount));
-
-    distance ++;
-    while (distance <= mMaxDistance) {
-      shellCount = 0;
-      int levelPortion = queue.size();
-      while (levelPortion > 0 && queue.size() > 0) { // queue not empty
-        final int ifocus = queue.poll();
-        if (sDebug >= 2) {
-          System.out.println("# dequeue ifocus " + ifocus);
-        }
-        final Vertex focus = mTiling.mVertexList.get(ifocus);
-        focus.distance = distance;
-        for (int iedge = 0; iedge < focus.vtype.edgeNo; iedge ++) {
-          if (focus.pxInds[iedge] < 0) { // proxy for this edge not yet determined
-            final Vertex proxy = mTiling.attach(focus, iedge);
-            if (mTiling.mStoreEdges) {
-              mTiling.mEdgeList.add(new Edge(ifocus, proxy.index, iedge, distance));
-            }
-            if (proxy.distance < 0) { // did not yet exist
-              proxy.distance = distance;
-              shellCount ++;
-              queue.add(proxy.index);
-              if (sDebug >= 2) {
-                System.out.println("# enqueue iproxy " + proxy.index + ", attached to ifocus " + ifocus + " at edge " + iedge);
-              }
-            }
-          } // proxy not yet determined
-        } // for iedge
-        levelPortion --;
-      } // while portion not exhausted and queue not empty
-      if (distance < terms.length && terms[distance] != shellCount && errorCount > 0) {
-        System.out.println("# ** assertion 6: " + baseType.aSeqNo + " " + baseType.galId
-            + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " + shellCount);
-        errorCount --;
-      }
-      termList.append(',');
-      termList.append(String.valueOf(shellCount));
-      if (sDebug >= 2) {
-        System.out.println("# distance " + distance + ": " + shellCount + " vertices added\n");
-      }
-      distance ++;
-    } // while distance
-
-    final int vlSize = mTiling.mVertexList.size();
-    if (mTiling.mPosMap.size() != vlSize) {
-      if (sDebug >= 0) {
-        System.err.println("# ** assertion 3 in tiling.toString: " + mTiling.mPosMap.size()
-            + " different positions, but " + vlSize + " vertices\n");
-      }
-    }
-    if (true) { // this is always output
-      System.out.println(baseType.aSeqNo + "\ttiltes\t0\t" + baseType.galId
-          + "\t" + baseType.vertexId + "\t" + termList.toString());
-    }
-    if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
-      System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t"
-          + String.valueOf(mMaxDistance + 1) + " terms verified");
-    }
-    System.err.println("# " + mTiling.mVertexList.size() + " vertices generated");
-  } // computeNet
-
-  /**
-   * Computes the neighbourhood of the start {@link Vertex} up to some distance
-   * @param mTiling data structures for the tiling to be computed
-   * @param baseIndex index of the initial {@link VertexType}
-   */
-  public void computeNet_88(final TilingSequence mTiling, final int baseIndex) {
-    final VertexType baseType = mTiling.getVertexType(baseIndex);
-    int errorCount = MAX_ERROR;
-    mMaxBase = mTiling.defineBaseSet(mMode, baseIndex, mBaseEdge); // corners of a polygon are base, "loose" coordination sequence
+    mMaxBase = mTiling.defineBaseSet(mMode, baseIndex, mBaseEdge);
     final int[] terms = baseType.getSequence();
     final int termNo  = terms.length;
     if (mMaxDistance == -1) {
@@ -197,7 +114,7 @@ public class TilingTest implements Serializable {
     int shellCount = mMaxBase;
     StringBuffer termList = new StringBuffer(256);
     termList.append(String.valueOf(shellCount));
-    int distance = mMode == 0 ? 0 : 1; // offset
+    int distance = 0;
     while (distance <= mMaxDistance) {
       shellCount = mTiling.next().intValue();
       termList.append(',');
@@ -207,9 +124,6 @@ public class TilingTest implements Serializable {
             + ":\tdifference in terms[" + distance + "], expected " + terms[distance] + ", computed " + shellCount);
         errorCount --;
       }
-      if (sDebug >= 2) {
-        System.out.println("# distance " + distance + ": " + shellCount + " vertices added\n");
-      }
       distance ++;
     } // while distance
 
@@ -220,14 +134,13 @@ public class TilingTest implements Serializable {
             + " different positions, but " + vlSize + " vertices\n");
       }
     }
-    if (true) { // this is always output
-      System.out.println(baseType.aSeqNo + "\ttiltes\t0\t" + baseType.galId
-          + "\t" + baseType.vertexId + "\t" + termList.toString());
-    }
     if (errorCount == MAX_ERROR || mMaxDistance == termNo - 1) { // was -1
       System.err.println("# " + baseType.aSeqNo + " " + baseType.galId + ":\t"
           + String.valueOf(mMaxDistance + 1) + " terms verified");
     }
+    
+    System.out.println(baseType.aSeqNo + "\ttiltes\t0\t" + baseType.galId
+          + "\t" + baseType.vertexId + "\t" + termList.toString());
     System.err.println("# " + mTiling.mVertexList.size() + " vertices generated");
   } // computeNet
 
@@ -274,6 +187,11 @@ public class TilingTest implements Serializable {
     final String vertexId    = fields[ifield ++];
     final String taRotList   = fields[ifield ++];
     final String sequence    = fields[ifield ++];
+    int tilingNo = 0;
+    try {
+      tilingNo = Integer.parseInt(fields[ifield ++]);
+    } catch (Exception exc) { // ignore
+    }
     final String[] gutv        //         u    t    v
         = galId.split("\\.");  // "Gal", "2", "9", "1"; the trailing v runs from 1 to u, the t is the sequential number in u
     if (gutv[3].equals("1")) { // first of new tiling
@@ -283,7 +201,7 @@ public class TilingTest implements Serializable {
         System.err.println(exc.getMessage());
       }
     } // first
-    mTypeNotas.decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence); // increments mTAFree
+    mTypeNotas.decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence, tilingNo); // increments mTAFree
     if (gutv[3].equals(gutv[1])) { // last of new tiling - save it, and perform some operation
 
       TilingSequence .sDebug = sDebug;
@@ -292,7 +210,8 @@ public class TilingTest implements Serializable {
         mTiling.mStoreEdges = true;
       }
       // compute the net(s)
-      for (int baseIndex = 0; baseIndex < mTypeNotas.size(); baseIndex ++) {
+      int baseIndex = 0; 
+      while (baseIndex < mTypeNotas.size()) {
         if (mGalId == null || mTiling.getVertexType(baseIndex).galId.equals(mGalId)) {
           // either all in the input file, or only the specified mGalId
           final VertexType baseType = mTiling.getVertexType(baseIndex);
@@ -306,9 +225,6 @@ public class TilingTest implements Serializable {
             } // for index
             BFile.close();
           //--------
-          } else if (mOperation.equals    ("fini")) {
-            // ignore
-          //--------
           } else if (mOperation.startsWith("net"  )) {
             computeNet(mTiling, baseIndex);
             if (SVGFile.sEnabled) {
@@ -317,7 +233,7 @@ public class TilingTest implements Serializable {
           //--------
           } else if (mOperation.startsWith("notae")) {
             System.out.print(mTiling.mTypeArray.toString());
-            mOperation = "fini"; // only once
+            baseIndex = mTypeNotas.size(); // break while loop
           //--------
           } else if (mOperation.startsWith("seq")) {
             mTiling.printSequences(mMode, mTiling.getVertexType(baseIndex).galId, baseIndex, mBaseEdge, mMaxDistance);
@@ -326,7 +242,8 @@ public class TilingTest implements Serializable {
             System.err.println("# TilingTest: invalid operation \"" + mOperation + "\"");
           } // switch for operations
         }
-      } // for itype
+        baseIndex ++;
+      } // while baseIndex
       if (sDebug >= 1) {
         System.out.println("final net:\n" + mTiling.toJSON());
       }

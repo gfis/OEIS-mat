@@ -64,10 +64,11 @@ public class VertexTypeArray {
    * @param vertexId clockwise dot-separated list of the polygons followed by the list of types and angles
    * @param taRotList clockwise comma-separated list of vertex type names and angles (and apostrophe if flipped)
    * @param sequence list of initial terms of the coordination sequence
+   * @param tilingNo sequential tiling number in BG's list
    */
   public void decodeNotation(final String aSeqNo, final String galId, final String stdNotation, final String vertexId
-      , final String taRotList, final String sequence) {
-    mVertexTypes[mTAFree].decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence);
+      , final String taRotList, final String sequence, final int tilingNo) {
+    mVertexTypes[mTAFree].decodeNotation(aSeqNo, galId, stdNotation, vertexId, taRotList, sequence, tilingNo);
     mVertexTypes[mTAFree].name = Character.toString((char) ('A' + mTAFree));
     mTAFree ++;
   } // decodeNotation(String^5)
@@ -81,8 +82,8 @@ public class VertexTypeArray {
    */
   public void decodeNotation(final String param) {
     final String[] pair = param.split(";");
-    decodeNotation("A000000", "Gal.u.t.v.", "stdnot", pair[0], pair[1], "1");
-  } // decodeNotation(String^2)
+    decodeNotation("A000000", "Gal.u.t.v.", "stdnot", pair[0], pair[1], "1", 0); // ... vertexId, taRotList, seq, tilingNo
+  } // decodeNotation(String)
 
   /**
    * Completes all {@link VertexType}s, that is - if necessary -
@@ -92,7 +93,7 @@ public class VertexTypeArray {
     for (int index = 0; index < mTAFree; index ++) {
       final VertexType foType = get(index);
       for (int iedge = 0; iedge < foType.edgeNo; iedge ++) {
-      // start test code */
+      // start test code //
         if (sDebug >= 4) {
           System.out.println("# complete(" + index + ", iedge=" + iedge + ") - " + foType.name);
         }
@@ -120,7 +121,7 @@ public class VertexTypeArray {
             if (pxRota == kRota ) { // found
               busy = false;
             } else {
-            // start test code */
+            // start test code //
               if (sDebug >= 3) {
                 System.out.println("#     complete(kedge=" + kedge + "): pxRota=" + pxRota + " <> kRota=" + kRota);
               }
@@ -130,13 +131,13 @@ public class VertexTypeArray {
           } // while busy and searching
           if (! busy) { // found
             pxEdge = kedge;
-          // start test code */
+          // start test code //
             if (sDebug >= 3) {
               System.out.println(  "#     complete(kedge=" + kedge + "): found");
             }
           // end   test code */
           } else { // not found
-          // start test code */
+          // start test code //
             if (sDebug >= 3) {
               System.out.println("# complete(kedge=" + kedge + "): pxRota=" + pxRota + " not found");
             }

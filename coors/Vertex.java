@@ -151,7 +151,7 @@ public class Vertex implements Serializable {
    */
   protected int getAngle(final int iedge) {
     final int result = normAngle(rotate + orient * vtype.sweeps[iedge]);
-  // start test code */
+  // start test code //
     if (sDebug >= 2) {
         System.out.println("#         getAngle(iedge "         + iedge + ")." + index + getName() + "@" + rotate + expos
             + ", focus.orient " + orient + ", => " + result);

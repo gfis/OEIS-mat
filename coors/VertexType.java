@@ -31,6 +31,7 @@ public class VertexType implements Serializable {
   String name;        // for example "A" for normal or "a" (lowercase) for flipped version
   String aSeqNo;      // OEIS A-number of the coordination sequence
   String sequence;    // list of terms of the coordination sequence (standard is 50 terms)
+  int    tilingNo;    // sequential tiling number in BG's list
 
   /** Debugging mode: 0=none, 1=some, 2=more */
   public static int sDebug;
@@ -53,6 +54,7 @@ public class VertexType implements Serializable {
     name        = "Z";
     aSeqNo      = "";
     sequence    = "";
+    tilingNo    = 0;
   } // VertexType()
 
   /**
@@ -65,9 +67,10 @@ public class VertexType implements Serializable {
    * @param taRotList clockwise semicolon-separated list of
    *     vertex type names and angles (and apostrophe if flipped)
    * @param sequence a list of initial terms of the coordination sequence
+   * @param tilingNo sequential tiling number in BG's list
    */
   public void decodeNotation(final String aSeqNo, final String galId, final String stdNotation, final String vertexId
-      , final String taRotList, final String sequence) {
+      , final String taRotList, final String sequence, final int tilingNo) {
     // for example: A265035 tab Gal.2.1.1 tab 3.4.6.4; 4.6.12 tab 12.6.4 tabA 180'; A 120'; B 90 tab 1,3,6,9,11,14,17,21,25,28,30,32,35,39,43,46,48,50,53,57,61,64,66,68,71,75,79,82,84,86,89,93,97,100,102,104,107,111,115,118,120,122,125,129,133,136,138,140,143,147
     // this.index and this.name are filled in VertexTypeArray.add()
     this.stdNotation = stdNotation;
@@ -77,6 +80,7 @@ public class VertexType implements Serializable {
     this.aSeqNo = aSeqNo;
     this.galId  = galId;
     this.sequence = sequence;
+    this.tilingNo = tilingNo;
     edgeNo      = parts.length;
     polys       = new int[edgeNo];
     sweeps      = new int[edgeNo];
@@ -187,6 +191,8 @@ public class VertexType implements Serializable {
     } // for iedge
     result.append("\t");
     result.append(sequence);
+    result.append("\t");
+    result.append(String.valueOf(tilingNo));
     return result.toString();
   } // toString()
 
@@ -207,9 +213,9 @@ public class VertexType implements Serializable {
         + ", \"pxOrients\": " + join(",", pxOrients)
         + ", \"pxEdges\": "   + join(",", pxEdges)
         + ", \"galId\": \""   + galId + "\""
+        + ", \"tiling\": "    + tilingNo 
         + " }\n";
     return result;
   } // VertexType.toJSON
 
 } // class VertexType
-
