@@ -1,6 +1,7 @@
 /* Generate tilings from Galebach's list https://oeis.org/A250120/a250120.html
  * @(#) $Id$
  * Copyright (c) 2020 Dr. Georg Fischer
+ * 2020-06-01: drawMinimalShape; Ulf=51
  * 2020-05-29: -mode, drawNet
  * 2020-05-15: splitted in different classes
  * 2020-05-14: new colors
@@ -25,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.HashMap;
 import java.util.LinkedList;
 // import  org.apache.log4j.Logger;
 
@@ -145,6 +147,26 @@ public class TilingTest implements Serializable {
   } // computeNet
 
   /**
+   * Finds and emphasizes a minmal set of different edges
+   */
+  public void drawMinimalShape() {
+    final int elSize = mTiling.mEdgeList.size();
+    HashMap<String, int[]> edgeMap = new HashMap<String, int[]>(128);
+    for (int ind = 0; ind < elSize; ind ++) { // draw all edges
+      Edge edge = mTiling.mEdgeList.get(ind);
+      Vertex focus = mTiling.mVertexList.get(edge.ifocus);
+      Vertex proxy = mTiling.mVertexList.get(edge.iproxy);
+      String key = focus.getName() + proxy.getName() + proxy.expos.subtract(focus.expos).toString();
+      int[] value = edgeMap.get(key);
+      if (value == null) {
+        edgeMap.put(key, new int[] { edge.ifocus, edge.iproxy });
+        SVGFile.writeEdge(focus, proxy, edge.iedge, edge.distance, 3); // minimal shape
+      } else {
+      }
+    } // for edges
+  } // drawMinimalShape
+  
+  /**
    * Expands and prints the sequence(s) for <em>this</em> tiling.
    * @param mode defines the set of vertices for the initial shell:
    * <ul>
@@ -164,7 +186,7 @@ public class TilingTest implements Serializable {
       Vertex proxy = mTiling.mVertexList.get(edge.iproxy);
       SVGFile.writeEdge(focus, proxy, edge.iedge, edge.distance, sDebug);
     } // for edges
-    
+    // drawMinimalShape();
     final int vlSize = mTiling.mVertexList.size();
     for (int ind = 0; ind < vlSize; ind ++) { // draw all vertices
       Vertex focus = mTiling.mVertexList.get(ind);

@@ -2,6 +2,7 @@
 
 # Call Maple with some pattern 
 # @(#) $Id$
+# 2020-06-01: name the temp file after the pattern
 # 2020-05-11, Georg Fischer: copied from tilemaple.pl
 # 
 #:# Usage:
@@ -29,7 +30,7 @@ my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 my $mapnum  = 256;
 my $timeout = 32;
 my $maple   = "\"C:/Program Files/Maple 2019/bin.X86_64_WINDOWS/cmaple.exe\"";
-my $pattern_file = "";
+my $pattern_file = "default.mpat";
 my $pattern = <<'Gfis';
 read "C:\\Program Files\\Maple 2019\\FPS.mpl":
 interface(prettyprint=0):
@@ -97,7 +98,7 @@ if (length($buffer) > 0) {
 }
 
 sub execute {
-    my $filename = substr($0, 0, index($0, ".")) . ".tmp";
+    my $filename = "$pattern_file.tmp";
     open(MPL, ">", $filename) || die "cannot write to \"$filename\"";
     print MPL "$pat1\n";
     print MPL "$buffer\n";

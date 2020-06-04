@@ -157,6 +157,14 @@ public class SVGFile {
             + "->"         + proxy.index + proxy .getName()
             + "</title></line>");
         break;
+      case 3: // minimal shape
+        write("<line class=\"msha"
+            + "\" x1=\"" + focus.expos.getX()
+            + "\" y1=\"" + focus.expos.getY()
+            + "\" x2=\"" + proxy.expos.getX()
+            + "\" y2=\"" + proxy.expos.getY()
+            + "\"></line>");
+        break;
     } // switch (mode)
   } // writeEdge
 

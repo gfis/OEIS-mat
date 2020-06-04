@@ -63,21 +63,6 @@ expand_load:
 	| $(DBAT) -m csv -r coors
 	$(DBAT) -4 coors
 	$(DBAT) -n coors
-#--------------------------------
-guess: guess1 guess2
-guess1:
-	$(DBAT) -x "SELECT aseqno, galid, sequence \
-	  FROM coors \
-	  ORDER BY tilingno, galid" \
-	>        $@.tmp
-	tail -n4 $@.tmp
-	wc -l    $@.tmp
-guess2:
-	head -n16000 guess1.tmp \
-	| perl tilemaple.pl \
-	>        $@.tmp
-	tail -n4 $@.tmp
-	wc -l    $@.tmp
 #================
 # A310296 null    Coordination sequence Gal.6.52.1 where G.u.t.v
 update: updano1 updano2 updano3 update_same update_man check_unk
@@ -324,12 +309,130 @@ newne: select
 deploy:
 	scp *est.svg tiling.css gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/coors
 #================
-netall: # compute all coordination sequences
-	rm -f $@.$(DIST).tmp
-	head -n100000 extract.tmp > $@.in.tmp
-	$(TILTES) -net -mode 0 -dist $(DIST) -d $(D) -f $@.in.tmp >> $@.$(DIST).tmp
+netall: # compute all (vertex-centric) coordination sequences
+	$(TILTES) -seq -mode 0 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).tmp
 	head -n4 $@.$(DIST).tmp
-	wc -l    $@.$(DIST).tmp
+	wc -l    $@.*.t*
+cenall: # compute all polygon-centric sequences
+	$(TILTES) -seq -mode 2 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).tmp
+	head -n4 $@.$(DIST).tmp
+	wc -l    $@.*.t*
+edgall: # compute the edge-centric sequences
+	$(TILTES) -seq -mode 4 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).tmp
+	head -n4 $@.$(DIST).tmp
+	wc -l    $@.*.t*
+#----
+netguess:
+	perl $(COMMON)/callmaple.pl -p guessgf.mpat netall.128.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cenguess:
+	perl $(COMMON)/callmaple.pl -p guessgf.mpat cenall.128.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+edgguess:
+	perl $(COMMON)/callmaple.pl -p guessgf.mpat edgall.128.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----
+netden:
+	perl denext.pl netguess.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cenden:
+	perl denext.pl cenguess.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+edgden:
+	perl denext.pl edgguess.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----
+netfact:
+	cat netden.tmp | sed -e "s/\t/.n/"  > $@.in.tmp 
+	perl $(COMMON)/callmaple.pl -p decr_factor.mpat $@.in.tmp \
+	| grep -E "^Gal" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cenfact:
+	cat cenden.tmp | sed -e "s/\t/.c/"  > $@.in.tmp 
+	perl $(COMMON)/callmaple.pl -p decr_factor.mpat $@.in.tmp \
+	| grep -E "^Gal" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+edgfact:
+	cat edgden.tmp | sed -e "s/\t/.e/"  > $@.in.tmp 
+	perl $(COMMON)/callmaple.pl -p decr_factor.mpat $@.in.tmp \
+	| grep -E "^Gal" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----
+cyclot: cyc1
+cyc1:
+	cat \
+	netfact.tmp \
+	cenfact.tmp \
+	edgfact.tmp \
+	| sort \
+	| perl facyclot.pl -d 0 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cyc2:
+	perl -ne 'my @parts=split(/\t/); $$parts[0] =~ s{\A(Gal\.\d+\.\d+).*}{$$1}; print join("\t", $$parts[0], $$parts[3], $$parts[4]);' \
+	  cyc1.tmp \
+	| sort | uniq \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cyc3:
+	cut -f1-2 cyc2.tmp | sort | uniq \
+	| perl -ne 'my @parts = split(/\t/); 
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cyc4:
+	cat cyc3.tmp \
+	| perl -ne 's{\s+\Z}{}; my ($$galid, $$factorlist) = split(/\t/); $$galid =~ m{\A(Gal\.\d+\.)(\d+)}; '\
+	' my $$gal = $$1; my $$id  = sprintf("%04d", $$2); my $$expons = $$factorlist; $$expons =~ s{\D}{}g; '\
+	' print join("\t", $$gal, $$id, $$factorlist, sprintf("%10d", $$expons)) . "\n";'\
+	| sort -r -k1 -k2 -k4 | uniq -w11 \
+	| cut -f1-3 \
+	| perl -ne 'my @parts=split(/\t/); '\
+	' my $$degree = 0; my @exps = map { $$degree += $$_; $$_ } $$parts[2] =~ m{(\d+)}g; '\
+	' $$parts[2] =~ s{P\(}{\(x\^}g; $$parts[2] =~ s{\)}{\-1\)}g; '\
+	' print join("\t", $$parts[0] . ($$parts[1] + 0), $$degree, join(",", @exps), $$parts[2]);' \
+	| sort -V \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+cyc5:
+	cut -f2  cyc4.tmp \
+	| sort -V | uniq -c \
+	| perl -ne 's{P\(}{\(x\^}g; s{\)}{\-1\)}g; print;' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#----
+ixcyclo:
+	$(DBAT) -x "SELECT 'A' || seqno, signature \
+	  FROM lrindx \
+	  WHERE lorder >= 4 AND seqno <> '000000' \
+	  " \
+	| perl -ne 'my ($$aseqno, $$signature) = split(/\t/); print if $$signature =~ m{\A\-?1(\,(0|\-?1))+\r?\n?\Z}; ' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+	# these signatures are (1) - c1*x^1 - c2*x^2 + ...
 #----
 netdiv:
 	# remove aseqno, callcode, offset; keep galid, edge=-1, vertexid, substr(seq, 2)
@@ -341,13 +444,31 @@ netdiv:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #----
-divall:
-	perl divall.pl -c 4 $(LIST)\
+divall: 
+	# column -c 4
+	perl divall.pl -c 4 $(LIST) \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	cut -f1  $@.tmp \
 	| sort | uniq -c
+rotsym: # NUM=
+	grep "$(NUM)=gcd" divall.tmp | cut -f1-2 | sed -e "s/\.[0-9]$$//" | sort -V | uniq \
+	>        $@.$(NUM).tmp
+	head -n4 $@.$(NUM).tmp
+	wc -l    $@.$(NUM).tmp
+rotprep:
+	make rotsym NUM=6
+	make rotsym NUM=4
+	make rotsym NUM=3
+	make rotsym NUM=2
+rotall:
+	perl -ne '
+	sort -rV -k2 -k1 rotsym.*.tmp | uniq -w6 \
+	| sort -V -k2 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
 diveval: # input is gcd, galid, edge, vertexid, seq
 	cat \
@@ -368,7 +489,7 @@ divmiss:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 divguess:
-	perl callmaple.pl -p guessgf.mpat diveval.tmp \
+	perl $(COMMON)/callmaple.pl -p guessgf.mpat diveval.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
@@ -377,7 +498,7 @@ divfactor:
 	| perl -ne 'my @parms = split(/\t/); $$parms[2] =~ s{\A[^\/]+\/([^\,]+)\,.*}{$$1}; print join("\t", @parms); ' \
 	| head -n100000 \
 	> $@.1.tmp
-	perl callmaple.pl -p decr_factor.mpat $@.1.tmp \
+	perl $(COMMON)/callmaple.pl -p decr_factor.mpat $@.1.tmp \
 	| grep -E "^Gal\." \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -392,10 +513,6 @@ divuniq:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #----------------
-cenall: # compute all central polygon sequences
-	$(TILTES) -mode 2 -dist $(DIST) -d $(D) -f extract.tmp > $@.$(DIST).tmp
-	head -n4 $@.$(DIST).tmp
-	wc -l    $@.*.t*
 cendiv:
 	# remove aseqno, callcode, offset; keep galid, vertexid, edge=-1, substr(seq, 2)
 	cut -f1- cenall.128.txt \
@@ -404,19 +521,7 @@ cendiv:
 	mv divall.tmp $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-#--
-cenguess:
-	perl callmaple.pl -p guessgf.mpat central.128.txt \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc   -l  $@.tmp
 #----------------
-edgall: # compute the remaining central edge sequences
-	sed -e "s/$$/\./" divmiss.tmp > $@.1.tmp
-	grep -f $@.1.tmp extract.tmp  > $@.2.tmp
-	$(TILTES) -mode 4 -dist $(DIST) -d $(D) -f $@.2.tmp > $@.$(DIST).tmp
-	head -n4 $@.$(DIST).tmp
-	wc -l    $@.*.t*
 edgdiv:
 	# remove aseqno, callcode, offset; keep galid, vertexid, edge=-1, substr(seq, 2)
 	cut -f1- edgall.128.txt \
@@ -426,9 +531,6 @@ edgdiv:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #================
-#---#----
-guessall:
-	perl tilemaple.pl runall.tmp | tee $@.tmp
 #================
 map256:
 	sed -e "s/\[/ogf\t0\t/" -e "s/\, *ogf\]//" -e "s/\r//" guessall.tmp > $@.1.tmp
@@ -491,17 +593,17 @@ denpoly:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 densimplify:
-	perl callmaple.pl -p factor.mpat denpoly.tmp \
+	perl $(COMMON)/callmaple.pl -p factor.mpat denpoly.tmp \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 densimma1:
-	perl callmma.pl -p Simplify.tpat denpoly.tmp \
+	perl $(COMMON)/callmma.pl -p Simplify.tpat denpoly.tmp \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 densimma2:
-	perl callmma.pl -p FactorList.tpat denpoly.tmp \
+	perl $(COMMON)/callmma.pl -p FactorList.tpat denpoly.tmp \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
@@ -518,13 +620,13 @@ demfactor:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 decr_factor:
-	perl callmaple.pl -p $@.mpat denpoly.tmp \
+	perl $(COMMON)/callmaple.pl -p $@.mpat denpoly.tmp \
 	| grep -E "^A[0-9]" \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 incr_factor:
-	perl callmaple.pl -p $@.mpat denpoly.tmp \
+	perl $(COMMON)/callmaple.pl -p $@.mpat denpoly.tmp \
 	| grep -E "^A[0-9]" \
 	| tee    $@.tmp
 	head -n4 $@.tmp

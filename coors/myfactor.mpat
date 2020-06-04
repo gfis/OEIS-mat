@@ -1,0 +1,16 @@
+myfactor:= proc(p) local X, k, P, T, q, m;
+  P:= p; T:= 1;
+  X:= indets(p)[1];
+  m:= degree(P,X);
+  k:= 1;
+  while k <= m do
+    if rem(P, X^k-1, X, 'q') = 0 then
+       P:= q; T:= T*(X^k-1)
+    else
+       k:= k+1
+    fi
+  od;
+  T * factor(P)
+end proc;
+
+printf("%s\t%s\t%a\n", "$(PARM0)", "$(PARM1)", timelimit($(TIMEOUT), myfactor($(PARM2))) );

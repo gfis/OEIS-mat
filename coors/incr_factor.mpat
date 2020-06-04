@@ -1,0 +1,15 @@
+decr_factor:= proc(p) local X, k, P, T, q;
+  P:= p; T:= 1;
+  X:= indets(p)[1];
+  k:= degree(P,X);
+  while k > 0 do
+    if rem(P, X^k-1, X, 'q') = 0 then
+       P:= q; T:= T*(X^k-1)
+    else
+       k:= k-1
+    fi
+  od;
+  T * factor(P)
+end proc;
+
+printf("%s\t%s\t%a\n", "$(PARM0)", "$(PARM1)", timelimit($(TIMEOUT), decr_factor($(PARM2))) );

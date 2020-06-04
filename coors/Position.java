@@ -84,7 +84,7 @@ public class Position implements Serializable {
    * @param pos2 Position to be subtracted
    * @return this - pos2
    */
-  private Position subtract(final Position pos2) {
+  public Position subtract(final Position pos2) {
     Position result = new Position();
     for (int ipos = 0; ipos < 4; ipos ++) {
       result.xtuple[ipos] = (xtuple[ipos] - pos2.xtuple[ipos]);
@@ -95,7 +95,7 @@ public class Position implements Serializable {
 
   /**
    * Returns a representation of the Position
-   * @return the cartesian coordinates like "[-3.0981,1.3660]"
+   * @return a vector with both tuples concatenated, for example "[0,0,0,0,0,0,0,0]"
    */
   public String toString() {
     StringBuffer result = new StringBuffer(64);

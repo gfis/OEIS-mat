@@ -1,6 +1,6 @@
 #!perl
 
-# Call Maple with some pattern 
+# Call Mathematica with some pattern 
 # @(#) $Id$
 # 2020-05-14, Georg Fischer: copied from callmaple.pl
 # 
