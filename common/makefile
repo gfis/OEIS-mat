@@ -2,6 +2,7 @@
 
 # OEIS-mat/common - scripts and data common to all subprojects
 # @(#) $Id$
+# 2019-06-24: joeis_ofter
 # 2019-07-16: joeis parallel to joeis-lite
 # 2019-04-11: checks exported to ./checks.make
 # 2019-02-19: HTMLIZE
@@ -36,6 +37,12 @@ seq: # parameter: $(LIST)
 	$(DBAT) -4 $@
 	$(DBAT) -n $@
 seq2: # parameter: $(LIST)
+	$(DBAT) -f $(COMMON)/$@.create.sql
+	cut -b1-  $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
+	$(DBAT) -m csv -r $@ < $@.tmp
+	$(DBAT) -4 $@
+	$(DBAT) -n $@
+seq3: # parameter: $(LIST)
 	$(DBAT) -f $(COMMON)/$@.create.sql
 	cut -b1-  $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
 	$(DBAT) -m csv -r $@ < $@.tmp
@@ -287,7 +294,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
-joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_count joeis_stamp
+joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_ofter joeis_count joeis_stamp
 joeis_local:
 	cd $(JOEIS) ; git pull ; ant jar
 joeis_pull:
@@ -299,8 +306,8 @@ joeis_load: # populate a table with A-numbers and superclass names of implemente
 	| $(DBAT) -m csv -r joeis
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
-joeis_names:
-	$(DBAT) "SELECT n.aseqno, substr(j.superclass, 1, 16), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
+joeis_names: # all A-numbers with their jOEIS superclass or null
+	$(DBAT) -x "SELECT n.aseqno, substr(j.superclass, 1, 16), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
 	FROM  asinfo a, asname n , bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
@@ -308,11 +315,20 @@ joeis_names:
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
-joeis_count:
-	$(DBAT) -x "SELECT a/b FROM ( \
+joeis_ofter: # A-numbers in jOEIS with offset and first ~7 reliable terms
+	$(DBAT) -x "SELECT i.aseqno, i.offset1, i.terms \
+	FROM  asinfo i INNER JOIN joeis j ON i.aseqno = j.aseqno \
+	ORDER BY 1" \
+	| perl -pe "s{\,\-?\d+\r?\Z}{};" \
+	| sed -e "s/\r//" \
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+joeis_count: # percentage of sequences implemented in jOEIS
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '|| CAST(a/b * 100 AS CHAR) \
+	|| '% of OEIS sequences are implemented in jOEIS' FROM ( \
 	(SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 , \
-	(SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 )" 
-	$(DBAT) -n joeis
+	(SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 );"
 joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"

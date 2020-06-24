@@ -102,12 +102,23 @@ holgf2:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
-hyper:
+hyper: hyper1 hyper2
+hyper1:
 	perl extract_hypergeom.pl $(COMMON)/cat25.txt \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#--------------------------------------------------
+hyper2:
+	make seq LIST=hyper1.tmp
+	$(DBAT) -x "SELECT n.aseqno, n.name \
+	  FROM asname n, seq s \
+	  WHERE n.aseqno = s.aseqno \
+	    AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+##--------------------------------------------------
 gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	perl gfsqrt_grep.pl $(COMMON)/cat25.txt \
@@ -274,15 +285,17 @@ hiter4:
 	wc -l    $@.tmp
 #--------
 hiteval1: 
-	sort hiteval.*.txt > $@.sort.tmp
-	cut -b1-7  $@.sort.tmp | uniq -c | tee $@.uniqc.tmp
-	cut -b1-7  $@.sort.tmp | uniq > $@.uniq.tmp
+	sort -V hiteval.*.txt  | uniq     > $@.sort.tmp
+	cut -b1-7  $@.sort.tmp | uniq -c  > $@.uniqc.tmp
+	cat        $@.sort.tmp | uniq -w7 > $@.uniq.tmp
 	make -f $(COMMON)/makefile seq LIST=$@.uniq.tmp
-	make hiteval2
+	make hiteval
 hiteval:
-	$(DBAT) "SELECT aseqno FROM seq WHERE aseqno NOT IN (SELECT aseqno FROM joeis);" \
+	$(DBAT) -x "SELECT aseqno FROM seq WHERE aseqno NOT IN (SELECT aseqno FROM joeis);" \
+	| sed -e "s/\r//" \
 	>        $@.notj.tmp
 	wc -l    $@.notj.tmp
+	
 #-------------------
 # too slow:
 hiter2slow:
