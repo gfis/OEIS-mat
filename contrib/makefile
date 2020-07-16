@@ -14,16 +14,24 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 SHIFT=+1
 WIDTH=64
+SLEEP=1
 #----------------
 all:
 #================
-clean:
-	perl ../bfcheck/bfclean.pl $(SHIFT) -s $(SEQ) \
-	>       b$(SEQ).txt
-	uedit64 b$(SEQ).txt
-#----------------
 wgeto: # S=012345
-	wget "https://oeis.org/b$(S).txt" -O b$(S).old
+	#--------------------------------
+	wget -r "https://oeis.org/b$(S).txt" # do not include /A012345 
+	ls -al   oeis.org/b$(S).txt
+	wc -l    oeis.org/b$(S).txt
+	head -n4 oeis.org/b$(S).txt
+	sleep $(SLEEP)
+shiftm:
+	make shifto SHIFT=-1
+shiftp:
+	make shifto SHIFT=+1
+shifto:
+	perl ../bfcheck/bfclean.pl $(SHIFT) -f oeis.org/b$(S).txt b$(S).txt
+	uedit64 b$(S).txt
 #----
 regen: # parameter S=012345
 	echo "all: # for b$(S).txt" > $@.make.tmp
@@ -44,17 +52,31 @@ regen: # parameter S=012345
 	sed -e "s/\r//"       $@.bf.tmp > b$(S).txt
 	tail -n4 b$(S).txt
 	wc -l    b$(S).txt
+regen2:
+	make -f  regen.make.tmp | grep -viE "^(cd|java|make)" > b$(S).txt
 #----
 diffo: # S=012345
-	diff -w -y --suppress-common-lines --width=$(WIDTH) b$(S).old b$(S).txt | head -n16
+	diff -w -y --suppress-common-lines --width=$(WIDTH) oeis.org/b$(S).txt b$(S).txt | head -n16
 check: diffo # S=012345
-	grep -vE "^\#" b$(S).txt | sed -e "s/^[ \t]*[0-9][0-9]*[ \t]*//" > $@.new.tmp
-	grep -vE "^\#" b$(S).old | sed -e "s/^[ \t]*[0-9][0-9]*[ \t]*//" > $@.old.tmp
+	grep -vE "^\#" oeis.org/b$(S).txt | sed -e "s/^[ \t]*[0-9][0-9]*[ \t]*//" > $@.old.tmp
+	grep -vE "^\#"          b$(S).txt | sed -e "s/^[ \t]*[0-9][0-9]*[ \t]*//" > $@.new.tmp
 	diff -w -y --suppress-common-lines --width=$(WIDTH) $@.old.tmp $@.new.tmp | head -n16
 #----
 distrib: # S=012345
-	cp -v b$(S).txt                              $(COMMON)/bfile/
-	scp   b$(S).txt gfis@atair:~/work/gits/OEIS-mat/common/bfile/
+	cp -v          b$(S).txt                              $(COMMON)/bfile/
+	scp            b$(S).txt gfis@atair:~/work/gits/OEIS-mat/common/bfile/
+distrio: # S=012345
+	cp -v oeis.org/b$(S).txt                              $(COMMON)/bfile/
+	scp   oeis.org/b$(S).txt gfis@atair:~/work/gits/OEIS-mat/common/bfile/
+#-----------------
+jallrest:
+	cut -b2-7 $(FISCHER)/jallrest1.gen \
+	| head -n22222 \
+	| xargs -l -i{} make wgeto diffo distrio S={}
+jall1:
+	ls -1 oeis.org | perl -ne 'm{(\d+)}; print "$$1\n";' \
+	| head -n22222 \
+	| xargs -l -i{} make distrio S={}
 #================
 MAILBOX="C:/Users/User/AppData/Roaming/Thunderbird/Profiles/4yg92219.default/Mail/Local Folders/Hobby.sbd/seqfan.sbd/changes"
 changes:

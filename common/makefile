@@ -329,6 +329,7 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	|| '% of OEIS sequences are implemented in jOEIS' FROM ( \
 	(SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 , \
 	(SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 );"
+	#************************************************************************
 joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
@@ -424,6 +425,10 @@ uncat_date1:
 uncat_date2:
 	make seq2 LIST=uncat_date1.tmp
 uncat_date3:
-
+#------------
+weidis:
+	perl uncat25.pl -m text cat25.txt
+	mkdir -f ../weidis/atext
+	cut -b 1-7 ../weidis/gather1.tmp | xargs -l -innn cp -v atext/nnn.txt ../weidis/atext
 #################################
 old_targets:

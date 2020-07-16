@@ -12,7 +12,7 @@
 #:#   perl uncat25.pl -m json cat25.txt (split into tardir/*.json, nyi)
 #:#   perl uncat25.pl -m text cat25.txt (split into tardir/*.txt, default)
 #:#       -o target directory, default "./atext"
-#:#       -d 0 (none), 1 (more), 2 (most)
+#:#       -d debug level, 0 (none), 1 (more), 2 (most)
 #:#       -i (do not ignore missing JSON "id")
 #---------------------------------
 use strict;

@@ -2,7 +2,7 @@
 
 # Read a b-file for a weight distribution sequence and print the prime factorizations
 # @(#) $Id$
-# 2020-04-14, Georg Fischer: copied from $(HOLREC)/holnaple.pl
+# 2020-04-14, Georg Fischer: copied from $(HOLREC)/holmaple.pl
 #
 #:# Usage:
 #:#   perl weight_dist.pl [-s aseqno] b-file [-o outfile]
