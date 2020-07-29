@@ -116,6 +116,20 @@ same1: # throw all terms on a big pile and sort them
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
+fini10:
+	$(DBAT) -x "SELECT i.aseqno, SUBSTR(d.data,1,20), i.keyword, j.superclass, n.name \
+	  FROM asdata d, asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE d.aseqno = i.aseqno \
+	    AND i.aseqno = n.aseqno \
+	    AND i.keyword LIKE '%fini%' \
+	    AND d.data LIKE '1,0%' \
+	    AND n.name NOT LIKE 'Weight distribution%' \
+	    ORDER BY 1" \
+	| sed -e "s/\tnonn,/\t/" -e "s/,changed//" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
 test1:
 	# wget -N "https://oeis.org/b151939.txt"
 	head -n1600 b151939.txt \

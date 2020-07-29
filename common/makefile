@@ -308,7 +308,7 @@ joeis_load: # populate a table with A-numbers and superclass names of implemente
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
 	$(DBAT) -x "SELECT n.aseqno, substr(j.superclass, 1, 16), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
-	FROM  asinfo a, asname n , bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
+	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
 	ORDER BY 1" \
@@ -334,6 +334,34 @@ joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
 	$(DBAT) -4 joeis
+#----
+joeis_block: joeis_block1 joeis_block2 joeis_block3
+joeis_block1:
+	cat asname.txt | perl -ne 'use strict; s/\s+\Z//; my ($$aseqno, $$name) = split(/\t/); '\
+	'  $$name =~ m{(\w\w+|\w\W[\(\,\+\)\w]+ *\=* *)}; my $$word = $$1; $$word =~ s{ }{}g; '\
+	'  print join("\t", $$aseqno, $$word) . "\n"; '\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	make seq2 LIST=$@.tmp
+joeis_block2:
+	$(DBAT) -x -s "#" "SELECT n.aseqno, s.info, i.author, substr(j.superclass, 1, 7), n.name, i.keyword, b.bfimin || '..' || b.bfimax \
+	FROM  asinfo i, asname n, seq2 s, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
+	WHERE i.aseqno = n.aseqno \
+	  and i.aseqno = b.aseqno \
+	  and i.aseqno = s.aseqno \
+	ORDER BY 1" \
+	| perl -pe "s{\'\'}{\'}g; s{\_}{}g; s{\, (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d\d \d\d\d\d}{}; " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+joeis_block3: 
+	sed -e "s/\t/\#/g" joeis_block2.tmp \
+	| sort -t"#" -k3 -k2 -k5 -k4r -k1 \
+	| sed -e "s/\#/\t/g" \
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
 #--------
 cojec:
 	grep -Ei "Conjecture"  cat25.txt | grep -E "Colin Barker" \

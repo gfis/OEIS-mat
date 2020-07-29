@@ -449,46 +449,6 @@ seq: # parameter: $(LIST)
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #======================================================
-linrec: lrlink lrindx 
-# lrload ???
-# linrec_link linrec_mmacall linrec_wget linrec_index
-#--
-lrlink: lrlink0 lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
-lrlink0:
-	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
-	"Index entries for linear recurrence" > lrlink1.tmp || :
-	head -n4 lrlink1.tmp
-	wc   -l  lrlink1.tmp
-lrlink2:
-	perl extract_linrec.pl -m link          lrlink1.tmp \
-	| $(SORTALLN) \
-	| uniq \
-	| grep -vE "01174[05]" \
-	> lrlink2.tmp
-	wc -l lrlink*.tmp
-lrlink3:
-	perl extract_linrec.pl -m lrlink > lrlink.create.sql
-	$(DBAT) -f                         lrlink.create.sql
-	$(DBAT) -m csv -s "\t" -r lrlink < lrlink2.tmp
-	$(DBAT) -n lrlink
-	$(DBAT) -4 lrlink
-#--
-lrlink_patch:
-	$(DBAT) -n lrlink
-	$(DBAT) -v "DELETE FROM lrlink where lorder <> 88888888 AND lorder >= 2800;"
-	$(DBAT) -v "UPDATE lrlink SET lorder = sigorder WHERE lorder = 88888888;"
-	$(DBAT) -n lrlink
-#----
-lrlink_check: # Lin. rec. link, but no index entry
-	$(DBAT) "SELECT 'A' || seqno, lorder, compsig, sigorder, signature, '#' \
-	FROM lrlink \
-	WHERE seqno NOT IN (SELECT seqno FROM lrindx) \
-	  AND lorder < 2800 \
-	ORDER by 1" \
-	| sed -e "s/\r//" \
-	>       $@.txt
-	head -4 $@.txt	
-	wc -l   $@.txt
 #-------------
 lrmmac: lrmmac1 lrmmac2 lrmmac3
 lrmmac1: # extract MMA LinearRecurrence calls from ./ajson 
@@ -527,101 +487,11 @@ mmac_err02:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #---------------
-lrlord_check: # Compare orders in lin. rec. links
-	# Link was to wrong order.
-	$(DBAT) "SELECT 'A' || seqno AS aseqno, lorder, sigorder, signature \
-	FROM lrlink \
-	WHERE lorder    <> sigorder \
-	  AND sigorder  <> 0 \
-	  AND signature <> '88888888' \
-	ORDER by 1" \
-	| sed -e "s/\r//" \
-	>       $@.txt
-	head -4 $@.txt	
-	wc -l   $@.txt
-lrlord_patch:
-	$(DBAT) -v "UPDATE lrlink SET sigorder = lorder WHERE seqno = '322829';"
-	make seq LIST=lrlord_check.man
-	$(DBAT) -v "UPDATE lrlink SET lorder = sigorder WHERE 'A' || seqno IN \
-		(SELECT aseqno FROM seq);"
-lriord_check: # Compare orders in lin. rec. index
-	$(DBAT) "SELECT 'A' || seqno AS aseqno, lorder, sigorder, compsig, signature \
-	FROM lrindx \
-	WHERE lorder <> sigorder \
-	AND   compsig NOT LIKE '%888888' \
-	ORDER by 1" \
-	| sed -e "s/\r//" \
-	>       $@.txt
-	head -4 $@.txt	
-	wc -l   $@.txt
-#----
-lrlink_insert: lrlink_insert1 lrlink_insert2
-lrlink_insert1:
-	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, '#<strong>' \
-	FROM lrlink \
-	WHERE seqno NOT IN (SELECT seqno FROM lrindx) \
-	  AND lorder < 2800 \
-	ORDER by 1" \
-	| sed -e "s/\r//" \
-	>       $@.txt
-	head -4 $@.txt	
-	wc -l   $@.txt
-lrlink_insert2:
-	$(DBAT) -n lrindx
-	$(DBAT) -m csv -s "\t" -r lrindx < lrlink_insert1.txt
-	$(DBAT) -4 lrindx
-	$(DBAT) -n lrindx
 #-----
 lrperiod:
 	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
 	"Index entries for periodic sequences with large period" \
 	> $@.tmp
-#----------------------
-lrindx: lrindx_a lrindx_b lrindx_c
-lrindx_a: lrindx0 lrindx1 lrindx2 
-lrindx_b: lrlink_insert
-lrindx_c: lrindx3 lrindx4 lrindx5
-#
-lrindx0:
-	rm -f lrindx.raw
-	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
-lrindx1:
-	# sed -e "s/:signature */:/" -e "s/=====/====/g" lrindx.raw \
-	# | grep -vE "^ *$$" \
-	cat lrindx.raw \
-	| sed -e "s/<\/?strong>//g" \
-	> lrindx.wiki
-	echo >> lrindx.wiki # append linefeed
-	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
-	perl extract_linrec.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki \
-	| sed -e "s/<\/?strong>//g" \
-	> lrindx.tmp
-lrindx2:
-	perl extract_linrec.pl -d $(D) -m lrindx \
-			>  lrindx.create.sql
-	$(DBAT) -f lrindx.create.sql
-	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
-	$(DBAT) -n                lrindx
-	$(DBAT) -4 lrindx
-lrindx3:
-	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, comment \
-		FROM lrindx " \
-	| sed -e "s/\r//" \
-	| $(SORTALLN) \
-	| perl -ne "s/\'\'/\'/g; print;" \
-	> lrindx.sort.tmp
-	# diff -wy --suppress-common-lines lrindx.tmp lrindx.sort.tmp || :  
-	# diff -C0 -w                      lrindx.tmp lrindx.sort.tmp || :
-lrindx4:
-	perl extract_linrec.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
-	> lrindx.new.tmp
-	# | grep -vE "^ *$$"
-	tail -2 lrindx.new.tmp | hexdump -C
-	wc -l lrindx.new.tmp 
-lrindx5:
-	wc -l      lrindx.wiki lrindx.new.tmp 
-	diff -C0                          lrindx.wiki lrindx.new.tmp > lrindx.diffc.tmp || :
-	diff -wy --suppress-common-lines  lrindx.wiki lrindx.new.tmp > lrindx.diffy.tmp || :
 #-------------------------------------
 lrtest: lrtest0 lrtest1 lrindx2 lrindx3 lrindx4 lrtest5
 lrtest0:

@@ -544,11 +544,8 @@ sub extract_from_bfile {
         print STDERR "# $filename: $aseqno\t$message\n";
     }
     if ($action =~ m{t}) { # bfdata
-        print join("\t",
-        ($aseqno
-				, $termno
-        , substr($terms,   1) # remove 1st comma
-        )) . "\n";
+        print join("\t", $aseqno, $termno, substr($terms,   1) # remove 1st comma
+            )) . "\n";
     } else { # normal bfinfo
         print join("\t",  
         ( $aseqno

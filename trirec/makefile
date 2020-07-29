@@ -159,9 +159,14 @@ trigen:
 	head -n 4 $@.tmp
 	wc -l     $@.tmp  
 trigen1:
-	perl extract_trigen1.pl trigen.tmp > $@.tmp  
+	perl extract_trigen1.pl   trigen.tmp > $@.tmp  
 	head -n 4 $@.tmp
 	wc -l     $@.tmp  
+triknoll:
+	perl tricheck.pl -b ../common/bfile -m knoll trigen.tmp > $@.tmp 
+	# 2> $@.viol.tmp 
+	head -n 4 $@.tmp
+	wc -l     $@.*tmp  
 #--------
 # Triangle recurrences
 trec:

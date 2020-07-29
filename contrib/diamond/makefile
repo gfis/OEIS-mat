@@ -1,26 +1,58 @@
 #!make
 
-# makefile for Gfis's OEIS contributions
+# makefile for Gfis's OEIS contributions - diamond structure repair A358*
 # @(#) $Id$
 # 2020-06-23: check, distrib
 # 2019-10-27, Georg Fischer
 
-GITS=../..
+GITS=../../..
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 COMMON=$(GITS)/OEIS-mat/common
 BFILE=$(COMMON)/bfile
 JOEIS=$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
+MAXT=201
+OFFSET=0
+SEQT=java -cp "$(LITE)/dist/joeis-lite.jar;$(JOEIS)/build.tmp/joeis.jar" irvine.test.SequenceTest
 SHIFT=+1
 WIDTH=64
 SLEEP=1
 HEAD=16
-OFFSET=0
+BFILE=b`echo $(ASEQNO) | cut -b2-`.txt
 #----------------
 all:
 	grep -E "^[a-z]" makefile
 	# parameter S=seqno SLEEP=$(SLEEP) SHIFT=$(SHIFT) WIDTH=$(WIDTH)
+#================
+sed: # $(ASEQNO): print data terms
+	$(SEQT) $(ASEQNO) | tee $(ASEQNO).data.tmp
+	cat $(ASEQNO).data.tmp | clip
+seb: # $(ASEQNO): print b-file with $(MAXT) terms
+	$(SEQT) $(ASEQNO) $(MAXT) $(OFFSET) > $(BFILE)
+	head -n4 $(BFILE)
+	tail -n4 $(BFILE)
+	# echo C:/users/user/work/gits/OEIS-mat/contrib/diamond/$(BFILE) | clip
+LIST=ddp.list.tmp
+list: # make a list of ASEQNO
+	cut -b1-7 $(FISCHER)/latcoddp.fail.log \
+	| grep -v restart \
+	>        $(LIST)
+	head -n4 $(LIST)
+	wc -l    $(LIST)
+occur:
+	grep -f ddp.list.tmp ../../common/cat25.txt | tee ddp.occur.tmp
+hyg:
+	grep -f ddp.list.tmp ../../common/cat25.txt | grep -iE hypergeo | tee ddp.hyg.tmp
+process:
+	head -n2222 $(LIST) \
+	| xargs -l -innn make process1 ASEQNO=nnn
+edit:
+	grep -E "$(GREP)" $(LIST) \
+	| xargs -l -innn cmd /C start chrome https://oeis.org/edit?seq=nnn#
+process1:
+	make sed 
+	make seb
 #================
 refresh:
 	cut -b2-7 refresh.list.man \
@@ -42,13 +74,6 @@ shiftp: # shift +1
 shifto: # shift, from ./oeis.org/ to here
 	perl ../bfcheck/bfclean.pl $(SHIFT) -f oeis.org/b$(S).txt b$(S).txt
 	uedit64 b$(S).txt
-#----
-mma: # $(OFFSET); from program from clipboard, writes b-file into current directory
-	powershell Get-Clipboard \
-	| perl -ne 's{\s+\Z}{}; print "(* <<SpecialFunctions` *)\n\n"; print "Print[$$_]\n"; ' \
-	| tee mma.1.tmp
-	perl -e 'print "A$(S)\t\t\n";' | tee mma.2.tmp
-	perl $(COMMON)/callmma.pl -b -o $(OFFSET) -p mma.1.txt mma.2.tmp | tee b$(S).txt
 #----
 regen: # parameter S=012345
 	echo "all: # for b$(S).txt" > $@.make.tmp
@@ -85,13 +110,6 @@ distrib: # S=012345, copy from here to common/bfile
 distrio: # S=012345, copy from ./oeis.org/ to common/bfile
 	cp -v oeis.org/b$(S).txt                              $(COMMON)/bfile/
 	scp   oeis.org/b$(S).txt gfis@atair:~/work/gits/OEIS-mat/common/bfile/
-#----
-getatair:
-	cut -b2-7 atair.list.man \
-	| head -n22222 \
-	| xargs -l -innn make getatair1 S=nnn
-getatair1:
-	scp gfis@atair:~/work/gits/OEIS-mat/common/bfile/b$(S).txt $(COMMON)/bfile/b$(S).txt
 #-----------------
 jallrest:
 	cut -b2-7 $(FISCHER)/jallrest1.gen \

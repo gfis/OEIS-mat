@@ -24,17 +24,20 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
 	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) 
 #======================================================
-all:
-	grep -E "^[a-z]" makefile
+all: lrindex
+	# grep -E "^[a-z]" makefile
 #======================================================
 lrindex: lr0 lrlink lrindx 
 lr0:
-	$(DBAT) "DROP    TABLE  IF EXISTS lrindx;"
-	$(DBAT) "DROP    TABLE  IF EXISTS lrlink;"
+	perl extract_lrindex.pl -d $(D) -m lrindx > lrindx.create.sql
+	$(DBAT) -f                                  lrindx.create.sql
+	perl extract_lrindex.pl -d $(D) -m lrlink > lrlink.create.sql
+	$(DBAT) -f                                  lrlink.create.sql
 #--
 lrlink_prep: # extract all links (faster on Linux)
-	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -iH \
-	"Index entries for linear recurrence" > lrlink1.tmp || :
+	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
+	"Index entries for linear recurrence" \
+	>        lrlink1.tmp || :
 	head -n4 lrlink1.tmp
 	wc   -l  lrlink1.tmp
 #----
@@ -47,8 +50,6 @@ lrlink2:
 	> lrlink2.tmp
 	wc -l lrlink*.tmp
 lrlink3:
-	perl extract_lrindex.pl -m lrlink > lrlink.create.sql
-	$(DBAT) -f                          lrlink.create.sql
 	$(DBAT) -m csv -s "\t" -r lrlink <  lrlink2.tmp
 	$(DBAT) -n lrlink
 	$(DBAT) -4 lrlink
@@ -97,6 +98,31 @@ lriord_check: # Compare orders in lin. rec. index
 	>       $@.txt
 	head -4 $@.txt	
 	wc -l   $@.txt
+#----------------------
+lrindx:      lrindx_pre lrlink_insert lrindx_post
+lrindx_pre:  lrindx0 lrindx1 lrindx2 
+lrindx_post: lrindx3 lrindx4 lrindx5
+#----
+lrindx0:
+	rm -f lrindx.raw
+	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
+lrindx1:
+	cat lrindx.raw \
+	| perl -pe 's/\<\/?strong\>//g; s/\:\(0\,0\,1\,1\,1\,1\)\:/\:\(0\,0\,1\,1\,1\,1\)\: A245596/; s/\:\(0\,0\,1\,1\,1\,1\) A245596//; ' \
+	>       lrindx.wiki
+	# :(0,0,1,1,1,1):
+	# :(0,0,1,1,1,1,1,1): A180158
+	# :(0,0,1,1,1,1) A245596
+	grep strong lrindx.wiki || :
+	echo >> lrindx.wiki # append linefeed
+	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
+	perl extract_lrindex.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki \
+	>           lrindx.tmp
+lrindx2:
+	$(DBAT) "DELETE FROM lrindx"
+	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
+	$(DBAT) -n                lrindx
+	$(DBAT) -4 lrindx
 #--------
 lrlink_insert: lrlink_insert1 lrlink_insert2
 lrlink_insert1:
@@ -114,29 +140,6 @@ lrlink_insert2:
 	$(DBAT) -m csv -s "\t" -r lrindx < lrlink_insert1.txt
 	$(DBAT) -4 lrindx
 	$(DBAT) -n lrindx
-#----------------------
-lrindx:      lrindx_pre lrlink_insert lrindx_post
-lrindx_pre:  lrindx0 lrindx1 lrindx2 
-lrindx_post: lrindx3 lrindx4 lrindx5
-#----
-lrindx0:
-	rm -f lrindx.raw
-	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
-lrindx1:
-	cat lrindx.raw \
-	| perl -pe 's/\<\/?strong\>//g;' \
-	> lrindx.wiki
-	grep strong lrindx.wiki || :
-	echo >> lrindx.wiki # append linefeed
-	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
-	perl extract_lrindex.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki \
-			> lrindx.tmp
-lrindx2:
-	perl extract_lrindex.pl -d $(D) -m lrindx > lrindx.create.sql
-	$(DBAT) -f                                  lrindx.create.sql
-	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
-	$(DBAT) -n                lrindx
-	$(DBAT) -4 lrindx
 #--
 lrindx3:
 	$(DBAT) -x "SELECT lorder, compsig, seqno, sigorder, signature, comment \

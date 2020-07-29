@@ -679,6 +679,10 @@ bcheck1:
 zip:
 	zip coors.`date +%Y-%m-%d.%H`.zip *.java *.pl makefile Test.svg test.tmp *.css
 #================
+# Lattices 2020-07-19
+lataguess:
+	perl $(COMMON)/callmaple.pl -p guessgf.mpat lata.man
+#================
 # old targets
 circle:
 	java  -cp . Tiler -d 2 -m $(LEVEL) -svg $@.svg -circle 
