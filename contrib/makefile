@@ -43,12 +43,12 @@ shifto: # shift, from ./oeis.org/ to here
 	perl ../bfcheck/bfclean.pl $(SHIFT) -f oeis.org/b$(S).txt b$(S).txt
 	uedit64 b$(S).txt
 #----
-mma: # $(OFFSET); from program from clipboard, writes b-file into current directory
+mma: # $(S), $(OFFSET); from program from clipboard, writes b-file into current directory
 	powershell Get-Clipboard \
 	| perl -ne 's{\s+\Z}{}; print "(* <<SpecialFunctions` *)\n\n"; print "Print[$$_]\n"; ' \
 	| tee mma.1.tmp
 	perl -e 'print "A$(S)\t\t\n";' | tee mma.2.tmp
-	perl $(COMMON)/callmma.pl -b -o $(OFFSET) -p mma.1.txt mma.2.tmp | tee b$(S).txt
+	perl $(COMMON)/callmma.pl -b -o $(OFFSET) -p mma.1.tmp mma.2.tmp | tee b$(S).txt
 #----
 regen: # parameter S=012345
 	echo "all: # for b$(S).txt" > $@.make.tmp

@@ -44,6 +44,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my @t; # triangular matrix
 my $line;
 my $aseqno;
+my $errmess = "knoll";
+
 while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
@@ -80,6 +82,7 @@ while (<>) {
             my $term0 = &get($n, 0);
             if ($term0 != 1 and $term0 != -1) { # check +/-1 at start and end
                 $ok = 0;
+                $errmess = "+/-1 at T($n,$k)";
                 if ($debug >= 1) {
                     print "# violates +/-1 at T($n,$k)\n";
                 }
@@ -88,6 +91,7 @@ while (<>) {
                 while ($ok == 1 and $k <= $n - $k) {
                     if (&get($n, $k) != &get($n, $n - $k)) {
                         $ok = 0;
+                        $errmess = "T($n,$k)=" . &get($n, $k) . " != T($n," . ($n-$k) . ")=" . &get($n, $n - $k);
                         if ($debug >= 1) {
                             print "# violates symmetricity at T($n,$k)\n";
                         }       
@@ -99,13 +103,13 @@ while (<>) {
                 $rowok = $n;
             } else {
                 if ($rowok >= $errlim) {
-                    print "# $aseqno violation at row $n - possible error\n";
+                    print "# $aseqno knoll violation at row $n - possible error: $errmess\n";
                 }
             }
             $n ++;
         } # each row
         if ($nmax >= 3 and $ok == 1) {
-            print join("\t", $aseqno, "triknoll", join(",", splice(@terms, 0, $ffind))) . "\n";
+            print join("\t", $aseqno, "triknoll", $errmess) . "\n";
         }
         if ($debug >= 1) { # debug
             for ($n = 0; $n <= $nmax; $n++) {
@@ -118,10 +122,50 @@ while (<>) {
     } # with A-number
 } # while <>
 #----
-sub get {
+sub get { # n, k
     my ($n, $k) = @_;
     return ($k >= 0 and $k <= $n) ? ($t[$n][$k]) : 0;
 } # get
+#----
+sub get_row { # n = row number
+    my ($n) = @_;
+    my $k;
+    my @row = ();
+    for ($k = 0; $k <= $n; $k ++) {
+        push(@row, &get($n, $k));
+    } # for k
+    return @row;
+} # get_row
+#----
+sub check_knoll { # check row n for start, end = +/-1 and symmetricity
+    my ($n) = @_;
+    my $k;
+    my $ok = 1;
+    my @row = &get_row($n);
+    my $term0 = &get($n, 0);
+    if ($term0 != 1 and $term0 != -1) { # check +/-1 at start and end
+        $ok = 0;
+        if ($debug >= 1) {
+            print "# violates +/-1 at T($n,$k)\n";
+        }
+    } else { # check symmetricity
+        $k = 0;
+        while ($ok == 1 and $k <= $n - $k) {
+            if (&get($n, $k) != &get($n, $n - $k)) {
+                $ok = 0;
+                if ($debug >= 1) {
+                    print "# violates symmetricity at T($n,$k)\n";
+                }       
+            }
+            $k ++;
+        } # while symmetric
+    } # symmetricity
+    
+    for ($k = 0; $k <= $n; $k ++) {
+        push(@row, &get($n, $k));
+    }
+    return $ok;
+} # check_knoll
 #----
 sub read_bfile {
     my ($aseqno) = @_;
