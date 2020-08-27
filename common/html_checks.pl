@@ -2,6 +2,7 @@
 
 # Convert a tsv file *_check.txt into HTML
 # @(#) $Id$
+# 2020-08-14: links optionally with editing in internal format
 # 2020-03-23: links on all A-numbers
 # 2019-04-12, Georg Fischer: copied from ../bfcheck/tsv_html.pl
 #
@@ -11,13 +12,13 @@
 #:#       -term write trailer of index file
 #:#       -var  write table of deviations (default)
 #:#       -m    take the comments from this makefile (default: checks.make, for -var only)
+#:#       -e    link to edit in internal format
 #:#---------------------------------
 use strict;
 use integer;
 my $index_name = "check_index.html";
 my $make_name  = "checks.make";
-my $oeis_url   = "https://oeis.org/";
-# $oeis_url      = "http://localhost/cgi-bin/oeis.pl?&aseqno=";
+
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"  #:%02d\+01:00"
         , $year + 1900, $mon + 1, $mday, $hour, $min); # , $sec, $isdst);
@@ -27,12 +28,15 @@ if (scalar(@ARGV) == 0) { # print help and exit
   print `grep -E "^#:#" $0 | cut -b3-`;
   exit;
 } # print help
+my $edit = 0; # no edit link
 
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{(init)}) {
       $mode = $1;
+    } elsif ($opt  =~ m{\A\-e}) {
+      $edit = 1;
     } elsif ($opt  =~ m{(term)}) {
       $mode = $1;
     } elsif ($opt  =~ m{(var)}) {
@@ -43,6 +47,12 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
+
+my $oeis_url   = "https://oeis.org/";
+# $oeis_url      = "http://localhost/cgi-bin/oeis.pl?&aseqno=";
+if ($edit > 0) {
+	$oeis_url .= "edit?&internal=1&seq=";
+}
 
 my $target = "Check";
 my $title  = "Check";

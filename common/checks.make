@@ -16,6 +16,7 @@ PULL=../pull
 D=0
 RALEN=350
 LIST=computed.log
+EDIT=
 #--------
 
 all:
@@ -72,7 +73,7 @@ html_checks:
 	| xargs -l -i{} make -f checks.make -s html_check1 FILE={}
 	perl html_checks.pl -term eval_checks.lst >> check_index.html
 html_check1:
-	perl html_checks.pl -m checks.make $(FILE).txt > $(FILE).html
+	perl html_checks.pl $(EDIT) -m checks.make $(FILE).txt > $(FILE).html
 deploy_checks:
 	scp *check*.html gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/common/
 #----------------
@@ -187,7 +188,10 @@ bfsize_check: # Compare <em>bfilelist</em> with local b-file sizes (without draf
 #   	        OR substr(d.created, 1, 10)  <> substr(b.access, 1, 10)s \
 #		, d.filesize - b.filesize \
 #--------------------------------
-brol_check: joeis_check
+brol_check: # LIST= 
+	echo "A-number	Link" > $@.txt
+	cat $(LIST)          >> $@.txt
+	make -f checks.make html_check1 EDIT=-e FILE=brol_check
 #--------------------------------
 cojec_check: # Conjectured and in joeis
 	$(DBAT) "SELECT j.aseqno, j.superclass, a.keyword, a.program \

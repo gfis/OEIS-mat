@@ -2,6 +2,7 @@
 
 # Call Mathematica with some pattern 
 # @(#) $Id$
+# 2020-08-19: piras -> bluepi, SpecialFunctions.m autoloaded
 # 2020-05-14, Georg Fischer: copied from callmaple.pl
 # 
 #:# Usage:
@@ -36,10 +37,9 @@ my $mmanum  = 64;
 my $timeout = 16;
 my $bfile   = 0;
 my $offset  = 0;
-my $mma_server =  "pi\@piras";
+my $mma_server =  "pi\@bluepi";
 my $pattern_file = "";
 my $pattern = <<'Gfis';
-(* <<SpecialFunctions` *)
 
 Print["$(PARM0)\t$(PARM1)\t", InputForm[Simplify[$(PARM2)]]];
 Gfis

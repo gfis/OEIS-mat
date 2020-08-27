@@ -307,7 +307,7 @@ joeis_load: # populate a table with A-numbers and superclass names of implemente
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	$(DBAT) -x "SELECT n.aseqno, substr(j.superclass, 1, 16), n.name, a.keyword, b.bfimin || '..' || b.bfimax \
+	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
