@@ -106,7 +106,7 @@ jall1:
 	| xargs -l -i{} make distrio S={}
 #================
 MAILBOX="C:/Users/User/AppData/Roaming/Thunderbird/Profiles/4yg92219.default/Mail/Local Folders/Hobby.sbd/seqfan.sbd/changes"
-changes:
+change:
 	grep -E "published your |^From -" $(MAILBOX) \
 	| perl -ne 'if (m{published}) { m{(A\d{6})}; print "$$1\n"; }' \
 	| tee $@.tmp

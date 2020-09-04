@@ -296,8 +296,8 @@ full_check: # Keyword "full" and not "synth"
 #---------------------------
 joeis_check: # parameter: LOG in joeis-lite/internal/fischer
 	echo "A_Number	bfimax	Status	Expected	Computed" > $@.txt
-	gawk -e '{ print $$1 "\t" $$2 "\t" substr($$3,0,8) "\t" substr($$4,0,32) "...\t" substr($$6,0,32) }' \
-		$(FISCHER)/$(LOG).fail.log \
+	grep -E "^A[0-9]" $(FISCHER)/$(LOG).fail.log \
+	| gawk -e '{ print $$1 "\t" $$2 "\t" substr($$3,0,8) "\t" substr($$4,0,32) "...\t" substr($$6,0,32) }' \
 	| perl -pe "s{\.\.\.}{ ms} if m{pass};" \
 	>>       $@.txt
 	wc -l    $@.txt
