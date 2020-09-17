@@ -22,8 +22,8 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
 G=n
-NMAX=80
-CMAX=200
+NMAX=40
+CMAX=140
 #-------------
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -268,7 +268,7 @@ bfinfo: # parameter: DIR
 	make bfinfo_extract DIR=.
 bfinfo_extract:
 	perl extract_info.pl -br $(DIR)/bfile > bfinfo.txt
-	cp bfinfo.txt bfinfo.`date +%Y-%m-%d.%H_%M`.txt
+	# cp bfinfo.txt bfinfo.`date +%Y-%m-%d.%H_%M`.txt
 	wc -l bfinfo.txt
 bfinfo_load:
 	perl extract_info.pl -bc | tee bfinfo.create.sql

@@ -4,7 +4,7 @@
 # A035536 - Maple from Alois Heinz converted to Perl
 # 2020-09-04, Georg Fischer
 #
-# A035536 Number of partitions of n with equal number of parts congruent to each of 1 and 2 (mod 3)
+# A035537 null Number of partitions of n with equal nonzero number of parts congruent to each of 0 and 1 (mod 3).	nonn,synth	0..54
 
 use strict;
 use integer;
@@ -13,7 +13,7 @@ no warnings 'recursion';
 
 my $maple = <<'GFis';
     b := proc(n, i, c) option remember; `if`(n=0,
-      `if`(c=0, 1, 0), `if`(i<1, 0, b(n, i-1, c)+
+      `if`(c = 0, 1, 0), `if`(i<1, 0, b(n, i-1, c)+
        b(n-i, min(n-i, i), c+[0, 1, -1][1+irem(i, 3)])))
     end:
     seq(b(n,n, 0), n=0..32);
@@ -27,8 +27,7 @@ for (my $n = 0; $n <= $max; $n ++) {
 #----
 sub b {
     my ($n, $i, $c) = @_;
-    my $key = "$n,$i,$c"; # ,$c"};
-    my $result = $optrem{$key};
+    my $result = $optrem{"$n,$i,$c"};
     if (! defined($result)) {
         if ($n == 0) {
             $result = ($c == 0) ? 1 : 0;
@@ -42,7 +41,7 @@ sub b {
                             , $c + (0, 1, -1)[$i % 3]);
             }
         }
-        $optrem{$key} = $result;
+        $optrem{"$n,$i,$c"} = $result;
     }
     return $result;
 } # b
