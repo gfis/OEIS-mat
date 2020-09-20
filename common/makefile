@@ -437,6 +437,18 @@ bfresh.remote:
 	mkdir temp
 	cat bfresh.tmp | xargs -l -i{} cp bfile/{} temp/{}
 	cd temp ; tar -czvf ../bfresh.tgz *.txt
+#----
+partial:
+ajpartial:
+	find ajson -type f -iname "A*.js*" -ctime -180 | sort > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+	tar -czvf ajson.`date +%Y-%m-%d.%H`.tgz --files-from=$@.tmp
+bfpartial:
+	find bfile -type f -iname "b*.txt" -ctime -180 | sort > $@.tmp
+	tar -czvf bfile.`date +%Y-%m-%d.%H`.tgz --files-from=$@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
 #----------------------------
 uncat_diff:
 	perl -w uncat25.pl -m comp -o ./ajson cat25.txt \

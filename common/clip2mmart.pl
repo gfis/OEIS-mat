@@ -38,7 +38,7 @@ $clip =~ s{\=}{==}g;
 my $brcount = $clip =~ s{a\(([^\)]+)\)}{a\[$1\]}g;
 my $result = "RecurrenceTable\[\{$clip";
 for my $ind (0..$brcount - 1) {
-	$result .= ",a[$ind]=="
+    $result .= ",a[$ind]=="
 }
 $result .= "\},a\[n\],\{n,0,10\}\]\n";
 print $result;
