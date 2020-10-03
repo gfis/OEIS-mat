@@ -60,29 +60,33 @@ table.sortable thead {
 td,th
 	{ vertical-align:top; margin:0px; 
 	  padding-top:0px; padding-bottom: 0px;padding-left:4px; padding-right:4px; 
-	  border-top:2px solid #aaa; /* border-left:2px solid #aaa; border-right:1px solid #aaa; */ }
+	  border-left:   1px solid #aaa;
+	  border-right:  1px solid #aaa;
+	  border-top:    1px solid #aaa;
+	  border-bottom: 1px solid #aaa;
+	  }
 .visible   
 	{ color:black; 
-	  border-left: 1px solid #aaa;
-	  border-right: 1px solid #aaa;
-	  border-top: 1px solid #aaa;
+	  border-left:   1px solid #aaa;
+	  border-right:  1px solid #aaa;
+	  border-top:    1px solid #aaa;
 	  border-bottom: none;
 	}
 .invisible 
 	{ color:lightyellow; 	
 	/*
-	  border-left: 1px solid #aaa;
-	  border-right: 1px solid #aaa;
+	  border-left:   1px solid #aaa;
+	  border-right:  1px solid #aaa;
 	*/
-	  border-top: none;
+	  border-top:    none;
 	  border-bottom: none;
 	}
 .counter   
-	{ color:black; background:white;
-	  border-left: 1px solid #aaa;
-	  border-right: none;
-	  border-top: 1px solid #aaa;
-	  border-bottom: none;
+	{ color:black;   background:white;
+	  border-left:   1px solid #aaa;
+	  border-right:  1px solid #aaa;
+	  border-top:    1px solid #aaa;
+	  border-bottom: 1px solid #aaa;
 	}
 .bold	
 	{ font-weight:bold; }

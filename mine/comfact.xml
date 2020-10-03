@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    2020-09-23, Georg FIscher: for Hugo
+-->
+<dbat   xmlns   ="http://www.teherba.org/2007/dbat"
+        xmlns:ht="http://www.w3.org/1999/xhtml"
+        target="_blank"
+        javascript="./javascript.js"
+        stylesheet="./stylesheet.css"
+        title="comfact"
+        conn="worddb"
+        >
+    <ht:h3><ht:a href="https://oeis.org">OEIS</ht:a> sequences with a common factor</ht:h3>
+    The third column <ht:em>ofs-1</ht:em> is -1 if all terms can be divided by the GCD,
+    or the zero-based number of the lowest term which is not divisible by the GCD.<br />
+    Questions, suggestions: email <ht:a href="mailto:georg.fischer@t-online.de">Georg Fischer</ht:a>;
+    raw data table: <ht:a href="comfact2.bf.txt">comfact.bf.txt</ht:a>
+    <select>
+        <col label="A-number" sep="*" wrap="javascript">
+            'url*https://oeis.org/' || s.aseqno
+            || '*' || s.aseqno
+            </col>
+        <col label="GCD" align="right">s.pattern</col>
+        <col label="ofs-1" align="right">s.info</col>
+        <col label="B-file range">CAST(b.bfimin AS INT) || '..' || CAST(b.bfimax AS INT)</col>
+        <col label="Name">substr(n.name, 1, 64)
+            || (CASE WHEN LENGTH(n.name) > 64 THEN ' ...' ELSE '' END)</col>
+        <from>seq3 s, asname n, bfinfo b</from>
+        <where>s.aseqno = n.aseqno
+          AND  n.aseqno = b.aseqno
+        </where>
+        <order by="1"/>
+        <counter desc="sequence,s" />
+    </select>
+    <trailer select="out,time,dbat" />
+</dbat>

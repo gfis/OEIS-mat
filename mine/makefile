@@ -5,6 +5,7 @@
 # 2019-03-20: Georg Fischer, copied from ./common
 #---------------------------------
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
+RAMATH=java -cp ../../ramath/dist/ramath.jar org.teherba.ramath
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
@@ -19,6 +20,7 @@ DBAW=java -jar $(DBAD)/dist/dbat.jar -c worddb  -e UTF-8
 SRC=src/main/java/org/teherba/dbat
 METHOD=get
 TAB=milong
+FISCHER=../../joies-lite/internal/fischer
 
 
 all: bflong
@@ -62,6 +64,39 @@ bflong_thin:
 	# powers of 2
 	wc -l  $@.*tmp
 	ls -al $@.*tmp
+#---------------
+# for Hugo Pfoertner 2020-09-23
+# Determine a common factor beginning at the end of the term list. 
+comfact: comfact1 comfact2 comfact3 comfact4
+comfact1:
+	$(RAMATH).sequence.CommonFactor -f $(COMMON)/stripped \
+	>        $@.strip.txt
+	head -n4 $@.strip.txt
+	wc -l    $@.strip.txt
+comfact2:
+	cut -b1-7 comfact1.strip.txt     > $@.list.tmp
+	$(RAMATH).sequence.CommonFactor -f $@.list.tmp -b $(COMMON)/bfile \
+	| tee    $@.bf.txt
+	head -n4 $@.bf.txt
+	wc -l    $@.bf.txt
+comfact3:
+	$(DBAT) -f $(COMMON)/seq3.create.sql # aseqno, pattern, info
+	cut -f1-3 comfact2.bf.txt \
+	| $(DBAT) -r seq3 
+	$(DBAT) -4 seq3
+	$(DBAT) -n seq3
+comfact4:
+	$(DBAT) -f comfact.xml > comfact.html
+comfact_deploy:
+	scp comfact.html stylesheet.css javascript.js comfact2.bf.txt gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat
+ASEQNO=A072143
+comfact_test:
+	$(RAMATH).sequence.CommonFactor -d 1 -a $(ASEQNO) -b $(COMMON)/bfile
+comfact_t2b:
+	$(RAMATH).sequence.CommonFactor -d $(D) -f x4x.tmp -b $(COMMON)/bfile
+comfact_t2:
+	$(RAMATH).sequence.CommonFactor -d $(D) -f x4x.tmp 
+#---------------
 known10:
 	$(DBAT) -x -f miknown.xml -p minocc=914 -m tsv \
 	| grep -E "^A[0-9]" \
