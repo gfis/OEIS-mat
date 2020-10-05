@@ -35,13 +35,13 @@ public class McKayThompsonTables {
   public static final int MAX_CLASS = 194; 
 
   /** Valid class codes mapped to sequential (zero-based) class index */
-  private static final HashMap<String, Integer>  sClassMap = new HashMap<String, Integer >(MAX_CLASS);
+  public static final HashMap<String, Integer>  sClassMap = new HashMap<String, Integer >(MAX_CLASS);
 
   /** Class codes mapped to a list of class codes for powers */
-  private static final HashMap<String, String[]> sPowerMap = new HashMap<String, String[]>(MAX_CLASS);
+  public static final HashMap<String, String[]> sPowerMap = new HashMap<String, String[]>(MAX_CLASS);
 
   /** Class codes mapped to a list of boot coefficients */
-  private static final HashMap<String, Long[]>   sBootsMap = new HashMap<String, Long[]  >(MAX_CLASS);
+  public static final HashMap<String, Long[]>   sBootsMap = new HashMap<String, Long[]  >(MAX_CLASS);
 
   /**
    * Add a mapping for a class code.

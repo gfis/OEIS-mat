@@ -352,20 +352,6 @@ bootcoefs = {"1A": [0, 196884, 21493760, 864299970, 20245856256, 333202640600],
              "105A": [0, 1, 1, 0, 0, 1], "110A": [0, 0, 1, 1, 0, 1],
              "119AB": [0, 0, 0, 1, 1, 1]}
 
-# lencomplete is the *first unknown* coefficient for each class.
-lencomplete = dict()
-for cl in classes:
-    lencomplete[cl] = len(bootcoefs[cl])
-# coefs is the main storage of coefficients; it is a (tuple-indexed)
-# dictionary so we don't have to store things contiguously.
-coefs = dict()
-for cl in classes:
-    for i in range(lencomplete[cl]):
-        coefs[cl,i] = bootcoefs[cl][i]
-        if earlyprint and (i>0):
-            print ("%s\t%d\t%d"%(cl, i, coefs[cl,i]))
-lenprinted = 1
-
 # Now we need an object class for doing simple operations on power
 # series (actually Laurent series: index is the valuation):
 class PowerSeries:
@@ -407,11 +393,18 @@ class PowerSeries:
             return self.coefs[k-self.index]
         else:
             raise Exception("PowerSeries insufficiently precise")
+    def toString(self): # Return a string representation of the power series
+        result = ""
+        sep = "["
+        for i in range(len(self.coefs)):
+            result += sep + str(self.coefs[i])
+            sep = ","
+        return result + "]:" + str(self.index)
 
 def strictDivisors(n): # Return the list of divisors of n between 1 and n-1
     l = []
     for i in range(1,n):
-        if (n%i)==0:
+        if (n % i)==0:
             l.append(i)
     return l
 
@@ -425,14 +418,31 @@ class MissingCoef(Exception):
 #----------------------------------------------------------------
 # The main part!
 selected = sys.argv[1]
+sDebug = 0
 if len(sys.argv) > 2:
-    earlyprint = sys.argv[2]
+    sDebug = int(sys.argv[2])
+    if sDebug >= 1:
+        earlyprint = True
 else:
     earlyprint = False
 if selected == "*":
     selected = classes;
 else:
     selected = selected.split(",")
+
+# lencomplete is the *first unknown* coefficient for each class.
+lencomplete = dict()
+for cl in selected:
+    lencomplete[cl] = len(bootcoefs[cl])
+# coefs is the main storage of coefficients; it is a (tuple-indexed)
+# dictionary so we don't have to store things contiguously.
+coefs = dict()
+for cl in selected:
+    for i in range(lencomplete[cl]):
+        coefs[cl,i] = bootcoefs[cl][i]
+        if earlyprint and (i>0):
+            print ("early#1 %s\t%d\t%d"%(cl, i, coefs[cl,i]))
+lenprinted = 1
 
 while True:
     for cl in selected:
@@ -446,6 +456,8 @@ while True:
         j.addMonomial(1, -1)
         # Now compute the first Faber polynomials of j:
         jFaber = [None, j]
+        if sDebug >= 2:
+            print ("# cl=" + cl + ", j=" + j.toString())
         for n in range(2, min(lencomplete[cl],7)):
             # ((Here 7 is a heuristic, meaning we compute the first 6 Faber
             # polynomials: any value at least equal to 5 should work, but
@@ -453,38 +465,47 @@ while True:
             # high coefficients; besides, if you make this higher than 10
             # you need to extend the class power maps.))
             jn = PowerSeries.multiply(jFaber[n-1], j)
+            if sDebug >= 2:
+                print ("#1 n=" + str(n) + ", jn=" + jn.toString() + ", precis=" + str(jn.precis()))
             for k in range(n-2, 0, -1):
                 jn.addMonomialTimes(-jn.coef(-k),0,jFaber[k])
             jn.addMonomial(-jn.coef(0),0)
+            if sDebug >= 2:
+                print ("#2 n=" + str(n) + ", jn=" + jn.toString() + ", precis=" + str(jn.precis()))
             jFaber.append(jn)
             # At this point, jn is the n-th Faber polynomial of j.
             ld = strictDivisors(n)
             for k in range(1, jn.precis()):
-                # if not coefs.has_key((cl,k*n)):
                 if (cl,k*n) not in coefs:
                     # Compute a coefficient from the action of the n-th
                     # Hecke operator (with just n*coefs[k*n], the one we
                     # will deduce, missing from the sum):
+                    if (sDebug >= 2):
+                        print("# n-th Hecke, n=" + str(n) + ", k=" + str(k));
                     try:
                         v = 0
                         for d in ld:
                             a = n // d
                             cla = clpowers[cl][a]
+                            if (sDebug >= 2):
+                                print("# d=" + str(d) + ", k=" + str(k) + ", n=" + str(n) + ", a=" + str(a) + ", cla=" + cla)
                             if (k % a)==0:
-                                kk = (k // a)*d
-                                # if coefs.has_key((cla,kk)):
+                                kk = (k // a) * d
                                 if (cla,kk) in coefs:
                                     v += (n // a)*coefs[cla,kk]
                                 else:
                                     raise MissingCoef(kk)
                         w = jn.coef(k)-v
-                        if (w % n)!=0:
+                        if (sDebug >= 2):
+                            print("# w=" + str(w) + ", v=" + str(v))
+                        if (w % n) != 0:
                             raise Exception("Divisibility check failed!")
                         w //= n
                         coefs[cl,k*n] = w
                         if earlyprint:
-                            print ("%s\t%d\t%d"%(cl, k*n, w))
+                            print ("early#2 %s\t%d\t%d"%(cl, k*n, w))
                     except MissingCoef as kk:
+                        print ("MissingCoef#1 k=" + str(k) + ", n=" + str(n))
                         pass # (Actually never happens...)
     # Now try the other way around: deduce some lower coefficients
     # from the higher ones (known through the Hecke operators).  We
@@ -496,19 +517,16 @@ while True:
         try:
             while True:
                 # See if lencomplete can be increased.
-#               while coefs.has_key((cl,lencomplete[cl])):
                 while (cl,lencomplete[cl]) in coefs:
                     lencomplete[cl] += 1
                 # Try to compute the first unknown coefficient
                 # (lencomplete) by computing the previous coefficient in
                 # 2 T_2(j) and equating.
                 k = lencomplete[cl]-1
-#               if not coefs.has_key((cl,k*2)):
                 if (cl,k*2) not in coefs:
                     raise MissingCoef(k*2)
                 v = 2*coefs[cl,k*2]
                 if (k % 2)==0:
-#                   if not coefs.has_key((cl2,k // 2)):
                     if (cl2,k//2) not in coefs:
                         raise MissingCoef(k // 2)
                     v += coefs[cl2,k // 2]
@@ -524,6 +542,7 @@ while True:
                 if earlyprint:
                     print ("%s\t%d\t%d"%(cl, k+1, v))
         except MissingCoef as kk:
+            print ("MissingCoef#2 " + "%d"%(k))
             pass
     # Print what we've computed so far, in orderly fashion:
     if not earlyprint:
@@ -532,7 +551,6 @@ while True:
             if lastcomplete < lencomplete[cl]:
                 lastcomplete = lencomplete[cl]
         for k in range(lenprinted,lastcomplete):
-        #   for cl in [atlascode]: # classes:
             for cl in selected:
                 print ("%s\t%d\t%d"%(cl, k, coefs[cl,k]))
         lenprinted = lastcomplete
