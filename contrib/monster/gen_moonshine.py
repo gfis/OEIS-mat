@@ -343,8 +343,6 @@ for cl in classes:
     sep2 = ""
     for ind2 in range(len(bootcoefs[cl])):
         print (sep2 + str(bootcoefs[cl][ind2]), end='')
-        if bootcoefs[cl][ind2] >= 1000000:
-            print("L", end='')
         sep2 = ","
     print("\t" + str(ind))
     ind += 1
