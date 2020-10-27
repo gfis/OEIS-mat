@@ -40,6 +40,8 @@ lrlink_prep: # extract all links (faster on Linux)
 	>        lrlink1.tmp || :
 	head -n4 lrlink1.tmp
 	wc   -l  lrlink1.tmp
+lrlink_scp:
+	scp gfis@atair:~/work/gits/OEIS-mat/lrindex/lrlink1.tmp .
 #----
 lrlink: lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
 lrlink2: 
@@ -248,8 +250,8 @@ morix:
 	WHERE a.aseqno = 'A' || i.seqno \
 	  AND a.keyword like '%more%' \
 	ORDER by 1" \
-	>     $@.txt	
-	wc -l $@.txt	
+	>        $@.txt
+	wc -l    $@.txt
 morln:
 	$(DBAT) "SELECT DISTINCT a.aseqno, a.keyword, a.offset1, b.bfimax, l.signature \
 	FROM lrlink l, asinfo a \

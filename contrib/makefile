@@ -23,7 +23,7 @@ all:
 	# parameter S=seqno SLEEP=$(SLEEP) SHIFT=$(SHIFT) WIDTH=$(WIDTH)
 #================
 refresh:
-	cut -b2-7 refresh.list.man \
+	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -l -innn make refresh1 S=nnn SLEEP=16
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
 	make wgeto

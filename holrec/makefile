@@ -315,10 +315,14 @@ hiter3slow:
 	wc       $@.tmp
 #--------
 satis:
-	perl satisfies.pl $(COMMON)/cat25.txt \
+	grep -Ei "satis" $(COMMON)/cat25.txt \
+	| grep -vE "Decimal expansion|E\.\g\.\f\.|adic integer" \
+	| perl satis.pl \
 	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
+	grep -E  "\?\?" $@.tmp > $@.rest.tmp
+	grep -vE "\?\?" $@.tmp > $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen $@.*tmp
 #----
 sq1:
 	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \
