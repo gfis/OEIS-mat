@@ -1,9 +1,8 @@
 #!make
 
-# OEIS-mat/weidis - weight distributions
+# OEIS-mat/raman - eta, theta, psi & al. Ramanujan functions
 # @(#) $Id$
-# 2020-07-14: restart
-# 2020-04-14, Georg Fischer: copied from ../holrec
+# 2020-10-31, Georg Fischer: copied from ../weidis
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
@@ -13,14 +12,52 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
-MAXT=32
+NT=32
 COMMON=../common
 D=0 # debug mode
-WEIDIS= weidis
+HERE=../../OEIS-mat/raman
 
 all:
 	echo select specific target 
 #===============================================
+somos_download:
+	rm rama37.gp*
+	wget http://grail.eecs.csuohio.edu/~somos/rama37.gp
+	rm monster3.gp*
+	wget http://grail.eecs.csuohio.edu/~somos/monster3.gp
+rama37: rama37a rama37b
+rama37a:
+	perl -ne 'if (m{\\\\ *(A\d+)}) { print "$$1\n" }; ' rama37.gp \
+	| sort | uniq -c \
+	| tee    $@.tmp
+	wc       $@.tmp
+rama37b:
+	cut -b9-15 rama37a.tmp > $@.tmp
+	cd $(COMMON) ; make seq LIST=$(HERE)/$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, j.superclass FROM seq s LEFT JOIN joeis j ON s.aseqno = j.aseqno ORDER BY 1" \
+	>        $@.tmp
+	grep -E null $@.tmp
+#----
+monster3: monster3a monster3b
+monster3a:
+	perl -ne 'if (m{\\\\ *(A\d+)}) { print "$$1\n" }; ' monster3.gp \
+	| sort | uniq -c \
+	| tee    $@.tmp
+	wc       $@.tmp
+monster3b:
+	cut -b9-15 monster3a.tmp > $@.tmp
+	cd $(COMMON) ; make seq LIST=$(HERE)/$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, j.superclass FROM seq s LEFT JOIN joeis j ON s.aseqno = j.aseqno ORDER BY 1" \
+	>        $@.tmp
+	grep -E null $@.tmp
+#--------------------------------
+mckaylc:
+	grep -E "McKay" $(COMMON)/asname.txt \
+	| perl -ne 'if (m{(\d+[a-z])}) { print join("\t", substr($$_, 0, 7), "mckaylc", 0, $$1, substr($$_, 8)); }' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----	
 gather: gather1 gather3
 gather1: # select from joeis_names
 	grep -E "Weight distribution of" $(COMMON)/joeis_names.txt \

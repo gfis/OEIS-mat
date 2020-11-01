@@ -294,7 +294,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
-joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_ofter joeis_count joeis_stamp
+joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_ofter joeis_stamp joeis_count
 joeis_local:
 	cd $(JOEIS) ; git pull ; ant jar
 joeis_pull:
@@ -305,6 +305,14 @@ joeis_load: # populate a table with A-numbers and superclass names of implemente
 	cat joeis_list.txt | sort \
 	| $(DBAT) -m csv -r joeis
 	$(DBAT) -4 joeis
+	$(DBAT) -n joeis
+joeis_dead:
+	sed -e "s/$$/\tdead\t/" $(JOEIS)/src/irvine/oeis/dead.lst \
+	>        $@.tmp
+	wc -l    $@.tmp
+	make seq3 LIST=$@.tmp
+	$(DBAT) -n joeis
+	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
 	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax \
@@ -324,16 +332,57 @@ joeis_ofter: # A-numbers in jOEIS with offset and first ~7 reliable terms
 	>        $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
-joeis_count: # percentage of sequences implemented in jOEIS
-	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '|| CAST(a/b * 100 AS CHAR) \
-	|| '% of OEIS sequences are implemented in jOEIS' FROM ( \
-	(SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 , \
-	(SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 );"
-	#************************************************************************
 joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
 	$(DBAT) -4 joeis
+joeis_count: # percentage of sequences implemented in jOEIS
+	make -s joeis_stat
+ALAST=A036500
+joeis_stat: # percentage of sequences implemented in jOEIS
+	echo '************************************************************************'
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
+	    || '% out of ' || CAST(b AS CHAR) || ' OEIS sequences are covered by jOEIS' FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 \
+	    );"
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' sequences in the range A000001-$(ALAST) = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
+	    || '%' FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.aseqno <= '$(ALAST)') j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.aseqno <= '$(ALAST)') j2 \
+	    );"
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' nice sequences = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
+	    || '% out of ' || CAST(b AS CHAR) FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%nice%') j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%nice%') j2 \
+	    );"
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' core sequences = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
+	    || '% out of ' || CAST(b AS CHAR) || ', remaining are:' FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%core%') j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%core%') j2 \
+	    );"
+	$(DBAT) -x "SELECT i.aseqno, n.name \
+	    FROM asinfo i, asname n \
+	    WHERE i.aseqno = n.aseqno \
+	      AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	      AND (i.keyword LIKE '%core%') \
+	      ORDER BY 1" \
+	| cut -b1-80
+#----
+corenice: core nice
+core:
+	make core1 KEYW=core
+nice:
+	make core1 KEYW=nice
+core1:
+	$(DBAT) -x "SELECT i.aseqno, i.keyword, n.name \
+	    FROM asinfo i, asname n \
+	    WHERE i.aseqno = n.aseqno \
+	      AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	      AND (i.keyword LIKE '%$(KEYW)%') \
+	      ORDER BY 1" \
+	>        $(KEYW).tmp
+	wc -l    $(KEYW).tmp
 #----
 joeis_block: joeis_block1 joeis_block2 joeis_block3
 joeis_block1:
