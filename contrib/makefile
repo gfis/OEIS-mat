@@ -187,3 +187,7 @@ tc4:
 gettc:
 	wget "https://en.wikipedia.org/wiki/List_of_country_calling_codes" -O b308681.raw
 #----------------
+karn:
+	perl karn_reformat.pl a180g.mma > b180g.mma
+	perl karn_reformat.pl a180h.mma > b180h.mma
+	diff -wC0 b180h.mma b180g.mma

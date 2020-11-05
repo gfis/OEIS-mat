@@ -5,10 +5,13 @@
 # 2020-10-31, Georg Fischer
 #
 #:# Usage:
-#:#   perl etaper.pl [-gm[d] matrix] [-ep period] [-x]
+#:#   perl etaper.pl [-b] [-gm[d] matrix] [-ep period] [-n noterms] [-x]
+#:#       -b    for b-file format (default: csv)
+#:#       -d    0=none, 1=some, 2=more debugging output
+#:#       -ep   Euler transform period of base function ([2,-3,2,-1,...] for theta_3, [-1] for Ramanujan's eta)
 #:#       -gm   (full) Gram matrix (default [[1,0],[0,1]])
 #:#       -gmd  diagonal of Gram matrix
-#:#       -ep   Euler transform period of base function ([2,-3,2,-1,...] for theta_3, [-1] for Ramanujan's eta)
+#:#       -n    number of terms to be generated 
 #:#       -x    execute java GramMatrixTest
 #---------------------------------
 use strict;

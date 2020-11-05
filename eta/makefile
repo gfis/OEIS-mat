@@ -1,6 +1,6 @@
 #!make
 
-# OEIS-mat/raman - eta, theta, psi & al. Ramanujan functions
+# OEIS-mat/eta: eta, theta, psi & al. Ramanujan functions
 # @(#) $Id$
 # 2020-10-31, Georg Fischer: copied from ../weidis
 #---------------------------------
@@ -15,7 +15,7 @@ COMMON=$(GITS)/OEIS-mat/common
 NT=32
 COMMON=../common
 D=0 # debug mode
-HERE=../../OEIS-mat/raman
+HERE=../../OEIS-mat/eta
 
 all:
 	echo select specific target 
@@ -40,16 +40,24 @@ rama37b:
 #----
 monster3: monster3a monster3b
 monster3a:
-	perl -ne 'if (m{\\\\ *(A\d+)}) { print "$$1\n" }; ' monster3.gp \
-	| sort | uniq -c \
-	| tee    $@.tmp
-	wc       $@.tmp
+	perl -ne 'if (m{\A(\S+)\s*\\\\ *(A\d+)}) { print join("\t", $$2, $$1) . "\n" }; ' monster3.gp \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 monster3b:
-	cut -b9-15 monster3a.tmp > $@.tmp
-	cd $(COMMON) ; make seq LIST=$(HERE)/$@.tmp
-	$(DBAT) -x "SELECT s.aseqno, j.superclass FROM seq s LEFT JOIN joeis j ON s.aseqno = j.aseqno ORDER BY 1" \
+	cd $(COMMON) ; make seq2 LIST=$(HERE)/monster3a.tmp
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, s.info FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno ORDER BY 1" \
+	| sed -e "s/\r//" \
 	>        $@.tmp
 	grep -E null $@.tmp
+#----
+ecalc:
+	perl ecalc.pl monster3.gp \
+	| grep -vE A999999 \
+	>        $@.tmp 
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------------------------------
 mckaylc:
 	grep -E "McKay" $(COMMON)/asname.txt \

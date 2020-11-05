@@ -338,7 +338,7 @@ joeis_stamp:
 	$(DBAT) -4 joeis
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
-ALAST=A036500
+ALAST=A037000
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
