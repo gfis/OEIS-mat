@@ -55,6 +55,7 @@ monster3b:
 ecalc:
 	perl ecalc.pl monster3.gp \
 	| grep -vE A999999 \
+	| sort \
 	>        $@.tmp 
 	head -n4 $@.tmp
 	wc -l    $@.tmp
