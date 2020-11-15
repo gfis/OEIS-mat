@@ -2,8 +2,10 @@
 <!--
     Dbat include file for search button and following links
     @(#) $Id$
+    2020-10-09: div xmlns
     2019-01-03, Georg Fischer
 -->
+        <div xmlns:ht="http://www.w3.org/1999/xhtml">
         <ht:input type="submit" value="Search" />
         -&gt; <ht:a href="servlet?spec=broken_link.aseqno"   >aseqno   </ht:a>
         -&gt; <ht:a href="servlet?spec=broken_link.content"  >content  </ht:a>
@@ -11,3 +13,4 @@
         -&gt; <ht:a href="servlet?spec=broken_link.good_bad" >good_bad </ht:a>
         -&gt; <ht:a href="servlet?spec=broken_link.host"     >host     </ht:a>
         -&gt; <ht:a href="servlet?spec=broken_link.prefix"   >prefix   </ht:a>
+        </div>

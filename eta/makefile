@@ -47,16 +47,28 @@ monster3a:
 	wc -l    $@.tmp
 monster3b:
 	cd $(COMMON) ; make seq2 LIST=$(HERE)/monster3a.tmp
-	$(DBAT) -x "SELECT s.aseqno, j.superclass, s.info FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno ORDER BY 1" \
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, '', s.info FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno ORDER BY 1" \
 	| sed -e "s/\r//" \
 	>        $@.tmp
 	grep -E null $@.tmp
 #----
-ecalc:
-	perl ecalc.pl monster3.gp \
-	| grep -vE A999999 \
+allmonst:
+	grep -E "\\\\" monster3.gp
+#----
+ecalc: ein1sk # with spread
+	perl ecalc.pl -d $(D) -s monster3.gp \
 	| sort \
 	>        $@.tmp 
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+# chk("T1a==in1([1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],2)");
+ein1sk:
+	cat monster3.gp \
+	| perl -ne 'if (m{chk\(\"(\w+)\=\=in1\(\[[^\]]+\]\,(\d+)}) { print join("\t", $$1, $$2) . "\n"; }' \
+	| grep -vE "_" \
+	| sort | uniq -w5 \
+	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------------------------------

@@ -2,15 +2,17 @@
 
 # Generate Euler transform periods from PARI/GP ecalc() calls in Michael Somos' monster3.gp
 # @(#) $Id$
+# 2020-11-10: with t[1],t[2] (insertion of zeroes)
 # 2020-11-05, Georg Fischer
 #
 #:# Usage:
-#:#   perl ecalc.pl [-d debug[-b] ] [-m mode] [-n noterms] [-x] monster3.gp > eulerps.gen
+#:#   perl ecalc.pl [-d debug[-b] ] [-m mode] [-n noterms] [-s] [-x] monster3.gp > etpsymm.gen
 #:#       -b    for b-file format (default: csv)
 #:#       -d    0=none, 1=some, 2=more debugging output
 #:#       -m    ecalc
 #:#       -n    number of terms to be generated 
-#:#       -x    execute java GramMatrixTest
+#:#       -s    with spreading (insert t[1]-1 zeroes into the period)
+#:#       -x    execute java irvine.test.EulerTransformPeriodTest
 #---------------------------------
 use strict;
 use integer;
@@ -31,9 +33,8 @@ my $ETPT = "java -Doeis.big-factor-limit=1000000000 -Xmx4g "
 my $bfile   = "";
 my $debug   = 0;
 my $noterms = 64;
-my $matrix_list = "[[1,0],[0,1]]";
-my $eperiod = "[2,-3,2,-1]";
 my $mode    = "ecalc";
+my $spread  = 0;
 my $execet  = 0;
 my @eps     = (-1); # ET period of the base function; here: EiT(eta(q)) = [-1,...]
 my $epslen  = scalar(@eps);
@@ -48,6 +49,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $mode      = shift(@ARGV);
     } elsif ($opt  =~ m{\-n}) {
         $noterms   = shift(@ARGV);
+    } elsif ($opt  =~ m{\-s}) {
+        $spread    = 1;
     } elsif ($opt  =~ m{\-x}) {
         $execet    = 1;
     } else {
@@ -56,75 +59,116 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 my %ehash = (); # map the ennx codes to their EulerTransform period
+my %chash = (); # map the ennx codes to their Somos ecalc parameters
+my %thash = (); # map the ennx codes to $ts[1]
+my @ts = (0,1,1); # set in &get_period
 while (<>) {
     my $line = $_;
     $line =~ s{\s+\Z}{}; # chompr
     if (0) {
-    } elsif ($line =~ m{\A(\w+)\=ecalc\(\[([^\]]+)\]([^\)]+)\)\;\s*\\\\\s*(A\d+)}) {
+    } elsif ($line =~ m{\A(\w+)\=ecalc\(\[([^\]]+)\]([^\)]*)\)\;\s*\\\\\s*(A\d+)}) {
         #                 1               2         3                     4
         # e4C2=ecalc([2,3;1,-1;4,-2],[1,8],2);                                 \\ A029845
-        my ($code, $etaexp_list, $fexp_list, $aseqno) = ($1, $2, $3 || ",[1,1]", $4);
+        my ($code, $vlist, $tlist, $aseqno) = ($1, $2, $3 || ",[1,1]", $4);
         my $orig = "$1=ecalc([$2}]$3);";
-        $fexp_list =~ s{\A\,,}{\,\[1\,1\]\,};
-        $fexp_list =~ s{\A\,}{}; # remove leading ","
-        $fexp_list =~ s{\]\,.*}{\]}; # remove trailing parameters
-        my $period = &get_period($etaexp_list, $fexp_list);
+        $chash{$code} = $orig;
+        $tlist =~ s{\A\,\,}{\,\[1\,1\]\,};
+        $tlist =~ s{\A\,}{}; # remove leading ","
+        $tlist =~ s{\]\,.*}{\]}; # remove trailing parameters ???
+        my $period = &get_period($vlist, $tlist);
+        if ($debug >= 1) {
+            print "# $aseqno vlist=$vlist, tlist=$tlist -> period=$period\n";
+        }
         $ehash{$code} = $period;
-        #                                        parm1    parm2   parm3    parm4
+        $thash{$code} = $ts[1];
+        #                         callcode  ofs  parm1    parm2   parm3    parm4
         print join("\t", $aseqno, "eulerps", 0,  $period, 1,      ""     , $orig) . "\n";
-    } elsif ($line =~ m{\A(\w+)\=(([\-\+]?\d+)\+)?symm\((\w+)\,(\-?\d+)\)\;\s*\\\\\s*(A\d+)}) {
-        #                 1      23                     4      5                     6
+    } elsif ($line =~ m{\A(\w+)\=(([\-\+]?\d+)\+)?symm\((e\w+)\,(\-?\d+)\)\;\s*\\\\\s*(A\d+)}) {
+        #                 1      23                     4       5                     6
         # f13A=symm(e13B,13);                        \\ A034318
         # T13A=2+symm(e13B,13);                      \\ A034319
-        my ($code1, $add0, $code2, $factor, $aseqno) = ($1, $3 || 0, $4, $5, $6);
-        my $orig = "$1=" . ($2 || "") . "symm($4,$5);";
+        my ($code1, $add0, $code2, $factor, $aseqno) = ($1, $3 || 0, $4, $5 || "", $6);
+        my $orig   = "$1=" . ($2 || "") . "symm($4,$5);";
         my $period = $ehash{$code2} || "unknown";
-        #                                        parm1    parm2   parm3    parm4
-        print join("\t", $aseqno, "etpsymm", -1, $factor, $add0,  $period, $orig) . "\n";
+        my $t1     = $thash{$code2} || 1;
+        $period    = &spread_period($period, $t1);
+        #                         callcode   ofs parm1    parm2    parm3   parm4
+        print join("\t", $aseqno, "etpsymm", -1, 0,       $factor, $add0,  $period, $orig, $chash{$code2} || "", $chash{$factor} || "") . "\n";
+    } elsif ($line =~ m{\A(\w+)\=([\-\+]?\d+)\+(e\w+)\;\s*\\\\\s*(A\d+)}) {
+        #                 1      2             3                 4
+        # T5B=6+e5B;                                 \\ A007252
+        my ($code1, $add0, $code2, $aseqno) = ($1, $2 || 0, $3, $4);
+        my $factor = 1; # not used
+        my $orig   = "$1=$2+$3";
+        my $period = $ehash{$code2} || "unknown";
+        my $t1     = $thash{$code2} || 1;
+        $period    = &spread_period($period, $t1);
+        #                         callcode   ofs parm1    parm2    parm3   parm4
+        print join("\t", $aseqno, "etpadd0", -1, 0,       $factor, $add0,  $period, $orig, $chash{$code2} || "", $chash{$factor} || "") . "\n";
+    } elsif ($line =~ m{\A(\w+)\=([\-\+]?\d+)\+(e\w+)\;\s*\\\\\s*(A\d+)}) {
+        #                 1      2             3                 4
+        # T5B=6+e5B;                                 \\ A007252
+        my ($code1, $add0, $code2, $aseqno) = ($1, $2 || 0, $3, $4);
+        my $factor = 1; # not used
+        my $orig   = "$1=$2+$3";
+        my $period = $ehash{$code2} || "unknown";
+        my $t1     = $thash{$code2} || 1;
+        $period    = &spread_period($period, $t1);
+        #                         callcode   ofs parm1    parm2    parm3   parm4
+        print join("\t", $aseqno, "etproot", -1, 0,       $factor, $add0,  $period, $orig, $chash{$code2} || "", $chash{$factor} || "") . "\n";
     } elsif ($line =~ m{\A(\w+)\=ecalc\(\[([^\]]+)}) {
         my ($code, $etapows, $rest, $aseqno) = ($1, $2, $3, $4);
     } # m ecalc
 } # while <>
 #--------
 sub get_period {
-    my ($etaexp_list, $fexp_list) = @_;
-    my (@qexp, @etaexp, @fexp);
-    foreach my $pair (split(/\;/, $etaexp_list)) {
-        my ($qp, $etap) = split(/\,/, $pair);
-        push(@qexp  , $qp  );
-        push(@etaexp, $etap);
+    my ($vlist, $tlist) = @_;
+    @ts = ($tlist =~ m{(\-?\d+)}g); # ignore all separators
+    unshift(@ts, 0); # for numbering t[1], t[2]
+      # $ts[1] = number of zeroes - 1 to be prefixed to every term of the series (not ET!) -> spread
+      # $ts[2] = raise the whole quotient to that power -> raise
+    my (@vqps, @veps);
+    foreach my $vpair (split(/\;/, $vlist)) {
+        my ($vqp, $vep) = split(/\,/, $vpair);
+        push(@vqps, $vqp);
+        push(@veps, $vep);
     } # foreach $pair
-    @fexp = ($fexp_list =~ m{(\-?\d+)}g);
-    my $fmult = $fexp[1];
     # now determine the LCM of the q-exponents
     my $ind = 0;
-    my $lcm = $qexp[$ind ++]; # start with 1st element
-    while ($ind < scalar(@qexp)) {
-        my $exp = $qexp[$ind ++];
+    my $lcm = $vqps[$ind ++]; # start with 1st element
+    while ($ind < scalar(@vqps)) {
+        my $exp = $vqps[$ind ++];
         my $factor = &gcd($lcm, $exp);
         $lcm = $exp * ($lcm / $factor);
     } # while ind
     # assemble the period
-    my @periods = ();
+    my @etpers = ();
     my $perlen = $lcm * $epslen;
     for (my $iper = 0; $iper < $perlen; $iper ++) { # preset with zeroes
-        $periods[$iper] = 0;
+        $etpers[$iper] = 0;
     } # zeroes
     # add the enough copies of the individual subperiods
-    for (my $ind = 0; $ind < scalar(@qexp); $ind ++) {
-        my $exp = $qexp[$ind];
-        my @subpers = &factor($qexp[$ind], $etaexp[$ind]);
+    for (my $ind = 0; $ind < scalar(@vqps); $ind ++) {
+        my $exp = $vqps[$ind];
+        my @subpers = &factor($vqps[$ind], $veps[$ind]);
         for (my $offset = 0; $offset < $perlen; $offset += scalar(@subpers)) {
             for (my $isub = 0; $isub < scalar(@subpers); $isub ++) {
-                $periods[$offset + $isub] += $subpers[$isub];
+                $etpers[$offset + $isub] += $subpers[$isub];
             } # for isub
         } # for offset
     } # for ind
-    for (my $iper = 0; $iper < $perlen; $iper ++) { # multiply with the overall power
-        $periods[$iper] *= $fmult;
-    } # multiply
-    return join(",", @periods);
+    for (my $iper = 0; $iper < $perlen; $iper ++) { # raise
+        $etpers[$iper] *= $ts[2]; # multiply the ETP with t[1] = raise the whole quotient to a power
+    } # raise
+    return join(",", @etpers);
 } # get_period
+#--------
+sub spread_period {
+    my ($period, $t1) = @_;
+    return $spread == 0 
+        ? $period 
+        : join(",", map { ("0," x ($t1 - 1)) . $_ } split(/\,/, $period));
+} # spread_period
 #--------
 sub gcd { # from https://www.perlmonks.org/?node_id=109872
     my ($a, $b) = @_;
