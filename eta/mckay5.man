@@ -1,15 +1,13 @@
-A007253	T5a	nyi			??	
+A007253	T5a	nyi				T5a==(1+5/e25a)*(1+e5B)+5*symm(e25a,-5)*e5B/e25a^3
 A058088	T8b	nyi			symm(e16A,4)	
 A058092	T9a	nyi			e18e+16/e18e^2	
 A058102	T10a	nyi			e30c+9/e30c+27/e30c^3	
-A058103	T10b	nyi			??	
+A058103	T10b	nyi			T10b==2+e10C+5*e10C/e25a^2*(1-1/e50a)^2+25/P5(e10C)	
 A058204	T10c	nyi			rootn(T5a-4,2)	
-A058506	T14b	nyi	eulerps		
-A058513	T15b	nyi			??	
-A058526	T16e	nyi			dash(T16f,2)
-A058537	T18b	nyi			P3(T6b)/P2(T9a)
-A058558	T20c	nyi	eulerps		
-A058559	T20d	nyi			T20d==dash(T40a,2)
+A058513	T15b	nyi			T15b=2+(symm(e25a,5)*symm(P3(e25a),5)-5)*(P3(e25a)-e25a)*x25^2*P3(x25)^2*e15D^3/e15C;
+A058526	T16e	nyi			T32b_=dash(T32b,4); T16e==symm(T32b_,2); T32b=e32b; \\ A058632
+A058537	T18b	nyi			T18b==rootn(T6b,3)
+A058559	T20d	nyi			T20d==symm(e40z2,1);e40z2=ecalc([1,1;2,-3;4,2;5,-1;10,3;20,-2],[2,1])
 A058560	T20e	nyi			T20e=rootn(T10b+4,2);
 A058569	T22a	nyi			symm(e88A^2*e44b,4)/e44b^2;
 A058598	T26a	nyi			T26a=rootn(f13A+6,2); f13A==symm(e13B,13);
@@ -17,7 +15,7 @@ A058600	T27a	nyi			symm(e27c,3)
 A058604	T27d	nyi			T27d=rootn(T9b+6,3)
 A058626	T30e	nyi			t2=P2(T15b);T30e=(2+T15b+t2+T15b*t2)/(5+T15b+t2);
 A058639	T34a	nyi			T34a=echk([1,-1;2,-1;4,2;17,-3;34,5;68,-2],[2,1])-echk([1,-3;2,5;4,-2;17,-1;34,-1;68,2],[2,1]);
-A058643	T35a	nyi			?? more
+A058643	T35a	nyi			T35a=1/rfg((1-5*x^2+5*x^3-10*x^5)/x^5,P5(T7A)) ?? more
 A058658	T38a	nyi			T38a=rootn(T19A+4,2);
 A058723	T58a	nyi			T58a=rootn(T29A+2,2);
 A058741	T66a	nyi			T66a=rootn(1+symm(e33A,3),2);
@@ -40,7 +38,6 @@ A112200	T60a	nyi			T60a=rootn(T30C,2);
 A112202	T60d	nyi			T60d=rootn(T30e-2,2);
 A112204	T63a	nyi			T63a=rootn(T21A,3);  
 A112210	T82a	nyi			T82a=rootn(T41A,2);
-A112215	T90b	nyi	eulerps		
 A112218	T102a	nyi			T102a=rootn(T51A+2,2);
 A112220	T117a	nyi			T117a=rootn(T39A+3,3);
 A112221	T120a	nyi			T120a=rootn(T60B,2);

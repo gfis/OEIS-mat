@@ -83,6 +83,18 @@ while (<>) {
         $thash{$code} = $ts[1];
         #                         callcode  ofs  parm1    parm2   parm3    parm4
         print join("\t", $aseqno, "eulerps", 0,  $period, 1,      ""     , $orig) . "\n";
+    } elsif ($line =~ m{\A(\w+)\=rootn\((.*)\,(\d)\)\;\s*\\\\\s*(A\d+)}) {
+        #                 1             2     3                 4
+        # T117a=rootn(T39A+3,3);                     \\ A112220
+        my ($code1, $code2, $factor, $aseqno) = ($1, $2, $3, $4);
+        $code2 =~ s{\+O\(x\^\(?\d*\*?MM\)\)?}{};
+        my $orig   = "$1=rootn($code2,$factor);";
+        my $add0 = ($code2 =~ s{([\+\-]\d+)\Z}{}) ? $1 : 0; 
+        my $period = $ehash{$code2} || "unknown";
+        my $t1     = $thash{$code2} || 1;
+        # $period    = &spread_period($period, $t1);
+        #                         callcode   ofs parm1    parm2    parm3   parm4
+        print join("\t", $aseqno, "etproot", -1, 0,       $factor, $add0,  $period, $orig, $chash{$code2} || "", $chash{$factor} || "") . "\n";
     } elsif ($line =~ m{\A(\w+)\=(([\-\+]?\d+)\+)?symm\((e\w+)\,(\-?\d+)\)\;\s*\\\\\s*(A\d+)}) {
         #                 1      23                     4       5                     6
         # f13A=symm(e13B,13);                        \\ A034318

@@ -294,7 +294,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #----
-joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_ofter joeis_stamp joeis_count
+joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count
 joeis_local:
 	cd $(JOEIS) ; git pull ; ant jar
 joeis_pull:
@@ -302,7 +302,7 @@ joeis_pull:
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
-	cat joeis_list.txt | sort \
+	grep -E "^A" joeis_list.txt | sort \
 	| $(DBAT) -m csv -r joeis
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
@@ -315,7 +315,7 @@ joeis_dead:
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax \
+	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax, j.callcode \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
@@ -334,7 +334,7 @@ joeis_ofter: # A-numbers in jOEIS with offset and first ~7 reliable terms
 	wc -l    $@.txt
 joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
-	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created');"
+	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created','cc','Georg');"
 	$(DBAT) -4 joeis
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
@@ -369,6 +369,23 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 	      ORDER BY 1" \
 	| cut -b1-80
 #----
+joeis_ccan:
+	scp gfis@atair:work/gits/joeis/joeis_list1.all.tmp .
+	perl joeis_list.pl             joeis_list1.all.tmp \
+	>        $@.cc.tmp \
+	2>       $@.an.tmp
+	head -n4 $@.*.tmp
+	wc -l    $@.*.tmp
+joeis_update:
+	make seq2 LIST=joeis_ccan.cc.tmp
+	$(DBAT) "UPDATE joeis j SET j.callcode = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), '');"
+	uniq -w7  joeis_ccan.an.tmp > joeis_ccan.a1.tmp
+	make seq2 LIST=joeis_ccan.a1.tmp
+	$(DBAT) "UPDATE joeis j SET j.author   = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), '');"
+joeis_eval:
+	cut -f2 joeis_ccan.an.tmp | sort | uniq -c | tee    $@.tmp
+	cut -f2 joeis_ccan.cc.tmp | sort | uniq -c | tee -a $@.tmp
+#----------------
 corenice: core nice
 core:
 	make core1 KEYW=core
