@@ -293,13 +293,15 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
-#----
-joeis_list: joeis_local joeis_pull joeis_load joeis_names joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count
+#--------
+joeis_list: joeis_local joeis_pull joeis_reload
 joeis_local:
 	cd $(JOEIS) ; git pull ; ant jar
 joeis_pull:
 	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
+#--
+joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -315,7 +317,7 @@ joeis_dead:
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax, j.callcode \
+	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi') \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
@@ -338,7 +340,7 @@ joeis_stamp:
 	$(DBAT) -4 joeis
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
-ALAST=A037000
+ALAST=A037500
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
@@ -378,10 +380,10 @@ joeis_ccan:
 	wc -l    $@.*.tmp
 joeis_update:
 	make seq2 LIST=joeis_ccan.cc.tmp
-	$(DBAT) "UPDATE joeis j SET j.callcode = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), '');"
+	$(DBAT) "UPDATE joeis j SET j.callcode = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
 	uniq -w7  joeis_ccan.an.tmp > joeis_ccan.a1.tmp
 	make seq2 LIST=joeis_ccan.a1.tmp
-	$(DBAT) "UPDATE joeis j SET j.author   = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), '');"
+	$(DBAT) "UPDATE joeis j SET j.author   = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
 joeis_eval:
 	cut -f2 joeis_ccan.an.tmp | sort | uniq -c | tee    $@.tmp
 	cut -f2 joeis_ccan.cc.tmp | sort | uniq -c | tee -a $@.tmp
@@ -538,3 +540,7 @@ weidis:
 	cut -b 1-7 ../weidis/gather1.tmp | xargs -l -innn cp -v atext/nnn.txt ../weidis/atext
 #################################
 old_targets:
+magma:
+	grep -iE "\(MAGMA\)" cat25.txt \
+	| perl -ne 'if (m{(\_[^\_]+\_)}) { print "$$1\n"; }' \
+	| sort | uniq -c | tee $@.tmp

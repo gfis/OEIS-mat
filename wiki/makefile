@@ -1,6 +1,6 @@
 #!make
 
-# OEIS-mat/wikipedia - get the external page links ans scan them for OEIS 
+# OEIS-mat/wikipedia - get the external page links and scan them for OEIS 
 # @(#) $Id$
 # 2020-08-05, Georg Fischer: copied from ../weidis
 #---------------------------------

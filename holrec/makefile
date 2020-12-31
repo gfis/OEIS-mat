@@ -30,6 +30,8 @@ GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 
 #===============================================
 runholo:
 	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFFSET) -d $(D) -dist $(DIST)
+runbva:
+	$(RAMATH).linear.BigVectorArray -recur "$(REC)"
 #----------------
 seq: # parameter: $(LIST)
 	$(DBAT) -f $(COMMON)/seq.create.sql

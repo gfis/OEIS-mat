@@ -132,7 +132,7 @@ GM= 1,0,0,1
 EiT = 
 [4,-6,4,-2
 , ...] 
---------------------------------
+================================
 A058506 e14b
 ET=[-2,-2,-2,-2,-2,-2,0,...]
 data 1,-2,-1,+2,+1,+2,-2,+2,-6,-4,+5,+2,+4,-2,+8,-16,-7,+12,+5,+8,-8,+16,-34,-18,+24,+10,+18,-12,+33,-68,-33,+50,+20,+36,-28,+60,-126,-64,+89,+36,+62,-46,+111,-228,-111,+160,+65,+112,-86,+188,-390,-194,+272,+108,+188,-136,+322,-656,-318,+454,+181,+310,-234,+520
@@ -271,3 +271,87 @@ A058206 12C offset 0
 T12C=symm(e12F,1);                         \\ A058206
 e12F=ecalc([2,1;3,1;1,-1;6,-1],[2,6]);                               \\ A058484
 
+#--------------------------
+2020-12-08:
+A182605 G.f.: Product_{k>=1} (1-x^k)/(1-11*x^k)
+EULER0(EULER0i(Vec(prod(n=1, N, (1-1*x^n) )))-EULER0i(Vec(prod(n=1, N, (1-11*x^n) ))))
+#---------------------------
+A261647	EulerTransform	Expansion of Product_{k>=0} ((1+x^(2*k+1))/(1-x^(2*k+1)))^3.	nonn,synth	0..34	eulerxfm
+A261648	EulerTransform	Expansion of Product_{k>=0} ((1+x^(2*k+1))/(1-x^(2*k+1)))^5.	nonn,synth	0..29	eulerxfm
+A261649	EulerTransform	Expansion of Product_{k>=0} ((1+x^(3*k+1))/(1-x^(3*k+1)))^2.	nonn,synth	0..42	eulerxfm
+A261650	EulerTransform	Expansion of Product_{k>=0} ((1+x^(4*k+1))/(1-x^(4*k+1)))^2.	nonn,synth	0..44	eulerxfm
+A261651	EulerTransform	Expansion of Product_{k>=0} ((1+x^(3*k+1))/(1-x^(3*k+1)))^3.	nonn,synth	0..37	eulerxfm
+A261652	EulerTransform	Expansion of Product_{k>=0} ((1+x^(4*k+1))/(1-x^(4*k+1)))^3.	nonn,synth	0..38	eulerxfm
+
+A261647.java:    super(new PaddingSequence(new long[] {  }, new long[] {6, -3, 6, 0}), 1);
+A261648.java:    super(new PaddingSequence(new long[] {  }, new long[] {10, -5, 10, 0}), 1);
+A261649.java:    super(new PaddingSequence(new long[] {  }, new long[] {4, -2, 0, 4, 0, 0}), 1);
+A261650.java:    super(new PaddingSequence(new long[] {  }, new long[] {4, -2, 0, 0, 4, 0, 0, 0}), 1);
+A261651.java:    super(new PaddingSequence(new long[] {  }, new long[] {6, -3, 0, 6, 0, 0}), 1);
+A261652.java:    super(new PaddingSequence(new long[] {  }, new long[] {6, -3, 0, 0, 6, 0, 0, 0}), 1);
+
+
+
+A262952	EulerTransform	Expansion of Product_{k>=1} (1 + x^(2*k-1)) * (1 + x^(3*k-1)).	nonn,	0..1000	eulerxfm
+A262953	EulerTransform	Expansion of Product_{k>=1} (1 + x^(2*k-1)) * (1 + x^(3*k-2)).	nonn,	0..1000	eulerxfm
+A262952.java:    super(new PaddingSequence(new long[] {  }, new long[] {1, 0, 1, -1, 2, -1, 1, 1, 1, -2, 2, 0}), 1);
+A262953.java:    super(new PaddingSequence(new long[] {  }, new long[] {2, -2, 1, 1, 1, -1, 2, -1, 1, 0, 1, 0}), 1);
+
+
+A263136	EulerTransform	Expansion of Product_{k>=1} 1/(1-x^(4*k-1))^k.	nonn,	0..10000	eumapgf
+A263137	GeneralizedEulerTransform	Expansion of Product_{k>=1} 1/(1-x^(4*k-3))^k.	nonn,	0..10000	eumapgf
+A263138	EulerTransform	Expansion of Product_{k>=1} (1+x^(4*k-1))^k.	nonn,	0..10000	eumapgf
+A263139	GeneralizedEulerTransform	Expansion of Product_{k>=1} (1+x^(4*k-3))^k.	nonn,	0..10000	eumapgf
+A263140	GeneralizedEulerTransform	Expansion of Product_{k>=1} (1 + x^(2*k-1))^k.	nonn,	0..10000	eumapgf
+A263141	EulerTransform	Expansion of Product_{k>=1} 1/(1-x^(5*k-1))^k.	nonn,	0..10000	eumapgf
+A263142	EulerTransform	Expansion of Product_{k>=1} 1/(1-x^(5*k-2))^k.	nonn,	0..10000	eumapgf
+A263143	EulerTransform	Expansion of Product_{k>=1} 1/(1-x^(5*k-3))^k.	nonn,	0..10000	eumapgf
+A263144	GeneralizedEulerTransform	Expansion of Product_{k>=1} 1/(1-x^(5*k-4))^k.	nonn,	0..10000	eumapgf
+A263145	EulerTransform	Expansion of Product_{k>=1} (1+x^(5*k-1))^k.	nonn,	0..10000	eumapgf
+A263146	EulerTransform	Expansion of Product_{k>=1} (1+x^(5*k-2))^k.	nonn,	0..10000	eumapgf
+A263147	EulerTransform	Expansion of Product_{k>=1} (1+x^(5*k-3))^k.	nonn,	0..10000	eumapgf
+A263148	GeneralizedEulerTransform	Expansion of Product_{k>=1} (1+x^(5*k-4))^k.	nonn,	0..10000	eumapgf
+A263149	EulerTransform	Expansion of Product_{k>=1} (1 + x^(2*k+1))^k.	nonn,	0..10000	eumapgf
+A263150	EulerTransform	Expansion of Product_{k>=1} 1/(1 - x^(2*k+1))^k.	nonn,	0..10000	eumapgf
+
+A263136.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 1]", "[1, 0, 0, 0,-2, 0, 0, 0, 1]"), new long[]{1});
+A263137.java:    super(new GeneratingFunctionSequence(0, "[1]", "[1, 0, 0, 0,-2, 0, 0, 0, 1]"), new long[]{1});
+A263138.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 1, 0, 0,-1, 2, 0, 0, 0, 1]", "[1, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 1]"), new long[]{1});
+A263139.java:    super(new GeneratingFunctionSequence(0, "[1,-1, 0, 0, 2, 0, 0, 0, 1]", "[1, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 1]"), new long[]{1});
+A263140.java:    super(new GeneratingFunctionSequence(0, "[1,-1, 2, 0, 1]", "[1, 0, 0, 0,-2, 0, 0, 0, 1]"), new long[]{1});
+A263141.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 0, 1]", "[1, 0, 0, 0, 0,-2, 0, 0, 0, 0, 1]"), new long[]{1});
+A263142.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 1]", "[1, 0, 0, 0, 0,-2, 0, 0, 0, 0, 1]"), new long[]{1});
+A263143.java:    super(new GeneratingFunctionSequence(0, "[0, 1]", "[1, 0, 0, 0, 0,-2, 0, 0, 0, 0, 1]"), new long[]{1});
+A263144.java:    super(new GeneratingFunctionSequence(0, "[1]", "[1, 0, 0, 0, 0,-2, 0, 0, 0, 0, 1]"), new long[]{1});
+A263145.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 0, 1, 0, 0, 0,-1, 2, 0, 0, 0, 0, 1]", "[1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]"), new long[]{1});
+A263146.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 1, 0, 0,-1, 0, 2, 0, 0, 0, 0, 1]", "[1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]"), new long[]{1});
+A263147.java:    super(new GeneratingFunctionSequence(0, "[0, 1, 0,-1, 0, 0, 2, 0, 0, 0, 0, 1]", "[1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]"), new long[]{1});
+A263148.java:    super(new GeneratingFunctionSequence(0, "[1,-1, 0, 0, 0, 2, 0, 0, 0, 0, 1]", "[1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]"), new long[]{1});
+A263149.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 1, 0, 2,-1, 1]", "[1, 0, 0, 0,-2, 0, 0, 0, 1]"), new long[]{1});
+A263150.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 1]", "[1, 0,-2, 0, 1]"), new long[]{1});
+A263190.java:  private static final PolynomialRingField<Z> RING = new PolynomialRingField<>(IntegerField.SINGLETON);
+A263190.java:  private final ArrayList<Z> mA = new ArrayList<>();
+A263199.java:    super(new GeneratingFunctionSequence(0, "[0, 0, 3, 0,-1]", "[1, 0,-2, 0, 1]"), new long[]{1});
+
+A263140 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(-(k)) Z.NEG_ONE       Z.valueOf(2*k-1)        1       (1+x^(2*k-1))^k
+A263141 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(k)    Z.ONE   Z.valueOf(5*k-1)        1       1/(1-x^(5*k-1))^k
+A263142 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(k)    Z.ONE   Z.valueOf(5*k-2)        1       1/(1-x^(5*k-2))^k
+A263143 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(k)    Z.ONE   Z.valueOf(5*k-3)        1       1/(1-x^(5*k-3))^k
+A263144 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(k)    Z.ONE   Z.valueOf(5*k-4)        1       1/(1-x^(5*k-4))^k
+A263145 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(-(k)) Z.NEG_ONE       Z.valueOf(5*k-1)        1       (1+x^(5*k-1))^k
+A263146 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(-(k)) Z.NEG_ONE       Z.valueOf(5*k-2)        1       (1+x^(5*k-2))^k
+A263147 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(-(k)) Z.NEG_ONE       Z.valueOf(5*k-3)        1       (1+x^(5*k-3))^k
+A263148 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(-(k)) Z.NEG_ONE       Z.valueOf(5*k-4)        1       (1+x^(5*k-4))^k
+A263149 genet   0       ~~    ~~super($(OFFSET), 1);    Z.valueOf(-(k)) Z.NEG_ONE       Z.valueOf(2*k+1)        1       (1+x^(2*k+1))^k
+
+C:\Users\User\work\gits\joeis-lite\internal\fischer>grep A26314 genet.*.log
+genet.fail.log:A263141  9       FAIL    ,0,0,0,1,0,0,0,1        computed:       ,1,1,1,1,1,1,1,1
+genet.fail.log:A263142  9       FAIL    ,0,0,1,0,0,1,0,2        computed:       ,1,1,1,1,1,1,1,3
+genet.fail.log:A263143  9       FAIL    ,0,1,0,1,0,1,2,1        computed:       ,1,1,1,1,1,1,3,3
+genet.fail.log:A263145  9       FAIL    ,0,0,0,1,0,0,0,0        computed:       ,1,0,0,0,0,0,0,0
+genet.fail.log:A263146  9       FAIL    ,0,0,1,0,0,0,0,2        computed:       ,1,0,0,0,0,0,0,2
+genet.fail.log:A263147  9       FAIL    ,0,1,0,0,0,0,2,0        computed:       ,1,0,0,0,0,0,2,2
+genet.fail.log:A263149  9       FAIL    ,0,0,1,0,2,0,3,2        computed:       ,1,0,0,0,2,2,3,3
+genet.pass.log:A263140  400     pass    31       ms
+genet.pass.log:A263144  400     pass    30       ms
+genet.pass.log:A263148  400     pass    31       ms
