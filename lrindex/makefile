@@ -2,12 +2,20 @@
 
 # OEIS-mat/lrindex - recreate OEIS wiki page: "Index of linear recurrences ..."
 # @(#) $Id$
+# 2021-01-16: comments
 # 2020-05-09: regenerated
 # 2019-06-04: moved from ../linrec
 # 2019-03-29: revisited for joeis
 # 2019-02-19: HTMLIZE
 # 2019-01-22: unpacking from ../dumps
 # 2019-01-17: Georg Fischer
+#
+# make lrlink_prep on the server.
+# make lr0 lrlink
+# make lrindx, repair duplicate key in lrindx.tmp
+# make lrlink_insert lrindx_post
+# examine the diff files, whether the right side has more
+# upload lrindx.new.tmp to https://oeis.org/wiki/Index_to_OEIS:_Section_Rec
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
@@ -110,7 +118,7 @@ lrindx0:
 	wget "https://oeis.org/wiki/Index_to_OEIS:_Section_Rec?action=raw" -O lrindx.raw
 lrindx1:
 	cat lrindx.raw \
-	| perl -pe 's/\<\/?strong\>//g; s/\:\(0\,0\,1\,1\,1\,1\)\:/\:\(0\,0\,1\,1\,1\,1\)\: A245596/; s/\:\(0\,0\,1\,1\,1\,1\) A245596//; ' \
+	| perl -pe 's/\<\/?strong\>//g; s/\:\(0\,0\,1\,1\,1\,1\)\:/\:\(0\,0\,1\,1\,1\,1\)\:  A017819\, A245596/; s/\:\(0\,0\,1\,1\,1\,1\)\: A017819\, A245596//; ' \
 	>       lrindx.wiki
 	# :(0,0,1,1,1,1):
 	# :(0,0,1,1,1,1,1,1): A180158

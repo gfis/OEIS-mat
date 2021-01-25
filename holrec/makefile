@@ -145,7 +145,6 @@ gfsqrt3: # generate matrix and initerms
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	grep A095776 $@.tmp
-EX=xx
 gfsqrt4: # store in DB table and select non-jOEIS
 	$(DBAT) -f $(FISCHER)/seq4.create.sql
 	cat      gfsqrt3.tmp | $(DBAT) -m csv -r seq4 
@@ -465,22 +464,25 @@ matfin_scp:
 	scp gfis@atair:~/work/gits/OEIS-mat/holrec/matfin0.tmp .
 matfin1:
 	cat matfin0.tmp \
-	| perl -ne 'if (! m {a[\(\]][2-9]\d*\*?n}) { print; }' \
+	| perl -ne 'if (! m{a[\(\]][2-9]\d*\*?n}) { print; }' \
 	| grep -vE "A160149" \
 	| perl -ne 'print if m{json\:\s*.(D\-finite|[Rr]ecurrence\:)};' \
 	| perl -ne 's{^\.\.\/common\/ajson\/(A\d+)\.json\:\s+\"(D\-finite( with recurrence)?( of order \d+)?\:?|[Rr]ecurrence\:)\s*([^\.\[\"\_]+)}{$$1\t$$5}; my $$recur = $$5;'\
 	's{\..*}{}; s{ \- \_.*}{}; s{\"}{}g; s{\(?(for |if |with |)\s*n\s*\\u003e\=?\s*\d+\)?}{}i;'\
 	's{ }{}g; s{a\(\d+\)\=\-?\d+[\;\,]}{}g; s{\+\-}{\-}g; s{(\(End\))?\,}{}g;'\
-	'print if (length($$recur) < 256 and ($$recur !~ m{\d{5}}));' \
+	'print if (length($$recur) < 2000 and ($$recur !~ m{\d{5}}));' \
 	| grep -vE "[\\\!\/]" | grep -vE "[b-lp-zB-Z]" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	mv       $@.tmp recuf1.tmp
+	cp       $@.tmp recuf1.tmp
 matfin2:
 	grep -vE "^#" matfin.man > $@.tmp || :
 	cut -b1-7 $@.tmp \
 	| grep -vE "^ *$$" > grep.tmp || :
+	echo A000000 > grep.tmp 
+	echo > $@.tmp
+	  # Caution, 2 lines before invalidate matfin.man
 	grep -vf grep.tmp recuf7.tmp \
 	>             $(FISCHER)/holos.gen   || :
 	cat $@.tmp >> $(FISCHER)/holos.gen
@@ -513,7 +515,7 @@ recuf1:
 	wc -l    $@.tmp
 recuf2:
 	uniq -w7 recuf1.tmp \
-	| cut -b1-1024 \
+	| cut -b1-40000 \
 	>        $@.tmp
 	make -f $(COMMON)/makefile seq2 LIST=$@.tmp
 EXT=
@@ -521,8 +523,8 @@ recuf3:
 	$(DBAT) -x "SELECT s.aseqno, 'recuf', i.offset1, s.info, d.data, d.termno \
 		FROM seq2 s, asdata d, asinfo i \
 		WHERE s.aseqno = d.aseqno \
-		  AND s.aseqno = i.aseqno \
-		  AND s.aseqno NOT IN (SELECT '$(EX)' || aseqno FROM joeis) \
+		  AND d.aseqno = i.aseqno \
+		  AND i.aseqno NOT IN (SELECT '$(EX)' || aseqno FROM joeis) \
 		ORDER BY 1 " \
 	>        $@.tmp
 	head -n4 $@.tmp

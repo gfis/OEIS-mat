@@ -301,7 +301,7 @@ joeis_pull:
 	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@atair:work/gits/joeis/joeis_list.txt .
 #--
-joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names
+joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -340,7 +340,7 @@ joeis_stamp:
 	$(DBAT) -4 joeis
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
-ALAST=A037500
+ALAST=A039000
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
@@ -387,6 +387,11 @@ joeis_update:
 joeis_eval:
 	cut -f2 joeis_ccan.an.tmp | sort | uniq -c | tee    $@.tmp
 	cut -f2 joeis_ccan.cc.tmp | sort | uniq -c | tee -a $@.tmp
+#----
+jcat25:
+	perl jcat25.pl cat25.txt > $@.txt
+	wc -l cat25.txt $@.txt
+	grep -E "^\%" $@.txt | wc -l
 #----------------
 corenice: core nice
 core:
