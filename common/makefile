@@ -380,7 +380,7 @@ joeis_ccan:
 	wc -l    $@.*.tmp
 joeis_update:
 	make seq2 LIST=joeis_ccan.cc.tmp
-	$(DBAT) "UPDATE joeis j SET j.callcode = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
+	$(DBAT) "UPDATE joeis j SET j.callcode = COALESCE((SELECT SUBSTR(s.info,1,16) FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
 	uniq -w7  joeis_ccan.an.tmp > joeis_ccan.a1.tmp
 	make seq2 LIST=joeis_ccan.a1.tmp
 	$(DBAT) "UPDATE joeis j SET j.author   = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"

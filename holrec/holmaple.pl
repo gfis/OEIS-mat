@@ -10,7 +10,7 @@
 #
 #:# Usage:
 #:#   perl holmaple.pl [-n num] [-t timeout] infile ... > outfile
-#:#       -n    number of lines to be processed b one Maple activation (default 64)
+#:#       -n    number of lines to be processed by one Maple activation (default 64)
 #:#       -t    timeout for Maple in s, default 4
 #---------------------------------
 use strict;

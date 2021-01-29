@@ -258,6 +258,42 @@ homgf7:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #--------
+homegf: homegf1 homegf2 # extract e.g.f.s and convert them into recurrences
+homegf1:
+	grep -E "^\%[NF] A[0-9][0-9]* (Expansion of e|E)\.g\.f\." $(COMMON)/jcat25.txt \
+	| cut -b4- \
+	| perl -ne 'use strict; s/\s+\Z//; my $$line = $$_; $$line =~ s{ (Expansion of e|E)\.g\.f\.\:? *}{\tegf\t0\t}; '\
+	' $$line =~ s{[\.\,] .*|\.\Z| \- _.*}{}; $$line =~ s{ }{}g; '\
+	' if ($$line !~ m{for|of|satis|where|column|even|int\[|Bessel|Lambert|Root|Sum|Prod|d\/dx|[EPRIjklmy\!\;\:\|]|A\(|\^\^|e\^|\.\.\.|\)\=}) { '\
+	' $$line =~ s{z}{x}g; $$line =~ s{(\d)([a-z])}{$$1\*$$2}g; $$line =~ s{xexp}{x\*exp}g; '\
+	' $$line =~ s{[\.\=]}{}g; if ($$line =~ m{x}) { '\
+	' print "$$line\te\n"; }}' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+homerr:
+	grep -A3 syntax homegf2.1.tmp | grep timelimit | cut -d" " -f2 | sed -e "s/\,/\|/" | perl -e 'undef $$/; $$_ = <>; s/\r?\n//g; print;'
+homegf2:
+	cat homegf1.tmp \
+	| grep -vE "A071213|A094036|A097591|A117437|A123125|A144186|A145880|A162508|A174846|A176118|A186363|A193542|A202081|A200560|A242240|A240559|A253282|A275385|A307419" \
+	| grep -vE "A097592|A124498|A145881|A242817|A247075|A295794|A302200|A302201" \
+	| sort | uniq -w7 \
+	| perl holmaple.pl -n 16 -t 8 \
+	  2>&1 > $@.1.tmp
+	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+homegf3:
+	cat homegf2.tmp \
+	| perl -ne 'use strict; my @parms = split(/\t/); if ($$parms[3] !~ m{[^ak0-9\(\)\+\-\*]}) { '\
+	' $$parms[1] = "bva"; $$parms[3] .= "\t[1]\t0"; print join("\t", @parms); } ' \
+	| $(RAMATH).sequence.JoeisPreparer -f - \
+	| perl -ne 'use strict; my @parms = split(/\t/); '\
+	' $$parms[1] = "holos" . $$parms[6]; $$parms[6] .= "gf"; print join("\t", @parms);' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+#--------
 hiter: hiter1 hiter2 hiter3 
 hiter1:
 	perl hiterate.pl -n 8 \
