@@ -2,6 +2,7 @@
 
 # Extract a bivariate g.f. from "Riordan array" notation 
 # @(#) $Id$
+# 2021-02-20: pseudo-type "r"
 # 2019-07-05: more parentheses
 # 2019-06-07, Georg Fischer
 #
@@ -81,6 +82,31 @@ while (<>) {
             $oper = "?stdf"   if $rio =~ m{[a-z][a-z]+};
             $oper = "?funct"  if $rio =~ m{[a-z]\([a-z]\)};
             $oper = "?letai"  if $rio =~ m{[a-i]};
+        }   
+    } elsif ( ($code =~ m{r}) ) {
+            $offset1 = 0;
+            $rio = $content;
+            $rio =~ s{\s}{}g;
+            $rio =~ s{\,}{\#};
+            $rio =~ s{[\,\;].*}{};
+            $rio =~ s{\)[\(a-z][a-z].*}{\)};
+            $rio = lc($rio);
+            $oper = "rioarr";
+            $oper = "?aseqno" if $rio =~ m{a\d{6}};
+            $oper = "?stdf"   if $rio =~ m{[a-z][a-z]+};
+            $oper = "?funct"  if $rio =~ m{[a-z]\([a-z]\)};
+            $oper = "?letai"  if $rio =~ m{[a-i]};
+        if ($oper ne "") {
+            if ($oper eq "rioarr") {
+                $rio =~ s{[a-z]}{x}g;
+                my ($g, $f) = split(/\#/, $rio);
+                if (defined($f)) {
+                    $rio = "($g)/(1-y*($f))";
+                } else {
+                    $oper = "?undef";
+                }
+            }
+            print join("\t", $aseqno, $oper, $offset1, $rio) . "\n";
         }   
     } else {
         # ignore

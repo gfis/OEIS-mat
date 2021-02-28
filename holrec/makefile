@@ -103,6 +103,13 @@ holgf2:
 	wc -L    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#--------------------------------
+holex:
+	grep -P "^(\w+)\t(\w+)\t(a\(n\) *\= *)?[n\d\+\-\*\/\!\(\)\^ ]+\." $(COMMON)/joeis_names.txt \
+	| grep null \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
 hyper: hyper1 hyper2
 hyper1:
@@ -164,6 +171,13 @@ gfsqrt5:
 	wc -l    $@.tmp
 gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
+#-------------------------------
+hermite: # A158811 HolonomicRecurrence     Numerator of Hermite(n, 1/3).
+	grep -E "Numerator of Hermite" $(COMMON)/joeis_names.txt \
+	| perl gen_hermite.
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #-------------------------------
 homgf:    homgf0 homgf1 homgf2 homgf3-7
 homgf3-7: homgf3 homgf4 homgf5 homgf6 homgf7
@@ -260,29 +274,37 @@ homgf7:
 #--------
 homegf: homegf1 homegf2 # extract e.g.f.s and convert them into recurrences
 homegf1:
-	grep -E "^\%[NF] A[0-9][0-9]* (Expansion of e|E)\.g\.f\." $(COMMON)/jcat25.txt \
+	grep -E "^\%[NF] A[0-9][0-9]* (Expansion of )?([Ee]\.)?[Gg]\.f\." $(COMMON)/jcat25.txt \
 	| cut -b4- \
-	| perl -ne 'use strict; s/\s+\Z//; my $$line = $$_; $$line =~ s{ (Expansion of e|E)\.g\.f\.\:? *}{\tegf\t0\t}; '\
-	' $$line =~ s{[\.\,] .*|\.\Z| \- _.*}{}; $$line =~ s{ }{}g; '\
-	' if ($$line !~ m{for|of|satis|where|column|even|int\[|Bessel|Lambert|Root|Sum|Prod|d\/dx|[EPRIjklmy\!\;\:\|]|A\(|\^\^|e\^|\.\.\.|\)\=}) { '\
-	' $$line =~ s{z}{x}g; $$line =~ s{(\d)([a-z])}{$$1\*$$2}g; $$line =~ s{xexp}{x\*exp}g; '\
-	' $$line =~ s{[\.\=]}{}g; if ($$line =~ m{x}) { '\
-	' print "$$line\te\n"; }}' \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-homerr:
-	grep -A3 syntax homegf2.1.tmp | grep timelimit | cut -d" " -f2 | sed -e "s/\,/\|/" | perl -e 'undef $$/; $$_ = <>; s/\r?\n//g; print;'
+	| perl homegf.pl \
+	>        $@.hr.tmp \
+	2>       $@.lr.tmp
+	head -n4 $@.hr.tmp
+	wc -l    $@*.tmp 
 homegf2:
-	cat homegf1.tmp \
-	| grep -vE "A071213|A094036|A097591|A117437|A123125|A144186|A145880|A162508|A174846|A176118|A186363|A193542|A202081|A200560|A242240|A240559|A253282|A275385|A307419" \
-	| grep -vE "A097592|A124498|A145881|A242817|A247075|A295794|A302200|A302201" \
-	| sort | uniq -w7 \
+	cat homegf1.hr.tmp \
+	| grep -vE "A094036|A049214|A055887|A089277|A114584|A132885|A133886|A134424|A174193|A181331|A182015|A187260|A202081|A271940|A273347|A323988" \
+	| grep -vE "A049215|A089741|A176287|A273351" \
+	| grep -vE "A049216|A184362|A184363|A184365|A184366|A275385" \
 	| perl holmaple.pl -n 16 -t 8 \
 	  2>&1 > $@.1.tmp
 	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+#--
+homerr:
+	grep -A3 syntax homegf2.1.tmp | grep timelimit | cut -d" " -f2 | sed -e "s/\,/\|/" | perl -e 'undef $$/; $$_ = <>; s/\r?\n//g; print;'
+#
+# A094036	egf	0	(exp(31*x)-20*exp(23*x)+60*exp(19*x)+20*exp(17*x)+5*exp(16*x)-105*exp(15*x)-120*exp(14*x)+150*exp(13*x)+180*exp(12*x)-300*exp(11*x)-110*exp(10*x)+380*exp(9*x)+160*exp(8*x)-575*exp(7*x)+570*exp(6*x)-186*exp(5*x)-975*exp(4*x)+1645*exp(3*x)-1030*exp(2*x)+274*exp(x)-24)/120
+#--
+GREP="A049214|A055887|A089277|A114584|A132885|A133886|A134424|A174193|A181331|A182015|A187260|A202081|A271940|A273347|A323988"
+hometest:
+	grep -E $(GREP) ../common/jcat25.txt | cut -b4- | perl homegf.pl
+homexx:
+	| grep -vE "A071213|A094036|A097591|A117437|A123125|A144186|A145880|A162508|A174846|A176118|A186363|A193542|A202081|A200560|A242240|A240559|A253282|A275385|A307419" \
+	| grep -vE "A097592|A124498|A145881|A242817|A247075|A295794|A302200|A302201" \
+	| sort | uniq -w7 \
+	# 
 homegf3:
 	cat homegf2.tmp \
 	| perl -ne 'use strict; my @parms = split(/\t/); if ($$parms[3] !~ m{[^ak0-9\(\)\+\-\*]}) { '\

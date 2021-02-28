@@ -1,7 +1,8 @@
 #!make
 
-# OEIS-mat/common - scripts and data common to all subprojects
+# OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
+# 2021-02-04: REMOTE
 # 2019-06-24: joeis_ofter
 # 2019-07-16: joeis parallel to joeis-lite
 # 2019-04-11: checks exported to ./checks.make
@@ -24,6 +25,8 @@ D=0
 G=n
 NMAX=40
 CMAX=140
+REMOTE=atair
+# set_env_var_REMOTE
 #-------------
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
@@ -92,12 +95,7 @@ bulk_lists:
 	#### now copy bulk?.txt to the Linux machine
 #---------
 history: # Fetch new or recently changed JSONs
-	rm -rf  bulk
-	mkdir   bulk
-	mkdir   bulk/bfile
-	mkdir   bulk/ajson
-	cp -pv  bulka.txt bulk/ajson
-	cp -pv  bulkb.txt bulk/bfile
+	make    history1
 	make    history2  DIR=bulk KEYWORD=new       MAX=$(NMAX) 
 	make    history2  DIR=bulk KEYWORD=changed   MAX=$(CMAX) 
 	make    history2  DIR=bulk KEYWORD=recycled  MAX=$(NMAX) 
@@ -108,7 +106,7 @@ history: # Fetch new or recently changed JSONs
 	make    history5  DIR=bulk
 #--
 hinlin0: # estimate NMAX; CMAX
-	ping -c2 atair 
+	ping -c2 $(REMOTE) 
 	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
 	| grep -E "\"time\"" | sort 
 	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \
@@ -119,6 +117,13 @@ history0: # get new and changed JSONs, expand blocks, and get b-files
 	| grep -E "\"time\"" | sort 
 	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \
 	| grep -E "\"time\"" | sort 
+history1: # prepare directories
+	rm -rf  bulk
+	mkdir   bulk
+	mkdir   bulk/bfile
+	mkdir   bulk/ajson
+	cp -pv  bulka.txt bulk/ajson
+	cp -pv  bulkb.txt bulk/bfile
 history2: # parameter KEYWORD, DIR, MAX: write blocks of new or changed JSONs into $(DIR)
 	perl history.pl -k $(KEYWORD) -w $(SLEEP) -n $(MAX) $(DIR)
 	ls -al $(DIR) | head -n 8
@@ -168,10 +173,10 @@ hinlin2:
 	make    bfsynth LIST=synthe_check.txt
 	rm -f   bfsynth.zip
 	zip -rq bfsynth.zip bfsynth bulk?.txt
-	scp     bfsynth.zip names stripped gfis@atair:~/work/gits/OEIS-mat/common
+	scp     bfsynth.zip names stripped gfis@$(REMOTE):~/work/gits/OEIS-mat/common
 	#### make unpack_bfsynth on the Linux machine
 hinlin3:
-	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; time make daily NMAX=$(NMAX) CMAX=$(CMAX)'
+	ssh gfis@$(REMOTE) 'cd ~/work/gits/OEIS-mat/common ; time make daily NMAX=$(NMAX) CMAX=$(CMAX)'
 	make herlin
 daily:
 	time make unpack_bfsynth history infos
@@ -186,7 +191,7 @@ binfos: bfdata bfinfo
 # process after data extraction on Linux
 herlin: herscp aloads bloads checks
 herscp: 
-	scp gfis@atair:/home/gfis/work/gits/OEIS-mat/common/??????.txt .
+	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
 aloads: asdata_load asinfo_load asname_load asxref_load 
 bloads: bfdata_load bfinfo_load bfdir_load 
 #--------
@@ -240,6 +245,15 @@ asinfo_update:
 	$(DBAT) -m csv -s "\t" -r   asinfo < $(LIST)
 	$(DBAT) -4                  asinfo
 	$(DBAT) -n                  asinfo
+asinhp: # special extract: aseqno, offset1, keyword(cons|table)  for H.P.
+	cut -f1,2,7,8 asinfo.txt \
+	| perl -ne 's{\s+\Z}{}; my ($$as, $$of, $$kw) = split(/\t/); '\
+	' print join("\t", $$as, $$of, join(",", grep { m{cons|tabl} } split(/\,/, $$kw))) . "\n"; '\
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+	# set REMOTE= !
+	scp      $@.txt gfis@$(REMOTE):/var/www/html/teherba.org/OEIS-mat/common/asinhp.txt
 #--------
 asxref: # parameter DIR: table for crossreferences
 	make asxref_extract DIR=.
@@ -298,8 +312,8 @@ joeis_list: joeis_local joeis_pull joeis_reload
 joeis_local:
 	cd $(JOEIS) ; git pull ; ant jar
 joeis_pull:
-	ssh gfis@atair 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
-	scp gfis@atair:work/gits/joeis/joeis_list.txt .
+	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
+	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 #--
 joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
@@ -340,7 +354,7 @@ joeis_stamp:
 	$(DBAT) -4 joeis
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
-ALAST=A039000
+ALAST=A040000
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
@@ -372,7 +386,7 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 	| cut -b1-80
 #----
 joeis_ccan:
-	scp gfis@atair:work/gits/joeis/joeis_list1.all.tmp .
+	scp gfis@$(REMOTE):work/gits/joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
 	>        $@.cc.tmp \
 	2>       $@.an.tmp
@@ -500,9 +514,9 @@ bfresh: # CC=
 	| grep -vE "^#" | sort | uniq \
 	| sed -e "s/A/b/" -e "s/$$/.txt/" \
 	>        $@.tmp
-	scp      $@.tmp makefile gfis@atair:~/work/gits/OEIS-mat/common
-	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; make $@.remote'
-	scp      gfis@atair:~/work/gits/OEIS-mat/common/$@.tgz .
+	scp      $@.tmp makefile gfis@$(REMOTE):~/work/gits/OEIS-mat/common
+	ssh gfis@$(REMOTE) 'cd ~/work/gits/OEIS-mat/common ; make $@.remote'
+	scp      gfis@$(REMOTE):~/work/gits/OEIS-mat/common/$@.tgz .
 	cd bfile ; tar -xzvf ../$@.tgz
 	rm -f $@.tgz
 bfresh.remote:
@@ -529,6 +543,12 @@ uncat_diff:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
+uncat_prep:
+	grep -E "^A" uncat_diff.tmp | cut -f1 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp	
+#----
 uncat_date: uncat_date1 uncat_date2 uncat_date3
 uncat_date1:
 	perl -w uncat25.pl -m date            cat25.txt \
@@ -538,6 +558,8 @@ uncat_date1:
 uncat_date2:
 	make seq2 LIST=uncat_date1.tmp
 uncat_date3:
+#----
+
 #------------
 weidis:
 	perl uncat25.pl -m text cat25.txt

@@ -603,11 +603,14 @@ lrordadd:
 	wc -l $@.txt	
 #--	
 lrjoeis_check: # Which linrecs are not yet in jOEIS
-	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno \
-		, i.signature \
-	FROM lrindx i, asinfo a \
+	$(DBAT) "SELECT 'A' || i.seqno AS A_number, 'lrjoeis', 0, i.sigorder, i.signature, d.data \
+	FROM lrindx i, asinfo a, asdata d \
 	WHERE 'A' || i.seqno = a.aseqno \
 	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  AND a.aseqno = d.aseqno \
+	  AND LENGTH(i.signature) > 0 \
+	  AND i.signature <> '88888888' \
+	  AND a.keyword NOT LIKE '%dead%' \
 	ORDER by 1" \
 	>        $@.txt
 	head -n4 $@.txt

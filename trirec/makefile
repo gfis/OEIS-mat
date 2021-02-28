@@ -104,8 +104,9 @@ rio1:
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
-rio2:
-	grep -vE "\?" rio1.tmp \
+LIST=rio1.tmp
+rio2: # LIST=
+	grep -vE "\?" $(LIST) \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
@@ -116,6 +117,27 @@ rio3:
 	>        $@.tmp
 	head -4  $@.tmp
 	wc -l    $@.tmp
+#--------
+rsrio: rsrio1 rsrio2
+rsrio1:
+	grep -E "^A[0-9]" ralf*-riordan.lst \
+	| sed -e "s/^/\%r /" \
+	| perl extract_rio.pl -d 0 \
+	| sort | uniq -w7 \
+	>        $@.rest.tmp
+	grep rioarr $@.rest.tmp > $@.tmp
+	head -4  $@.tmp
+	wc -l    $@.rest.tmp $@.tmp
+rsrio2:
+	make rio2 LIST=rsrio1.tmp
+	make rio3
+rsrio3:
+	make -f ../common/makefile seq2 LIST=rsrio1.tmp
+	$(DBAT) -x "SELECT s.aseqno, 'rioarr', 0, '(' || s.info || ')' FROM seq2 s \
+	  WHERE s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	| tee $@.tmp
+	wc -l $@.tmp
 #--------
 # Tables with factorial elements
 factabl: factabl1 factabl2
