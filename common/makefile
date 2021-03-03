@@ -248,7 +248,7 @@ asinfo_update:
 asinhp: # special extract: aseqno, offset1, keyword(cons|table)  for H.P.
 	cut -f1,2,7,8 asinfo.txt \
 	| perl -ne 's{\s+\Z}{}; my ($$as, $$of, $$kw) = split(/\t/); '\
-	' print join("\t", $$as, $$of, join(",", grep { m{cons|tabl} } split(/\,/, $$kw))) . "\n"; '\
+	' print join("\t", $$as, $$of, join(",", grep { ! m{synth|changed|allocated|new} } split(/\,/, $$kw))) . "\n"; '\
 	>        $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
@@ -451,7 +451,7 @@ joeis_block3:
 	wc -l    $@.txt
 #--------
 cojec:
-	grep -Ei "Conjecture"  cat25.txt | grep -E "Colin Barker" \
+	grep -Ei "Conjecture|Empirical"  cat25.txt | grep -E "Colin Barker" \
 	| cut -b4-10 | uniq \
 	>        $@.tmp
 	$(DBAT) -f cojec.create.sql
@@ -544,10 +544,13 @@ uncat_diff:
 	wc -l    $@.tmp
 #----
 uncat_prep:
-	grep -E "^A" uncat_diff.tmp | cut -f1 \
+	grep -E "^A" uncat_diff.tmp | cut -f1 | sort \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp	
+uncat_down:
+	make bulk_type DIR=bulk TYPE=ajson LIST=uncat_prep.tmp
+	make history5
 #----
 uncat_date: uncat_date1 uncat_date2 uncat_date3
 uncat_date1:

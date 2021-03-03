@@ -1,7 +1,8 @@
 #!perl
 
-# Repair indices in b-files
+# Clean a b-file with optional index shift
 # @(#) $Id$
+# 2021-03-02: -c = naked, no comments
 # 2019-10-27: print usage if no args
 # 2019-06-04: syntax errors
 # 2019-01-24, Georg Fischer
@@ -37,9 +38,12 @@ my $seqno6    = -1;
 my $filename  = "";
 my $inbuffer  = "";
 my $to_stdout = 0;
+my $naked     = 0; # keep comments
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
+    } elsif ($opt  =~ m{c}) {
+        $naked     = 1;
     } elsif ($opt  =~ m{f}) {
         $filename  = shift(@ARGV);
         $filename  =~ m{b(\d{6})};
@@ -52,7 +56,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $seqno     =~ m{(\d+)};
         $seqno     = $1;
         $seqno6    = sprintf("%06d", $seqno);
-        $inbuffer    = `wget -O - \"https://oeis.org/A$seqno6/b$seqno6.txt\"`;
+        $inbuffer  = `wget -O - \"https://oeis.org/A$seqno6/b$seqno6.txt\"`;
     } elsif ($opt  =~ m{\A[+\-]\d+\Z}) {
         $increment = $opt;
     } elsif ($opt  eq "-") {
@@ -63,7 +67,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 # get the name
-my $name = `grep -E \"^A$seqno6\" $names`;
+my $name = ($naked == 1) ? "A$seqno6" : `grep -E \"^A$seqno6\" $names`;
 $name =~ s{\s+}{ }g;
 
 my $state  = 0;
@@ -76,7 +80,7 @@ foreach my $line(@lines) {
     $line =~ s{\A\s+}{}; # remove leading whitespace 
     if (0) {
     } elsif ($line =~ m{\A(-?\d+)\s+(\-?\d{1,})\s*(\#.*)?\Z}o) {
-             # loose    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  format "index term #?"
+        # loose format: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -> "index term #?"
         my ($index, $term, $comment) = ($1, $2, $3);
         $state ++ ; # first term seen - skip any further comments
         $index += $increment;
@@ -86,7 +90,7 @@ foreach my $line(@lines) {
         }
         $outbuffer .= "$index $term\n";
     } elsif ($line =~ m{\A\#}) { # comment
-        if ($state == 0) { # in first block
+        if ($naked == 0 && $state == 0) { # in first block
             if ($line =~ m{b\-file synthesized from sequence entry}) {
                 print STDERR "\"synthesized\" note removed\n";
             } else {
@@ -107,18 +111,24 @@ my $header = <<"GFis";
 # Table of n, a(n) for n = $bfimin..$bfimax
 # Offset adapted with bfclean.pl by Georg Fischer, $sigtime.
 GFis
-$outbuffer = $header . $outbuffer;
+if ($naked == 0) {
+    $outbuffer = $header . $outbuffer;
+}
 my $outfile;
 if (scalar(@ARGV) == 0 or $to_stdout == 1) { # no outfile name
     print     $outbuffer;
-    print     "\n"; 
-    print     "\n"; # for Alois
+    if ($naked == 0) {
+        print     "\n"; 
+        print     "\n"; # for AH
+    }
 } else {
-	$outfile = shift(@ARGV);
+    $outfile = shift(@ARGV);
     open(OUT, ">", $outfile) or die "cannot write \"$outfile\"\n";
     print OUT $outbuffer;
-    print OUT "\n"; 
-    print OUT "\n"; # for Alois
+    if ($naked == 0) {
+        print OUT "\n"; 
+        print OUT "\n"; # for AH
+    }
     close(OUT);
 }
 #----------------------
