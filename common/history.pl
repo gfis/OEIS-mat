@@ -27,6 +27,7 @@ my $timestamp = sprintf ("%04d-%02d-%02d.%02d_%02d"
 my $debug      = 0;
 my $action     = "g";
 my $keyword    = "changed";
+my $minnum     = 1    ; # start of history (default 1)
 my $maxnum     = 65536; # maximum number of sequences (default unlimited)
 my $increment  = 10; # for &start, fixed by OEIS server
 my $sleep      = 16; # wait time in seconds
@@ -45,6 +46,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     } elsif ($opt  =~ m{k}) {
         $action    = "g";
         $keyword   = shift(@ARGV);
+    } elsif ($opt  =~ m{m}) {
+        $minnum    = shift(@ARGV);
     } elsif ($opt  =~ m{n}) {
         $maxnum    = shift(@ARGV);
     } elsif ($opt  =~ m{r}) {
@@ -81,7 +84,7 @@ if (0) {
                      , "sort=" . ($keyword eq "new" ? "created" : "modified")
                      , "fmt=$type"
                      , "start="));
-    my $start  = 0;
+    my $start  = $minnum;
     my $total  = 0;
     while ($start < $maxnum) {
         my $status = "000";
