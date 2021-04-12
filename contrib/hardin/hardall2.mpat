@@ -1,0 +1,8 @@
+interface(prettyprint=0):
+with(gfun):
+with(StringTools):
+signat:=proc(list) local fract,s,i,x;
+fract:=guessgf(list, x, ['ogf'])[1]; 
+return Remove(IsSpace, cat(convert([seq(coeff(denom(fract),x,i),i=0..degree(denom(fract)))],string), ",",  convert([seq(coeff(numer(fract),x,i),i=0..degree(numer(fract)))],string))); end;
+
+printf("%s\t%s\t%s\t%s\t%s\t%s\n", "$(PARM0)", "$(PARM1)", "$(PARM2)", "$(PARM3)", timelimit($(TIMEOUT), signat([$(PARM4)])), "$(PARM5)");
