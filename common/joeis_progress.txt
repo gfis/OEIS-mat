@@ -1,0 +1,1 @@
+2021-04-25	18:31:08	109503	Java classes =	31.8635	% out of	343663	OEIS sequences are implemented by jOEIS

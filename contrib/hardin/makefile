@@ -86,5 +86,5 @@ hardall3: # count the non-FAIL
 	grep -v FAIL hardall2.tmp | wc
 hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
-	| uniq -c | sort -rn | less
+	| uniq -c | sort -rn > $@.tmp
 #----------------

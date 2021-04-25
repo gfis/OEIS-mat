@@ -315,7 +315,7 @@ joeis_pull:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 #--
-joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25
+joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -355,10 +355,17 @@ joeis_stamp:
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 ALAST=A050000
+joeis_progress:
+	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
+	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 \
+	    );" \
+	| tee -a $@.txt
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
-	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
-	    || '% out of ' || CAST(b AS CHAR) || ' OEIS sequences are covered by jOEIS' FROM \
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,7) \
+	    || '% out of ' || CAST(b AS CHAR) || ' OEIS sequences are implemented by jOEIS' FROM \
 	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 \
 	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 \
 	    );"
@@ -525,7 +532,7 @@ bfresh.remote:
 	cat bfresh.tmp | xargs -l -i{} cp bfile/{} temp/{}
 	cd temp ; tar -czvf ../bfresh.tgz *.txt
 #----
-partial:
+partial: ajpartial bfpartial
 ajpartial:
 	find ajson -type f -iname "A*.js*" -ctime -180 | sort > $@.tmp
 	head -n4 $@.tmp
