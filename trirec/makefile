@@ -106,7 +106,7 @@ rio1:
 	wc -l   $@.tmp
 LIST=rio1.tmp
 rio2: # LIST=
-	grep -vE "\?" $(LIST) \
+	grep -vE "[\?\#]" $(LIST) \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp

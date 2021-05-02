@@ -361,7 +361,8 @@ joeis_progress:
 	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 \
 	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 \
 	    );" \
-	| tee -a $@.txt
+	>>        $@.txt
+	tail -n16 $@.txt 
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,7) \

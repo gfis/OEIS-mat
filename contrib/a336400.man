@@ -1,0 +1,47 @@
+Join[{1, 2}, Table[2^(n+1)*HypergeometricU[n, 1+2 n, 2], {n, 2, 99}]]
+Join[{1, 2}, Table[n*Sum[(n+k-1)!/(k!*(n-k)!*2^(k-1)),{k,0,n}],{n,2,200}]]
+
+does not work:
+f:= gfun:-rectoproc({a(n+1)=2*n*a(n)+(2*n-2)*a(n-1)+a(n-2), a(0)=1,a(1)=2,a(2)=9}, a(n), remember): map(f, [$2..20]);
+seq(n*Sum((n+k-1)!/(k!*(n-k)!*2^(k-1)),k=0..n),n=0..20);
+seq(n*Sum((n+k-1)!/(k!*(n-k)!*2^(k-1)),k=0..n),n=2..10);
+RecurrenceTable[{a[n+1]==2*n*a[n]+(2*n-2)*a[n-1]+a[n-2], a[0]===1,a[1]==2,a[2]==9}, a[n], {n,2,200}]
+
+RecurrenceTable[{a[n+1]==2*n*a[n]+(2*n-2)*a[n-1]+a[n-2], a[0]==1,a[1]==2,a[2]==9}, a, {n,3,20}]
+RecurrenceTable[{a[n+1]==((4*n^2-3)*a[n]+(2*n+1)*a[n-1])/(2*n-1), a[0]==1,a[1]==2}, a, {n,2,20}]
+
+nn = 1000; varphi[n_] := DivisorSum[n, MoebiusMu[#] # &]; A = Table[Table[Sum[If[n >= k, varphi[GCD[i, k]], 0], {i, k, n}], {k, 1, nn}], {n, 1, nn}]; vv = Table[1 + Sum[Sign[(1 + Sign[Sum[If[j == 1, A[[n, j]], -Abs[A[[n, j]]]], {j, 1, k}]])], {k, 1, n}], {n, 1, nn}]
+
+
+(*Mathematica, start*)
+Clear[varphi];
+nn = 400;
+varphi[n_] := DivisorSum[n, MoebiusMu[#] # &];
+Monitor[A = 
+   Accumulate[
+    Table[Table[If[n >= k, varphi[GCD[n, k]], 0], {k, 1, nn}], {n, 1, 
+      nn}]];, n]
+B = -Abs[A];
+Clear[A];
+B[[All, 1]] = Range[nn];
+B1 = Sign[Transpose[Accumulate[Transpose[B]]]];
+Clear[B];
+Quiet[v = 
+   ReplaceAll[
+    Flatten[Table[First[Position[B1[[n]], -1]], {n, 1, nn}]], 
+    First[{}] -> 1]];
+nnn = 10;
+Monitor[A = 
+   Table[Table[
+     Sum[If[n >= k, varphi[GCD[i, k]], 0], {i, k, n}], {k, 1, 
+      nnn}], {n, 1, nnn}];, n]
+Monitor[vv = 
+   Table[1 + 
+     Sum[Sign[(1 + 
+          Sign[Sum[
+            If[j == 1, A[[n, j]], -Abs[A[[n, j]]]], {j, 1, k}]])/
+        2], {k, 1, n}], {n, 1, nnn}];, n]
+Do[v[[i]] = vv[[i]], {i, 1, 9}];
+Print[v]
+(*end*)
+

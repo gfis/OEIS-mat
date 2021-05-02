@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2021-05-02: monotone increasing
 # 2020-02-22: -as:program
 # 2019-04-12: termno in asdata and in bfdata
 # 2019-04-08: evaluate -a x separately
@@ -15,9 +16,9 @@
 #:#       action  (default -br)
 #:#           a   for sequence JSON
 #:#           j   for sequence JSON
-#:#           n   only extract names from JSON 
-#:#           s   only extract data  from JSON 
-#:#           x   only extract xrefs from JSON 
+#:#           n   only extract names from JSON
+#:#           s   only extract data  from JSON
+#:#           x   only extract xrefs from JSON
 #:#           b   for bfile
 #:#           r   TSV for Dbat -r,
 #:#           c   generate CREATE SQL
@@ -75,11 +76,11 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     }
 } # while ARGV
 my $inputdir = shift(@ARGV);
-if (length($tabname) > 0) { 
+if (length($tabname) > 0) {
     # believe this one
 } elsif ($action =~ m{b}) {
     $tabname = "bfinfo";
-    
+
 } elsif ($action =~ m{[aj]}) {
     $tabname = "asinfo";
 }
@@ -183,7 +184,7 @@ sub extract_from_json { # read JSON of 1  sequence
     foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\A\s*\"}) { # ignore closing brackets
             $in_xref = 0; # but terminate xref mode
-        # now the JSON properties   
+        # now the JSON properties
         } elsif ($line =~   m{\A\s*\"number\"\:\s*(\d+)}) {
             $value = $1;
             $seqno = sprintf("%06d", $value);
@@ -236,11 +237,11 @@ sub extract_from_json { # read JSON of 1  sequence
             $keyword = "notexist";
         } elsif ($line =~   m{\A\s*\"xref\"\:}) {
             $in_xref = 1; # start xref mode
-            
+
         } else {
             if ($line =~    m{\/$aseqno\/b$seqno\.txt}) { # link to b-file
                 $synth = ""; # not synthesized
-            }   
+            }
             if ($do_xref == 1) {
                 &extract_aseqnos($aseqno, $line);
             }
@@ -356,7 +357,7 @@ sub terms8 { # keep in sync with code in extract_from_bfile !!!
     return ($termno, substr($terms, 1)); # remove first comma
 } # terms8
 #----
-sub utc { 
+sub utc {
     my ($value) = @_;
 #   2011-11-13T12:40:47-05:00
     $value =~ m{\A(\d+)\D(\d+)\D(\d+)\D(\d+)\D(\d+)(\D)(\d+)\D(\d+)\D(\d+)};
@@ -446,7 +447,9 @@ sub extract_from_bfile {
     my $term;
     my $isge    = 1; # assume that the terms are monotone (<=)
     my $isgt    = 1; # assume that the terms are strictly increasing (<)
-    my $old_term;
+    my $decindex = 0; # last index which was decreasing
+    my $old_term = "";
+    my $oldlen  = 29061947; # longer than any OEIS number
     my $state   = 0;
     if (substr($buffer, -1) ne "\n") {
         $mess{"neof"} = ""; # ord(substr($buffer, -1));
@@ -456,18 +459,9 @@ sub extract_from_bfile {
             ($index, $term) = ($1, $2);
             if ($iline == 0) {
                 $bfimin   = $index;
-            #   $old_term = $term;
+                $decindex = $bfimin;
             } elsif ($index != $bfimax + 1) { # check for increasing index
-                $mess{"nxinc"} = ($iline + 1); # hard error
-                # not increasing
-            } else {
-            #   if ($term <= $old_term) {
-            #       $isgt = 0;
-            #   }
-            #   if ($term >  $old_term) {
-            #       $isge = 0;
-            #   }
-            #   $old_term = $term;
+                $mess{"nxinc"} = ($iline + 1); # hard error - index not increasing
             }
             if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
                 $termno ++;
@@ -490,18 +484,26 @@ sub extract_from_bfile {
             if ($curlen > $maxlen) {
                 $maxlen = $curlen;
             }
-            
+            # determine whether in's non-increasing
+            if ($curlen > $oldlen) {
+                # ok
+            } elsif ($curlen < $oldlen) {
+                $decindex = $index;
+            } else { # same lengths, must compare both terms
+            }
+            $oldlen = $curlen;
+            $old_term = $term;
         } elsif ($line =~ m{\A\#.*}) { # comment
             if ($iline == 0 and ($line =~ m{\A\# A\d{6} \Wb\-file synthesized from seq.*\Z})) {
                 $mess{"synth"} = "";
-            } elsif ($iline > 0) { 
+            } elsif ($iline > 0) {
                 $mess{"ecomt"} = "";
                 $mess{"loose"} = "";
-            } else { 
+            } else {
                 $mess{"comt"}  = "";
             }
             # otherwise ignore comment
-        } elsif ($line =~ m{\A\s*\Z}) { # blank line 
+        } elsif ($line =~ m{\A\s*\Z}) { # blank line
                 $mess{"blank"} = "";
                 # otherwise ignore blank line
         } else { # loose format
@@ -539,22 +541,22 @@ sub extract_from_bfile {
         foreach my $key (sort(keys(%mess))) {
             $message .= ",$key$mess{$key}"
         } # foreach
-    } # some message    
+    } # some message
     if ($message =~ m{ n(dig|inc)}) {
         print STDERR "# $filename: $aseqno\t$message\n";
     }
     if ($action =~ m{t}) { # bfdata
         print join("\t",
         ($aseqno
-				, $termno
+                , $termno
         , substr($terms,   1) # remove 1st comma
         )) . "\n";
     } else { # normal bfinfo
-        print join("\t",  
+        print join("\t",
         ( $aseqno
         , $bfimin
         , $bfimax
-        , $offset2
+        , $decindex # was offset2
         , substr($terms,   1) # remove 1st comma
         , substr($term, -$tail_width)
         , $filesize
@@ -576,12 +578,13 @@ CREATE  TABLE            $tabname
     ( aseqno    VARCHAR(10)   -- A322469
     , bfimin    BIGINT        -- index in first data line
     , bfimax    BIGINT        -- index in last  data line
-    , offset2   BIGINT        -- line number of first term with abs(term) > 1, or 1
+    , decindex  BIGINT        -- last index where terms were decreasing
+--  , offset2   BIGINT           line number of first term with abs(term) > 1, or 1
     , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
     , tail      VARCHAR(8)    -- last $tail_width digits of last term
-    , filesize  INT           -- size of the file in bytes, from the operating system 
+    , filesize  INT           -- size of the file in bytes, from the operating system
     , maxlen    INT           -- maximum length of terms
-    , message   VARCHAR(128)  -- "bad<iline>,blank,comt,cr,ecomt,loose,lsp,msp,neof,rsp,sign,nxinc<iline>,synth,tcomt" 
+    , message   VARCHAR(128)  -- "bad<iline>,blank,comt,cr,ecomt,loose,lsp,msp,neof,rsp,sign,nxinc<iline>,synth,tcomt"
     , access    TIMESTAMP DEFAULT '1971-01-01 00:00:01' -- b-file modification time in UTC
     , PRIMARY KEY(aseqno)
     );

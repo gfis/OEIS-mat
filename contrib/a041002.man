@@ -1,0 +1,22 @@
+# Andrew Howroyd, Apr 15 2021
+
+# Map a binary sequence b=[ b_1,... ] to a binary sequence c=[ c_1,... ] 
+# so that C=1/Product (1-x^i)^c_i == 1+Sum b_i*x^i mod 2.
+# This produces 2 new sequences: d={i:c_i=1} and e=[ 1,e_1,... ] where C=1+Sum e_i*x^i.
+#
+#----
+# A041002 The sequence d, given that c is a left shift by one place of b.
+EulerT(v)={Vec(exp(x*Ser(dirmul(v, vector(#v, n, 1/n))))-1, -#v)}
+seq(n)={my(v=vector(n+1)); v[1]=1; for(n=2, #v, v[n]=(v[n-1]+EulerT(v[2..n])[n-1])%2); 
+  select(t->t, v[2..n+1], 1)} 
+#----
+# A041003 The sequence e, given that c is a left shift by one place of b.
+EulerT(v)={Vec(exp(x*Ser(dirmul(v, vector(#v, n, 1/n))))-1, -#v)}
+seq(n)={my(v=vector(n+1)); v[1]=1; for(n=2, #v, v[n]=(v[n-1]+EulerT(v[2..n])[n-1])%2); 
+  concat([1], EulerT(v[2..n+1]))}
+#----
+# A041004 The sequence b, given that c is a left shift by one place of b.
+EulerT(v)={Vec(exp(x*Ser(dirmul(v, vector(#v, n, 1/n))))-1, -#v)}
+seq(n)={my(v=vector(n+1)); v[1]=1; for(n=2, #v, v[n]=(v[n-1]+EulerT(v[2..n])[n-1])%2); 
+  v}
+#----
