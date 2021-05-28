@@ -23,8 +23,8 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 D=0
 G=n
-NMAX=40
-CMAX=140
+NMAX=90
+CMAX=180
 REMOTE=atair
 # set_env_var_REMOTE
 #-------------
@@ -315,7 +315,7 @@ joeis_pull:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 #--
-joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_progress
+joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_analog joeis_progress 
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -354,6 +354,8 @@ joeis_stamp:
 	$(DBAT) -4 joeis
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
+joeis_analog:
+	cd $(FISCHER); make analog
 ALAST=A050000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
@@ -413,7 +415,7 @@ joeis_eval:
 jcat25:
 	perl jcat25.pl cat25.txt > $@.txt
 	wc -l cat25.txt $@.txt
-	grep -E "^\%" $@.txt | wc -l
+	cut -b1 $@.txt | sort | uniq -c 
 #----------------
 corenice: core nice
 core:

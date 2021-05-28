@@ -484,12 +484,16 @@ sub extract_from_bfile {
             if ($curlen > $maxlen) {
                 $maxlen = $curlen;
             }
-            # determine whether in's non-increasing
-            if ($curlen > $oldlen) {
-                # ok
+            # determine whether it's non-increasing
+            if (0) {
+            } elsif ($curlen > $oldlen) {
+                # ok, increasing
             } elsif ($curlen < $oldlen) {
-                $decindex = $index;
-            } else { # same lengths, must compare both terms
+                $decindex = $index; # decreasing
+            } else { # same lengths, must compare both terms (by characters)
+                if ($term le $old_term) {
+                    $decindex = $index;
+                }
             }
             $oldlen = $curlen;
             $old_term = $term;
