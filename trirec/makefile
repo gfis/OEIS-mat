@@ -192,14 +192,14 @@ triknoll:
 #--------
 # Triangle recurrences
 trec:
-	perl -ne \
-	's{with |where |when |for |if }{ }g;'\
+	grep -E "^\%[NF]" $(COMMON)/jcat25.txt \
+	| perl -ne \
+	's{with |where |when |for |if }{for }g;'\
 	'if  ((! m{[\!\|]|\.\.\.|ceil|floor|min|max|[Nn]umber|Pi|[Ss]um|[ATa]\d{6}\S}) '\
-	' and (m{^\%\w (A\d+)\s+(T\([i-n]\,\s*[i-n]\)\s*\=[^\.]*)\.}))'\
+	' and (m{^\%\w (A\d+)\s+(T\([hi-n]\,\s*[hi-n]\)\s*\=[^\.]*)\.}))'\
 	'{ print join("\t", $$1, "$@", 0, $$2) . "\n" }' \
-	$(COMMON)/cat25.txt \
-	| tee     $@.tmp
-	# head -n4 $@.tmp
+	>         $@.tmp
+	head -n 4 $@.tmp
 	wc -l     $@.tmp  
 #---------------------------
 # "more" triangles

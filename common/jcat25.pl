@@ -34,32 +34,54 @@ while (<OFT>) {
     s{\s+\Z}{};
     my ($aseqno, $offset, $terms) = split(/\t/);
     $terms = $terms || "";
-    if ($offset < -1) { # offsets -2, -3: strange, skip these
-    } else {
-        $ofters{$aseqno} = "$offset\t$terms";
-    }
+    $ofters{$aseqno} = "$offset\t$terms";
 } # while <OFT>
 close(OFT);
 print STDERR "# $0: " . scalar(%ofters) . " jOEIS offsets and some terms read from $ofter_file\n";
+foreach my $key (("A000001", "A000007", "A183652", "A400000")) {
+    print STDERR "$key " . ($ofters{$key} || "undef") . "\n";
+}
 #----------------
 my $oseqno = "";
-my $repl = 0;
+my $otype  = "-";
+my $state  = 0;
+my $col1   = "%";
+
 while (<>) { # CAT25 format
+    next if length($_) < 11;
     $line = $_;
-    m{\A.. (A\d+)};
-    my $aseqno = $1 || "A000000";
-    if ($oseqno ne $aseqno) {
+    my $atype  = substr($line, 1, 1);
+    my $aseqno = substr($line, 3, 7); # $1 || "A000000";
+    if ($atype ne $otype) {
+        if ($state != 0) {
+            $state = 0;
+            print STDERR "# Start-End overrun in $otype $oseqno\n";
+        }
+        $otype = $atype;
+    }
+    if ($aseqno ne $oseqno) {
         $oseqno = $aseqno;
-        $repl = defined($ofters{$aseqno}) ? 1 : 0;
+        if (defined($ofters{$aseqno})) {
+            $col1 = "#";
+        } else {
+            $col1 = "%";
+        }
     }
-    if ($repl && (substr($line, 0, 1) ne $sharp)) {
-        print $sharp . substr($line, 1);
-    } else {
-        print $line;
+    $line =~ s{\A.}{$col1};
+    if (0) {
+    } elsif ($atype eq "F" && ($line =~ m{Conjecture}i) && ($line =~ m{\(Start\)}i)) {
+        $state = 1;
+    } elsif ($state == 1   && ($line =~ m{\(End\)}i)) {
+        $state = 0;
     }
+    if ($state == 1) {
+        $line =~ s{\A.}{\?};
+    }
+    print $line;
 } # while <>
 #================
 __DATA__
+012345678901234567
 %I
 %I A000001  M0098 N0035
 %S A000001 0,1,1,1,2,1,2,1,5,2,2,1,5,1,2,1,14,1,5,1,5,2,2,1,15,2,2,5,4,1,4,1,51,

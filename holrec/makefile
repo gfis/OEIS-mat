@@ -79,6 +79,9 @@ holjoeis1:
 jlist:
 	cut -b1-7 holjoeis.tmp | xargs -l -i{} cmd /c jo {}
 #----
+A1630:
+	grep -E "$@" $(COMMON)/bfdata.txt > $@.tmp
+#----
 holregen: # takes quite some time on Windows because all Java sources in the list are read
 	perl holregen.pl holjoeis.tmp \
 	>        $@.tmp
@@ -103,6 +106,20 @@ holgf2:
 	wc -L    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#--------------------------------
+greprec0:
+	grep -E "^%[NF]" $(COMMON)/jcat25.txt \
+	| perl greprec.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+greprecn:
+	perl greprecn.pl greprec0.tmp \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
 #--------------------------------
 holex:
 	grep -P "^(\w+)\t(\w+)\t(a\(n\) *\= *)?[n\d\+\-\*\/\!\(\)\^ ]+\." $(COMMON)/joeis_names.txt \
@@ -130,7 +147,8 @@ hyper2:
 ##--------------------------------------------------
 gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
-	perl gfsqrt_grep.pl $(COMMON)/cat25.txt \
+	grep -E "^[\%]" $(COMMON)/cat25.txt \
+	| perl gfsqrt_grep.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -374,12 +392,15 @@ hiter3slow:
 	wc       $@.tmp
 #--------
 satis:
-	grep -Ei "satis" $(COMMON)/cat25.txt \
+	grep -Ei "satis" $(COMMON)/jcat25.txt \
+	| grep -E "^\%" \
 	| grep -vE "Decimal expansion|E\.\g\.\f\.|adic integer" \
 	| perl satis.pl \
 	>        $@.tmp
 	grep -E  "\?\?" $@.tmp > $@.rest.tmp
-	grep -vE "\?\?" $@.tmp > $@.gen
+	grep -vE "\?\?" $@.tmp \
+	| sort | uniq -w7 \
+	> $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen $@.*tmp
 #----

@@ -34,7 +34,11 @@ while(<>) {
         $expr   =~ s{ }{}g;
         $gf     =~ s{(O\.g\.|G\.)f\.[ \:]*}{};
         $gf     =~ s{ }{}g;
-        # $expr    =~ s{\,.*}{};
+
+        $expr   =~ s{g\(}{A\(}ig;
+        $gf     =~ s{g\(}{A\(}ig;
+        $expr   =~ s{z}{x}g;
+        $gf     =~ s{z}{x}g;
         if (0) {
         } elsif ($expr =~ m{[a-z][a-z0-9]}i) { # no where, for, all, sum, prod, no ellipsis
         } elsif ($expr =~ m{[\'\_\,\;]}) { # no derivatives yet, no underscores, A[x,y] etc.
@@ -91,6 +95,23 @@ sub polish {
     } else {
         $expr = "??3 $expr"; # void
     }
+    $expr =~ tr{\[\]}{\(\)};
+    $expr =~ s{A\(x\)}{A}g;
+    $expr =~ s{(\d|\))([A-Za-z])}{$1\*$2}g;
+    $expr =~ s{\+\-}{\-}g;
+    if ($expr =~ m{y}) {
+        $expr = "";
+    }
     return $expr;
 } # polish
 __DATA__
+read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER.txt";
+algtorecV(A- 1 + x*A + x^2*A^4,A,x,n,N,a);
+
+-1+(1+x)*A+x^2*A^4 = 0
+``
+`Then they satisfy the linear recurrence equation `
+``
+3*n*(3*n-2)*(3*n+2)*a(n)+(54*n^3+81*n^2-165*n+45)*a(n-1)+(229*n^3-201*n^2-499*n+441)*a(n-2)-2*(2*n-5)*(155*n
+^2-775*n+657)*a(n-3)+(229*n^3-3234*n^2+14666*n-21546)*a(n-4)+(54*n^3-891*n^2+4695*n-7995)*a(n-5)+3*(3*n-13)*
+(3*n-17)*(n-5)*a(n-6) = 0
