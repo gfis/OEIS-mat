@@ -1,0 +1,25 @@
+interface(prettyprint=0):
+read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER-gfis.txt";
+with(StringTools):
+tostring:=proc(list) local k:
+  SubstituteAll(DeleteSpace(convert(list,string)), "[]", "[0]")
+  end:
+findit := proc(aseqno, offset, ope); local rec, rord, k, str, j;
+  rec:=eval(ope, n=n); # shift=0
+  rord:=degree(rec,A):
+  ([[0], seq([seq(coeff(coeff(rec,A,rord-j),n,k),k=0..degree(coeff(rec,A,rord-j)))],j=0..rord) ] # matrix
+  ,[1]
+  )
+  end:
+holdfinite:=proc(aseqno, offset, ope, remark); local re, matrix, inits, dist, gftype;
+  re:= findit(aseqno, offset, ope);
+  matrix := tostring(re[1]);
+  inits  := tostring(re[2]);
+  dist   := 0;
+  gftype := 0;
+  printf("%a\tholos\t%a\t%s\t%s\t%a\t%a\t%s\n", aseqno              , offset, matrix, inits, dist, gftype, remark);
+  printf("# make runholo OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", offset, matrix, inits, dist);
+  end:
+# holdfinite(A337900, 0, (n-1)^2*(n+1)^2 -4*n^2*(2*n-1)^2*A);
+
+timelimit($(TIMEOUT), holdfinite($(PARM0), $(PARM2), $(PARM3), "$(PARM7)"));

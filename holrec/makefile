@@ -113,13 +113,30 @@ greprec0:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-greprecn:
+greprec1:
 	perl greprecn.pl greprec0.tmp \
 	2>       $@.rest.tmp \
 	| sort | uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
+greprec2:
+	grep -E "^A[0-9]" greprec1.tmp \
+	| perl -ne 's/\s+\Z//; my ($$aseqno, $$cc, $$offset, $$rec, @rest) = split(/\t/, $$_); $$rec =~ s{ }{}g; '\
+	' if ($$rec =~ m{a\(n\)\=[n\d\+\-\*\/\^\!\(\)]+\Z}) {'\
+	' print join("\t", $$aseqno, "holos", $$offset, substr($$rec, 5), @rest) . "\n"; }' \
+	| grep -vE "A051155|A061640|A122743|A152689|A178722|A217238|A231190|A244056|A309675" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+greprec3: # convert the formualae into P-finite recurrences
+	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p $(FISCHER)/binomin.mpat greprec2.tmp \
+	>        $@.tmp
+	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
+	| perl -ne 's/\[\]/\[0\]/g; print; '\
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen	
 #--------------------------------
 holex:
 	grep -P "^(\w+)\t(\w+)\t(a\(n\) *\= *)?[n\d\+\-\*\/\!\(\)\^ ]+\." $(COMMON)/joeis_names.txt \
@@ -127,7 +144,82 @@ holex:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----------------
+holfind: # LIST=, pure aseqnos
+	make seq4 # expects LIST=
+	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p holfind.mpat LIST 
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
+ADD=4
+holminit: # LIST=,ADD=... ; replace initial terms for a holonomic matrix; MATRIX=parm1, INIT=parm2, DIST=parm3, GFTYPE=parm4, rest ... unchanged
+	make seq4 # LIST=
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, d.data, s.parm3, s.parm4, s.parm5, s.parm6, s.parm7, s.parm8, s.name \
+	  FROM seq4 s, bfdata d \
+	  WHERE s.aseqno = d.aseqno \
+	  ORDER BY 1" \
+	| perl holminit.pl -a $(ADD) \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp	
+#----------------
+holfsig:
+	grep -iE "^%H" $(COMMON)/jcat25.txt | grep "Index entries for linear recurrences with constant coefficients" \
+	| perl holfsig.pl \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	make holminit LIST=$@.tmp ADD=4
+	cp -v holminit.tmp $@.gen
+#----------------
+holgrep: holgrep1 holgrep2
+	make holminit LIST=holdfing.tmp ADD=4
+	cp -v holminit.tmp $@.gen
+holgrep1:
+	grep -vE "\!" greprec1.tmp \
+	| sed -e "s/^/\%F /" -e "s/\tholos\t0\t/ finite with recurrence\: /" -e "s/\t0//g" -e "s/\t//g" \
+	>        $@.1.tmp
+	head -n4 $@.1.tmp
+	wc -l    $@.1.tmp
+	perl holdfin.pl $@.1.tmp \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
+	| grep -vE "A098704|A178722" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+holgrep2:
+	make holdfing LIST=holgrep1.tmp
+#----------------
+holdfin: holdfin1 holdfin2
+	make holminit LIST=holdfing.tmp ADD=4
+	cp -v holminit.tmp $@.gen
+holdfin1:
+	grep -iE "^%F" $(COMMON)/jcat25.txt | grep -iE "finite with recurrence[ \:]+" \
+	| perl holdfin.pl \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+holdfin2: 
+	make holdfing LIST=holdfin1.tmp
+#--
+holdfing: # generally useable
+	make seq4 
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, i.offset1, s.parm1, s.parm2, s.parm3, s.parm4, s.parm5 \
+	  FROM seq4 s, asinfo i \
+	  WHERE s.aseqno = i.aseqno \
+	  ORDER BY 1" \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfinite.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
+
+#----------------
 hyper: hyper1 hyper2
 hyper1:
 	perl extract_hypergeom.pl $(COMMON)/cat25.txt \
@@ -171,10 +263,7 @@ gfsqrt3: # generate matrix and initerms
 	wc -l    $@.tmp
 	grep A095776 $@.tmp
 gfsqrt4: # store in DB table and select non-jOEIS
-	$(DBAT) -f $(FISCHER)/seq4.create.sql
-	cat      gfsqrt3.tmp | $(DBAT) -m csv -r seq4 
-	$(DBAT) -4 seq4
-	$(DBAT) -n seq4
+	make seq4 LIST=gfsqrt3.tmp
 	$(DBAT) -f gfsqrt.update.sql
 	$(DBAT) -x "SELECT s.aseqno, 'holos', s.offset, s.parm1, s.parm2, s.parm3, s.parm4 \
 		FROM seq4 s  \
@@ -372,7 +461,9 @@ hiteval:
 	| sed -e "s/\r//" \
 	>        $@.notj.tmp
 	wc -l    $@.notj.tmp
-	
+unsure4:
+	make holminit LIST=hiteval.uniqw.tmp
+	cp -v $(HOLREC)/hiteval.gen $@.gen
 #-------------------
 # too slow:
 hiter2slow:
