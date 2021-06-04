@@ -34,7 +34,7 @@ gather2:
 	| sed -e "s/\r//" \
 	| xargs -l -inn perl weight_dist.pl -s Ann -o Ann.wd.tmp $(COMMON)/bfile/bnn.txt 
 gather3: # determine all weidis with their main attributes
-	$(DBAT) -x "SELECT s.aseqno, d.termno, b.bfimax - b.bfimin + 1, i.offset2, i.keyword, n.name, j.superclass \
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, d.termno, b.bfimax - b.bfimin + 1, i.offset2, i.keyword, n.name \
 	  FROM seq s, asdata d, bfinfo b, asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE s.aseqno = d.aseqno \
 	    AND d.aseqno = b.aseqno \
@@ -45,7 +45,7 @@ gather3: # determine all weidis with their main attributes
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-unfull: # determine the ones which havbe no "full"
+unfull: # determine the ones which have no "full"
 	$(DBAT) -x "SELECT s.aseqno, d.termno, b.bfimax - b.bfimin + 1, i.keyword, n.name, j.superclass \
 	  FROM seq s, asdata d, bfinfo b, asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE s.aseqno = d.aseqno \
@@ -69,7 +69,7 @@ grepix: # extract the A-number from the wiki list
 	cd $(COMMON) ; make seq2 LIST=../$(WEIDIS)/$@.tmp
 	$(DBAT) "SELECT aseqno FROM seq2 WHERE aseqno NOT IN (SELECT aseqno FROM seq)"
 #--------
-examples: # primitive, better get all atext on on Linux
+examples: # primitive, better get all atext on Linux
 	rm -f $@.tmp
 	$(DBAT) -x "SELECT aseqno FROM seq s ORDER BY 1" \
 	| sed -e "s/\r//" \
@@ -88,7 +88,7 @@ extrm: # remove generated b-file with 1 line only
 	| xargs -l rm -v || :
 	cp -v bfilext/* bfile
 #--------
-diffbf: # compare the generated b-file with the downloaded ones
+diffbf: # compare the generated b-files with the downloaded ones
 	cut -b2-7 gather1.tmp \
 	| xargs -l -innn diff -wy --width=64 --suppress-common-lines bfilext/bnnn.txt bfile \
 	>        $@.tmp

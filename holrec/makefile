@@ -52,6 +52,31 @@ seq4: # parameter: $(LIST) with aseqno, offset, parm1, parm2, parm3, parm4, name
 	$(DBAT) -4 seq4
 	$(DBAT) -n seq4
 #----
+bincoef: bincoef1 bincoef2
+	mv -v bincoef2.gen $@.gen
+bincoef1:
+	grep -E "^.[N] A...... Binomial coe" $(COMMON)/jcat25.txt \
+	| perl bincoef.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+	make seq4 LIST=$@.tmp
+	$(DBAT) "UPDATE seq4 s SET OFFSET = (SELECT offset1          FROM asinfo i WHERE i.aseqno = s.aseqno)\
+	  , parm2 = '[' || (SELECT SUBSTR(data,1,LOCATE(',',data)-1) FROM asdata d WHERE d.aseqno = s.aseqno) || ']';"
+	$(DBAT) -x "SELECT * FROM seq4 ORDER BY 1" \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+bincoef2:
+	perl $(COMMON)/callmaple.pl -t 4 -n 32 -p bincoef.mpat bincoef1.tmp \
+	>        $@.tmp
+	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
+	| perl -ne 's/\[\]/\[0\]/g; print; '\
+	>        $@.gen
+	tail -n4 $@.gen
+	wc -l    $@.gen	
+#----
 holtabs:
 	$(DBAT) -f holrec.create.sql
 	$(DBAT) -f holatt.create.sql
@@ -479,6 +504,42 @@ hiter3slow:
 		  AND d.data LIKE '%' || s.parm1 || '%' \
 		" \
 	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+#--------
+maplass:
+	grep "assisted" $(COMMON)/jcat25.txt | grep Israel | cut -b4-10 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	make seq LIST=$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, h.matrix FROM seq s, joeis j, holref h \
+	  WHERE s.aseqno = j.aseqno \
+	    AND h.aseqno = j.aseqno \
+	  ORDER BY 1;" \
+	| tee    $@.1.tmp
+maplass1:
+	$(DBAT) -x "SELECT a.callcode, 'maplas', 0, n.name FROM seq4 a, asname n \
+	  WHERE a.callcode = n.aseqno \
+	  AND   a.aseqno IN (SELECT a2.aseqno FROm seq4 a2, seq s WHERE s.aseqno = a2.callcode) ORDER BY 1;" \
+	>        $@.tmp
+	head -n24 $@.tmp
+	wc       $@.tmp
+maplass2:
+	make seq4 LIST=maplass1.tmp
+	$(DBAT) -x "SELECT s.aseqno, 'holos', 0, 0, d.data, 0, 0 FROM seq4 s, bfdata d \
+	  WHERE s.aseqno = d.aseqno \
+	  ORDER BY 1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass3:
+	perl holminit.pl -n 128 maplass2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass4:
+	perl $(COMMON)/callmaple.pl -t 10 -n 16 -p holfind.mpat maplass2.tmp \
+	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@.tmp
 #--------

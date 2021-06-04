@@ -1,0 +1,17 @@
+interface(prettyprint=0):
+with(StringTools):
+binomin := proc(aseqno, offset, expr, inits); local fract, num, den, matrix, j, remark;
+  fract := simplify(simplify(-expr(n)/expr(n-1), GAMMA));
+  printf("# %a\tholof\t%a\t\%a\t[%a]\t0\t%a\n", aseqno, offset, fract, 1, expr);
+  num   := seq(coeff(numer(fract),n,j),j=0..degree(numer(fract)));
+  den   := seq(coeff(denom(fract),n,j),j=0..degree(denom(fract)));
+  matrix:= cat("[[0],", DeleteSpace(convert([num],string)), ","
+                      , DeleteSpace(convert([den],string)), "]"):
+  # inits usually is a single number
+  remark:= DeleteSpace(Substitute(Substitute(convert(expr, string), "proc (n)", ""), "end proc", "")):
+  printf("%a\tholos\t%a\t\%s\t%a\t0\t0\t%s\n"          , aseqno, offset, matrix, inits, remark);
+  printf("make runholo A=%a MATRIX=\"%s\" OFF=%a INIT=\"%a\"\n", aseqno, matrix, inits, offset);
+end;
+# binomin(A123, 0, proc(n) binomial(4,n) end, [1,4]);
+
+timelimit($(TIMEOUT), binomin($(PARM0), $(PARM2), proc(n) $(PARM3) end, $(PARM4)));
