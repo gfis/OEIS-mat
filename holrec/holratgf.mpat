@@ -1,0 +1,42 @@
+#!Maple 
+# Derive a holonomic recurrence from a rational g.f.
+# 2021-06-05, Georg Fischer
+interface(prettyprint=0):
+read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER-gfis.txt";
+with(StringTools):
+toString:=proc(expr) DeleteSpace(convert(expr,string)) end:
+findit := proc(aseqno, offset, ratgf); local ser, inits, init2, skip, rord, ope, rada, A, j, k, leni, n;
+  skip:= offset;
+  ope :=radtorec(ratgf,x,n,A):
+  printf("# radtorec: %a\n", ope);
+  rord:=degree(ope,A):
+  # ope :=add(coeff(ope,A,j)*A^j,j=0..rord):
+  ope :=eval(ope, n = n-rord): # shift to make DIST=0
+  printf("# shifted : %a\n", ope);
+  rord:=degree(ope,A):
+  if coeff(coeff(ope,A,rord),n,degree(coeff(ope,A,rord))) >= 0 then ope:= -1*ope fi: # make last negative
+  ser := series(ratgf, x, rord+24): 
+  inits:=seq(coeff(ser,x,n),n=0..rord+16);
+  k:=1; while k <= rord+16 and inits[k] = 0 do k:=k+1: end do:
+  inits:= [seq(coeff(ser,x,n),n=0..rord+2)]:
+  ( [[0], seq([if coeff(ope,A,j) = 0 then 0 else seq(coeff(coeff(ope,A,j),n,k),k=0..degree(coeff(ope,A,j)))  end if],j=0..rord) ] # matrix
+  , inits
+  , 0   # dist
+  , ope # remark
+  )
+  end:
+holratgf:=proc(aseqno, offset, ratgf); local parms, matrix, inits, dist, remark;
+  # printf("# parms: %a %a %a %a\n", aseqno, offset, dummy, list);
+  parms := findit(aseqno, offset, ratgf);
+  matrix:= toString(parms[1]);
+  inits := toString(parms[2]);
+  dist  :=          parms[3];
+  remark:= cat("radtorec(", toString(ratgf), ")");
+  printf("%a\tholos\t%a\t%s\t%s\t%a\t0\t%s\n", aseqno, offset, matrix, inits, dist, remark); # remark);
+  printf("# make runholo OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", offset, matrix, inits, dist);
+  end:
+# holratgf(A069721, 1, 32*x^3/(sqrt(1-8*x)*(1+sqrt(1-8*x))^3));
+# holratgf(A054114, 0, (-1+3*x+5*x^2-4*x^3+sqrt(1-4*x))/(x*(1-x)*(1-4*x)));
+# holratgf(A342912, 0, (1 - 2*x - sqrt((1 - 3*x)/(1 + x)))/(2*x^3));
+
+timelimit($(TIMEOUT), holratgf($(PARM0), $(PARM2), $(PARM3)));

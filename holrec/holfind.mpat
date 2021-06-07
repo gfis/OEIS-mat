@@ -1,4 +1,5 @@
-#!Maple guess a recurrence from a term list; 
+#!Maple 
+# Guess a recurrence from a term list
 # 2021-06-04, Georg Fischer
 interface(prettyprint=0):
 read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER-gfis.txt";
@@ -7,14 +8,12 @@ toString:=proc(expr) DeleteSpace(convert(expr,string)) end:
 findit := proc(aseqno, offset, list); local list2, skip, rec, rord, ope, A, n, k, str, j;
   skip:= 2;
   list2:=[seq(list[i],i=skip..nops(list))];
-  ope:=Findrec(list2,n,A,8):
+  ope:=Findrec(list2,n,A,10):
   rord:=degree(ope,A):
   ope:=add(coeff(ope,A,j)*A^j,j=0..rord):
   ope:=eval(ope, n = n-skip): # shift to make DIST=0
   if coeff(coeff(ope,A,rord),n,degree(coeff(ope,A,rord))) >= 0 then ope:= -1*ope fi:
-  ([[0], seq([if coeff(ope,A,j) = 0 then 0 else 
-    seq(coeff(coeff(ope,A,j),n,k),k=0..degree(coeff(ope,A,j)))
-    end if],j=0..rord) ] # matrix
+  ( [[0], seq([if coeff(ope,A,j) = 0 then 0 else seq(coeff(coeff(ope,A,j),n,k),k=0..degree(coeff(ope,A,j)))  end if],j=0..rord) ] # matrix
   , [seq(list[j], j=1..rord) ] # inits
   , 0   # dist
   , ope # remark
@@ -30,6 +29,6 @@ holfind:=proc(aseqno, offset, dummy, list); local parms, matrix, inits, dist, re
   printf("%a\tholos\t%a\t%s\t%s\t%a\t0\t%s\n", aseqno, offset, matrix, inits, dist, remark);
   printf("# make runholo OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", offset, matrix, inits, dist);
   end:
-holfind(A000045, 0, [[0]], [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]);
+# holfind(A000045, 0, [[0]], [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]);
 
-# timelimit($(TIMEOUT), holfind($(PARM0), $(PARM2), $(PARM3), [$(PARM4)]));
+timelimit($(TIMEOUT), holfind($(PARM0), $(PARM2), $(PARM3), [$(PARM4)]));

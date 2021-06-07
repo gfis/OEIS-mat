@@ -41,6 +41,7 @@ checks: \
 	denom_check  \
 	lead0_check  \
 	offset_check \
+	off_a0_check \
 	order_check  \
 	radata_check \
 	rbdata_check \
@@ -388,6 +389,11 @@ offset_check: # Sequence offset differs from first index in b-file and no draft
 	      AND a.keyword NOT LIKE '%recycled%'  \
 	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#--------------------------------
+off_a0_check: # Sequence has offset > 0 and a(0)=...
+	grep -E "a\(0\)" joeis_names.txt | grep -P "\t1\.\." \
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------

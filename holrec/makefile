@@ -172,7 +172,7 @@ holex:
 #----------------
 holfind: # LIST=, pure aseqnos
 	make seq4 # expects LIST=
-	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p holfind.mpat LIST 
+	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p holfind.mpat $(LIST)
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -238,12 +238,17 @@ holdfing: # generally useable
 	  FROM seq4 s, asinfo i \
 	  WHERE s.aseqno = i.aseqno \
 	  ORDER BY 1" \
-	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfinite.mpat \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
-
+holom:
+	perl holdfin.pl -m arec holom.man \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	make holdfing LIST=$@.tmp
+	cp -v holdfing.tmp $@.gen
 #----------------
 hyper: hyper1 hyper2
 hyper1:
@@ -261,10 +266,28 @@ hyper2:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-##--------------------------------------------------
+#
+#--------------------------------------------------
+sqrtext: sqrtext1 sqrtext2
+	make holminit LIST=sqrtext2.tmp
+	cp -v holminit.tmp $@.gen
+sqrtext1:
+	grep -E "^\%[NF]" $(COMMON)/jcat25.txt | grep -i sqrt \
+	| grep -vE "A098474|A097610|A101275|A109979|A110319|A126179|A126186" \
+	| perl sqrtext.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+sqrtext2:
+	perl $(COMMON)/callmaple.pl -t 8 -n 16 -p holratgf.mpat sqrtext1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+#--------
 gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
-	grep -E "^[\%]" $(COMMON)/cat25.txt \
+	grep -E "^[\%]" $(COMMON)/jcat25.txt | grep -i sqrt \
 	| perl gfsqrt_grep.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -507,7 +530,8 @@ hiter3slow:
 	head -n4 $@.tmp
 	wc       $@.tmp
 #--------
-maplass:
+maplass: maplass0 maplass1 maplass2 maplass3 maplass4
+maplass0:
 	grep "assisted" $(COMMON)/jcat25.txt | grep Israel | cut -b4-10 \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -518,12 +542,20 @@ maplass:
 	  ORDER BY 1;" \
 	| tee    $@.1.tmp
 maplass1:
+	cd $(FISCHER) ; make anaload 
 	$(DBAT) -x "SELECT a.callcode, 'maplas', 0, n.name FROM seq4 a, asname n \
 	  WHERE a.callcode = n.aseqno \
 	  AND   a.aseqno IN (SELECT a2.aseqno FROm seq4 a2, seq s WHERE s.aseqno = a2.callcode) ORDER BY 1;" \
 	>        $@.tmp
-	head -n24 $@.tmp
+	head -n4 $@.tmp
 	wc       $@.tmp
+maplass1b:
+	$(DBAT) -x "SELECT DISTINCT a.aseqno, 'maplas' FROM seq4 a \
+	  WHERE a.callcode IN (SELECT aseqno FROM seq) ORDER BY 1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+
 maplass2:
 	make seq4 LIST=maplass1.tmp
 	$(DBAT) -x "SELECT s.aseqno, 'holos', 0, 0, d.data, 0, 0 FROM seq4 s, bfdata d \
@@ -533,12 +565,18 @@ maplass2:
 	head -n4 $@.tmp
 	wc       $@.tmp
 maplass3:
-	perl holminit.pl -n 128 maplass2.tmp \
+	perl holminit.pl -n 256 maplass2.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@.tmp
 maplass4:
 	perl $(COMMON)/callmaple.pl -t 10 -n 16 -p holfind.mpat maplass2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass5:
+	grep -E "^A[0-9]" maplass4.tmp \
+	| perl -ne 's{[\[\]]}{}g; print; '\
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@.tmp
