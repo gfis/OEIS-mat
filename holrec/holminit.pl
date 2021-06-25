@@ -40,7 +40,7 @@ while (<>) { # from $(DBAT) -x "SELECT ... FROM seq4"
     s/\s+\Z//; # chompr
     $line = $_;
     ($aseqno, $callcode, $offset, $matrix, $inits, @rest) = split(/\t/, $line);
-    $callcode = $cc;
+    # $callcode = $cc;
     $matrix =~ s{\s}{}g;
     $inits  =~ s{\s}{}g;
     $rest[0] = $rest[0] || 0;

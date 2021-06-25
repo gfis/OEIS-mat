@@ -39,7 +39,7 @@ while(<>) {
         $nok = 7;
     } elsif (length($rec) <= 6) { # too short
         $nok = 8;
-    } elsif ($rec =~ m{[^n]\^}) { # not "n^"
+    } elsif ($rec =~ m{[^n\)]\^}) { # not "n^"
         $nok = 9;
     } elsif ($rec =~ m{a\(n[^\+\-\)]}) { # not "a(n+-\d)"
         $nok = "a";

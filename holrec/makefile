@@ -151,10 +151,11 @@ greprec2:
 	' if ($$rec =~ m{a\(n\)\=[n\d\+\-\*\/\^\!\(\)]+\Z}) {'\
 	' print join("\t", $$aseqno, "holos", $$offset, substr($$rec, 5), @rest) . "\n"; }' \
 	| grep -vE "A051155|A061640|A122743|A152689|A178722|A217238|A231190|A244056|A309675" \
+	| grep -vE "A049363|A052518|A087179|A133462|A176186|A176787|A192081|A331007|A334716" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
-greprec3: # convert the formualae into P-finite recurrences
+greprec3: # convert the formulae into P-finite recurrences
 	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p $(FISCHER)/binomin.mpat greprec2.tmp \
 	>        $@.tmp
 	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
@@ -162,6 +163,43 @@ greprec3: # convert the formualae into P-finite recurrences
 	>        $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen	
+#--------------------------------
+aphrec: aphrec1 aphrec2 aphrec3 
+aphrec1: # grep recurrences from APH's Maple programs
+	grep -E "^%p" $(COMMON)/jcat25.txt \
+	| grep -P -A16 "a *\:\= *proc\(n\) *(option *remember[\;\:])?" \
+	| perl aphrec.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+aphrec2:
+	grep "holos" aphrec1.tmp \
+	| perl holdfin.pl -m arec \
+	2>       $@.rest.tmp \
+	| grep -vE "A059332|A136128|A140127|A152684|A156926|A281912|A326501|A337188" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+aphrec3:
+	perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat aphrec2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
+recman: recman1 recman2 
+recman1:
+	perl recman.pl recman.man \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recman2:
+	cat recman1.tmp recman2.man | grep -E "^A[0-9]" \
+	| perl makeope.pl \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------------------------------
 holex:
 	grep -P "^(\w+)\t(\w+)\t(a\(n\) *\= *)?[n\d\+\-\*\/\!\(\)\^ ]+\." $(COMMON)/joeis_names.txt \
@@ -180,6 +218,7 @@ holfind: # LIST=, pure aseqnos
 ADD=4
 holminit: # LIST=,ADD=... ; replace initial terms for a holonomic matrix; MATRIX=parm1, INIT=parm2, DIST=parm3, GFTYPE=parm4, rest ... unchanged
 	make seq4 # LIST=
+	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT i.aseqno FROM asinfo i WHERE i.keyword LIKE '%tab%');"
 	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, d.data, s.parm3, s.parm4, s.parm5, s.parm6, s.parm7, s.parm8, s.name \
 	  FROM seq4 s, bfdata d \
 	  WHERE s.aseqno = d.aseqno \
@@ -268,19 +307,21 @@ hyper2:
 	wc -l    $@.tmp
 #
 #--------------------------------------------------
-sqrtext: sqrtext1 sqrtext2
+sqrtext: sqrtext1 sqrtext2 # extract rat.gf.s with sqrt()
 	make holminit LIST=sqrtext2.tmp
 	cp -v holminit.tmp $@.gen
-sqrtext1:
-	grep -E "^\%[NF]" $(COMMON)/jcat25.txt | grep -i sqrt \
-	| grep -vE "A098474|A097610|A101275|A109979|A110319|A126179|A126186" \
+sqrtext1: # 2nd grep has bracketting problems 
+	grep -E "^\%[NF]" $(COMMON)/jcat25.txt | grep -Pi "sqrt|\^\(\-?\d\/\d\)" \
+	| grep -vE "A098474|A097610|A101275|A102625|A109979|A110319|A126179|A126186|A278297" \
+	| grep -vE "A132885" \
 	| perl sqrtext.pl \
 	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
 sqrtext2:
-	perl $(COMMON)/callmaple.pl -t 8 -n 16 -p holratgf.mpat sqrtext1.tmp \
+	perl $(COMMON)/callmaple.pl -t 8 -n 8 -p holratgf.mpat sqrtext1.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
@@ -530,6 +571,7 @@ hiter3slow:
 	head -n4 $@.tmp
 	wc       $@.tmp
 #--------
+# Maple assisted proofs of Robert Israel
 maplass: maplass0 maplass1 maplass2 maplass3 maplass4
 maplass0:
 	grep "assisted" $(COMMON)/jcat25.txt | grep Israel | cut -b4-10 \
@@ -587,7 +629,7 @@ satis:
 	| grep -vE "Decimal expansion|E\.\g\.\f\.|adic integer" \
 	| perl satis.pl \
 	>        $@.tmp
-	grep -E  "\?\?" $@.tmp > $@.rest.tmp
+	grep -E  "\?\?" $@.tmp >> $@.rest.tmp
 	grep -vE "\?\?" $@.tmp \
 	| sort | uniq -w7 \
 	> $@.gen
@@ -636,16 +678,12 @@ rectab4:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#--
+#--------
 recma: recma1 recma2 recma3 recma4 recma5
 recma1:
-	grep -E "^%t A[0-9]* RecurrenceTable" $(COMMON)/cat25.txt \
-	| perl -pe "\
-	s/^...//; \
-	s/ /\t/; \
-	s/\..*//; \
-	" \
-	| perl -ne 'if (length($$_) < $(RTLEN)) { print; }' \
+	grep -E "^%t " $(COMMON)/jcat25.txt \
+	| grep RecurrenceTable \
+	| perl -ne 's/^...//; s/ /\t/; s/\..*//; print;' \
 	| uniq -w 7 \
 	>        $@.tmp
 	head -n4 $@.tmp

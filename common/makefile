@@ -397,6 +397,7 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 #----
 joeis_ccan:
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list1.all.tmp .
+	# cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
 	>        $@.cc.tmp \
 	2>       $@.an.tmp

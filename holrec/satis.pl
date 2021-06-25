@@ -41,11 +41,13 @@ while(<>) {
         $gf     =~ s{z}{x}g;
         if (0) {
         } elsif ($expr =~ m{[a-z][a-z0-9]}i) { # no where, for, all, sum, prod, no ellipsis
-        } elsif ($expr =~ m{[\'\_\,\;]}) { # no derivatives yet, no underscores, A[x,y] etc.
+        } elsif ($expr =~ m{[\_\,\;]}) { #  no underscores, A[x,y] etc.
+        } elsif ($expr =~ m{[\']}) { # derivatives go to STDERR
+        	print     join("\t", $aseqno, "diffeq", 0, "??0 $expr", "", "", substr($line, 11)) . "\n";
         } else {
             $expr = &polish($gf, $expr);
             if ($expr ne "") {
-                print join("\t", $aseqno, "satis", 0, $expr, "", "", substr($line, 11)) . "\n";
+                print join("\t", $aseqno, "satis" , 0, $expr      , "", "", substr($line, 11)) . "\n";
             }
         }
     }

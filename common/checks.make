@@ -271,6 +271,19 @@ dead_check: dead # Where are dead, erroneous sequences still referenced?
 	head -n4 $@.txt
 	wc -l    $@.txt
 #--------------------------------
+decindex_check: # maxlen of terms in b-file is 1 and decindex < bfimax / 2
+	$(DBAT) "SELECT b.aseqno, b.bfimax, b.decindex, b.tail, i.author, n.name \
+		FROM bfinfo b, asname n, asinfo i \
+		WHERE b.aseqno = i.aseqno \
+		  AND i.aseqno = n.aseqno \
+		  AND b.bfimax >= 500 \
+		  AND b.maxlen = 1 \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#		  AND b.decindex < b.bfimax / 2 \
+#
+#--------------------------------
 denom_check: # Name of the sequence contains "Denominator", keyword <em>sign</em>, and <em>nonn</em> terms
 	$(DBAT) -f seq2.create.sql
 	grep -i "denominator" asname.txt > $@.tmp
@@ -393,7 +406,19 @@ offset_check: # Sequence offset differs from first index in b-file and no draft
 	wc -l $@.txt
 #--------------------------------
 off_a0_check: # Sequence has offset > 0 and a(0)=...
-	grep -E "a\(0\)" joeis_names.txt | grep -P "\t1\.\." \
+	grep -E "a\(0\)" asname.txt \
+	| cut -f1 \
+	>     $@.tmp
+	make seq  LIST=$@.tmp
+	make seq2 LIST=off_a0_ok.man
+	$(DBAT) "SELECT s.aseqno, i.offset1, b.bfimax, i.author, n.name, i.keyword \
+	    FROM seq s, asinfo i, bfinfo b, asname n \
+	    WHERE s.aseqno = i.aseqno \
+	      AND i.aseqno = b.aseqno \
+	      AND b.aseqno = n.aseqno \
+	      AND i.offset1 > 0 \
+	      AND s.aseqno NOT IN (SELECT aseqno FROM seq2) \
+	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------
