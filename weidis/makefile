@@ -23,7 +23,7 @@ all:
 #===============================================
 gather: gather1 gather3
 gather1: # select from joeis_names
-	grep -E "Weight distribution of" $(COMMON)/joeis_names.txt \
+	grep -Ei "Weight (distribution|enumerator) of" $(COMMON)/joeis_names.txt \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -45,6 +45,30 @@ gather3: # determine all weidis with their main attributes
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+weiseqdb:
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, d.termno, b.bfimax - b.bfimin + 1, q.mt, q.ix, i.keyword, n.name \
+	  FROM seq s, asdata d, bfinfo b, asinfo i, seqdb q, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE s.aseqno = d.aseqno \
+	    AND d.aseqno = b.aseqno \
+	    AND b.aseqno = i.aseqno \
+	    AND q.aseqno = i.aseqno \
+	    AND i.aseqno = n.aseqno \
+	    ORDER BY 1" \
+	| sed -e "s/\tnonn,/\t/" -e "s/,changed//" -e "s/fini,//" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+
+dummy1:
+	$(DBAT) -x "SELECT s.aseqno, '$@', d.mt, d.ix, j.superclass, s.parm1, s.parm2, s.parm3, s.parm4 \
+	    FROM seq4 s, seqdb d LEFT JOIN joeis j ON j.aseqno = s.aseqno \
+	    WHERE s.aseqno = d.aseqno \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
 unfull: # determine the ones which have no "full"
 	$(DBAT) -x "SELECT s.aseqno, d.termno, b.bfimax - b.bfimin + 1, i.keyword, n.name, j.superclass \
 	  FROM seq s, asdata d, bfinfo b, asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
@@ -104,6 +128,32 @@ diffman: # extract the manually selected with differences
 copybf: # get the downloaded b-files
 	cut -b2-7 gather1.tmp \
 	| xargs -l -innn cp -v ../common/bfile/bnnn.txt bfile
+#--------
+wroot0:
+	grep -Ei "weight (distribution|enumerator)" $(COMMON)/joeis_names.txt \
+	| grep -Ei "sqrt|(square|th|2nd|1st) root" | sed -e "s/square/2th/" -e "s/fourth/4th/" -e "s/ = /: /" \
+	| perl -ne 'm{\: *(\d+)[^A]+(A\d\d\d+)?}; my $$root = $$1; my $$rseqno = $$2 || "";'\
+	' s{\tnull\t}{\twroot\t0\t$$rseqno\t$$root\t}; print; '\
+	| tee $@.tmp
+wroot:
+	cd $(FISCHER) ; make seq4 LIST=../../../OEIS-mat/weidis/wroot.man
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, s.parm2, s.parm3, a.keyword, s.parm5 \
+	    FROM seq4 s, asinfo a, bfinfo b \
+	    WHERE s.parm1  = a.aseqno \
+	      AND a.aseqno = b.aseqno \
+	    ORDER BY 1"\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+wroex1: # A= extract coefficients from example 
+	perl -e 'print "$(A)\tfinifull\t0\t";' > $(A).tmp
+	grep -E "^\%e $(A)" $(COMMON)/cat25.txt | cut -b12- \
+	| perl -ne 's/\s//g; s/\*?y\^\d+//g; s/\*?x\^\d+/\,/g; s/[\+\-]//g; print "$$_";' \
+	| tee -a $(A).tmp
+wroex:
+	make wroex1 A=A109479
+	make wroex1 A=A109481
+	make wroex1 A=A109483
 #--------
 same: same1
 same1: # throw all terms on a big pile and sort them

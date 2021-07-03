@@ -1,0 +1,1 @@
+for my $k (0..580) { print "$k, " if sprintf("%b", $k) =~ m{^((0)*00(1?)1)*(0*)$}; } # _Georg Fischer_, Jun 26 2021

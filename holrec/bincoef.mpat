@@ -13,7 +13,7 @@ binomin := proc(aseqno, offset, expr, inits); local fract, num, den, matrix, j, 
   # inits usually is a single number
   remark:= DeleteSpace(Substitute(Substitute(convert(expr, string), "proc (n)", ""), "end proc", "")):
   printf("%a\tholos\t%a\t\%s\t%a\t0\t0\t%s\n"          , aseqno, offset, matrix, inits, remark);
-  printf("make runholo A=%a MATRIX=\"%s\" OFF=%a INIT=\"%a\"\n", aseqno, matrix, inits, offset);
+  printf("make runholo A=%a MATRIX=\"%s\" INIT=\"%a\" OFF=%a\n", aseqno, matrix, inits, offset);
 end;
 # binomin(A123, 0, proc(n) binomial(4,n) end, [1,4]);
 
