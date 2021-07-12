@@ -14,11 +14,13 @@ use warnings;
 while (<>) {
     next if ! m{\AA\d};
     s{\s+\Z}{}; # chompr
-    my ($aseqno, $callcode, $offset, $annihil, @rest) = split(/\t/, $_);
+    my ($aseqno, $callcode, $offset, $annihil, $init, $dist, $gftype, $remark, @rest) = split(/\t/, $_);
+    $remark = $annihil;
+    $init =~ s{[\[\]]}{}g;
     $annihil =~ s{a\(n(\+0)?\)}{a\(n\-0\)}g;
     if ($annihil !~ m{a\(n\+\d+\)}) {
         $annihil =~ s{a\(n\-(\d+)\)}{A\^$1}g;
-        print join("\t", $aseqno, "holos", $offset, $annihil, @rest) . "\n";
+        print join("\t", $aseqno, "holos", $offset, $annihil, $init, $dist, $gftype, $remark, @rest) . "\n";
     } else {
         print STDERR "error: n+k in $aseqno\n";
     }

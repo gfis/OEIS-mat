@@ -7,14 +7,15 @@
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMJAR=$(GITS)/ramath/dist/ramath.jar 
-RAMATH=java -cp  $(RAMJAR) org.teherba.ramath
+RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
+JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
+HOLT=$(RAMATH)   irvine.test.HolonomicRecurrenceTest
+BVA=$(RAMATH)    org.teherba.ramath.linear.BigVectorArray
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 MAXT=32
-HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest
 COMMON=../common
 D=0
 AINIT=0
@@ -31,7 +32,7 @@ GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 
 runholo:
 	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFFSET) -d $(D) -dist $(DIST)
 runbva:
-	$(RAMATH).linear.BigVectorArray -recur "$(REC)"
+	$(BVA) -recur "$(REC)"
 #----------------
 seq: # parameter: $(LIST)
 	$(DBAT) -f $(COMMON)/seq.create.sql
@@ -186,6 +187,20 @@ aphrec3:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+aphrec4:
+	make seq4 LIST=aphrec1.tmp
+	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -x "SELECT aseqno, callcode, offset, parm1, parm2, parm3, parm4 FROM seq4 ORDER BY parm1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+aphrec5: # process the manual converted ones
+	grep -E "^A[0-9]" aphrec4.man \
+	| perl makeope.pl \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 16 -p holdfin.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------
 recman: recman1 recman2 
 recman1:
@@ -335,7 +350,7 @@ gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	wc -l    $@.tmp
 gfsqrt2: # convert polynomials to vectors
 	sed -e "s/\tfract[0-9]\t/\tfract1\t/" gfsqrt1.tmp > x.tmp
-	$(RAMATH).sequence.JoeisPreparer -f                 x.tmp \
+	$(JPREP) -f                 x.tmp \
 	| grep -E "orgf" \
 	| sed -e "s/orgf/gfsqrt/" \
 	| cut -f1- \
@@ -402,7 +417,7 @@ lingf2:
 	>        $@.1.tmp
 	head -n4 $@.1.tmp
 	wc   -l  $@.1.tmp
-	$(RAMATH).sequence.JoeisPreparer -f $@.1.tmp \
+	$(JPREP) -f $@.1.tmp \
 	| perl -ne 'if (length($$_) < 1024) { print; }' \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -424,7 +439,7 @@ homgf.all:
 homgf3:
 	head -n4 homgf2.tmp
 	wc   -l  homgf2.tmp
-	$(RAMATH).sequence.JoeisPreparer -f homgf2.tmp \
+	$(JPREP) -f homgf2.tmp \
 	| grep -vE "A239112|A245926|A32592[1-9]" \
 	| grep -vE "xgf" \
 	>        $@.1.tmp
@@ -463,7 +478,7 @@ homgf6:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 homgf7:
-	$(RAMATH).sequence.JoeisPreparer -f homgf6.tmp \
+	$(JPREP) -f homgf6.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
@@ -505,7 +520,7 @@ homegf3:
 	cat homegf2.tmp \
 	| perl -ne 'use strict; my @parms = split(/\t/); if ($$parms[3] !~ m{[^ak0-9\(\)\+\-\*]}) { '\
 	' $$parms[1] = "bva"; $$parms[3] .= "\t[1]\t0"; print join("\t", @parms); } ' \
-	| $(RAMATH).sequence.JoeisPreparer -f - \
+	| $(JPREP) -f - \
 	| perl -ne 'use strict; my @parms = split(/\t/); '\
 	' $$parms[1] = "holos" . $$parms[6]; $$parms[6] .= "gf"; print join("\t", @parms);' \
 	>        $@.tmp
@@ -674,7 +689,7 @@ rectab3:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 rectab4:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f rectab3.tmp \
+	$(JPREP) -d $(D) -f rectab3.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -756,7 +771,7 @@ recform4:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f $@.tmp \
+	$(JPREP) -d $(D) -f $@.tmp \
 	>        rectab4.tmp
 	head -n4 rectab4.tmp
 	wc -l    rectab4.tmp
@@ -807,7 +822,7 @@ matpap1:
 	wc -l    $@.tmp
 	mv       $@.tmp recuf1.tmp
 matpap2:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f matpap1.tmp \
+	$(JPREP) -d $(D) -f matpap1.tmp \
 	| sed -e "s/\t/\tbva\t0\t/" -e "s/\.//" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -854,7 +869,7 @@ recuf6:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recuf7:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf6.tmp \
+	$(JPREP) -d $(D) -f recuf6.tmp \
 	| sed -e "s/\r//" \
 	>        $@.tmp
 	head -n4 $@.tmp

@@ -11,6 +11,7 @@ JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 HERE=OEIS-mat/sequencedb
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
+JPREP=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.sequence.JoeisPreparer 
 ifeq ($(OS),Windows_NT)
     CPS=;
 else
@@ -31,7 +32,7 @@ flatten:
 #----------------------------------
 # parse into seq4 format
 seqdb: # -s takes subset (nyi in jOEIS)
-	perl seqdb_parse.pl  compiled_entities.json \
+	perl seqdb_parse.pl compiled_entities.json \
 	| sort -k1,1 -k2,2 \
 	>        $@.txt
 	head -n4 $@.txt
@@ -50,12 +51,13 @@ seqdb_a4:
 	| cut -b1-3 | sort | uniq -c
 #----
 seqdb4: # order by ix and join with offsets, names
-	$(DBAT) -x "SELECT s.aseqno, s.si, s.mt, s.ix, s.px, i.offset1, n.name, i.keyword, i.author \
-	  FROM seqdb s, asinfo i, asname n \
+	$(DBAT) -x "SELECT s.aseqno, s.si, b.bfimin, b.bfimax, LENGTH(s.px), s.px, s.ix, s.mt, n.name \
+	  FROM seqdb s, asinfo i, asname n, bfinfo b \
 	  WHERE s.aseqno = i.aseqno \
 	    AND i.aseqno = n.aseqno \
+	    AND n.aseqno = b.aseqno \
 	    AND n.aseqno NOT IN (SELECT aseqno FROM joeis) \
-	    ORDER BY 4"\
+	    ORDER BY s.aseqno, LENGTH(s.px), s.si DESC"\
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -136,4 +138,20 @@ floor1:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	
+#--------
+simple: simple1 simple2
+simple1:
+	perl grepx.pl -l 'n;\+;sub;neg;\*;\/;\^;\d+' seqdb4.tmp \
+	| uniq -w7 \
+	| perl -ne 's/\t[0-9]*\t([0-9]+)\t[0-9]*\t[0-9]*\t/\tinfix\t$$1\t/; print;' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+simple2:
+	$(JPREP) -p Z.xpat -f simple1.tmp \
+	| perl -ne 's/\tinfix\t/\tsdb_simple\t/; print;' \
+	| grep -vE "\<\?" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------

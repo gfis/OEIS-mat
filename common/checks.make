@@ -194,6 +194,16 @@ brol_check: # LIST=
 	cat $(LIST)          >> $@.txt
 	make -f checks.make html_check1 EDIT=-e FILE=brol_check
 #--------------------------------
+cofr_joeis: # Which cofr are not implemented in jOEIS by ContinuedFractionSequence
+	$(DBAT) "SELECT i.aseqno, j.superclass, i.keyword, i.program, n.name \
+	    FROM asname n, asinfo i LEFT JOIN joeis j ON j.aseqno = i.aseqno \
+	    WHERE i.aseqno = n.aseqno \
+	      AND i.keyword LIKE '%cofr%' \
+	      AND COALESCE(j.superclass, '') NOT LIKE 'ContinuedFraction%' \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#--------------------------------
 cojec_check: # Conjectured and in joeis
 	$(DBAT) "SELECT j.aseqno, j.superclass, a.keyword, a.program \
 	    FROM joeis j, asinfo a \
@@ -315,6 +325,17 @@ joeis_check: # parameter: LOG in joeis-lite/internal/fischer
 	| perl -pe "s{\.\.\.}{ ms} if m{pass};" \
 	>>       $@.txt
 	wc -l    $@.txt
+	make -f checks.make html_check1 FILE=$@
+#---------------------------
+joeis_fini_check: # keyword fini and not subclass of FiniteSequence
+	$(DBAT) "SELECT a.aseqno, a.keyword, j.superclass \
+	    FROM asinfo a, joeis j \
+	    WHERE a.aseqno = j.aseqno \
+	      AND a.keyword     LIKE '%fini%'  \
+	      AND j.superclass <> 'FiniteSequence' \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
 	make -f checks.make html_check1 FILE=$@
 #--------------------------------
 keyword_check: # Forbidden combinations of keywords
