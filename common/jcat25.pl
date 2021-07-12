@@ -1,6 +1,7 @@
 #!perl
 
 # Copy CAT25 file and replace all leading "%" characters by "#" for jOEIS sequences
+# 2021-95-30: Conjecture (Start) ... (End)
 # 2021-01-21, Georg Fischer
 #
 #:# Usage:

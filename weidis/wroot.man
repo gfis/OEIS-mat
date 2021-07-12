@@ -1,0 +1,23 @@
+A109141	wroot	0	A105683	4	5		G.f.: 4th root of Hamming weight enumerator of [12,6,6]_3 ternary extended Golay code (cf. A105683).	sign,synth	0..19	nyi
+A109142	wroot	0	A014487	18	10		G.f.: 18th root of Hamming weight enumerator of [18,9,8] code over GF(4) (cf. A014487).	sign,synth	0..23	nyi
+A109149	wroot	0	A028238	2	17		G.f.: square root of weight enumerator of Kerdock code of length 64 (cf. A028238).
+A109151	wroot	0	A028240	2	33		G.f.: square root of weight enumerator of Kerdock code of length 256 (cf. A028240).
+A109159	wroot	0	A028239	8	33		G.f.: 8th root of weight enumerator of Preparata code of length 64 (cf. A028239).	sign,synth	0..16	nyi
+A109160	wroot	0	A028241	32	12		G.f.: 32nd root of weight enumerator of Preparata code of length 256 (cf. A028241).	sign,synth	0..14	nyi
+A109476	wroot	0	A010463	4	17		G.f.: 4th root of weight enumerator of [32,21,6] DEC extended BCH code (cf. A010463).	sign,synth	0..20	nyi
+A109480	wroot	0	A109479	8	20		G.f.: 8th root of weight enumerator of [64,51,6] extended BCH code (cf. A109479).	sign,synth	0..16	nyi
+A109482	wroot	0	A109481	8	23		G.f.: 8th root of weight enumerator of [64,45,8] extended BCH code (cf. A109481).	sign,synth	0..20	nyi
+A109484	wroot	0	A109483	4	25		G.f.: 4th root of weight enumerator of [64,39,10] extended BCH code (cf. A109483).	sign,synth	0..21	nyi
+A109778	wroot	0	A014487	18	10		G.f.: 18th root of Hamming weight enumerator of [18,9,8]_4 self-dual code S_18 over GF(4) (cf. A014487).	sign,synth	0..40	nyi
+A110830	wroot	0	A110829	4	5		G.f.: 4th root of weight enumerator of [8,7,2] Reed-Muller code RM(2,3).	sign,synth	0..19	nyi
+A110832	wroot	0	A010080	4	9		G.f.: 4th root of weight enumerator of [16,11,4] extended Hamming code or Reed-Muller code RM(2,4).	sign,synth	0..20	nyi
+A110834	wroot	0	A010031	4	9		G.f.: 4th root of weight enumerator of [32,16,8] Reed-Muller code RM(2,5).	sign,synth	0..18	nyi
+A110836	wroot	0	A001726	4	17		G.f.: 4th root of weight enumerator of [64,22,16] Reed-Muller code RM(2,6).	sign,synth	0..22	nyi
+A110838	wroot	0	A006006	4	17		G.f.: 4th root of weight enumerator of [128,29,32] Reed-Muller code RM(2,7).	sign,synth	0..20	nyi
+A110840	wroot	0	A110839	8	9		G.f.: 8th root of weight enumerator of [16,15,2] Reed-Muller code RM(3,4).	sign,synth	0..15	nyi
+A110842	wroot	0	A010081	8	17		G.f.: 8th root of weight enumerator of [32,26,4] Reed-Muller code RM(3,5).	sign,synth	0..17	nyi
+A110844	wroot	0	A001727	8	33		G.f.: 8th root of weight enumerator of [64,42,8] Reed-Muller code RM(3,6).	sign,synth	0..20	nyi
+A110846	wroot	0	A110845	8	33		G.f.: 8th root of weight enumerator of [128,64,16] Reed-Muller code RM(3,7).	sign,synth	0..17	nyi
+A110848	wroot	0	A110847	16	17		G.f.: 16th root of weight enumerator of [32,31,2] Reed-Muller code RM(4,5).	sign,synth	0..14	nyi
+A110850	wroot	0	A010082	16	33		G.f.: 16th root of weight enumerator of [64,57,4] Reed-Muller code RM(4,6).	sign,synth	0..15	nyi
+A110852	wroot	0	A110851	32	17		G.f.: 32nd root of weight enumerator of [64,63,2] Reed-Muller code RM(5,6).	sign,synth	0..12	nyi

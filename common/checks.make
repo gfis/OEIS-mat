@@ -41,6 +41,7 @@ checks: \
 	denom_check  \
 	lead0_check  \
 	offset_check \
+	off_a0_check \
 	order_check  \
 	radata_check \
 	rbdata_check \
@@ -193,6 +194,16 @@ brol_check: # LIST=
 	cat $(LIST)          >> $@.txt
 	make -f checks.make html_check1 EDIT=-e FILE=brol_check
 #--------------------------------
+cofr_joeis: # Which cofr are not implemented in jOEIS by ContinuedFractionSequence
+	$(DBAT) "SELECT i.aseqno, j.superclass, i.keyword, i.program, n.name \
+	    FROM asname n, asinfo i LEFT JOIN joeis j ON j.aseqno = i.aseqno \
+	    WHERE i.aseqno = n.aseqno \
+	      AND i.keyword LIKE '%cofr%' \
+	      AND COALESCE(j.superclass, '') NOT LIKE 'ContinuedFraction%' \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#--------------------------------
 cojec_check: # Conjectured and in joeis
 	$(DBAT) "SELECT j.aseqno, j.superclass, a.keyword, a.program \
 	    FROM joeis j, asinfo a \
@@ -270,6 +281,19 @@ dead_check: dead # Where are dead, erroneous sequences still referenced?
 	head -n4 $@.txt
 	wc -l    $@.txt
 #--------------------------------
+decindex_check: # maxlen of terms in b-file is 1 and decindex < bfimax / 2
+	$(DBAT) "SELECT b.aseqno, b.bfimax, b.decindex, b.tail, i.author, n.name \
+		FROM bfinfo b, asname n, asinfo i \
+		WHERE b.aseqno = i.aseqno \
+		  AND i.aseqno = n.aseqno \
+		  AND b.bfimax >= 500 \
+		  AND b.maxlen = 1 \
+		ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#		  AND b.decindex < b.bfimax / 2 \
+#
+#--------------------------------
 denom_check: # Name of the sequence contains "Denominator", keyword <em>sign</em>, and <em>nonn</em> terms
 	$(DBAT) -f seq2.create.sql
 	grep -i "denominator" asname.txt > $@.tmp
@@ -301,6 +325,17 @@ joeis_check: # parameter: LOG in joeis-lite/internal/fischer
 	| perl -pe "s{\.\.\.}{ ms} if m{pass};" \
 	>>       $@.txt
 	wc -l    $@.txt
+	make -f checks.make html_check1 FILE=$@
+#---------------------------
+joeis_fini_check: # keyword fini and not subclass of FiniteSequence
+	$(DBAT) "SELECT a.aseqno, a.keyword, j.superclass \
+	    FROM asinfo a, joeis j \
+	    WHERE a.aseqno = j.aseqno \
+	      AND a.keyword     LIKE '%fini%'  \
+	      AND j.superclass <> 'FiniteSequence' \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
 	make -f checks.make html_check1 FILE=$@
 #--------------------------------
 keyword_check: # Forbidden combinations of keywords
@@ -387,6 +422,23 @@ offset_check: # Sequence offset differs from first index in b-file and no draft
 	      AND a.keyword NOT LIKE '%allocated%'  \
 	      AND a.keyword NOT LIKE '%recycled%'  \
 	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
+	    ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+#--------------------------------
+off_a0_check: # Sequence has offset > 0 and a(0)=...
+	grep -E "a\(0\)" asname.txt \
+	| cut -f1 \
+	>     $@.tmp
+	make seq  LIST=$@.tmp
+	make seq2 LIST=off_a0_ok.man
+	$(DBAT) "SELECT s.aseqno, i.offset1, b.bfimax, i.author, n.name, i.keyword \
+	    FROM seq s, asinfo i, bfinfo b, asname n \
+	    WHERE s.aseqno = i.aseqno \
+	      AND i.aseqno = b.aseqno \
+	      AND b.aseqno = n.aseqno \
+	      AND i.offset1 > 0 \
+	      AND s.aseqno NOT IN (SELECT aseqno FROM seq2) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt

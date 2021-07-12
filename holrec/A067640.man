@@ -1,0 +1,25 @@
+f:= gfun:-rectoproc({a(n)=a(n-1)+`if`(isprime(abs(a(n-1))+n),1,-1)*n, a(1)=1}, a(n), remember): map(f, [$1..40]);
+
+a(n)=if(n==1,1,a(n-1)+if(isprime(abs(a(n-1))+n),n,-n));
+
+f:= gfun:-rectoproc({a(n)[-96,1000,-3500,5000,-2500 = 0, a(0)=1,a(1)=96}, a(k), remember): map(f, [$0..n-1]);
+
+rec:={a(n)+(sum([-96,1000,-3500,5000,-2500][i+1]*n^i,i=0..4)*a(n-1))=0,a(0)=1};
+f:= gfun:-rectoproc(rec, a(n), remember): map(f, [$0..10]);
+
+
+rec:={(-9*n+n^2)*a(n) - (42-26*n+4*n^2)*a(n-1) = 0, a(9) = 220};
+f:= gfun:-rectoproc(rec, a(n), remember): map(f, [$9..26]);
+
+
+(2*n+2)!*(2*n+4)!/(n!*((n+2)!)^2*(n+3)!)
+
+
+A005568: Table[(2*n  )!*(2*n+2)!/(n!*((n+1)!)^2*(n+2)!),{n,0,6}]
+
+A067636  Table[(2*n+2)!*(2*n+4)!/(n!*((n+2)!)^2*(n+3)!),{n,0,6}]
+
+
+ RecurrenceTable[{n*(n+2)*(n+3)*a[n] - 4*(n+1)*(2*n+1)*(2*n+3)*a[n-1] == 0, a[0]==2}, a, {n, 0, 16}]
+ 
+         Table[Table[(2*(n+k))!*(2*(n+k)+2)!/(n!*((n+k+1)!)^2*(n+k+2)!),{n,0,6}],{k,0,2}]

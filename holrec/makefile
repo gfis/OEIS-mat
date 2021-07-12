@@ -7,14 +7,15 @@
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMJAR=$(GITS)/ramath/dist/ramath.jar 
-RAMATH=java -cp  $(RAMJAR) org.teherba.ramath
+RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
+JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
+HOLT=$(RAMATH)   irvine.test.HolonomicRecurrenceTest
+BVA=$(RAMATH)    org.teherba.ramath.linear.BigVectorArray
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 MAXT=32
-HOLT=$(RAMJAR) irvine.test.HolonomicRecurrenceTest
 COMMON=../common
 D=0
 AINIT=0
@@ -31,7 +32,7 @@ GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 
 runholo:
 	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFFSET) -d $(D) -dist $(DIST)
 runbva:
-	$(RAMATH).linear.BigVectorArray -recur "$(REC)"
+	$(BVA) -recur "$(REC)"
 #----------------
 seq: # parameter: $(LIST)
 	$(DBAT) -f $(COMMON)/seq.create.sql
@@ -51,6 +52,31 @@ seq4: # parameter: $(LIST) with aseqno, offset, parm1, parm2, parm3, parm4, name
 	$(DBAT) -m csv -r seq4 < seq4.tmp
 	$(DBAT) -4 seq4
 	$(DBAT) -n seq4
+#----
+bincoef: bincoef1 bincoef2
+	mv -v bincoef2.gen $@.gen
+bincoef1:
+	grep -E "^.[N] A...... Binomial coe" $(COMMON)/jcat25.txt \
+	| perl bincoef.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+	make seq4 LIST=$@.tmp
+	$(DBAT) "UPDATE seq4 s SET OFFSET = (SELECT offset1          FROM asinfo i WHERE i.aseqno = s.aseqno)\
+	  , parm2 = '[' || (SELECT SUBSTR(data,1,LOCATE(',',data)-1) FROM asdata d WHERE d.aseqno = s.aseqno) || ']';"
+	$(DBAT) -x "SELECT * FROM seq4 ORDER BY 1" \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+bincoef2:
+	perl $(COMMON)/callmaple.pl -t 4 -n 32 -p bincoef.mpat bincoef1.tmp \
+	>        $@.tmp
+	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
+	| perl -ne 's/\[\]/\[0\]/g; print; '\
+	>        $@.gen
+	tail -n4 $@.gen
+	wc -l    $@.gen	
 #----
 holtabs:
 	$(DBAT) -f holrec.create.sql
@@ -113,13 +139,82 @@ greprec0:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-greprecn:
+greprec1:
 	perl greprecn.pl greprec0.tmp \
 	2>       $@.rest.tmp \
 	| sort | uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
+greprec2:
+	grep -E "^A[0-9]" greprec1.tmp \
+	| perl -ne 's/\s+\Z//; my ($$aseqno, $$cc, $$offset, $$rec, @rest) = split(/\t/, $$_); $$rec =~ s{ }{}g; '\
+	' if ($$rec =~ m{a\(n\)\=[n\d\+\-\*\/\^\!\(\)]+\Z}) {'\
+	' print join("\t", $$aseqno, "holos", $$offset, substr($$rec, 5), @rest) . "\n"; }' \
+	| grep -vE "A051155|A061640|A122743|A152689|A178722|A217238|A231190|A244056|A309675" \
+	| grep -vE "A049363|A052518|A087179|A133462|A176186|A176787|A192081|A331007|A334716" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+greprec3: # convert the formulae into P-finite recurrences
+	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p $(FISCHER)/binomin.mpat greprec2.tmp \
+	>        $@.tmp
+	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
+	| perl -ne 's/\[\]/\[0\]/g; print; '\
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen	
+#--------------------------------
+aphrec: aphrec1 aphrec2 aphrec3 
+aphrec1: # grep recurrences from APH's Maple programs
+	grep -E "^%p" $(COMMON)/jcat25.txt \
+	| grep -P -A16 "a *\:\= *proc\(n\) *(option *remember[\;\:])?" \
+	| perl aphrec.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+aphrec2:
+	grep "holos" aphrec1.tmp \
+	| perl holdfin.pl -m arec \
+	2>       $@.rest.tmp \
+	| grep -vE "A059332|A136128|A140127|A152684|A156926|A281912|A326501|A337188" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+aphrec3:
+	perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat aphrec2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+aphrec4:
+	make seq4 LIST=aphrec1.tmp
+	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -x "SELECT aseqno, callcode, offset, parm1, parm2, parm3, parm4 FROM seq4 ORDER BY parm1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+aphrec5: # process the manual converted ones
+	grep -E "^A[0-9]" aphrec4.man \
+	| perl makeope.pl \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 16 -p holdfin.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
+recman: recman1 recman2 
+recman1:
+	perl recman.pl recman.man \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+recman2:
+	cat recman1.tmp recman2.man | grep -E "^A[0-9]" \
+	| perl makeope.pl \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------------------------------
 holex:
 	grep -P "^(\w+)\t(\w+)\t(a\(n\) *\= *)?[n\d\+\-\*\/\!\(\)\^ ]+\." $(COMMON)/joeis_names.txt \
@@ -127,7 +222,88 @@ holex:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----------------
+holfind: # LIST=, pure aseqnos
+	make seq4 # expects LIST=
+	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p holfind.mpat $(LIST)
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
+ADD=4
+holminit: # LIST=,ADD=... ; replace initial terms for a holonomic matrix; MATRIX=parm1, INIT=parm2, DIST=parm3, GFTYPE=parm4, rest ... unchanged
+	make seq4 # LIST=
+	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT i.aseqno FROM asinfo i WHERE i.keyword LIKE '%tab%');"
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, d.data, s.parm3, s.parm4, s.parm5, s.parm6, s.parm7, s.parm8, s.name \
+	  FROM seq4 s, bfdata d \
+	  WHERE s.aseqno = d.aseqno \
+	  ORDER BY 1" \
+	| perl holminit.pl -a $(ADD) \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp	
+#----------------
+holfsig:
+	grep -iE "^%H" $(COMMON)/jcat25.txt | grep "Index entries for linear recurrences with constant coefficients" \
+	| perl holfsig.pl \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	make holminit LIST=$@.tmp ADD=4
+	cp -v holminit.tmp $@.gen
+#----------------
+holgrep: holgrep1 holgrep2
+	make holminit LIST=holdfing.tmp ADD=4
+	cp -v holminit.tmp $@.gen
+holgrep1:
+	grep -vE "\!" greprec1.tmp \
+	| sed -e "s/^/\%F /" -e "s/\tholos\t0\t/ finite with recurrence\: /" -e "s/\t0//g" -e "s/\t//g" \
+	>        $@.1.tmp
+	head -n4 $@.1.tmp
+	wc -l    $@.1.tmp
+	perl holdfin.pl $@.1.tmp \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
+	| grep -vE "A098704|A178722" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+holgrep2:
+	make holdfing LIST=holgrep1.tmp
+#----------------
+holdfin: holdfin1 holdfin2
+	make holminit LIST=holdfing.tmp ADD=4
+	cp -v holminit.tmp $@.gen
+holdfin1:
+	grep -iE "^%F" $(COMMON)/jcat25.txt | grep -iE "finite with recurrence[ \:]+" \
+	| perl holdfin.pl \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+holdfin2: 
+	make holdfing LIST=holdfin1.tmp
+#--
+holdfing: # generally useable
+	make seq4 
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, i.offset1, s.parm1, s.parm2, s.parm3, s.parm4, s.parm5 \
+	  FROM seq4 s, asinfo i \
+	  WHERE s.aseqno = i.aseqno \
+	  ORDER BY 1" \
+	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
+holom:
+	perl holdfin.pl -m arec holom.man \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	make holdfing LIST=$@.tmp
+	cp -v holdfing.tmp $@.gen
+#----------------
 hyper: hyper1 hyper2
 hyper1:
 	perl extract_hypergeom.pl $(COMMON)/cat25.txt \
@@ -144,17 +320,37 @@ hyper2:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-##--------------------------------------------------
+#
+#--------------------------------------------------
+sqrtext: sqrtext1 sqrtext2 # extract rat.gf.s with sqrt()
+	make holminit LIST=sqrtext2.tmp
+	cp -v holminit.tmp $@.gen
+sqrtext1: # 2nd grep has bracketting problems 
+	grep -E "^\%[NF]" $(COMMON)/jcat25.txt | grep -Pi "sqrt|\^\(\-?\d\/\d\)" \
+	| grep -vE "A098474|A097610|A101275|A102625|A109979|A110319|A126179|A126186|A278297" \
+	| grep -vE "A132885" \
+	| perl sqrtext.pl \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+sqrtext2:
+	perl $(COMMON)/callmaple.pl -t 8 -n 8 -p holratgf.mpat sqrtext1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+#--------
 gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
-	grep -E "^[\%]" $(COMMON)/cat25.txt \
+	grep -E "^[\%]" $(COMMON)/jcat25.txt | grep -i sqrt \
 	| perl gfsqrt_grep.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 gfsqrt2: # convert polynomials to vectors
 	sed -e "s/\tfract[0-9]\t/\tfract1\t/" gfsqrt1.tmp > x.tmp
-	$(RAMATH).sequence.JoeisPreparer -f                 x.tmp \
+	$(JPREP) -f                 x.tmp \
 	| grep -E "orgf" \
 	| sed -e "s/orgf/gfsqrt/" \
 	| cut -f1- \
@@ -171,10 +367,7 @@ gfsqrt3: # generate matrix and initerms
 	wc -l    $@.tmp
 	grep A095776 $@.tmp
 gfsqrt4: # store in DB table and select non-jOEIS
-	$(DBAT) -f $(FISCHER)/seq4.create.sql
-	cat      gfsqrt3.tmp | $(DBAT) -m csv -r seq4 
-	$(DBAT) -4 seq4
-	$(DBAT) -n seq4
+	make seq4 LIST=gfsqrt3.tmp
 	$(DBAT) -f gfsqrt.update.sql
 	$(DBAT) -x "SELECT s.aseqno, 'holos', s.offset, s.parm1, s.parm2, s.parm3, s.parm4 \
 		FROM seq4 s  \
@@ -224,7 +417,7 @@ lingf2:
 	>        $@.1.tmp
 	head -n4 $@.1.tmp
 	wc   -l  $@.1.tmp
-	$(RAMATH).sequence.JoeisPreparer -f $@.1.tmp \
+	$(JPREP) -f $@.1.tmp \
 	| perl -ne 'if (length($$_) < 1024) { print; }' \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -246,7 +439,7 @@ homgf.all:
 homgf3:
 	head -n4 homgf2.tmp
 	wc   -l  homgf2.tmp
-	$(RAMATH).sequence.JoeisPreparer -f homgf2.tmp \
+	$(JPREP) -f homgf2.tmp \
 	| grep -vE "A239112|A245926|A32592[1-9]" \
 	| grep -vE "xgf" \
 	>        $@.1.tmp
@@ -285,7 +478,7 @@ homgf6:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 homgf7:
-	$(RAMATH).sequence.JoeisPreparer -f homgf6.tmp \
+	$(JPREP) -f homgf6.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
@@ -327,7 +520,7 @@ homegf3:
 	cat homegf2.tmp \
 	| perl -ne 'use strict; my @parms = split(/\t/); if ($$parms[3] !~ m{[^ak0-9\(\)\+\-\*]}) { '\
 	' $$parms[1] = "bva"; $$parms[3] .= "\t[1]\t0"; print join("\t", @parms); } ' \
-	| $(RAMATH).sequence.JoeisPreparer -f - \
+	| $(JPREP) -f - \
 	| perl -ne 'use strict; my @parms = split(/\t/); '\
 	' $$parms[1] = "holos" . $$parms[6]; $$parms[6] .= "gf"; print join("\t", @parms);' \
 	>        $@.tmp
@@ -372,7 +565,9 @@ hiteval:
 	| sed -e "s/\r//" \
 	>        $@.notj.tmp
 	wc -l    $@.notj.tmp
-	
+unsure4:
+	make holminit LIST=hiteval.uniqw.tmp
+	cp -v $(HOLREC)/hiteval.gen $@.gen
 #-------------------
 # too slow:
 hiter2slow:
@@ -391,13 +586,65 @@ hiter3slow:
 	head -n4 $@.tmp
 	wc       $@.tmp
 #--------
+# Maple assisted proofs of Robert Israel
+maplass: maplass0 maplass1 maplass2 maplass3 maplass4
+maplass0:
+	grep "assisted" $(COMMON)/jcat25.txt | grep Israel | cut -b4-10 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	make seq LIST=$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, h.matrix FROM seq s, joeis j, holref h \
+	  WHERE s.aseqno = j.aseqno \
+	    AND h.aseqno = j.aseqno \
+	  ORDER BY 1;" \
+	| tee    $@.1.tmp
+maplass1:
+	cd $(FISCHER) ; make anaload 
+	$(DBAT) -x "SELECT a.callcode, 'maplas', 0, n.name FROM seq4 a, asname n \
+	  WHERE a.callcode = n.aseqno \
+	  AND   a.aseqno IN (SELECT a2.aseqno FROm seq4 a2, seq s WHERE s.aseqno = a2.callcode) ORDER BY 1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass1b:
+	$(DBAT) -x "SELECT DISTINCT a.aseqno, 'maplas' FROM seq4 a \
+	  WHERE a.callcode IN (SELECT aseqno FROM seq) ORDER BY 1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+
+maplass2:
+	make seq4 LIST=maplass1.tmp
+	$(DBAT) -x "SELECT s.aseqno, 'holos', 0, 0, d.data, 0, 0 FROM seq4 s, bfdata d \
+	  WHERE s.aseqno = d.aseqno \
+	  ORDER BY 1;" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass3:
+	perl holminit.pl -n 256 maplass2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass4:
+	perl $(COMMON)/callmaple.pl -t 10 -n 16 -p holfind.mpat maplass2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+maplass5:
+	grep -E "^A[0-9]" maplass4.tmp \
+	| perl -ne 's{[\[\]]}{}g; print; '\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+#--------
 satis:
 	grep -Ei "satis" $(COMMON)/jcat25.txt \
 	| grep -E "^\%" \
 	| grep -vE "Decimal expansion|E\.\g\.\f\.|adic integer" \
 	| perl satis.pl \
 	>        $@.tmp
-	grep -E  "\?\?" $@.tmp > $@.rest.tmp
+	grep -E  "\?\?" $@.tmp >> $@.rest.tmp
 	grep -vE "\?\?" $@.tmp \
 	| sort | uniq -w7 \
 	> $@.gen
@@ -442,20 +689,16 @@ rectab3:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 rectab4:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f rectab3.tmp \
+	$(JPREP) -d $(D) -f rectab3.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#--
+#--------
 recma: recma1 recma2 recma3 recma4 recma5
 recma1:
-	grep -E "^%t A[0-9]* RecurrenceTable" $(COMMON)/cat25.txt \
-	| perl -pe "\
-	s/^...//; \
-	s/ /\t/; \
-	s/\..*//; \
-	" \
-	| perl -ne 'if (length($$_) < $(RTLEN)) { print; }' \
+	grep -E "^%t " $(COMMON)/jcat25.txt \
+	| grep RecurrenceTable \
+	| perl -ne 's/^...//; s/ /\t/; s/\..*//; print;' \
 	| uniq -w 7 \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -528,7 +771,7 @@ recform4:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f $@.tmp \
+	$(JPREP) -d $(D) -f $@.tmp \
 	>        rectab4.tmp
 	head -n4 rectab4.tmp
 	wc -l    rectab4.tmp
@@ -579,7 +822,7 @@ matpap1:
 	wc -l    $@.tmp
 	mv       $@.tmp recuf1.tmp
 matpap2:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f matpap1.tmp \
+	$(JPREP) -d $(D) -f matpap1.tmp \
 	| sed -e "s/\t/\tbva\t0\t/" -e "s/\.//" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -626,7 +869,7 @@ recuf6:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 recuf7:
-	$(RAMATH).sequence.JoeisPreparer -d $(D) -f recuf6.tmp \
+	$(JPREP) -d $(D) -f recuf6.tmp \
 	| sed -e "s/\r//" \
 	>        $@.tmp
 	head -n4 $@.tmp

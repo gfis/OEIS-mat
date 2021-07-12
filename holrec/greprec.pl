@@ -26,9 +26,9 @@ while(<>) {
     s{\s+\Z}{}; # chompr
     $line = $_;
     if (0) {
-    } elsif ($line =~ m{\.\.\.}) { # ignore ellipsis
+    #} elsif ($line =~ m{\.\.\.}) { # ignore ellipsis
     #                              1        2                  3
-    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+([^\.]*)}) { # aseqno, formula, dot, author
+    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+([^\.\,]*)}) { # aseqno, formula, dot, author
         $aseqno = $1;
         $rec    = $2 || "";
         $empir  = "";
