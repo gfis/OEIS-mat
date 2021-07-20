@@ -1,0 +1,5 @@
+A234846	post	0	e^2 * besselI0(2)
+A346042	post	0	(1/4)*(2+sqrt(2)) * besselI0(2^(5/4)) + (1/4)*(2-sqrt(2)) * BesselJ(0, 2^(5/4))
+A334378	post	0	(besselI0(2) - besselJ0(2))/2
+A334379	post	0	(besselI0(2) + besselJ0(2))/2
+A334381	post	0	besselI0(sqrt(2))

@@ -107,7 +107,7 @@ affine3:
 # Continued fraction
 contfrac: contfrac1 
 contfrac1:
-	grep -P "^A\d+\t\d+\t\d+\tcontfrac\[" seqdb4.tmp \
+	grep -P "\tcontfrac\[" seqdb4.tmp \
 	| grep -i "Continued fract" \
 	| sort \
 	>        $@.tmp
@@ -117,7 +117,7 @@ contfrac1:
 # Decimal expansions
 decex: decex1 
 decex1:
-	grep -P "^A\d+\t\d+\t\d+\tde\[" seqdb4.tmp \
+	grep -P "\tde\[" seqdb4.tmp \
 	| grep "Decimal expansion" \
 	| sort \
 	>        $@.tmp

@@ -1,0 +1,9 @@
+philo := proc(a,b,c) local f, A, B, C, P:
+f:=2*a*b/(a+b+c):
+A:=f*sqrt((a^2+(b+c)^2))/(b+c):
+B:=f*sqrt((b^2+(c+a)^2))/(c+a):
+C:=f*sqrt(2):
+P:=(A+B+C)/(a+b+c):
+print(simplify([A,B,C,P])):
+print(evalf([A,B,C,P])): end:
+philo(1,1,sqrt(2));

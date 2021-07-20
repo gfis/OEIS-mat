@@ -1,0 +1,2 @@
+A086703	post	0	~~exp(Pi^2/12/log(2))
+A070913	post	0	~~besselI0(2)
