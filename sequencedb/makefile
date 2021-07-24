@@ -104,9 +104,15 @@ affine3:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
-# Continued fraction
-contfrac: contfrac1 
+# Continued fractions
 contfrac1:
+	grep -P "\tcontfrac\[" seqdb.txt \
+	| grep -P "^A\d+\t0[123]\t" \
+	| sort \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+contfrac4:
 	grep -P "\tcontfrac\[" seqdb4.tmp \
 	| grep -i "Continued fract" \
 	| sort \
@@ -115,6 +121,13 @@ contfrac1:
 	wc -l    $@.tmp
 #--------
 # Decimal expansions
+de1:
+	grep -P "\tde\[" seqdb.txt \
+	| grep -P "^A\d+\t0[123]\t" \
+	| sort \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 decex: decex1 
 decex1:
 	grep -P "\tde\[" seqdb4.tmp \
@@ -124,8 +137,11 @@ decex1:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
-cfdex:
-	sort -k5,5 -k1,1 -k2,2 contfrac1.tmp decex1.tmp \
+contfrac_de: de1 contfrac1
+	sort -k5,5 -k1,1 -k2,2 contfrac1.tmp de1.tmp \
+	| perl $@.pl \
+	| sort | uniq -w15 \
+	| sed -e "s/\t/\tcofr\t0\t/" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp	

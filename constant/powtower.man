@@ -1,11 +1,11 @@
-A241291	powtower	0	A241291	2	Z.ONE.shiftLeft(65536)	2^(2^(2^(2^2)))	 = 2^^6.        nonn,cons,fini,changed,synth    1..105  nyi
-A241292	powtower	0	A241291	3	Z.THREE.pow(7625597484987L)	3^(3^(3^3))	 = 3^^4.        nonn,cons,fini,changed,synth    3638334640025..3638334640129    nyi
-A241293	powtower	0	A241291	4	Z.FOUR.pow(Z.FOUR.pow(256))	4^(4^(4^4))	 = 4^^4.        nonn,cons,fini,changed,synth    1..105  nyi
-A241294	powtower	0	A241291	5	Z.FIVE.pow(Z.FIVE.pow(3125))	5^(5^(5^5))	 = 5^^4.        nonn,cons,fini,changed,synth    1..105  nyi
-A241295	powtower	0	A241291	6	Z.SIX.pow(Z.SIX.pow(46656))	6^(6^(6^6))	 = 6^^4.        nonn,cons,fini,changed,synth    1..105  nyi
-A241296	powtower	0	A241291	7	Z.SEVEN.pow(Z.SEVEN.pow(823543))	7^(7^(7^7))	 = 7^^4.        nonn,cons,fini,changed,synth    1..105  nyi
-A241297	powtower	0	A241291	8	Z.EIGHT.pow(Z.EIGHT.pow(16777216))	8^(8^(8^8))	 = 8^^4.        nonn,cons,fini,changed,synth    1..105  nyi
-A241298	powtower	0	A241291	9	Z.NINE.pow(387420489L)	9^(9^9)	 = 9^^3.    nonn,cons,fini,changed,synth    369693100..369693204    nyi
-A243913	powtower	0	A241291	9	Z.NINE.pow(Z.NINE.pow(387420489L))	9^(9^(9^9))	 = 9^^4.        nonn,cons,fini,hard,changed,    1..10000        nyi
+A241291	powtower	0	A241291	2	CR.valueOf(65536).pow(16)	2^(2^(2^(2^2)))	 = 2^^6.        nonn,cons,fini,changed,synth    1..105  nyi
+A241292	powtower	0	A241291	3	CR.valueOf(387420489).pow(19683)	3^(3^(3^3))	 = 3^^4.        nonn,cons,fini,changed,synth    3638334640025..3638334640129    nyi
+A241293	powtower	0	A241291	4	CR.FOUR.pow(CR.FOUR.pow(256))	4^(4^(4^4))	 = 4^^4.        nonn,cons,fini,changed,synth    1..105  nyi
+A241294	powtower	0	A241291	5	CR.FIVE.pow(CR.FIVE.pow(3125))	5^(5^(5^5))	 = 5^^4.        nonn,cons,fini,changed,synth    1..105  nyi
+A241295	powtower	0	A241291	6	CR.SIX.pow(CR.SIX.pow(46656))	6^(6^(6^6))	 = 6^^4.        nonn,cons,fini,changed,synth    1..105  nyi
+A241296	powtower	0	A241291	7	CR.SEVEN.pow(CR.SEVEN.pow(823543))	7^(7^(7^7))	 = 7^^4.        nonn,cons,fini,changed,synth    1..105  nyi
+A241297	powtower	0	A241291	8	CR.EIGHT.pow(CR.EIGHT.pow(16777216))	8^(8^(8^8))	 = 8^^4.        nonn,cons,fini,changed,synth    1..105  nyi
+A241298	powtower	0	A241291	9	CR.NINE.pow(387420489L)	9^(9^9)	 = 9^^3.    nonn,cons,fini,changed,synth    369693100..369693204    nyi
+A243913	powtower	0	A241291	9	CR.NINE.pow(CR.NINE.pow(387420489L))	9^(9^(9^9))	 = 9^^4.        nonn,cons,fini,hard,changed,    1..10000        nyi
 # A317824	powtower	0	A241291	2	a(n) = A000422(n)^^A000422(n) (mod 10^len(A000422(n))), where ^^ indicates tetration or hyper-4 (e.g., 3^^4 = 3^(3^(3^3))).     nonn,base,changed,synth 1..19     nyi
 # A317903	powtower	0	A241291	2	a(n) = A038394(n)^^A038394(n) (mod 10^len(A038394(n))), where ^^ indicates tetration or hyper-4 (e.g., 3^^4=3^(3^(3^3))).       nonn,base,changed,synth 1..17     nyi

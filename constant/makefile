@@ -55,18 +55,35 @@ exact3:
 	wc -l    $@*.tmp
 #================
 cons:
-	$(DBAT) "SELECT i.aseqno, i.offset1, i.terms, j.superclass, n.name \
-	  FROM asinfo i, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
-	  WHERE i.aseqno = n.aseqno \
+	$(DBAT) -x "SELECT i.aseqno, i.offset1, SUBSTR(d.data, 1, 31), j.superclass, n.name \
+	  FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
+	  WHERE i.aseqno = d.aseqno \
+	    AND d.aseqno = n.aseqno \
 	    AND i.keyword LIKE '%cons%' \
-	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
+	| perl -pe 's{\,(\d)}{$$1}g;'\
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+	zip $@.zip $@.tmp
+	#    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	#
+conjs:
+	$(DBAT) "SELECT i.aseqno, SUBSTR(d.data, 1, 31) AS terms, n.name \
+	  FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
+	  WHERE i.aseqno = d.aseqno \
+	    AND d.aseqno = n.aseqno \
+	    AND i.keyword LIKE '%cons%' \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	| perl -pe 's{\,(\d)}{$$1}g;'\
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 #--------
 decfini:
-	$(DBAT) "SELECT i.aseqno, j.superclass, b.bfimin, b.bfimax, n.name \
+	$(DBAT) -x "SELECT i.aseqno, j.superclass, b.bfimin, b.bfimax, n.name \
 	  FROM asinfo i, bfinfo b, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
 	  WHERE i.aseqno = n.aseqno \
 	    AND n.aseqno = b.aseqno \
@@ -219,3 +236,12 @@ philo_tab4: # convert -> postfix
 	head -n4 $@.tmp
 	wc -l    $@*.tmp 
 #----
+dechamp:
+	grep -E "(ecimal|inary) expansion " $(COMMON)/joeis_names.txt \
+	| grep -i concatenat \
+	| perl -pe 'substr($$_, 1) =~ m{\W(A\d\d\d\d+)}; my $$rseqno = $$1 || "A000040"; '\
+	' s{(\AA\d+)\t\w+\t}{$$1\tparm2\t0\tA033308\tnew $$rseqno\(\)\t\t\t}; '\
+	  >      $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	

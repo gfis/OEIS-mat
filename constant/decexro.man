@@ -5,13 +5,22 @@ A199589	1	1,1,3,7,1,5,8,0	null	Decimal expansion of the greatest root of 6x^3 - 
 A199590	0	2,5,7,7,7,2,8,0	null	Decimal expansion (unsigned) of the greatest root of 6x^3 + 18x^2 + 12x + 2 = 0.
 A243508	0	8,8,0,5,8,3,3,4	null	Decimal expansion of the real positive root of 48x^4 + 16x^3 - 27x^2 - 18x - 3 = 0.
 A272591	1	2,3,0,5,2,2,3,9	null	The unique positive root of x^5 - 2*x^4 - x^2 - x - 1.
-A156816	1	2,6,3,8,1,5,8,5	null	Decimal expansion of the positive root of the equation 13x^4 - 7x^2 - 581 = 0.
+A156816	1	2,6,3,8,1,5,8,5	null	13x^4 - 7x^2 - 581 = 0.
 
-A328900	1	1,5,0,7,1,2,6,5	null	Decimal expansion of s = 1.507126591638653..., solution to 2^s + 3^s = 4^s.
-A328904	0	7,2,7,1,6,0,1,5	null	Decimal expansion of x = 0.7271601514124259243... solution to 1 + 3^x = 5^x.
-A328905	0	5,6,3,8,9,5,5,2	null	Decimal expansion of the solution x = 0.56389552425993647949... to 1 + 2^x = 5^x.
-A328906	0	4,8,9,5,3,6,3,2	null	Decimal expansion of the solution x = 0.4895363211996... to 1 + 2^x = 6^x.
-A328907	0	6,0,0,9,6,6,8,5	null	Decimal expansion of the solution x = 0.6009668516... to 1 + 3^x = 6^x.
 
-A075778	0	7,5,4,8,7,7,6,6	null	Decimal expansion of the real root of x^3 + x^2 - 1.
-A242406		2,3,2,1,2	null	root of 2x^5 - 4x^4 - 5x^2 + 4x - 1.
+A075778	0	7,5,4,8,7,7,6,6	null	root of x^3 + x^2 - 1.
+A242406	ß	2,3,2,1,2	null	root of 2x^5 - 4x^4 - 5x^2 + 4x - 1.
+
+A102912	18	2,6,2,5,3,7,4,1		root of x^3 - 6*x^2 + 4*x - 2
+A114427	1	2241896563034479	null	Decimal expansion of the real solution of x^3-x^2-x-4=0.
+A114431	0	2467503857056517	null	Decimal expansion of the real solution of x^3 - x^2 - 2x - 4 = 0.
+A219300	1	1,1,8,8,3,6,8,1,4	null	Decimal expansion of root of x^18 - x^17 + x^16 - x^15 - x^12 + x^11 - x^10 + x^9 - x^8 + x^7 - x^6 - x^3 + x^2 - x + 1 
+A242406	0	2,3,2,1,2,8,5,0,3	null	root of 2x^5 - 4x^4 - 5x^2 + 4x - 1.
+A243309	1	1,0,0,7,4,3,4,7,5	null	root of 4*x^8 - 28*x^6 - 7*x^4 + 16*x^2 + 16.
+A246772	0	1,8,0,9,1,5,5,0,1	null	root of 944*x^3 - 295*x^2 + 28*x - 1.
+A298813	0	1490216120099953	null	zero of x^4 - 2*x^2 - x + 1.
+A298814	0	1203368538150155	null	zero of x^8 - 2*x^4 - x + 1.
+A298815	0	1448095838609641	null	zero of x^8 - 4*x^6 + 6*x^4 - 4*x^2 - x + 1.
+A298852	0	1926303219912439	null	zero of x^4 - 4*x^2 - x + 3.
+A298853	0	1710644095045032	null	zero of x^4 - 2*x^2 - x - 1.
+A299695	0	5,5,5,9,0	null	root of 7841367r^18 - 33449976r^16 + 62607492r^14 - 63156942r^12 + 41451480r^10 - 19376280r^8 + 5156603r^6 - 746832r^4 + 54016r^2 + 3072.

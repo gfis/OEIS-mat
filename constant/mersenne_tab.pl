@@ -38,8 +38,8 @@ while (<DATA>) {
     $line =~ s/\s+\Z//; # chompr
     if (0) {
     } elsif ($line =~ m{ 2\^(\d+) ?\- *1}) {
-    	my $expon = $1;
-    	&output(substr($line, 0, 7), $expon);
+        my $expon = $1;
+        &output(substr($line, 0, 7), $expon);
     } else {
         # ignore
     }
@@ -52,9 +52,9 @@ sub output {
     }
 } # output
 __DATA__
-A169681	Fini39	Decimal expansion of 2^127 - 1.
-A169684	Fini33	Decimal expansion of 2^107 - 1.
-A169685	Fini157	Decimal expansion of 2^521 - 1.
+A169681 Fini39  Decimal expansion of 2^127 - 1.
+A169684 Fini33  Decimal expansion of 2^107 - 1.
+A169685 Fini157 Decimal expansion of 2^521 - 1.
 A204063 Fini    Decimal expansion of 2^607 - 1, the 14th
 A248931 Fini    Decimal expansion of 2^1279 - 1, the 15t
 A248932 null    Decimal expansion of 2^2203 - 1, the 16th Mersen
@@ -71,7 +71,7 @@ A275983 null    Decimal expansion of 2^23209 - 1, the 26th Merse
 A275984 null    Decimal expansion of 2^44497 - 1, the 27th Merse
 A089065 null    Decimal expansion of 2^13466917 - 1, the 39th Me
 A089578 null    Decimal expansion of 2^20996011 - 1, the 40th Me
-A117853	null    Decimal expansion of 2^30402457 - 1, the 43th .
+A117853 null    Decimal expansion of 2^30402457 - 1, the 43th .
 A193864 null    Decimal expansion of 2^43112609 - 1, the 47th Me
 A267875 null    Decimal expansion of 2^74207281 - 1
 A344983 null    Decimal expansion of 2^77232917 - 1
