@@ -71,3 +71,15 @@
 2021-07-08	08:40:37	116453	Java classes =	33.6425	% out of	346148	OEIS sequences are implemented by jOEIS
 2021-07-10	08:24:11	116601	Java classes =	33.6826	% out of	346176	OEIS sequences are implemented by jOEIS
 2021-07-12	10:00:52	116705	Java classes =	33.7105	% out of	346198	OEIS sequences are implemented by jOEIS
+2021-07-13	07:11:22	117019	Java classes =	33.7946	% out of	346265	OEIS sequences are implemented by jOEIS
+2021-07-14	09:10:54	117281	Java classes =	33.8681	% out of	346288	OEIS sequences are implemented by jOEIS
+2021-07-15	12:12:33	117298	Java classes =	33.8652	% out of	346367	OEIS sequences are implemented by jOEIS
+2021-07-16	06:59:01	117309	Java classes =	33.8665	% out of	346387	OEIS sequences are implemented by jOEIS
+2021-07-17	08:52:31	117726	Java classes =	33.9842	% out of	346414	OEIS sequences are implemented by jOEIS
+2021-07-18	09:24:33	117776	Java classes =	33.9973	% out of	346428	OEIS sequences are implemented by jOEIS
+2021-07-19	07:06:04	117970	Java classes =	34.0522	% out of	346439	OEIS sequences are implemented by jOEIS
+2021-07-20	09:42:06	118058	Java classes =	34.0765	% out of	346450	OEIS sequences are implemented by jOEIS
+2021-07-21	11:49:54	118063	Java classes =	34.0730	% out of	346500	OEIS sequences are implemented by jOEIS
+2021-07-22	09:13:34	118101	Java classes =	34.0840	% out of	346500	OEIS sequences are implemented by jOEIS
+2021-07-23	07:08:12	118113	Java classes =	34.0851	% out of	346524	OEIS sequences are implemented by jOEIS
+2021-07-24	08:49:51	118282	Java classes =	34.1327	% out of	346536	OEIS sequences are implemented by jOEIS

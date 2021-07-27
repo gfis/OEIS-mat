@@ -1,0 +1,28 @@
+#*# A003131	zbasex	54	new Z("808017424794512875886459904961710757005754368000000000")
+#*# A003133	zbasex	75	Z.ONE.shiftLeft(120).multiply(Z.ONE.shiftLeft(2).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(8).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(12).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(14).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(18).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(20).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(24).subtract(Z.ONE)).multiply(Z.ONE.shiftLeft(30).subtract(Z.ONE))
+#*# # A096151	zbasex	206545	Decimal expansion of the 206545-digit integer solution to Archimedes''s cattle problem.
+#*# A113818	zbasex	26	new Z("101101101101101101101101101").divide(Z.NINE)
+#*# A114054	zbasex	27	new Z("998998998998998998998998998").divide(Z.NINE)
+#*# A129106	zbasex	24	Z.valueOf(84446888L).pow(3)
+#*# A135041	zbasex	43	new Z("1733054559437372469717283290044275542482740")
+#*# A160515	zbasex	39	Z.valueOf(640320).pow(3).add(Z.valueOf(744)).square().multiply(Z.valueOf(70).square())	(640320^3 + 744)^2 * 70^2 
+#*# A163103	zbasex	12	Z.valueOf(149597870700L)
+#*# A173450	zbasex	10	Z.valueOf(69).square().multiply(Z.TEN.pow(6)).add(Z.valueOf(69).pow(3))
+#*# A182999	zbasex	17	Z.valueOf(299792458L).square()
+#*# A183000	zbasex	26	Z.valueOf(299792458L).pow(3)
+#*# A183001	zbasex	34	Z.valueOf(299792458L).pow(4)
+#*# A213614	zbasex	16	Z.valueOf(299792458L).multiply(Z.valueOf(36525)).multiply(Z.valueOf(24*6*6))
+#*# A214024	zbasex	000	Z.ONE.shiftLeft(2*4*4*4*4)
+#*# A230458	zbasex	10	Z.valueOf(9192631770L)
+#*# A235997	zbasex	18	Z.valueOf(299792458L).square().multiply(Z.THREE)
+#*# A273774	zbasex	10	Z.valueOf(8616460799L)
+#*# A299793	zbasex	18	Z.valueOf(299792458L).square().multiply(Z.FOUR)
+#*# A307177	zbasex	37	new Z("1012014015216242530327281835456364849")
+#*# A318435	zbasex	18	new Z("126686530000000000")
+#*# A318436	zbasex	21	new Z("132712440000000000000")
+#*# A322578	zbasex	24	new Z("602214076000000000000000")	Decimal expansion of the Avogadro constant N_A in the 2019 SI system in units mol^(-1).
+
+# 2021-07-23
+A169681	zbasex	000	Z.ONE.shiftLeft(127).subtract(Z.ONE)
+A169684	zbasex	000	Z.ONE.shiftLeft(107).subtract(Z.ONE)
+A169685	zbasex	000	Z.ONE.shiftLeft(521).subtract(Z.ONE)

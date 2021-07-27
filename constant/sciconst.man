@@ -1,0 +1,55 @@
+# 2021-07-24
+A125123
+A125124
+A125125
+A125126
+A157245
+A182565	44424752098	Decimal expansion of Madelung constant (negated) for cuprous oxide Cu_2O.
+A182566	16380550533	Decimal expansion of Madelung constant (negated) for zinc sulfide ZnS.
+A182567	50387848798
+A225537
+A226204
+A229938
+A230436
+A230845
+A231350
+A234371
+A342484
+A248363	1720209895	Decimal expansion of Gaussian gravitational constant in the astronomical system of units.
+A248364	295325007	Decimal expansion of Schwarzschild radius of the Sun (meters).
+A248503
+A248570	88700559
+A248645
+A249281
+A254175	342317768	Decimal expansion of (1 u)c^2 in E_h.
+A254176	225234271	Decimal expansion of (1 u)c^2/h in Hz.
+A254177	7513006	Decimal expansion of (1 u)c/h in m^-1.
+A254178	108095	Decimal expansion of (1 u)c^2/k in K.
+A254274	57883818	Decimal expansion of Bohr magneton in eV T^-1.
+A254275	466864	Decimal expansion of Bohr magneton in m^-1 T^-1.
+A254276	69503	Decimal expansion of Boltzmann constant in m^-1 K^-1.
+A255820	13271244
+A271369
+A275008
+A279390
+A281961
+A301936	247895	Decimal expansion of the molar volume of a perfect gas in standard conditions in cubic meters per mole.
+A301974	116637	Decimal expansion of value of the Fermi coupling constant G_F in GeV^(-2).
+A303126	14106067	Decimal expansion of proton magnetic moment in J T^(-1).
+A303127	152103220	Decimal expansion of proton magnetic moment to Bohr magneton ratio.
+A303129	36369475	Decimal expansion of quantum of circulation in m^2 s^(-1)
+A319614
+A322580
+A324034
+A327854	1878	Value of the critical density of the Universe in g/cm^3 multiplied by dimensionless scale factor h^(-2).
+A327949	85743823	Decimal expansion of deuteron g factor.
+A327950	200233184	Decimal expansion of muon g factor, negated.
+A327951	382608	Decimal expansion of neutron g factor, negated.
+A327955	55856946	Decimal expansion of proton g factor.
+A327956	966236	Decimal expansion of neutron magnetic moment in J*T^(-1), negated.
+A327957	1041875	Decimal expansion of neutron magnetic moment to Bohr magneton ratio, negated.
+A335726	1337030156861780	Mean radius of the orbit of the hydrogen atom''s electron, in Bohr radii.
+A335727	0000000000707525	Mean radius of the orbit of the hydrogen atom''s electron, in meters.
+A343571
+A339800
+A346262

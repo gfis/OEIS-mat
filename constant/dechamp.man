@@ -1,0 +1,23 @@
+A033307	parm2	0	A033308	new A000027()			Decimal expansion of Champernowne constant (or Mahler's number), formed by concatenating the positive integers.	nonn,base,cons,easy,changed,	0..20000	unkn
+A033308	parm2	0	A033308	new A000040()			Decimal expansion of Copeland-Erdős constant: concatenate primes.	nonn,cons,base,changed,	0..2000	unkn
+# A066716	parm2	0	A033308	new A007088()			Decimal expansion of the binary Champernowne constant 0.862240125868... whose binary expansion is the concatenation of 1, 2, 3, ... written in binary.	cons,nonn,base,changed,synth	0..99	nyi
+# A066747	parm2	0	A033308	new A004676()			Decimal expansion of the "binary" Copeland-Erdős constant 0.734121515408286120606...: concatenate primes in base two.	nonn,cons,base,changed,synth	0..99	nyi
+A129112	parm2	0	A033308	new A001358()			Decimal expansion of constant equal to concatenated semiprimes.	base,cons,easy,nonn,synth	1..92	nyi
+A129808	parm2	0	A033308	new A018252()			Decimal expansion of constant equal to concatenated nonprimes.	cons,nonn,base,synth	1..105	nyi
+# A131583	parm2	0	A033308	new A058303()			Concatenation of first n numbers of the decimal expansion of imaginary part of first nontrivial zero of Riemann zeta function.	easy,nonn,base,less,changed,synth	0..17	nyi
+# A131584	parm2	0	A033308	new A065434()			Concatenation of first n numbers of the decimal expansion of imaginary part of 2nd nontrivial zero of Riemann zeta function.	easy,nonn,base,less,synth	0..17	nyi
+# A131585	parm2	0	A033308	new A065452()			Concatenation of first n numbers of the decimal expansion of imaginary part of 3rd nontrivial zero of Riemann zeta function.	easy,nonn,base,less,synth	0..17	nyi
+# A131586	parm2	0	A033308	new A065453()			Concatenation of first n numbers of the decimal expansion of imaginary part of 4th nontrivial zero of Riemann zeta function.	easy,nonn,base,less,changed,synth	0..17	nyi
+A133017	parm2	0	A033308	new A132999()			Decimal expansion of the constant formed by concatenating the imperfect numbers.	cons,easy,nonn,base,synth	0..77	nyi
+A133342	parm2	0	A033308	new A000040()			Concatenation of binary expansion of n-th row of Pascal's triangle.	base,easy,nonn,changed,	0..38	nyi
+A255311	parm2	0	A033308	new A001223()			Decimal expansion of the prime gap constant (concatenate the sizes of prime gaps, A001223).	nonn,base,cons,changed,	1..1000	nyi
+# A308705	parm2	0	A033308	new A076478()			Decimal expansion of the constant formed by concatenating the terms of A076478 (binary vectors of lengths 1, 2, 3, ... in numerical order).	nonn,base,cons,changed,synth	0..65	nyi
+A340206	parm2	0	A033308	new A061432()			Constant whose decimal expansion is the concatenation of the smallest n-digit square A061432(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..109	nyi
+A340207	parm2	0	A033308	new A061433()			Constant whose decimal expansion is the concatenation of the largest n-digit square A061433(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..85	nyi
+A340208	parm2	0	A033308	new A061434()			Constant whose decimal expansion is the concatenation of the smallest n-digit cube A061434(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..91	nyi
+A340209	parm2	0	A033308	new A061435()			Constant whose decimal expansion is the concatenation of the largest n-digit cube A061435(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..82	nyi
+A340219	parm2	0	A033308	new A003617()			Constant whose decimal expansion is the concatenation of the smallest n-digit prime A003617(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..108	nyi
+A340220	parm2	0	A033308	new A003618()			Constant whose decimal expansion is the concatenation of the largest n-digit prime A003618(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..90	nyi
+# A340221	parm2	0	A033308	new A098449()			Constant whose decimal expansion is the concatenation of the smallest n-digit semiprime A098449(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..102	nyi
+# A340222	parm2	0	A033308	new A098450()			Constant whose decimal expansion is the concatenation of the largest n-digit semiprime A098450(n), for n = 1, 2, 3, ...	nonn,base,cons,new,synth	0..102	nyi
+A342834	parm2	0	A033308	new A003618()			a(n) is the number whose decimal expansion consists of the concatenation of the largest 1-digit prime = 7, the largest 2-digit prime = 97, ... up to the largest n-digit prime = A003618(n).	nonn,base,changed,synth	1..10	nyi
