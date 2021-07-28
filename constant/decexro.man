@@ -1,26 +1,29 @@
-A256099	1	1,5,4,3,6,8,9,0	null	Decimal expansion of the real root of x^3-2*x^2+2*x-2, a cubic used by Omar Khayyám in a geometrical problem.
-A246644	1	4,4,2,4,9,3,3,3	null	Decimal expansion of the real root of s^3 - s^2 + s - 1/3 = 0.
-A192938	0	2,9,0,7,7,2,9,7	null	Decimal expansion of the real positive root of the equation: 4*x^4 + 12*x^3 + 8*x^2 - 1 = 0.
-A199589	1	1,1,3,7,1,5,8,0	null	Decimal expansion of the greatest root of 6x^3 - 6x - 2 = 0.
-A199590	0	2,5,7,7,7,2,8,0	null	Decimal expansion (unsigned) of the greatest root of 6x^3 + 18x^2 + 12x + 2 = 0.
-A243508	0	8,8,0,5,8,3,3,4	null	Decimal expansion of the real positive root of 48x^4 + 16x^3 - 27x^2 - 18x - 3 = 0.
-A272591	1	2,3,0,5,2,2,3,9	null	The unique positive root of x^5 - 2*x^4 - x^2 - x - 1.
-A156816	1	2,6,3,8,1,5,8,5	null	13x^4 - 7x^2 - 581 = 0.
+A256099	1	15436890	null	root of x^3-2*x^2+2*x-2
+A192938	0	29077297	null	root of 4*x^4+12*x^3+8*x^2-1
+A199589	1	11371580	null	root of 6x^3-6x-2
+A199590	0	25777280	null	root of 6x^3+18x^2+12x+2
+A243508	0	88058334	null	root of 48x^4+16x^3-27x^2-18x-3
+A272591	1	23052239	null	root of x^5-2*x^4-x^2-x-1
+A156816	1	26381585	null	root of 13x^4-7x^2-581
+A075778	0	75487766	null	root of x^3+x^2-1
+A242406	ß	23212000	null	root of 2x^5-4x^4-5x^2+4x-1
+A102912	18	26253741	null	root of x^3-6*x^2+4*x-2
+A114427	1	22418965	null	root of x^3-x^2-x-4
+A114431	0	24675038	null	root of x^3-x^2-2x-4
+A219300	1	11883681	null	root of x^18-x^17+x^16-x^15-x^12+x^11-x^10+x^9-x^8+x^7-x^6-x^3+x^2-x+1
+A242406	0	23212850	null	root of 2x^5-4x^4-5x^2+4x-1
+A243309	1	10074347	null	root of 4*x^8-28*x^6-7*x^4+16*x^2+16
+A246772	0	18091550	null	root of 944*x^3-295*x^2+28*x-1
+A298813	0	14902161	null	zero of x^4-2*x^2-x+1
+A298814	0	12033685	null	zero of x^8-2*x^4-x+1
+A298815	0	14480958	null	zero of x^8-4*x^6+6*x^4-4*x^2-x+1
+A298852	0	19263032	null	zero of x^4-4*x^2-x+3
+A298853	0	17106440	null	zero of x^4-2*x^2-x-1
+A299695	0	55590000	null	root of 7841367*x^18-33449976*x^16+62607492*x^14-63156942*x^12+41451480*x^10-19376280*x^8+5156603*x^6-746832*x^4+54016*x^2+3072
+A133077	0	60938286	null	root of 1296*x^8+2112*x^7-3480*x^6+1360*x^5+1665*x^4-1776*x^3+22*x^2-800*x+625
+A232092	1	10003444	null	root of x^2013-x-1
 
-
-A075778	0	7,5,4,8,7,7,6,6	null	root of x^3 + x^2 - 1.
-A242406	ß	2,3,2,1,2	null	root of 2x^5 - 4x^4 - 5x^2 + 4x - 1.
-
-A102912	18	2,6,2,5,3,7,4,1		root of x^3 - 6*x^2 + 4*x - 2
-A114427	1	2241896563034479	null	Decimal expansion of the real solution of x^3-x^2-x-4=0.
-A114431	0	2467503857056517	null	Decimal expansion of the real solution of x^3 - x^2 - 2x - 4 = 0.
-A219300	1	1,1,8,8,3,6,8,1,4	null	Decimal expansion of root of x^18 - x^17 + x^16 - x^15 - x^12 + x^11 - x^10 + x^9 - x^8 + x^7 - x^6 - x^3 + x^2 - x + 1 
-A242406	0	2,3,2,1,2,8,5,0,3	null	root of 2x^5 - 4x^4 - 5x^2 + 4x - 1.
-A243309	1	1,0,0,7,4,3,4,7,5	null	root of 4*x^8 - 28*x^6 - 7*x^4 + 16*x^2 + 16.
-A246772	0	1,8,0,9,1,5,5,0,1	null	root of 944*x^3 - 295*x^2 + 28*x - 1.
-A298813	0	1490216120099953	null	zero of x^4 - 2*x^2 - x + 1.
-A298814	0	1203368538150155	null	zero of x^8 - 2*x^4 - x + 1.
-A298815	0	1448095838609641	null	zero of x^8 - 4*x^6 + 6*x^4 - 4*x^2 - x + 1.
-A298852	0	1926303219912439	null	zero of x^4 - 4*x^2 - x + 3.
-A298853	0	1710644095045032	null	zero of x^4 - 2*x^2 - x - 1.
-A299695	0	5,5,5,9,0	null	root of 7841367r^18 - 33449976r^16 + 62607492r^14 - 63156942r^12 + 41451480r^10 - 19376280r^8 + 5156603r^6 - 746832r^4 + 54016r^2 + 3072.
+A111969	0	67498144	null	root of 4096*x^10+8192*x^9-3008*x^8-30848*x^7+21056*x^6+146496*x^5-221360*x^4+1232*x^3+144464*x^2-78488*x+11993
+A118427	1	19835828	null	root of x^6-x^5-x^4-x^3-x^2-x-1
+A127583	1	18800004	null	root of x^14-2*x^13+x^11-x^10-x^7+x^6-x^4+x^3-x+1
+A193211	1	16537455	null	root of -3*x^10+5*x^8+2*x^6+18*x^4+x^2+1
