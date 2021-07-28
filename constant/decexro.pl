@@ -5,16 +5,17 @@
 # 2021-07-15, Georg Fischer
 #
 #:# Usage:
-#:#   perl decexro.pl [-d debug] real_root.tmp > decexro.gen
+#:#   perl decexro.pl [-d debug] [-w width] real_root.tmp > decexro.gen
+#:#       -w width, number of relevant digits for boundaries (default: 4)
 #--------------------------------------------------------
 use strict;
-use integer;
 use warnings;
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
 my $debug = 0;
+my $width = 4; # number of relevant digits for boundaries
 if (scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
@@ -27,6 +28,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $debug     = shift(@ARGV);
     } elsif ($opt  =~ m{i}) {
         $ignore    = shift(@ARGV);
+    } elsif ($opt  =~ m{w}) {
+        $width     = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -38,22 +41,14 @@ while (<>) {
     next if $line !~ m{\AA\d+};
     $line =~ s/\s+\Z//; # chompr
     my ($aseqno, $offset, $termlist, $superclass, $name) = split(/\t/, $line);
-    if ($name =~ m{(of|to)[^x0-9]*([x \d\+\-\*\^\/]+)}) {
-        my $poly = $2;
+    $name =~ s{Decimal expansion of }{};
+    if ($name =~ m{(root|solution|equation) (of|to) ([ \w\+\-\*\^\/\=\(\)]+)}) {
+        my $poly = $3;
         $poly =~ s{ }{}g;
-        my $low  = substr($termlist, 0, 1) . substr($termlist, 2, 1);
-        my $hig  = $low + 1;
-        if ($offset == 0) {
-            $low =~ s{(\d\d)\Z}{0\.$1};
-            $hig =~ s{(\d\d)\Z}{0\.$1};
-        } else {
-            $low =~   s{(\d)\Z}{\.$1};
-            $hig =~   s{(\d)\Z}{\.$1};
-        }
-        # $low  = substr($termlist, 0, 1);
-        # $hig  = $low + 1;
-        # $low = "CR.valueOf(\"$low\", 10)";
-        # $hig = "CR.valueOf(\"$hig\", 10)";
+        $poly =~ s{\=0\Z}{}; # remove trailing "=0"
+        $poly =~ s{\=(.+)\Z}{\-\($1\)}; # change "=expr" to "-(expr)"
+        my $low  = &deconst($offset, 0, $termlist);
+        my $hig  = &deconst($offset, 1, $termlist);
         my $nok = 0;
         if (0) {
         } elsif ($poly =~ m{\^\D}) {
@@ -64,18 +59,28 @@ while (<>) {
             $nok = 3; # polynomial contains no operator
         } elsif ($poly =~ m{[\+\-\*\^\/]\Z}) {
             $nok = 4; # polynomial did not end properly
-        } 
+        } elsif ($poly =~ m{[A-Za-wyz]}) {
+            $nok = 5; # letters other than x
+        }
         if ($nok == 0) {
-            print        join("\t", $aseqno, "fract1", $offset, $poly, 1, $low, $hig, $poly) . "\n";
+            print        join("\t", $aseqno, "fract1",   $offset, $poly, 1, $low, $hig, $poly, $name) . "\n";
         } else {
             # ignore
-            print STDERR join("\t", $aseqno, "nok=$nok", $offset, $poly, 1, $low, $hig, $poly) . "\n";
+            print STDERR join("\t", $aseqno, "nok=$nok", $offset, $poly, 1, $low, $hig, $poly, $name) . "\n";
         }
     }
 } # while
+#----
+sub deconst { # global: $width
+    my ($offset, $add1, $termlist) = @_;
+    my $result = ("0." . substr($termlist, 0, $width)) + ("0." . "0" x ($width - 1) . $add1);
+    $result *= 10 ** $offset;
+    # print "# offset=$offset, add1=$add1, termlist=$termlist, result=$result\n";
+    return $result;
+} # deconst
 __DATA__
-A060006 1   1,3,2,4,7,1,7,9 null    Decimal expansion of real root of x^3 - x - 1 (the plastic constant).
-A068960 1   2,3,7,1,4,5,0,6 null    Decimal expansion of the fifth smallest positive real root of sin(x) - sin(x^3) = 0.
-A075778 0   7,5,4,8,7,7,6,6 null    Decimal expansion of the real root of x^3 + x^2 - 1.
-A088559 0   4,6,5,5,7,1,2,3 null    Decimal expansion of R^2 where R^2 is the real root of x^3 + 2*x^2 + x - 1 = 0.
-A089826 0   6,5,7,2,9,8,1,0 null    Decimal expansion of real root of 2*x^3+x^2-1.
+A060006 1   13247179 null    Decimal expansion of real root of x^3 - x - 1 (the plastic constant).
+A068960 1   23714506 null    Decimal expansion of the fifth smallest positive real root of sin(x) - sin(x^3) = 0.
+A075778 0   75487766 null    Decimal expansion of the real root of x^3 + x^2 - 1.
+A088559 0   46557123 null    Decimal expansion of R^2 where R^2 is the real root of x^3 + 2*x^2 + x - 1 = 0.
+A089826 0   65729810 null    Decimal expansion of real root of 2*x^3+x^2-1.

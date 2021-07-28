@@ -2,21 +2,28 @@
 
 # Print a line with the first terms
 # @(#) $Id$
+# 2021-07-26: revisited
 # 2019-01-12, Georg Fischer
 #
-# usage:
-#   perl keyword.pl [-d level] [-a {split|html}] [-l 256] input > output
-#       -d level    debug level: 0 (none), 1 (some), 2 (more)
-#       -a split    split %K lines
-#       -a html     generate HTML page for statistics
-#       -l 256      limit for list of sequences
+#:# usage:
+#:#   perl keyword.pl [-d level] [-a {split|html}] [-l 256] input > output
+#:#       -d level    debug level: 0 (none), 1 (some), 2 (more)
+#:#       -a split    split %K lines
+#:#       -a html     generate HTML page for statistics
+#:#       -kw file    file with (aseqno, keyword) tuples
+#:#       -l 256      limit for list of sequences
 #---------------------------------
 use strict;
 use integer;
+my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
+my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+$timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
+
 # get options
 my $action = "split";
-my $limit  = 256;
+my $limit  = 800; # includes bref, eigen
 my $debug  = 0; # 0 (none), 1 (some), 2 (more)
+my $kw_file = "keyw_split.tmp";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -24,6 +31,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         $debug    = shift(@ARGV);
     } elsif ($opt =~ m{\-a}) {
         $action   = shift(@ARGV);
+    } elsif ($opt =~ m{\-kw}) {
+        $kw_file  = shift(@ARGV);
     } elsif ($opt =~ m{\-l}) {
         $limit    = shift(@ARGV);
     } else {
@@ -41,8 +50,9 @@ if (0) {
         next if m{\A\s*\#};
         s/\s+\Z//; # chompr
         my ($kk, $aseqno, $list) = split(/\s+/);
+        $list =~ s{\,+\Z}{}; # remove trailing ","s
         foreach my $keyw (split(/\,/, $list)) {
-            print "$aseqno $keyw\n";
+            print "$aseqno $keyw\n" if length($keyw) > 0;
         } # foreach
     } # while <>
 } elsif($action =~ m{^html}) { # preprocess for sort
@@ -52,7 +62,7 @@ if (0) {
 <h2><a href="https://oeis.org" target="_blank">OEIS</a> Keyword Statistics
 </h2>
 <p>
-Date: 2018-01-08. 
+Date: $timestamp
 <br />Questions, suggestions: email <a href="mailto:georg.fischer\@t-online.de">Georg Fischer</a>
 <br /><a href="https://oeis.org/wiki/Clear-cut_examples_of_keywords" target="_blank">List of keywords in OEIS Wiki</a>
 
@@ -86,7 +96,7 @@ GFis
 </html>
 GFis
     # html
-} else { 
+} else {
     die "invalid action \"$action\"\n";
 }
 exit(0);
@@ -94,11 +104,10 @@ exit(0);
 sub get_sequences {
     my ($keyw) = @_;
     my $result = "";
-    my $cmd = "grep -E \"$keyw\" keyw_split.1.tmp";
-    my @seqs = sort(map { substr($_, 0, 7) }
-        split(/\r?\n/, `$cmd`));
-    $result = join(", ", map {             
-    		s{(A)(\d{6})}
+    my $cmd = "grep -E \"$keyw\" $kw_file";
+    my @seqs = sort(map { substr($_, 0, 7) } split(/\r?\n/, `$cmd`));
+    $result = join(", ", map {
+            s{(A)(\d{6})}
              {\<a href\=\"https\:\/\/oeis.org\/$1$2\" title\=\"$nawol[$2]\" target\=\"_new\"\>$1$2\<\/a\>}g;
             $_
         } @seqs);
@@ -107,7 +116,7 @@ sub get_sequences {
 #------------------------------
 sub get_names {
     my $seqno;
-    open(NAM, "<", "../coincidence/database/names") || die "cannot read names\n";
+    open(NAM, "<", "../common/names") || die "cannot read names\n";
     while (<NAM>) {
         s/\s+\Z//; # chompr
         next if m{\A\s*\#}; # skip comments
@@ -135,7 +144,7 @@ sub get_html_head {
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>$title</title>
-<meta name="generator" content="https://github.com/gfis/OEIS-mat/blob/master/coincidence/database/simseq.pl" />
+<meta name="generator" content="https://github.com/gfis/OEIS-mat/blob/master/keyword/keyword.pl" />
 <meta name="author"    content="Georg Fischer" />
 <style>
 body,table,p,td,th
@@ -146,7 +155,7 @@ tr,td,th{ text-align: left; vertical-align: top; }
 .arr    { text-align: right; background-color: white; color: black; }
 .bor    { border-left  : 1px solid gray    ;
           border-top   : 1px solid gray    ;
-          border-right : 1px solid gray    ;                                
+          border-right : 1px solid gray    ;
           border-bottom: 1px solid gray    ;  }
 .refp   { background-color: lightgreen;    } /* refers to the partner */
 .warn   { background-color: yellow;        } /* no reference to the partner and newer */

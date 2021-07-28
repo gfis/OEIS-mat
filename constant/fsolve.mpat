@@ -1,0 +1,9 @@
+# @(#) $Id$
+# 2021-07-18, Georg Fischer
+interface(prettyprint=0):
+decsolv := proc(aseqno, offset, a, lo, hi, mantissa); local q;
+  printf("%a\t%a\t%a\t%a\t%a\t%a\t%a\n", aseqno, offset, fsolve(a,x=lo..hi), mantissa, lo, hi, a);
+  
+end;
+
+timelimit($(TIMEOUT), decsolv($(PARM0), $(PARM2), $(PARM7), $(PARM5), $(PARM6), $(PARM8)));

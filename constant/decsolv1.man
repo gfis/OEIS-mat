@@ -1,0 +1,18 @@
+A133742	solve(x=0,1,arccos(1-x)-(1-x)*sqrt(x*(2-x))-Pi/4)
+A133731	cos(solve(x=1,2,sin(x)-x*cos(x)-Pi/2)/2)*2
+A152149	solve(x=.6,.7,sin(x*phi^2)-phi*sin(x))
+A175477	solve(x=9,13,Pi^(x/2)-Gamma(x/2+1))
+A179373	solve(x=0,Pi,x-sin(x)-2)
+A179374	(solve(x=0,Pi,x-sin(x)-2))*180/Pi
+A179375	2*sin(solve(x=0,Pi,x-sin(x)-2)/2)
+A179376	1-cos(solve(x=0,Pi,x-sin(x)-2)/2)
+A179377	cos(solve(x=0,Pi,x-sin(x)-2)/2)
+A179378	sin(solve(x=0,Pi,x-sin(x)-2))/2
+A188617	solve(x=0,1,phi*x+x-(1+sqrt(2))*sin(x))
+
+A196610	a=solve(x,.8,1,x=cot(x));c=csc(a)/a^2;
+A196611	-c*sin(a)
+A196617	a=1;c=0;x=solve(x=1,1.5,a*x^2+c-1/sin(x))
+A196618	a=1;c=0;x=solve(x=1,1.5,a*x^2+c-1/sin(x));cos(x)
+A196619	a=1;c=0;x=solve(x=1,1.5,a*x^2+c-1/sin(x))
+A196620	a=1;c=0;x=solve(x=1,1.5,a*x^2+c-1/sin(x));-sin(x)
