@@ -370,14 +370,26 @@ decneg_check: # check for negative constants
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
 #----
-grep_example: grep_example1 grep_example2
-grep_example1:
+grep_example1: # extract filenames from cons
 	perl -pe 's{^([A0-9]+).*}{\.\.\/common\/ajson\/$$1\.json}' cons.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-grep_example2:
+grep_example2: # grep through all in cons - much faster on Linux
 	rm -f $@.tmp
-	head -n8 grep_example1.tmp | xargs -l -innn grep -A1 -HE "\"data|\"example|\"offset" nnn >> $@.tmp
+	head -n88888 grep_example1.tmp | xargs -l -innn grep -A1 -HE "\"data|\"example|\"offset" nnn >> $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+exalist: # generate a list with data, example in seq4 format
+	perl exalist.pl grep_example2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+exacheck: # check the exalist, and generate HTML worksheet
+	perl exacheck.pl exalist.tmp \
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+
+
