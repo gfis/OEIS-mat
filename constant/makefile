@@ -186,82 +186,6 @@ not_real_root:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
-decexp0: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
-decexp1:
-	grep -E "^[\%][N] A[0-9][0-9]* Decimal expansion" $(COMMON)/jcat25.txt \
-	| cut -b4- | grep -vP '\, *where' \
-	| perl -ne 's/ Decimal expansion (for|of) /\tpost\t0\t~~/; '\
-	' s{([\.\;\,\:\=]|\(gamma is|where ).*}{}; s{ }{}g; s{(.)A001620}{$$1}g; s{goldenratio}{phi}; '\
-	' if (! m{sum|prod|_|.A|\!|.\w{8}}) { print; }'\
-	| grep -E "^A[0-9]" \
-	>        $@.1.tmp
-	wc -l    $@.1.tmp
-	grep -E "^A[0-9]" decexp1.man \
-	| sed -e "s/ //g" \
-	| sort | uniq -w7 \
-	>        $@.2.tmp
-	wc -l    $@.2.tmp
-	# cut -b1-7 decexp1.man | sort | uniq -c | grep -v " 1 "
-	make overwrite SRC=$@.2.tmp TAR=$@.1.tmp
-	gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4 "\t" $$4 }' $@.1.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-decexp_check: # on duplicates in .man
-	grep -E "^A[0-9]" decexp1.man | cut -b1-7 | sort | uniq -c | grep -v " 1 "
-decexp2:
-	# cp -v zetaddx.man decexp1.tmp
-	$(JPREP) -f decexp1.tmp | sed -e "s/\r//" \
-	| perl -ne 's{\tpost\t(.*)\Z}{\tinfix\t$$1\t$$1}; s{\~\~\;?}{}g; print;'\
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@*.tmp
-decexp3:
-	$(JPREP) -p $(FISCHER)/CR.xpat -f decexp2.tmp \
-	| perl -pe 's{\t\w+\t}{\tdecexp\t};'\
-	| perl $(FISCHER)/cr_polish.pl \
-	>        $@.tmp \
-	2>       $@.rest.tmp
-	head -n4 $@.tmp
-	wc -l    $@*.tmp 
-decexp4:
-	cat decexp3.tmp \
-	| perl -ne 'my ($$aseqno, $$callcode, $$offset, $$parm1, @rest) = split(/\t/); '\
-	' if ((length($$offset) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
-	| sort | uniq -w7 \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#----
-decexro0: decexro1 decexro2 # real roots of polynomials 
-decexro1: # grep and merge with manuals, extract polynomial (num) and den=1
-	grep -Ei  "(solution|root|zero) (of|to)" cons.tmp \
-	| grep -viE "Gamma|prime|Moebius" | grep -vE "Pi|Phi|sin\(" \
-	| cat - decexro.man \
-	| grep -vE "A102912" \
-	| perl decexro.pl -w 1 \
-	2>       $@.rest.tmp \
-	>        $@.tmp 
-	head -n4 $@.tmp
-	wc -l    $@*.tmp
-decexro2: # convert to vector
-	$(JPREP) -f decexro1.tmp \
-	| grep -E "fract1" \
-	| sed -e "s/fract1/decexro/" \
-	| sort | uniq -w7 \
-	| cut -f1-4,7-9 \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#--------
-decsolv0:
-decsolv1:
-	grep -Pi "(solution| root |zero |having|satisf)" conjs.tmp \
-	| grep -vP "continued fraction|Khinchin|Glaisher|Fibonacci|prime|Riemann|zeta|Dedekind|psi" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#--------
 mersenne_tab0: mersenne_tab1  # evaluate sqrt formulae from A195284
 mersenne_tab1:
 	grep "Decimal expans" $(COMMON)/joeis_names.txt | grep "Mersenne prime " \
@@ -306,48 +230,175 @@ philo_tab4: # convert -> postfix
 	2>       $@.rest.tmp
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
-#--------
+#========
+correct: # CC= ; generate term list for manual correction
+	perl correct.pl -f $(CC)4.txt $(FISCHER)/$(CC).fail.log \
+	>        $(CC).corr.tmp
+	wc -l    $(CC).corr.tmp
+	uedit64  $(CC).corr.tmp
+#-------
 post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
-	$(JPREP) -f $(LIST) \
+	#==== $@ LIST=$(LIST)
+	$(JPREP) -cc post  -f $(LIST) \
 	| sed -e "s/\r//" \
-	| perl -pe 's{\A(A\d+)\t(\w+)\t(\-?\d+)\t\~\~\;?}{$$1\tinfix\t$$3\t}; '\
-	>        $@.1.tmp
-	wc -l    $@.1.tmp
-	$(JPREP) -p $(FISCHER)/CR.xpat -f $@.1.tmp \
-	| sed -e "s/\r//" \
+	| perl -pe 's{\~\~\;?}{}g; '\
 	>        $@.tmp
-interval: # LIST= WIDTH=; update $(OFFSET), set low, high into $(PARM3), $(PARm4)
+	wc -l    $@.tmp
+	$(JPREP) -cc infix -p $(FISCHER)/CR.xpat -f $@.tmp \
+	| sed -e "s/\r//" \
+	| perl $(FISCHER)/cr_polish.pl \
+	>        $(LIST)
+	wc -l    $(LIST)
+#--
+load: # LIST= ; update $(OFFSET)
+	#==== $@ LIST=$(LIST)
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
 	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno)\
 	    , parm3 = (SELECT SUBSTR(d.data, 1, 17)            FROM asdata d WHERE d.aseqno = s.aseqno)";
-	$(DBAT) -f solv_tabs_patch.sql
+#--
+interval: # LIST= WIDTH= ; unload and set low, high into $(PARM3), $(PARm4)
+	#==== $@ LIST=$(LIST)
 	$(DBAT) -x -44444 seq4 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	perl interval.pl -w $(WIDTH) $@.tmp \
+	>        $(LIST)
+	wc -l    $(LIST)
+#========
+decexp: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
+	cp -v decexp4.tmp $@.gen
+	head -n4 $@.gen
+	cut -f2  $@.gen | sort | uniq -c
+decexp1:
+	grep -E "^[\%][N] A[0-9][0-9]* Decimal expansion" $(COMMON)/jcat25.txt \
+	| cut -b4- | grep -vP '\, *where' \
+	| perl -ne 's/ Decimal expansion (for|of) /\tdecexp\t0\t~~/; '\
+	' s{([\.\;\,\:\=]|\(gamma is|where ).*}{}; s{ }{}g; s{(.)A001620}{$$1}g; s{goldenratio}{phi}; '\
+	' if (! m{sum|prod|_|.A|\!|.\w{8}}) { print; }'\
+	| grep -E "^A[0-9]" \
 	>        $@.1.tmp
-	head -n4 $@.1.tmp
 	wc -l    $@.1.tmp
-	perl interval.pl -w $(WIDTH) $@.1.tmp > $@.tmp
+	grep -E "^A[0-9]" decexp1.man \
+	| sed -e "s/ //g" \
+	| sort | uniq -w7 \
+	>        $@.2.tmp
+	wc -l    $@.2.tmp
+	make overwrite SRC=$@.2.tmp TAR=$@.1.tmp
+	gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4 "\t" $$4 }' $@.1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+decexp_check: # on duplicates in .man
+	grep -E "^A[0-9]" decexp1.man | cut -b1-7 | sort | uniq -c | grep -v " 1 "
+decexp2:
+	# cp -v zetaddx.man decexp1.tmp
+	cp -v    decexp1.tmp $@.tmp
+	make post_cr    LIST=$@.tmp
+decexp3:
+	make load       LIST=decexp2.tmp
+	make interval   LIST=$@.tmp
+decexp4:
+	cat decexp3.tmp \
+	| perl -ne 'my ($$aseqno, $$callcode, $$offset, $$parm1, @rest) = split(/\t/); '\
+	' if ((length($$offset) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+decsolv: decsolv0 decsolv1 decsolv2 decsolv3 decsolv4 # solve()
+	cp -v decsolv3.tmp $@.gen
+	head -n4 $@.gen
+	cut -f2  $@.gen | sort | uniq -c
+decsolv0:
+	grep -P "Decimal expansion of " $(COMMON)/joeis_names.txt \
+	| grep -P "\AA\d+\tnull\t" \
+	| grep -vP "continued fraction|Khinchin|Glaisher|Fibonacci|prime|Riemann|Dedekind" \
+	| perl decsolv.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@*.tmp
+decsolv1:
+	cp -v decsolv0.tmp $@.tmp
+	make overwrite SRC=decsolv.man TAR=$@.tmp
+	grep -E "\A[0-9]" $@.tmp \
+	| sort | uniq -w7 \
+	| gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4 "\t\t0\t0\t" substr($$4, 3) }' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+decsolv2:
+	cp -v decsolv1.tmp $@.tmp
+	make post_cr    LIST=$@.tmp
+decsolv3:
+	make load       LIST=decsolv2.tmp
+	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	make interval   LIST=$@.tmp
+decsolv4: # Check with Maple's fsolve
+	perl -e 'print join("\t", qw(aseqno ofs Maple OEIS low high formula)), "\n";' > $@.txt
+	perl -pe 's{agm\(}{GaussAGM\(}g; s{(\W|\A)e(\W|\Z)}{$$1exp\(1\)$$2}g;' \
+	  decsolv3.tmp      > $@.tmp
+	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
+	| grep -E "^A[0-9]" \
+	>>       $@.txt
+	wc -l    $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 #--------
-solv_tabs: solv_tabs1 solv_tabs2 solv_tabs3 solv_tabs4 # generate for Kimberling's tables in A197133, A336043
-	mv -v solv_tabs3.tmp $@.gen
+TAB=12345
+solvetab: solvetab1 solvetab2 solvetab3 solvetab4 # generate for CK's tables in 
+	# A197133(1), A197476(2), A336043(3), A198414(4), A198866(5)
+	mv -v solvetab3.tmp $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen
-solv_tabs1:
-	perl solv_tabs.pl \
+solvetab1: # creates solve() parameters from Perl <DATA>, and writes $@.sql.tmp
+	perl solvetab.pl -a $(TAB) \
+	2>       $@.sql.tmp \
 	| sort | uniq -w7 \
 	| perl -pe 's{(\D)1\*}{$$1}g;' \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp
-solv_tabs2:
-	make post_cr LIST=solv_tabs1.tmp
-	mv -v post_cr.tmp $@.tmp
-solv_tabs3:
-	make interval LIST=solv_tabs2.tmp
-	mv -v interval.tmp $@.tmp
-solv_tabs4: # check with Maple's fsolv
-	perl $(COMMON)/callmaple.pl -t 2 -n 16 -p fsolve.mpat solv_tabs3.tmp \
+	wc -l    $@*.tmp
+solvetab2: # convert to CR infix
+	cp -v solvetab1.tmp $@.tmp
+	make post_cr    LIST=$@.tmp
+solvetab3: # load into seq4, and expand intervals
+	make load       LIST=solvetab2.tmp
+	$(DBAT) -f solvetab3.sql
+	$(DBAT) -f solvetab1.sql.tmp
+	make interval   LIST=$@.tmp
+solvetab4: # check with Maple's fsolve
+	#---- $@ 
+	perl -e 'print join("\t", qw(aseqno ofs Maple OEIS low high formula)), "\n";' > $@.txt
+	perl -pe 's{agm\(}{GaussAGM\(}g;' \
+	  solvetab3.tmp  > $@.tmp
+	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
 	| grep -E "^A[0-9]" \
-	| tee    $@.tmp
+	>>       $@.txt
+	wc -l    $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+#----
+decexro0: decexro1 decexro2 # real roots of polynomials 
+decexro1: # grep and merge with manuals, extract polynomial (num) and den=1
+	grep -Ei  "(solution|root|zero) (of|to)" conjs.tmp \
+	| grep -viE "Gamma|prime|Moebius" | grep -vE "Pi|Phi|sin\(" \
+	| cat - decexro.man \
+	| grep -vE "A102912" \
+	| perl decexro.pl -w 1 \
+	2>       $@.rest.tmp \
+	>        $@.tmp 
+	head -n4 $@.tmp
+	wc -l    $@*.tmp
+decexro2: # convert to vector
+	$(JPREP) -f decexro1.tmp \
+	| grep -E "fract1" \
+	| sed -e "s/fract1/decexro/" \
+	| sort | uniq -w7 \
+	| cut -f1-4,7-9 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
 dechamp:
 	grep -E "(ecimal|inary) expansion " $(COMMON)/joeis_names.txt \
@@ -391,5 +442,10 @@ exacheck: # check the exalist, and generate HTML worksheet
 	head -n4 $@.txt
 	wc -l    $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
-
+#-----
+alcover:
+	grep -E "^\%t" $(COMMON)/jcat25.txt | grep -E "RealDigits" | grep Alcover \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 

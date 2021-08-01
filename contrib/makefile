@@ -26,7 +26,7 @@ refresh:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -l -innn make refresh1 S=nnn
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
-	make SLEEP=1 wgeto
+	make SLEEP=2 wgeto
 	make SLEEP=1 distrio
 #--
 wgeto: # S=012345, read into ./oeis.org/
