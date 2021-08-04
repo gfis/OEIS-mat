@@ -82,3 +82,7 @@ A193211	decsolv	0	~~5*x^8+2*x^6+18*x^4+x^2+1-3*x^10
 A191909	decsolv	0	~~x^6+x^4-1
 A343851	decsolv	0	~~152x^3+12x^2-14x+1
 
+# 2021-08-04
+A102268	decsolv	0	~~x*log(x)+(1-x)*log(1-x)+log(2)/2
+A121967	decsolv	0	~~cos(x)-x-2
+

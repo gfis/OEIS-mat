@@ -455,4 +455,15 @@ alcover:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#--------
+base60:
+	grep -Ei "base[ \-]60|Babylonian|sexagesimal" $(COMMON)/joeis_names.txt
+#----
+bindec_check: # apply BinaryToDecimalExpansionSequence
+	echo aseqno name > $@.txt
+	grep -Ei "binary" conjs.txt \
+	>>       $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 
