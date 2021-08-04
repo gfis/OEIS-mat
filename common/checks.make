@@ -39,7 +39,10 @@ checks: \
 	cojec_check  \
 	cons_check   \
 	denom_check  \
+	guide_check  \
 	lead0_check  \
+	nydone_check \
+	nydsdb_check \
 	offset_check \
 	off_a0_check \
 	order_check  \
@@ -318,6 +321,14 @@ full_check: # Keyword "full" and not "synth"
 	>     $@.txt
 	wc -l $@.txt
 #---------------------------
+guide_check: # make a list of the "Guide to related sequences"
+	echo aseqno > $@.txt
+	grep -E "[0-9] Guide to related sequences" jcat25.txt \
+	| perl -pe 's{\A.. (A\d+).*}{$$1\tguide};' \
+	>>  $@.txt
+	wc -l $@.txt
+	make -f checks.make html_check1 FILE=$@
+#---------------------------
 joeis_check: # parameter: LOG in joeis-lite/internal/fischer
 	echo "A_Number	bfimax	Status	Expected	Computed" > $@.txt
 	grep -E "^A[0-9]" $(FISCHER)/$(LOG).fail.log \
@@ -412,10 +423,28 @@ nobase_check: # Sequences without keyword "base" mentioning "IntegerDigits|sumdi
 	>       $@.txt
 	wc -l   $@.txt
 #--------------------------------
+nydone_check:
+	$(DBAT) "SELECT n.aseqno, i.program, b.bfimax, n.info, i.keyword \
+	  FROM nydone n, asinfo i, bfinfo b \
+	  WHERE n.aseqno = i.aseqno \
+	    AND i.aseqno = b.aseqno \
+	  ORDER BY 1" \
+	>       $@.txt
+	wc -l   $@.txt
+#--------------------------------
+nydsdb_check:
+	$(DBAT) "SELECT n.aseqno, s.si, s.mt, s.ix, n.info \
+	  FROM nydone n, seqdb s \
+	  WHERE n.aseqno = s.aseqno \
+	    AND s.si <= '02' \
+	  ORDER BY 1" \
+	>       $@.txt
+	wc -l   $@.txt
+#--------------------------------
 offset_check: # Sequence offset differs from first index in b-file and no draft
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
-		, substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
-		, a.keyword, b.message \
+	    , substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
+	    , a.keyword, b.message \
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno \
 	      AND a.offset1 <> b.bfimin \

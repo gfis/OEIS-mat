@@ -232,10 +232,8 @@ philo_tab4: # convert -> postfix
 	wc -l    $@*.tmp
 #========
 correct: # CC= ; generate term list for manual correction
-	perl correct.pl -f $(CC)4.txt $(FISCHER)/$(CC).fail.log \
-	>        $(CC).corr.tmp
+	perl correct.pl -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
 	wc -l    $(CC).corr.tmp
-	uedit64  $(CC).corr.tmp
 #-------
 post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
 	#==== $@ LIST=$(LIST)
@@ -337,7 +335,7 @@ decsolv3:
 	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
 	make interval   LIST=$@.tmp
 decsolv4: # Check with Maple's fsolve
-	perl -e 'print join("\t", qw(aseqno ofs Maple OEIS low high formula)), "\n";' > $@.txt
+	perl -e 'print join("\t", qw(aseqno cc ofs Maple OEIS low high formula)), "\n";' > $@.txt
 	perl -pe 's{agm\(}{GaussAGM\(}g; s{(\W|\A)e(\W|\Z)}{$$1exp\(1\)$$2}g;' \
 	  decsolv3.tmp      > $@.tmp
 	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
@@ -346,7 +344,7 @@ decsolv4: # Check with Maple's fsolve
 	wc -l    $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 #--------
-TAB=12345
+TAB=0-9a-z
 solvetab: solvetab1 solvetab2 solvetab3 solvetab4 # generate for CK's tables in 
 	# A197133(1), A197476(2), A336043(3), A198414(4), A198866(5)
 	mv -v solvetab3.tmp $@.gen
@@ -363,14 +361,17 @@ solvetab1: # creates solve() parameters from Perl <DATA>, and writes $@.sql.tmp
 solvetab2: # convert to CR infix
 	cp -v solvetab1.tmp $@.tmp
 	make post_cr    LIST=$@.tmp
+EX=
 solvetab3: # load into seq4, and expand intervals
 	make load       LIST=solvetab2.tmp
+	$(DBAT) "DELETE FROM seq4 WHERE '$(EX)' || aseqno IN (SELECT aseqno FROM joeis);"
 	$(DBAT) -f solvetab3.sql
 	$(DBAT) -f solvetab1.sql.tmp
+	$(DBAT) -n seq4
 	make interval   LIST=$@.tmp
 solvetab4: # check with Maple's fsolve
 	#---- $@ 
-	perl -e 'print join("\t", qw(aseqno ofs Maple OEIS low high formula)), "\n";' > $@.txt
+	perl -e 'print join("\t", qw(aseqno cc ofs Maple OEIS low high formula)), "\n";' > $@.txt
 	perl -pe 's{agm\(}{GaussAGM\(}g;' \
 	  solvetab3.tmp  > $@.tmp
 	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
@@ -378,6 +379,12 @@ solvetab4: # check with Maple's fsolve
 	>>       $@.txt
 	wc -l    $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+#----
+solvepari: # intervals from GP/PARI solve() 
+	grep -E "^\%o" $(COMMON)/jcat25.txt | grep -E " solve\(" \
+	  >      $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
 decexro0: decexro1 decexro2 # real roots of polynomials 
 decexro1: # grep and merge with manuals, extract polynomial (num) and den=1

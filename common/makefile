@@ -585,3 +585,19 @@ magma:
 	grep -iE "\(MAGMA\)" cat25.txt \
 	| perl -ne 'if (m{(\_[^\_]+\_)}) { print "$$1\n"; }' \
 	| sort | uniq -c | tee $@.tmp
+#--------
+nydone: # populate the table from joeis/notdone.dat
+	$(DBAT) -f nydone.create.sql
+	sed -e "s/ /\t/" $(JOEIS)/notdone.dat \
+	| $(DBAT) -m csv -s "\t" -r nydone
+	$(DBAT) -4   nydone
+	$(DBAT) -n   nydone
+	
+#----
+nydone_sdb: # determine which are in sequencedb and in nydone
+	$(DBAT) "SELECT n.aseqno, s.si, s.mt, s.ix, n.info \
+	  FROM nydone n, seqdb s \
+	  WHERE n.aseqno = s.aseqno \
+	  ORDER BY 1" \
+	| tee $@.tmp
+#--------

@@ -12,7 +12,10 @@
 # =2=   https://oeis.org/A197476
 # =3=   https://oeis.org/A336043
 # =4=   https://oeis.org/A198414
-# =3=   https://oeis.org/A198866
+# =5=   https://oeis.org/A198866
+# =6=   A201741
+# =7=   A201280
+# =8=   A199170
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -25,7 +28,7 @@ if (0 && scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }
-my $asel = "123";
+my $asel = "0-9a-z"; # select all possible TAB codes
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -69,9 +72,8 @@ while (<DATA>) {
 
     } elsif ($opt eq "=4=") { # A198414 ff.
         ($opt, $a, $b, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line);
-        # For many choices of a,b,c, there is a unique nonzero number x satisfying a*x^2+b*x=c*sin(x).
+        # For many choices of a,b,c, there is a unique nonzero number x satisfying a*x^2 + b*x = c*sin(x).
         # Specifically, for a>0 and many choices of b and c, the curves y=ax^2+bx and y=c*sin(x) meet in a single point
-        # if and only if b=c, in which case the curves have a common tangent line, y=c*x.
         # If b<c, the curves meet in quadrant 1; if b>c, they meet in quadrant 2.
         $A = ($a != 0 ? "$a*" : "") . "x^2"
            . ($b > 0 ? "+$b*x" : ($b < 0 ? "$b*x" : "")) . "-"
@@ -93,13 +95,13 @@ while (<DATA>) {
     } elsif ($opt eq "=6=") { # A201741 ff.
         ($opt, $a, $b, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -7);
         push(@ans, "", ""); # ensure 3 A-numbers
-        # For some choices of a, b, c, there is a unique value of x satisfying a*x^2+b*x+c=e^x, 
+        # For some choices of a, b, c, there is a unique value of x satisfying a*x^2 + b*x+c = e^x,
         # for other choices, there are two solutions, and for others, three.
         $A = (($a != 1 ? "$a*" : "") . "x^2"
            . ($b == 0 ? "" : ($b == 1 ? "+x" : "+$b*x"))
-           . ($c > 0 ? "+$c" : ($c < 0 ? $c : "")) 
+           . ($c > 0 ? "+$c" : ($c < 0 ? $c : ""))
            . "-exp(x)");
-        &outstd($ans[0], "decsolv", $A, "");
+        &outstd($ans[0], "decsolv" . (length($ans[1]) > 0 ? "n" : ""), $A, "");
         if ( length($ans[1]) > 0) {
             &outstd($ans[1], "decsolv" . (length($ans[2]) > 0 ? "n" : ""), $A, "");
         }
@@ -110,9 +112,64 @@ while (<DATA>) {
     } elsif ($opt eq "=7=") { # A201280 ff.
         ($opt, $a, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -4);
         # For many choices of a and c, there is exactly one x satisfying a*x^2 + c = cot(x) and 0 < x < Pi.
-        $A = (($a != 1 ? "$a*" : "") . "x^2"
+        $A = ("$a*x^2"
            . ($c > 0 ? "+$c" : ($c < 0 ? "$c" : "")) . "-cot(x)");
+        $A =~s{(\D|\A)1\*}{$1}g;
         &outstd($ans[0], "decsolv", $A, "");
+
+    } elsif ($opt eq "=8=") { # A199170 ff.
+        ($opt, $a, $b, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -6);
+        # For many choices of a,b,c, there are exactly two numbers x satisfying a*x^2 + b*x*cos(x) = c.
+        $A = (($a != 1 ? "$a*" : "") . "x^2"
+           . ($b == 0 ? "" : ($b == 1 ? "+" : "+$b*") . "x*cos(x)-$c"));
+        $A =~s{(\D|\A)1\*}{$1}g;
+        &outstd($ans[0], "decsolvn", $A, "");
+        &outstd($ans[1], "decsolv",  $A, "");
+
+    } elsif ($opt eq "=9=") { # A199949 ff.
+        ($opt, $a, $b, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -6);
+        my $cn = - $c;
+        # For many choices of a,b,c, there are exactly two numbers x>0 satisfying a*x^2 + b*cos(x) = c*sin(x).
+        $A = ("$a*x^2"
+           . ($b  == 0 ? "" : (($b  > 0 ? "+" : "") .  "$b*cos(x)"))
+           . ($cn == 0 ? "" : (($cn > 0 ? "+" : "") . "$cn*sin(x)")));
+        $A =~s{(\D|\A)1\*}{$1}g;
+        &outstd($ans[0], "decsolv" . ($b < 0 ? "n" : ""),  $A, "");
+        &outstd($ans[1], "decsolv",  $A, "");
+
+    } elsif ($opt eq "=a=") { # A201564 ff.
+        ($opt, $a, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -5);
+        # For many choices of a and c, there are exactly two values of x satisfying a*x^2 + c = csc(x) and 0 < x < Pi.
+        $A = ("$a*x^2"
+           . ($c  == 0 ? "" :  ($c  > 0 ? "+" : "") . $c) . "-csc(x)");
+        $A =~s{(\D|\A)1\*}{$1}g;
+        &outstd($ans[0], "decsolv",  $A, "");
+        &outstd($ans[1], "decsolv",  $A, "");
+
+    } elsif ($opt eq "=b=") { # A202320 ff.
+        ($opt, $a, $b, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -5);
+        # For many choices of a and b, there is just one x < 0 and one x > 0 satisfying a*x + b = exp(x).
+        $A = ("$a*x"
+           . (($b eq 0) ? "" :  (($b !~ m{\A\-}) ? "+" : "") . $b) . "-exp(x)");
+        $A =~s{(\D|\A)1\*}{$1}g;
+        &outstd($ans[0], "decsolvn", $A, "");
+        &outstd($ans[1], "decsolv",  $A, "");
+
+    } elsif ($opt eq "=c=") { # A199597 ff.
+        ($opt, $a, $b, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -6);
+        my $cn = - $c;
+        # For many choices of a,b,c, there is exactly one x>0 satisfying a*x^2+b*x*sin(x)=c*cos(x).
+        $A = ("$a*x^2"
+           . ($b  == 0 ? "" : (($b  > 0 ? "+" : "") . "$b*x*cos(x)"))
+           . ($cn == 0 ? "" : (($cn > 0 ? "+" : "") . "$cn*sin(x)")));
+        $A =~s{(\D|\A)1\*}{$1}g;
+        if ( defined($ans[1])) {
+            &outstd($ans[0], "decsolvn", $A, "");
+            &outstd($ans[1], "decsolv",  $A, "");
+        } else {
+            &outstd($ans[0], "decsolv",  $A, "");
+        }
+
     }
 } # while <DATA>
 print STDERR "COMMIT;\n";
@@ -131,6 +188,249 @@ sub outerr {
      . " WHERE s1.aseqno = \'$aseqn1\';\n";
 } # outerr
 __DATA__
+#--------------------------------
+A199597
+For many choices of a,b,c, there is exactly one x>0 satisfying a*x^2+b*x*sin(x)=c*cos(x).
+    a....b..c.... x
+=c=	1	 1	2	A199597
+#	had c=1
+=c=	1	 1	3	A199598
+#	had c=2
+=c=	1	 1	4	A199599
+# 	had c=3
+=c=	1	 2	1	A199600
+=c=	1	 2	3	A199601
+=c=	1	 2	4	A199602
+=c=	1	 3	0	A199603	A199604
+=c=	1	 3	1	A199605	A199606
+=c=	1	 3	2	A199607	A199608
+=c=	1	 3	3	A199609	A199610
+=c=	1	 4	0	A199611	A199612
+=c=	1	 4	1	A199613	A199614
+=c=	1	 4	2	A199615	A199616
+=c=	1	 4	3	A199617	A199618
+=c=	1	 4	4	A199619	A199620
+=c=	2	 1	0	A199621
+=c=	2	 1	2	A199622
+=c=	2	 1	3	A199623
+=c=	2	 1	4	A199624
+=c=	2	 2	1	A199625
+=c=	2	 2	3	A199661
+=c=	3	 1	0	A199662
+=c=	3	 1	2	A199663
+=c=	3	 1	3	A199664
+=c=	3	 1	4	A199665
+=c=	3	 2	0	A199666
+=c=	3	 2	1	A199667
+=c=	3	 2	3	A199668
+=c=	3	 2	4	A199669
+=c=	1	-1	0	A003957
+=c=	1	-1	1	A199722
+=c=	1	-1	2	A199721
+=c=	1	-1	3	A199720
+=c=	1	-1	4	A199719
+=c=	1	-2	1	A199726
+=c=	1	-2	2	A199725
+=c=	1	-2	3	A199724
+=c=	1	-2	4	A199723
+=c=	1	-3	1	A199730
+=c=	1	-3	2	A199729
+=c=	1	-3	3	A199728
+=c=	1	-3	4	A199727
+=c=	1	-4	1	A199737	A199738
+# was A199838
+=c=	1	-4	2	A199735	A199736
+=c=	1	-4	3	A199733	A199734
+=c=	1	-4	4	A199731	A199732
+=c=	2	-1	1	A199742
+=c=	2	-1	2	A199741
+=c=	2	-1	3	A199740
+=c=	2	-1	4	A199739
+=c=	2	-2	1	A199776
+=c=	2	-2	3	A199775
+=c=	2	-3	1	A199780
+=c=	2	-3	2	A199779
+=c=	2	-3	3	A199778
+=c=	2	-3	4	A199777
+=c=	2	-4	1	A199782
+=c=	2	-4	3	A199781
+=c=	3	-4	1	A199786
+=c=	3	-4	2	A199785
+=c=	3	-4	3	A199784
+=c=	3	-4	4	A199783
+=c=	3	-3	1	A199789
+=c=	3	-3	2	A199788
+=c=	3	-3	4	A199787
+=c=	3	-2	1	A199793
+=c=	3	-2	2	A199792
+=c=	3	-2	3	A199791
+=c=	3	-2	4	A199790
+=c=	3	-1	1	A199797
+=c=	3	-1	2	A199796
+=c=	3	-1	3	A199795
+=c=	3	-1	4	A199794
+=c=	4	-4	1	A199873
+=c=	4	-4	3	A199872
+=c=	4	-3	1	A199871
+=c=	4	-3	2	A199870
+=c=	4	-3	3	A199869
+=c=	4	-3	4	A199868
+=c=	4	-2	1	A199867
+=c=	4	-2	3	A199866
+=c=	4	-1	1	A199865
+=c=	4	-1	2	A199864
+=c=	4	-1	3	A199863
+=c=	4	-1	4	A199862
+#--------------------------------
+A202320
+For many choices of u and v, there is just one x < 0 and one x > 0 satisfying u*x + v = exp(x).
+    u...v.. least x.greatest x
+=b=	1	2	A202320	A202321
+=b=	1	3	A202324	A202325
+=b=	2	1	nnnn	A202343
+=b=	3	1	nnnn	A202344
+=b=	2	2	A202345	A202346
+=b=	1	exp(1)	A202347	A104689
+=b=	exp(1)	1	nnnn	A202350
+=b=	3	0	A202351	A202352
+#--------------------------------
+A201564
+For many choices of a and c, there are exactly two values of x satisfying a*x^2 + c = csc(x) and 0 < x < Pi.
+    a... c .... x
+=a=	1..	 1..	A196825	A201563		was A196725
+=a=	1..	 2..	A201564	A201565
+=a=	1..	 3..	A201566	A201567
+=a=	1..	 4..	A201568	A201569
+=a=	1..	 5..	A201570	A201571
+=a=	1..	 6..	A201572	A201573
+=a=	1..	 7..	A201574	A201575
+=a=	1..	 8..	A201576	A201577
+=a=	1..	 9..	A201579	A201580
+=a=	1..	 10.	A201578	A201581
+=a=	1..	 0..	A196617	A201582
+=a=	2..	 0..	A201583	A201584
+=a=	3..	 0..	A201585	A201586
+=a=	4..	 0..	A201587	A201588
+=a=	5..	 0..	A201589	A201590
+=a=	6..	 0..	A201591	A201653
+=a=	7..	 0..	A201654	A201655
+=a=	8..	 0..	A201656	A201657
+=a=	9..	 0..	A201658	A201659
+=a=	10.	 0..	A201660	A201662
+=a=	1..	-1..	A201661	A201663
+=a=	2..	-1..	A201664	A201665
+=a=	3..	-1..	A201666	A201667
+=a=	4..	-1..	A201668	A201669
+=a=	5..	-1..	A201670	A201671
+=a=	6..	-1..	A201672	A201673
+=a=	7..	-1..	A201674	A201675
+=a=	8..	-1..	A201676	A201677
+=a=	9..	-1..	A201678	A201679
+=a=	10.	-1..	A201680	A201681
+=a=	1..	-2..	A201682	A201683
+=a=	1..	-3..	A201735	A201736
+=a=	1..	-4..	A201737	A201738
+#--------------------------------
+A199949
+For many choices of a,b,c, there are exactly two numbers x>0 satisfying a*x^2+b*cos(x)=c*sin(x).
+    a..  b..  c.least x, greatest x
+=9=	1	 1	. 2	A199949	A199950
+=9=	1	 1	. 3	A199951	A199952
+=9=	1	 1	. 4	A199953	A199954
+=9=	1	 2	. 3	A199955	A199956
+=9=	1	 2	. 4	A199957	A199958
+=9=	1	 3	. 3	A199959	A199960
+=9=	1	 3	. 4	A199961	A199962
+=9=	1	 4	. 3	A199963	A199964
+=9=	1	 4	. 4	A199965	A199966
+=9=	2	 1	. 3	A199967	A200003
+=9=	2	 1	. 4	A200004	A200005
+=9=	3	 1	. 4	A200006	A200007
+=9=	4	 1	. 4	A200008	A200009
+=9=	1	-1	. 1	A200010	A200011
+=9=	1	-1	. 2	A200012	A200013
+=9=	1	-1	. 3	A200014	A200015
+=9=	1	-1	. 4	A200016	A200017
+=9=	1	-2	. 1	A200018	A200019
+=9=	1	-2	. 2	A200020	A200021
+=9=	1	-2	. 3	A200022	A200023
+=9=	1	-2	. 4	A200024	A200025
+=9=	1	-3	. 1	A200026	A200027
+=9=	1	-3	. 2	A200093	A200094
+=9=	1	-3	. 3	A200095	A200096
+=9=	1	-3	. 4	A200097	A200098
+=9=	1	-4	. 1	A200099	A200100
+=9=	1	-4	. 2	A200101	A200102
+=9=	1	-4	. 3	A200103	A200104
+=9=	1	-4	. 4	A200105	A200106
+=9=	2	-1	. 1	A200107	A200108
+=9=	2	-1	. 2	A200109	A200110
+=9=	2	-1	. 3	A200111	A200112
+=9=	2	-1	. 4	A200114	A200115
+=9=	2	-2	. 1	A200116	A200117
+=9=	2	-2	. 3	A200118	A200119
+=9=	2	-3	. 1	A200120	A200121
+=9=	2	-3	. 2	A200122	A200123
+=9=	2	-3	. 3	A200124	A200125
+=9=	2	-3	. 4	A200126	A200127
+=9=	2	-4	. 1	A200128	A200129
+=9=	2	-4	. 3	A200130	A200131
+=9=	3	-1	. 1	A200132	A200133
+=9=	3	-1	. 2	A200223	A200224
+=9=	3	-1	. 3	A200225	A200226
+=9=	3	-1	. 4	A200227	A200228
+=9=	3	-2	. 1	A200229	A200230
+=9=	3	-2	. 2	A200231	A200232
+=9=	3	-2	. 3	A200233	A200234
+=9=	3	-2	. 4	A200235	A200236
+=9=	3	-3	. 1	A200237	A200238
+=9=	3	-3	. 2	A200239	A200240
+=9=	3	-3	. 4	A200241	A200242
+=9=	3	-4	. 1	A200277	A200278
+=9=	3	-4	. 2	A200279	A200280
+=9=	3	-4	. 3	A200281	A200282
+=9=	3	-4	. 4	A200283	A200284
+=9=	4	-1	. 1	A200285	A200286
+=9=	4	-1	. 2	A200287	A200288
+=9=	4	-1	. 3	A200289	A200290
+=9=	4	-1	. 4	A200291	A200292
+=9=	4	-2	. 1	A200293	A200294
+=9=	4	-2	. 3	A200295	A200296
+=9=	4	-3	. 1	A200299	A200300
+=9=	4	-3	. 2	A200297	A200298
+=9=	4	-3	. 3	A200301	A200302
+=9=	4	-3	. 4	A200303	A200304
+=9=	4	-4	. 1	A200305	A200306
+=9=	4	-4	. 3	A200307	A200308
+#--------------------------------
+A199170
+For many choices of a,b,c, there are exactly two numbers x satisfying a*x^2 + b*x*cos(x) = c.
+    a.. b.. c.... x
+=8=	1	1	1	A199170	A199171
+=8=	1	1	2	A199172	A199173
+=8=	1	1	3	A199174	A199175
+=8=	1	2	1	A199176	A199177
+=8=	1	2	2	A199178	A199179
+=8=	1	2	3	A199180	A199181
+=8=	1	3	1	A199182	A199183
+=8=	1	3	2	A199184	A199185
+=8=	1	3	3	A199186	A199187
+=8=	2	1	1	A199188	A199189
+=8=	2	1	2	A199265	A199266
+=8=	2	1	3	A199267	A199268
+=8=	2	2	1	A199269	A199270
+=8=	2	2	3	A199271	A199272
+=8=	2	3	1	A199273	A199274
+=8=	2	3	2	A199275	A199276
+=8=	2	3	3	A199277	A199278
+=8=	3	1	1	A199279	A199280
+=8=	3	1	2	A199281	A199282
+=8=	3	1	3	A199283	A199284
+=8=	3	2	1	A199285	A199286
+=8=	3	2	2	A199287	A199288
+=8=	3	2	3	A199289	A199290
+=8=	3	3	1	A199291	A199292
+=8=	3	3	2	A199293	A199294
 #--------------------------------
 A201280
 For many choices of a and c, there is exactly one x satisfying a*x^2 + c = cot(x) and 0 < x < Pi.

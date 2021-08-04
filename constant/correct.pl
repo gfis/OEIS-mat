@@ -5,7 +5,10 @@
 # 2021-08-01, Georg Fischer
 #
 #:# Usage:
-#:#   perl correct.pl [-d debug] $(FISCHER)/$(CC).fail.log >> $(CC).corr.tmp
+#:#   perl correct.pl [-d debug] -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
+#:#       -f output of Maple test
+#:#       -l logfile of BatchTest
+#:#       -o output with hints and clipboard texts
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -18,23 +21,31 @@ if (0 && scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }
-my $debug = 0;
-my $solve_file = "solvetab4.txt";
-my $data_file  = "../common/asdata.txt";
-my $browser = "\"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\"";
+my $debug      = 0;
+my $cas_file   = "solvetab4.txt"; # results from Maple fsolve
+my $out_file   = "solvetab.corr.tmp"; # hints and clipboard textscomma-separated DATA section
+my $data_file  = "../common/asdata.txt"; # comma-separated DATA section
+my $log_file   = "../../joeis-lite/internal/fischer/solvetab.fail.log";
+my $browser    = "\"C:/Program Files (x86)/Google/Chrome/Application/chrome.exe\"";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt   =~ m{d}) {
         $debug      = shift(@ARGV);
+    } elsif ($opt   =~ m{l}) {
+        $log_file   = shift(@ARGV);
+    } elsif ($opt   =~ m{o}) {
+        $out_file   = shift(@ARGV);
     } elsif ($opt   =~ m{f}) {
-        $solve_file = shift(@ARGV);
+        $cas_file   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
 
-while (<>) {
+open(LOG, "<", $log_file) || die "cannot read logfile \"$log_file\"\n";
+open(OUT, ">", $out_file) || die "cannot write outfile \"$out_file\"\n";
+while (<LOG>) {
     my $line = $_;
     next if $line !~ m{\AA\d+};
     $line =~ s/\s+\Z//; # chompr
@@ -45,38 +56,58 @@ while (<>) {
     $computed =~ s{\,}{}g;
     $offset -= length($computed); # BatchTest current is off by 8 if the error is not near the end
     next if $status ne "FAIL";
-    my $solve_line = `grep -E \"$aseqno\" $solve_file`;
-    my ($a, $c, $of, $fsolve, @srest) = split(/\t/, $solve_line);
-    $fsolve =~ s{e[\+\-]\d+}{}; # remove exponent
-    $fsolve =~ s{[\-\.]}{}g; # remove dot and minus
-    $fsolve = substr($fsolve, 0, $offset + 20);
+    my $cas_line = `grep -E \"$aseqno\" $cas_file`;
+    my ($a, $c, $of, $result, @srest) = split(/\t/, $cas_line);
+    $result =~ s{e[\+\-]\d+}{}; # remove exponent
+    $result =~ s{[\-\.]}{}g; # remove dot and minus
+    $result = substr($result, 0, $offset + 20);
 
     my $data_line = `grep -E \"$aseqno\" $data_file`;
     my ($b, $termno, $termlist, @drest) = split(/\t/, $data_line);
     $termlist =~ s{[\,\n]}{}g;
-    my $flen = length($fsolve);
+    my $flen = length($result);
     if ($termno > $flen) {
         print "# ?? fsolve has too few terms\n";
     } else { # truncate
         my $ind = $termno;
-        while ($ind < $flen && substr($fsolve, $ind, 1) gt "4") {
+        while ($ind < $flen && substr($result, $ind, 1) gt "4") {
             $ind ++;
         } # while ind
         # now le "4"
         $flen = $ind; 
     } # truncate
 
+    $result = substr($result, 0, $flen);
     my $findent = " " x ($offset);
-    print "#" . ("-" x 100) . "\n";
-    print "# $aseqno $findent$expected\n";
-    print "# $aseqno $termlist\n";
-    print "# $aseqno $findent$computed\n";
-    print "# $aseqno $fsolve\n";
-    $fsolve = substr($fsolve, 0, $flen);
-    $fsolve =~ s{(.)}{\, $1}g;
-    print substr($fsolve, 2) . "\n";
-    print "a(" . ($offset + $of) . ") onwards corrected by\n";
+    my $hints = "#" . ("-" x 100) . "\n"
+        . "# $aseqno $findent$expected\n"
+        . "# $aseqno $termlist\n"
+        . "# $aseqno $findent$computed\n"
+        . "# $aseqno $result\n"
+        ;
+    my $cmd = "$browser \"https://oeis.org/edit?seq=$aseqno\"";
+    print "$cmd\n";
+    print `$cmd`;
+    print OUT $hints;
+    print     $hints;
+    $result =~ s{(.)}{\, $1}g;
+    $result = substr($result, 2);
+    &clip_wait($result);
+    &clip_wait("a(" . ($offset + $of) . ") onwards corrected by");
 } # while
+close(LOG);
+close(OUT);
+#----
+sub clip_wait { # copy some text to the clipboard and wait for keyboard input
+   my ($text) = @_;
+    my $clip_file = "correct.clip.tmp";
+    open(CLIP, ">", $clip_file) || die "cannot write to \"$clip_file\"\n";
+    print CLIP "$text";
+    close(CLIP);
+    `cat $clip_file | clip`;
+    print "clipboard := " . (length($text) <= 16 ? $text : substr($text, 0, 16) . " ...") . "\npress return: ";
+    $text = <>; # wait for return key
+} # clip_wait
 #----
 __DATA__
 restart at 14:04:27 @0x0 in strip.tmp
