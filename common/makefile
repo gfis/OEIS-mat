@@ -585,3 +585,35 @@ magma:
 	grep -iE "\(MAGMA\)" cat25.txt \
 	| perl -ne 'if (m{(\_[^\_]+\_)}) { print "$$1\n"; }' \
 	| sort | uniq -c | tee $@.tmp
+#--------
+nydone: # populate the table from joeis/notdone.dat
+	$(DBAT) -f nydone.create.sql
+	sed -e "s/ /\t/" $(JOEIS)/notdone.dat \
+	| $(DBAT) -m csv -s "\t" -r nydone
+	$(DBAT) -4   nydone
+	$(DBAT) -n   nydone
+	
+#----
+nydone_sdb: # determine which are in sequencedb and in nydone
+	$(DBAT) "SELECT n.aseqno, s.si, s.mt, s.ix, n.info \
+	  FROM nydone n, seqdb s \
+	  WHERE n.aseqno = s.aseqno \
+	  ORDER BY 1" \
+	| tee $@.tmp
+#--------
+ageorg: # which were authored by Georg Fischer
+	# %A A307048 _Georg Fischer_, Mar 21 2019
+	#          1         2         3         4
+	# 1234567890123456789012345678901234567890
+	grep -E "^\%A" cat25.txt | grep "Georg Fischer" \
+	| cut -b4-11,29-39 \
+	| sed -e "s/ /\t/" \
+	| tee $@.tmp
+	$(DBAT) -f seq2.create.sql
+	$(DBAT) -m csv -r seq2 < $@.tmp
+	$(DBAT) "SELECT s.aseqno, s.info, n.name \
+	  FROM seq2 s, asname n \
+	  WHERE s.aseqno = n.aseqno \
+	  ORDER BY 1" \
+	| tee $@.tmp
+	

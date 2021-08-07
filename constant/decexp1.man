@@ -1333,3 +1333,19 @@
 #*# A188636	post	0	~~(1/2)*1+sqrt(2)+sqrt(7+2*sqrt(2)))
 #*# A188638	post	0	~~(1+sqrt(3)+sqrt(2*(10+sqrt(3))))/4
 #*# A188639	post	0	~~(1+sqrt(3)+sqrt(2*(4+sqrt(3))))/2
+
+# 2021-07-31
+# A254794	nok=-1	0	??	L^2/Pi where L is the lemniscate constant A062539.
+# A324031	nok=-1	0	??	the conversion factor from the old SI unit A (ampere) to the combination of 2019 SI units e*Δν_{Cs}.
+# A324032	nok=-1	0	??	the conversion factor from the old SI K (kelvin) to the combination of 2019 SI units h*Δν_{Cs}/k.
+# A324033	nok=-1	0	??	the conversion factor from the old derived SI unit lm (lumen) to the combination of 2019 SI units K_{cd}*h*(Δν_{Cs})^2.
+
+# 2021-08-01
+A185093	decexp	0	~~29*sqrt(5)/3+20
+A165267	decexp	0	~~((Pi/e^2)*(70*exp(Pi*sqrt(163)))^4)
+A165268	decexp	0	~~(1/e)*((70*exp(Pi*sqrt(163)))^2/2)^(3/2)
+A113786	decexp	0	~~(1/24)*(2*(3*(90+sqrt(1509)))^(1/3)+2*(3*(90-sqrt(1509)))^(1/3)-9)
+A092290	decexp	0	~~(7+sqrt(77))/2
+
+# 2021-08-05
+A105372	decexp	0	~~4*sqrt(Pi)/Gamma(1/4)^2

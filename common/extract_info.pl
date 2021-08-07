@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2021-08-07: F -> program field
 # 2021-05-02: monotone increasing
 # 2020-02-22: -as:program
 # 2019-04-12: termno in asdata and in bfdata
@@ -211,12 +212,14 @@ sub extract_from_json { # read JSON of 1  sequence
             }
         } elsif ($line =~   m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
             $keyword = $1;
+        } elsif ($line =~   m{\A\s*\"formula\"}) {
+            $program .= "F";
         } elsif ($line =~   m{\A\s*\"maple\"}) {
-            $program .= "m";
+            $program .= "p";
         } elsif ($line =~   m{\A\s*\"mathematica\"}) {
             $program .= "t";
         } elsif ($line =~   m{\A\s*\"program\"}) {
-            $program .= "p";
+            $program .= "o";
         } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             ($offset1, $offset2) = split(/\,/, $value);

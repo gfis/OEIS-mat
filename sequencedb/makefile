@@ -18,27 +18,30 @@ else
     CPS=:
 endif
 JAVA=java $(JOPT) -cp "$(LITE)/dist/joeis-lite.jar$(CPS)$(JOEIS)/build.tmp/joeis.jar"
+JSON=compiled_entities_correct.json 
 #----------------
 all:
 	# Possible targets:
 	grep -E "^[a-z]" makefile | sort
 #----------------------------------
 # preliminary: bring any A-number on 1 line
+unzip:
+	unzip $(JSON)
 flatten:
-	perl sdb_flat.pl compiled_entities.json \
+	perl sdb_flat.pl $(JSON) \
 	>        $@.json
 	head -n4 $@.json
 	wc -l    $@.json
 #----------------------------------
 # parse into seq4 format
 seqdb: # -s takes subset (nyi in jOEIS)
-	perl seqdb_parse.pl compiled_entities.json \
+	perl seqdb_parse.pl $(JSON) \
 	| sort -k1,1 -k2,2 \
 	>        $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
 seqdb_test:
-	perl seqdb_parse.pl -s compiled_entities.json \
+	perl seqdb_parse.pl -s $(JSON) \
 	| less
 seqdb_load:
 	$(DBAT) -f seqdb.create.sql

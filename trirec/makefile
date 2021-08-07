@@ -38,6 +38,31 @@ seq: # parameter: $(LIST)
 	cut -b1-7 $(LIST) | grep -E "^A" | $(DBAT) -m csv -r seq
 	$(DBAT) -n seq
 #====================================
+tasin: # "array T as in A-number"
+	cat $(COMMON)/joeis_names.txt \
+	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
+	'if ($$name =~ m{[A-Z](\([^\)]*\))? (as in|given by) *(A\d+)}) { my $$rseqno = $$3;'\
+	' print join("\t", $$aseqno, "$@", 0, $$rseqno, $$superclass, $$name) . "\n"; }'\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+cdrof: # (column|diagonal|row) of"
+	cat $(COMMON)/joeis_names.txt \
+	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
+	'if ($$name =~ m{(column|diagonal|row) of *(A\d+)}) { my $$rseqno = $$2;'\
+	' print join("\t", $$aseqno, "$@", 0, $$rseqno, $$superclass, $$name) . "\n"; }'\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+tablof: # "Table T(n,k) by antidiagonals of ..."
+	cat $(COMMON)/joeis_names.txt \
+	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
+	'if ($$name =~ m{\ATable T\(n\, *k\) by antidiagonals of (.*)}) { my $$expr = $$1;'\
+	' print join("\t", $$aseqno, "$@", 0, $$expr, $$superclass, $$name) . "\n"; }'\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#====================================
 # Deléham's DELTA operator
 #
 dhd: dhd1 dhd2 dhd_joeis dhd_cf dhd_gf

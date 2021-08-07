@@ -1,0 +1,15 @@
+A051006	bindec	0	A010051	0		Prime constant: decimal value of
+A072812	bindec	0	A010051	0	
+A092874	bindec	0	A012245	0		Liouville / factorials
+A100924	bindec	0	A100923	0		Digits in the decimal expansion of (leading zero?)
+A102913	bindec	0	A064911	0		semiprimes
+A119809	bindec	0	A003151	0		charfun()
+A121821	bindec	0	A102460	0		Lucas
+A124091	bindec	0	A010056	0		Fibonacci
+# A133358	bindec	0	A011656	0	error @30
+A143735	bindec	0	A143731	0	
+A164293	bindec	0	A164292	0		twin prime constant 
+A217054	bindec	0	A101264	0	
+A228249	bindec	0	A003849	0	
+A308705	bindec	0	A076478	0	
+# A144102	bindec	0	A144101	0	

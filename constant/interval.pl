@@ -2,6 +2,7 @@
 
 # Determine the interval boundaries for the Newton algorithm from the offset and a termlist in $parms[3]
 # @(#) $Id$
+# 2021-08-01: negate for callcode = ...n
 # 2021-07-28, Georg Fischer
 #
 #:# Usage:
@@ -42,13 +43,20 @@ while (<>) {
     $termlist =~ s{\,}{}g;
     $parms[3] = &deconst($offset, -1, $termlist); # sprintf("%4.2f", $target - $dist);
     $parms[4] = &deconst($offset, +1, $termlist); # sprintf("%4.2f", $target + $dist);
+    if ($callcode =~ m{n\Z}) { # ends with "n"
+        my $temp  = -$parms[4]; # negate and exchange 
+        $parms[4] = -$parms[3];
+        $parms[3] =  $temp;
+    }
     $parms[6] = $termlist;
     print join("\t", $aseqno, $callcode, @parms) . "\n";
 } # while
 #----
 sub deconst { # global: $width
     my ($offset, $sign, $termlist) = @_;
-    my $result = ("0." . substr($termlist, 0, $width)) *(10 ** $offset);
+    $termlist =~ m{\A(0*)};
+    my $w2 = length($1) + $width; # increase by number of leading zeroes in $termlist
+    my $result = ("0." . substr($termlist, 0, $w2)) *(10 ** $offset);
     my $dist = $result * $sign * 0.02;
     $result = sprintf("%.3f", $result + $dist);
     $result =~ s{ }{}g;
