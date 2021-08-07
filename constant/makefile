@@ -378,6 +378,6 @@ grep_example1:
 	wc -l    $@.tmp
 grep_example2:
 	rm -f $@.tmp
-	head -n8 grep_example1.tmp | xargs -l -innn grep -A1 -HE "\"data|\"example|\"offset" nnn >> $@.tmp
+	head -n88888 grep_example1.tmp | xargs -l -innn grep -A1 -HE "\"data|\"example|\"offset" nnn >> $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
