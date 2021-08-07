@@ -62,7 +62,7 @@ exact3:
 	wc -l    $@*.tmp
 #================
 cons:
-	$(DBAT) -x "SELECT i.aseqno, i.offset1, SUBSTR(d.data, 1, 31), j.superclass, n.name \
+	$(DBAT) -x "SELECT i.aseqno, i.offset1, SUBSTR(d.data, 1, 31), COALESCE(j.superclass, 'null'), n.name \
 	  FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
 	  WHERE i.aseqno = d.aseqno \
 	    AND d.aseqno = n.aseqno \
@@ -336,7 +336,7 @@ decsolv3:
 	make interval   LIST=$@.tmp
 decsolv4: # Check with Maple's fsolve
 	perl -e 'print join("\t", qw(aseqno cc ofs Maple OEIS low high formula)), "\n";' > $@.txt
-	perl -pe 's{agm\(}{GaussAGM\(}g; s{(\W|\A)e(\W|\Z)}{$$1exp\(1\)$$2}g;' \
+	perl -pe 's{agm\(}{GaussAGM\(}g; s{(\W|\A)e(\W|\Z)}{$$1exp\(1\)$$2}g; s{Gamma\(}{GAMMA\(}ig;' \
 	  decsolv3.tmp      > $@.tmp
 	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
 	| grep -E "^A[0-9]" \
@@ -378,7 +378,10 @@ solvetab4: # check with Maple's fsolve
 	| grep -E "^A[0-9]" \
 	>>       $@.txt
 	wc -l    $@.txt
-	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+	gawk -e '{ print $$1 "\t" $$2 "\t" $$3 "\t" substr($$4, 0, 20) "\t" $$5 "\t" $$6 "\t" $$7 "\t" $$8 }' $@.txt \
+	>        $@.1.tmp 
+	perl $(COMMON)/html_checks.pl -m makefile $@.1.tmp > $@.html
+	grep -E fsolve $@.txt || :
 #----
 solvepari: # intervals from GP/PARI solve() 
 	grep -E "^\%o" $(COMMON)/jcat25.txt | grep -E " solve\(" \
@@ -452,6 +455,12 @@ exacheck: # check the exalist, and generate HTML worksheet
 #-----
 alcover:
 	grep -E "^\%t" $(COMMON)/jcat25.txt | grep -E "RealDigits" | grep Alcover \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#-----
+solvpari:
+	grep -E "^\%o" $(COMMON)/jcat25.txt | grep -E "solve\(" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

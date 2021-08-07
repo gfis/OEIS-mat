@@ -77,6 +77,8 @@ while (<>) {
         }
         
         if ($nok >= 0) {
+            $expr =~ s{(sin|cos|tan|cot|sec|csc) +([\dx\*]*)}{$1\($2\)}g; # sin 5x -> sin(5x)
+            $expr =~ s{(\d+)x}{$1\*x}g; # 5x -> 5*x
             $expr =~ s{ }{}g; # all spaces
             $expr =~ s{\.\Z}{}; # trailing dot
             $expr =~ s{\=0\Z}{}; # trailing "=0"

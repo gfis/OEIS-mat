@@ -306,7 +306,9 @@ holom:
 #----------------
 hyper: hyper1 hyper2
 hyper1:
-	perl extract_hypergeom.pl $(COMMON)/cat25.txt \
+	# grep -E "^\%[SOFNopt]" 
+	cat $(COMMON)/jcat25.txt \
+	| perl extract_hypergeom.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

@@ -15,7 +15,7 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1
 $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
 my $debug = 0;
-if (scalar(@ARGV) == 0) {
+if (0 && scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }

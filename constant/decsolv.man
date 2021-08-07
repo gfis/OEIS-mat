@@ -85,4 +85,5 @@ A343851	decsolv	0	~~152x^3+12x^2-14x+1
 # 2021-08-04
 A102268	decsolv	0	~~x*log(x)+(1-x)*log(1-x)+log(2)/2
 A121967	decsolv	0	~~cos(x)-x-2
-
+A195596	decsolv	0	~~x*log((2*e)/x)-1
+# A195599	Decimal expansion of beta = 3/(2*log(alpha/2)), where alpha = A195596.
