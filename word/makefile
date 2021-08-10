@@ -1,9 +1,8 @@
 #!make
 
-# OEIS-mat/constant: DecimalExpansion, Beatty, ContinuedFraction etc. of real constants
+# OEIS-mat/word: sequences with keyword "word"
 # @(#) $Id$
-# 2021-07-13: moved from ./real
-# 2021-07-01, Georg Fischer: copied from ../weidis
+# 2021-08-08, Georg Fischer: copied from ../cosntant; FF=114
 #---------------------------------
 GITS=../..
 COMMON=../common
@@ -12,7 +11,7 @@ RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
 JPREP=$(RAMATH) org.teherba.ramath.sequence.JoeisPreparer
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
-HERE=../../../OEIS-mat/constant
+HERE=../../../OEIS-mat/word
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 NT=32
@@ -27,6 +26,41 @@ overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC
 	grep -vf $@.sa.tmp $(TAR) > $@.tn.tmp || :
 	sort $@.tn.tmp $(SRC) > $(TAR)
 	wc -l $(TAR)
+#================
+word: # all with keyword "word"
+	$(DBAT) -x "SELECT i.aseqno, COALESCE(j.superclass, 'null'), i.offset1, n.name \
+	  FROM asinfo i, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
+	  WHERE i.aseqno = n.aseqno \
+	    AND i.keyword LIKE '%word%' \
+	  ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--
+njword: # keyword "word" and not in jOEIS
+	grep -P '\tnull\t' word.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f1-4 $@.tmp > $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+#--
+aronson: # Aronson word sequences
+	grep -P 'Aronson' word.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f1-4 $@.tmp > $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+#--------
+A247750: # n has digits with increasing names in some language
+	grep -E "^.C A247[78]" $(COMMON)/jcat25.txt \
+	| perl -ne 'my $$line = $$_; $$line =~ m{\A.C (A\d+)}; my $$aseqno = $$1; '\
+	' if (($$line =~ m{ _ }) and $$aseqno ge "A247750" and $$aseqno le "A247814") { '\
+	' my @digs = map { s{ _ }{}; $$_ } ($$line =~ m{(\d _ )}g); '\
+	' print join("\t", $$aseqno, "parm3", 0, "A247750", ($$aseqno lt "A247800" ? "0" : "1"), "\"" . join("", @digs)) . "\"\n"; } '\
+	| tee    $@.gen
+	wc -l    $@.gen
 #===============================================
 check:
 	$(DBAT) "SELECT COUNT(*) FROM asinfo WHERE keyword LIKE '%cons%'"
@@ -231,9 +265,8 @@ philo_tab4: # convert -> postfix
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
 #========
-HTML=-h
 correct: # CC= ; generate term list for manual correction
-	perl correct.pl $(HTML) -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
+	perl correct.pl -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
 	wc -l    $(CC).corr.tmp
 #-------
 post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
@@ -341,7 +374,7 @@ decsolv4: # Check with Maple's fsolve
 	  decsolv3.tmp      > $@.tmp
 	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
 	| grep -E "^A[0-9]" \
-	>>       $@.txt || :
+	>>       $@.txt
 	wc -l    $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 #--------
@@ -377,7 +410,7 @@ solvetab4: # check with Maple's fsolve
 	  solvetab3.tmp  > $@.tmp
 	perl $(COMMON)/callmaple.pl -t 8 -n 64 -p fsolve.mpat $@.tmp \
 	| grep -E "^A[0-9]" \
-	>>       $@.txt || :
+	>>       $@.txt
 	wc -l    $@.txt
 	gawk -e '{ print $$1 "\t" $$2 "\t" $$3 "\t" substr($$4, 0, 20) "\t" $$5 "\t" $$6 "\t" $$7 "\t" $$8 }' $@.txt \
 	>        $@.1.tmp 

@@ -2,7 +2,7 @@
 # 2021-07-18, Georg Fischer
 interface(prettyprint=0,errorbreak=0):
 decsolv := proc(aseqno, callcode, offset, a, lo, hi, mantissa); local q;
-  Digits:=110:
+  Digits:=200:
   printf("%a\t%a\t%a\t%a\t%a\t%a\t%a\t%a\n", aseqno, callcode, offset, fsolve(a,x=lo..hi), mantissa, lo, hi, a);
 end;
 

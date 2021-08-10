@@ -616,4 +616,13 @@ ageorg: # which were authored by Georg Fischer
 	  WHERE s.aseqno = n.aseqno \
 	  ORDER BY 1" \
 	| tee $@.tmp
+#----
+noprog:
+	$(DBAT) "SELECT i.aseqno, substr(n.name, 1,100), i.keyword \
+	  FROM asinfo i, asname n \
+	  WHERE i.aseqno = n.aseqno \
+	    AND i.program = '' \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	| tee $@.tmp
 	

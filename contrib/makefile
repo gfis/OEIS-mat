@@ -14,7 +14,7 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 SHIFT=+1
 WIDTH=64
-SLEEP=8
+SLEEP=4
 HEAD=16
 OFFSET=0
 #----------------
@@ -26,8 +26,8 @@ refresh:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -l -innn make refresh1 S=nnn
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
-	make SLEEP=2 wgeto
-	make SLEEP=1 distrio
+	make wgeto
+	make distrio
 #--
 wgeto: # S=012345, read into ./oeis.org/
 	#--------------------------------
