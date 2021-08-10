@@ -243,7 +243,7 @@ while (<DATA>) {
         &outstd($ans[0], "decsolv",  $A, "");
 
     } elsif ($opt eq "=j=") { # A197739
-        ($opt, $a, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -5);
+        ($opt, $b, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -10);
         my $cn = - $c;
         # For many choices of u and v, there is exactly one x>0 satisfying x*cosh(u*x) = v.
         $A =  "x*cosh($a*x) - $c";
