@@ -2,7 +2,8 @@
 
 # OEIS-mat/word: sequences with keyword "word"
 # @(#) $Id$
-# 2021-08-08, Georg Fischer: copied from ../cosntant; FF=114
+# 2021-08-09: VF=40
+# 2021-08-08, Georg Fischer: copied from ../constant; FF=114
 #---------------------------------
 GITS=../..
 COMMON=../common
