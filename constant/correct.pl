@@ -5,10 +5,12 @@
 # 2021-08-01, Georg Fischer
 #
 #:# Usage:
-#:#   perl correct.pl [-d debug] -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
+#:#   perl correct.pl [-d debug] [-e] [-h] -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
 #:#       -f output of Maple test
 #:#       -l logfile of BatchTest
 #:#       -o output with hints and clipboard texts
+#:#       -e with extension line (default: false)
+#:#       -h open edit window in browser (default: false)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -27,11 +29,17 @@ my $out_file   = "solvetab.corr.tmp"; # hints and clipboard textscomma-separated
 my $data_file  = "../common/asdata.txt"; # comma-separated DATA section
 my $log_file   = "../../joeis-lite/internal/fischer/solvetab.fail.log";
 my $browser    = "\"C:/Program Files (x86)/Google/Chrome/Application/chrome.exe\"";
+my $extension  = 0;
+my $html       = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt   =~ m{d}) {
         $debug      = shift(@ARGV);
+    } elsif ($opt   =~ m{e}) {
+        $extension  = 1;
+    } elsif ($opt   =~ m{h}) {
+        $html       = 1;
     } elsif ($opt   =~ m{l}) {
         $log_file   = shift(@ARGV);
     } elsif ($opt   =~ m{o}) {
@@ -86,14 +94,18 @@ while (<LOG>) {
         . "# $aseqno $result\n"
         ;
     my $cmd = "$browser \"https://oeis.org/edit?seq=$aseqno\"";
-    print "$cmd\n";
-    print `$cmd`;
+    if ($html) {
+        print "$cmd\n";
+        print `$cmd`;
+    }
     print OUT $hints;
     print     $hints;
     $result =~ s{(.)}{\, $1}g;
     $result = substr($result, 2);
     &clip_wait($result);
-    &clip_wait("a(" . ($offset + $of) . ") onwards corrected by");
+    if ($extension) {
+        &clip_wait("a(" . ($offset + $of) . ") onwards corrected by");
+    }
 } # while
 close(LOG);
 close(OUT);

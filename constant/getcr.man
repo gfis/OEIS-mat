@@ -1,0 +1,36 @@
+# A196609	DecimalExpansionSequence	Decimal expansion of the least x>0 satisfying 1=x*cos(4*x).	nonn,cons,synth	1..100	decsolv
+# A196610	null	Decimal expansion of the number c for which the curve y = c*cos(x) is tangent to the curve y = 1/x, and 0 < x < 2*Pi.	nonn,cons,changed,synth	1..100	nyi
+# A196611	null	Decimal expansion of the slope (negative) of the tangent line at the point of tangency of the curves y=c*cos(x) and y=1/x, where c is given by A196610.	nonn,cons,synth	1..100	nyi
+# 
+# A196618	null	Decimal expansion of cos(x), where x is the least positive solution of 1 = (x^2)*cos(x).	nonn,cons,	0..10000	nyi
+# A196619	null	Decimal expansion of the number c for which the curve y=cos(x) is tangent to the curve y=(1/x)-c, and 0<x<2*Pi.	nonn,cons,	0..10000	nyi
+# A196620	null	Decimal expansion of the slope (negative) of the tangent line at the point of tangency of the curves y=cos(x) and y=(1/x)-c, where c is given by A196619.	nonn,cons,	0..10000	nyi
+# 
+A196618	getcr1	0	A196617	super.getCR().cos()
+A196619	getcr2	0	A196617	super.getCR()	xt.inverse().subtract(xt.cos())
+A196620	getcr1	0	A196617	super.getCR().sin()
+
+# A196757	DecimalExpansionSequence	Decimal expansion of the least x>0 satisfying 1=6x*sin(x).	nonn,cons,synth	0..99	decsolv
+# A196758	null	Decimal expansion of the number c for which the curve y=1/x is tangent to the curve y=c*sin(x), and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..98	nyi
+# A196759	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/x and y=c*sin(x), where c is given by A196758.	nonn,cons,changed,synth	0..99	nyi
+# 
+# A196764	DecimalExpansionSequence	Decimal expansion of the least x>0 satisfying 6=x*sin(x).	nonn,cons,synth	1..100	decsolv
+# A196765	null	Decimal expansion of the positive number c for which the curve y=c/x is tangent to the curve y=sin(x), and 0 < x < 2*Pi.	nonn,cons,synth	1..105	nyi
+# A196766	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=c/x and y=sin(x), where c is given by A196765.	nonn,cons,changed,synth	0..98	nyi
+# 
+# A196773	DecimalExpansionSequence	Decimal expansion of the least number x>0 satisfying -1=(x^2)*cos(x).	nonn,cons,synth	1..100	decsolv
+# A196774	null	Decimal expansion of the number c for which the curve y=c+1/x is tangent to the curve y=sin(x), and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..98	nyi
+# A196775	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=c+1/x and y=sin(x), where c is given by A196774.	nonn,cons,changed,synth	0..99	nyi
+# 
+# A196822	null	Decimal expansion of the number x satisfying 2*x = (1+x^2)*sin(x) and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..99	nyi
+# A196823	null	Decimal expansion of the number c for which the curve y=1/(1+x^2) is tangent to the curve y=-c+cos(x), and 0<x<2*Pi.	nonn,cons,synth	0..99	nyi
+# A196824	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/(1+x^2) and y=-c+cos(x), where c is given by A196774.	nonn,cons,changed,synth	0..99	nyi
+# 
+# A196831	null	Decimal expansion of the number x satisfying 0 < x < 2*Pi and x^2 + 2*x*tan(x) + 1 = 0.	nonn,cons,changed,synth	1..100	nyi
+# A196832	null	Decimal expansion of the number c for which the curve y=1/(1+x^2) is tangent to the curve y=c*sin(x), and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..99	nyi
+# A196833	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/(1+x^2) and y=c*sin(x), where c is given by A196832.	nonn,cons,changed,synth	0..99	nyi
+# 
+# A196913	null	Decimal expansion of the number x satisfying 0 < x < 2*Pi and 2x = (1 + x^2)*tan(x).	nonn,cons,changed,synth	0..99	nyi
+# A196914	null	Decimal expansion of the number c for which the curve y=1/(1+x^2) is tangent to the curve y=c*cos(x), and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..98	nyi
+# A196915	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/(1+x^2) and y=c*cos(x), where c is given by A196914.	nonn,cons,changed,synth	0..98	nyi
+

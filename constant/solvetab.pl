@@ -242,6 +242,14 @@ while (<DATA>) {
         $A =~s{(\D|\A)1\*}{$1}g;
         &outstd($ans[0], "decsolv",  $A, "");
 
+    } elsif ($opt eq "=j=") { # A197739
+        ($opt, $a, $c, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -5);
+        my $cn = - $c;
+        # For many choices of u and v, there is exactly one x>0 satisfying x*cosh(u*x) = v.
+        $A =  "x*cosh($a*x) - $c";
+        $A =~s{(\D|\A)1\*}{$1}g;
+        &outstd($ans[0], "decsolv",  $A, "");
+
     }
 } # while <DATA>
 print STDERR "COMMIT;\n";
@@ -264,6 +272,14 @@ __DATA__
 #--------------------------------
 #--------------------------------
 #--------------------------------
+A197739
+    b   c
+=j=	1	2	A195700	nnnn	A197589	A197591	A019670	A197592
+=j=	1	3	A197739	A197588	A197590	A197755	A003881	A197488
+=j=	1	4	A197758	A197759	A197760	A197761	nnnn	A003881
+=j=	1	Pi	A197821	A197822	A197823	A197824	A197726	A197826
+=j=	1	2*Pi	A197827	A197828	A197829	A197830	A197700	A197832
+=j=	1	3*Pi	A197833	A197834	A197835	A197836	A197837	A197838
 #--------------------------------
 For many choices of u and v, there is exactly one x>0 satisfying x*cosh(u*x)=v.
 A201939
