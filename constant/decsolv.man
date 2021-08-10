@@ -87,3 +87,26 @@ A102268	decsolv	0	~~x*log(x)+(1-x)*log(1-x)+log(2)/2
 A121967	decsolv	0	~~cos(x)-x-2
 A195596	decsolv	0	~~x*log((2*e)/x)-1
 # A195599	Decimal expansion of beta = 3/(2*log(alpha/2)), where alpha = A195596.
+
+# 2021-08-10
+A230151	decsolv	0	~~x^4+x^3-1
+A230152	decsolv	0	~~x^5+x^4-1
+A230153	decsolv	0	~~x^6+x^5-1
+A230159	decsolv	0	~~x^6-x-1
+A230160	decsolv	0	~~x^7-x-1
+
+# missed "^2" 
+A196822	decsolv	0	~~2*x-(1+x^2)^2*sin(x)
+
+# missed sin("2*"
+A197821	decsolv	0	~~sin(2*x)-Pi*sin(2*Pi*x)
+
+# 2 -> 4
+A197827	decsolv	0	~~sin(2*x)-2*Pi*sin(4*Pi*x)
+
+# 3 -> 6
+A197833	decsolv	0	~~sin(2*x)-3*Pi*sin(6*Pi*x)
+
+A241517	decsolv	0	~~log(x)/x+3*Pi/2
+
+A192918	decsolv	0	~~x^3+x^2+x-1

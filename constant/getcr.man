@@ -25,6 +25,8 @@ A196620	getcr1	0	A196617	super.getCR().sin()
 # A196822	null	Decimal expansion of the number x satisfying 2*x = (1+x^2)*sin(x) and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..99	nyi
 # A196823	null	Decimal expansion of the number c for which the curve y=1/(1+x^2) is tangent to the curve y=-c+cos(x), and 0<x<2*Pi.	nonn,cons,synth	0..99	nyi
 # A196824	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/(1+x^2) and y=-c+cos(x), where c is given by A196774.	nonn,cons,changed,synth	0..99	nyi
+A196823	getcr2	0	A196822	super.getCR()	xt.multiply(xt).add(CR.ONE).inverse().subtract(xt.cos()).negate()
+A196824	getcr1	0	A196822	super.getCR().sin()
 # 
 # A196831	null	Decimal expansion of the number x satisfying 0 < x < 2*Pi and x^2 + 2*x*tan(x) + 1 = 0.	nonn,cons,changed,synth	1..100	nyi
 # A196832	null	Decimal expansion of the number c for which the curve y=1/(1+x^2) is tangent to the curve y=c*sin(x), and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..99	nyi
@@ -34,3 +36,4 @@ A196620	getcr1	0	A196617	super.getCR().sin()
 # A196914	null	Decimal expansion of the number c for which the curve y=1/(1+x^2) is tangent to the curve y=c*cos(x), and 0 < x < 2*Pi.	nonn,cons,changed,synth	0..98	nyi
 # A196915	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/(1+x^2) and y=c*cos(x), where c is given by A196914.	nonn,cons,changed,synth	0..98	nyi
 
+A317202	getcr2	0	A192918	super.getCR()	xt.multiply(xt).add(xt.pow(4)).divide(CR.TWO).add(CR.THREE)

@@ -261,51 +261,11 @@ interval: # LIST= WIDTH= ; unload and set low, high into $(PARM3), $(PARm4)
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	perl interval.pl -w $(WIDTH) $@.tmp \
+	perl signify.pl -d 0 $@.tmp \
+	| perl interval.pl -w $(WIDTH) \
 	>        $(LIST)
 	wc -l    $(LIST)
 #========
-decexp: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
-	cp -v decexp4.tmp $@.gen
-	head -n4 $@.gen
-	cut -f2  $@.gen | sort | uniq -c
-decexp1:
-	grep -E "^[\%][N] A[0-9][0-9]* Decimal expansion" $(COMMON)/jcat25.txt \
-	| cut -b4- | grep -vP '\, *where' \
-	| perl -ne 's/ Decimal expansion (for|of) /\tdecexp\t0\t~~/; '\
-	' s{([\.\;\,\:\=]|\(gamma is|where ).*}{}; s{ }{}g; s{(.)A001620}{$$1}g; s{goldenratio}{phi}; '\
-	' if (! m{sum|prod|_|.A|\!|.\w{8}}) { print; }'\
-	| grep -E "^A[0-9]" \
-	>        $@.1.tmp
-	wc -l    $@.1.tmp
-	grep -E "^A[0-9]" decexp1.man \
-	| sed -e "s/ //g" \
-	| sort | uniq -w7 \
-	>        $@.2.tmp
-	wc -l    $@.2.tmp
-	make overwrite SRC=$@.2.tmp TAR=$@.1.tmp
-	gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4 "\t" $$4 }' $@.1.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-decexp_check: # on duplicates in .man
-	grep -E "^A[0-9]" decexp1.man | cut -b1-7 | sort | uniq -c | grep -v " 1 "
-decexp2:
-	# cp -v zetaddx.man decexp1.tmp
-	cp -v    decexp1.tmp $@.tmp
-	make post_cr    LIST=$@.tmp
-decexp3:
-	make load       LIST=decexp2.tmp
-	make interval   LIST=$@.tmp
-decexp4:
-	cat decexp3.tmp \
-	| perl -ne 'my ($$aseqno, $$callcode, $$offset, $$parm1, @rest) = split(/\t/); '\
-	' if ((length($$offset) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
-	| sort | uniq -w7 \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#----
 decsolv: decsolv0 decsolv1 decsolv2 decsolv3 decsolv4 # solve()
 	cp -v decsolv3.tmp $@.gen
 	head -n4 $@.gen
@@ -387,6 +347,47 @@ solvetab4: # check with Maple's fsolve
 solvepari: # intervals from GP/PARI solve() 
 	grep -E "^\%o" $(COMMON)/jcat25.txt | grep -E " solve\(" \
 	  >      $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+decexp: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
+	cp -v decexp4.tmp $@.gen
+	head -n4 $@.gen
+	cut -f2  $@.gen | sort | uniq -c
+decexp1:
+	grep -E "^[\%][N] A[0-9][0-9]* Decimal expansion" $(COMMON)/jcat25.txt \
+	| cut -b4- | grep -vP '\, *where' \
+	| perl -ne 's/ Decimal expansion (for|of) /\tdecexp\t0\t~~/; '\
+	' s{([\.\;\,\:\=]|\(gamma is|where ).*}{}; s{ }{}g; s{(.)A001620}{$$1}g; s{goldenratio}{phi}; '\
+	' if (! m{sum|prod|_|.A|\!|.\w{8}}) { print; }'\
+	| grep -E "^A[0-9]" \
+	>        $@.1.tmp
+	wc -l    $@.1.tmp
+	grep -E "^A[0-9]" decexp1.man \
+	| sed -e "s/ //g" \
+	| sort | uniq -w7 \
+	>        $@.2.tmp
+	wc -l    $@.2.tmp
+	make overwrite SRC=$@.2.tmp TAR=$@.1.tmp
+	gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4 "\t" $$4 }' $@.1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+decexp_check: # on duplicates in .man
+	grep -E "^A[0-9]" decexp1.man | cut -b1-7 | sort | uniq -c | grep -v " 1 "
+decexp2:
+	# cp -v zetaddx.man decexp1.tmp
+	cp -v    decexp1.tmp $@.tmp
+	make post_cr    LIST=$@.tmp
+decexp3:
+	make load       LIST=decexp2.tmp
+	make interval   LIST=$@.tmp
+decexp4:
+	cat decexp3.tmp \
+	| perl -ne 'my ($$aseqno, $$callcode, $$offset, $$parm1, @rest) = split(/\t/); '\
+	' if ((length($$offset) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
+	| sort | uniq -w7 \
+	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----

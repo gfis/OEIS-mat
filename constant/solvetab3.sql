@@ -36,3 +36,8 @@ COMMIT;
 UPDATE seq4 set parm1  = 'CR.TWO.multiply(x.pow(2)).add(CR.TWO.multiply(x.sin())).add(CR.THREE).subtract(REALS.tan(x))' 
     WHERE aseqno = 'A200365';
 COMMIT;
+    
+-- TAB=k
+UPDATE seq4 SET offset =  0 WHERE aseqno IN ('A197290','A316162','A316163','A316254','A316257');
+UPDATE seq4 SET offset =  1 WHERE aseqno IN ('A316161');
+COMMIT;
