@@ -110,3 +110,12 @@ A197833	decsolv	0	~~sin(2*x)-3*Pi*sin(6*Pi*x)
 A241517	decsolv	0	~~log(x)/x+3*Pi/2
 
 A192918	decsolv	0	~~x^3+x^2+x-1
+
+# 2021-08-11
+A179373	decsolv	0	~~x-sin(x)-2)
+A188616	decsolv	0	~~sin((1+sqrt(2))*x+x)-phi*sin(x)
+A188617	decsolv	0	~~sin(phi*x+x)-(1+sqrt(2))*sin(x)
+A188543	decsolv	0	~~sin((1+sqrt(2))*x+x)-(1+sqrt(2))*sin(x)
+A188544	decsolv	0	~~sin(e*x+x)-e*sin(x)
+A152149	decsolv	0	~~sin(phi*x+x)-phi*sin(x)
+A191220	decsolv	0	~~agm(x,1)-Pi

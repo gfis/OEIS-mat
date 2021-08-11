@@ -37,3 +37,12 @@ A196824	getcr1	0	A196822	super.getCR().sin()
 # A196915	null	Decimal expansion of the slope (negative) at the point of tangency of the curves y=1/(1+x^2) and y=c*cos(x), where c is given by A196914.	nonn,cons,changed,synth	0..98	nyi
 
 A317202	getcr2	0	A192918	super.getCR()	xt.multiply(xt).add(xt.pow(4)).divide(CR.TWO).add(CR.THREE)
+
+# 2021-08-11
+A179374	getcr1	0	A179373	super.getCR().multiply(CR.valueOf(180)).divide(CR.PI)
+A179375	getcr1	0	A179373	super.getCR().divide(CR.TWO).sin().multiply(CR.TWO)
+A179376	getcr1	0	A179373	CR.ONE.subtract(super.getCR().divide(CR.TWO).cos())	1 - cos(solve(x=0, Pi, x-sin(x)-2)/2)
+A179377	getcr1	0	A179373	super.getCR().divide(CR.TWO).cos()	1 - cos(solve(x=0, Pi, x-sin(x)-2)/2)
+A179378	getcr1	0	A179373	super.getCR().sin().divide(CR.TWO)	sin(solve(x=0, Pi, x-sin(x)-2))/2
+A210462	getcr2	0	A075778	super.getCR()	CR.HALF.add(xt.multiply(CR.TWO).multiply(xt.add(CR.ONE))).inverse()
+Equals 1/2 + 1/(2*A075778*(A075778+1)).
