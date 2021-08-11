@@ -44,5 +44,22 @@ A179375	getcr1	0	A179373	super.getCR().divide(CR.TWO).sin().multiply(CR.TWO)
 A179376	getcr1	0	A179373	CR.ONE.subtract(super.getCR().divide(CR.TWO).cos())	1 - cos(solve(x=0, Pi, x-sin(x)-2)/2)
 A179377	getcr1	0	A179373	super.getCR().divide(CR.TWO).cos()	1 - cos(solve(x=0, Pi, x-sin(x)-2)/2)
 A179378	getcr1	0	A179373	super.getCR().sin().divide(CR.TWO)	sin(solve(x=0, Pi, x-sin(x)-2))/2
-A210462	getcr2	0	A075778	super.getCR()	CR.HALF.add(xt.multiply(CR.TWO).multiply(xt.add(CR.ONE))).inverse()
-Equals 1/2 + 1/(2*A075778*(A075778+1)).
+A210462	getcr2	0	A075778	super.getCR()	CR.HALF.add(xt.multiply(CR.TWO).multiply(xt.add(CR.ONE))).inverse()	Equals 1/2 + 1/(2*A075778*(A075778+1)).
+A210462	getcr2	0	A075778	super.getCR()	xt.inverse().subtract(new A210462().getCR().pow(2)).sqrt()	sqrt(1/A075778-A210462^2)
+A215833	getcr1	0	A215832	super.getCR().inverse()
+# A222183	(8*Catalan + Pi^2)/16
+# A097469	exp(Catalan/Pi)	, with G = A006752 (Catalan's constant)
+# A229728	getcr1	0	exp(4*Catalan/Pi)
+# A242822	Pi^2/(8*G)
+# A244238	exp(8*G/(3*Pi)),
+A242000	getcr1	0	A065442	super.getCR().add(CR.ONE).divide(CR.FOUR)	(1+alpha)/4, a constant appearing in Koecher''s formula for Euler''s gamma constant, where alpha is , the Erdős-Borwein Constant.
+A244263	getcr1	0	A244263	super.getCR().pow(2).inverse().add(CR.ONE).sqrt()
+A244928	2/3*G + Pi/12*log(2-sqrt(3))
+A244929	2/3*G + 5*Pi/12*log(2+sqrt(3))
+
+A245286	(1/a*(3^(1/4) + 3^(-3/4)))^(1/2), where a is the smallest positive root of x^8 - 6*x^4 - 8*x^2 + 1
+A245287	Root[x^4 - 2*x^2 - 4*x + 1, 1]; RealDigits[(2/b)^(1/2)
+A245324	(3/2)*log(theta0), where theta0 = root of x^3 - x - 1
+A224268	A085565/sqrt(2)
+A245772	(1/2)*log(A224273)
+A246673	A246672	2*xt/(xt + 2)

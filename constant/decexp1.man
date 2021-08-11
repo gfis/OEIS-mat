@@ -78,7 +78,7 @@
 #*# A329960	post	0	~~arccos(-(1/2)+1/sqrt(2)-1/2*sqrt(-1+2sqrt(2)))
 #*# A340918	post	0	~~atan(sqrt((4/sqrt(3))*cos((1/3)*atan(sqrt(3*229)/9))+3))
 #*# 
-#*# #2021-07-12:corrections
+#*# #2021-07-12: corrections
 #*# A273635	post	0	~~(Pi/(3*sqrt(3)))^(1/3)
 #*# A320029	post	0	~~(sqrt(37)+1)/2
 #*# A271529	post	0	~~sqrt(e)*(sqrt(e)+sqrt(e+4))/2
@@ -99,7 +99,7 @@
 #*# A108088	post	0	~~sqrt(Pi*e/2)*erfc(1/sqrt(2))
 #*# A098318	post	0	~~(5+sqrt(29))/2
 #*# 
-#*# #fromOEIS-mat/real/exact3.tmp
+#*# #from OEIS-mat/real/exact3.tmp
 #*# A091506	post	0	~~(2+sqrt(2)+5*log(1+sqrt(2)))/9
 #*# A096427	post	0	~~agm(1,1/sqrt(2))
 #*# A188615	post	0	~~arcsin(1/3)
@@ -176,7 +176,7 @@
 #*# A273082	post	0	~~(2+2^(3/4))/4*Pi^(1/4)/Gamma(3/4)
 #*# A330924	post	0	~~(2-2*sqrt(2))/(3*Pi)+(2/Pi)*log(1+sqrt(2))
 #*# A256778	post	0	~~(2*gamma+Pi+2*log(2))/8
-#*# A076390	post	0	~~(2*Pi)^(-1/2)*GAMMA(3/4)^2
+#*# A076390	post	0	~~(2*Pi)^(-1/2)*Gamma(3/4)^2
 #*# A122143	post	0	~~(2*Pi*(Pi-3)+3)/12
 #*# A334472	post	0	~~(2*gamma+log(8))/Pi
 #*# A244646	post	0	~~(2*log(14)+4*(cos(Pi/7)*log(cos(3*Pi/14))+log(sin(Pi/7))*sin(Pi/14)-log(cos(Pi/14))*sin(3*Pi/14))+Pi*tan(3*Pi/14))/5
@@ -1349,3 +1349,44 @@ A092290	decexp	0	~~(7+sqrt(77))/2
 
 # 2021-08-05
 A105372	decexp	0	~~4*sqrt(Pi)/Gamma(1/4)^2
+
+# 2021-08-11
+
+# A240969	phi = ArcSin[1/6 + (4/3)*Sin[(1/3 )*ArcSin[17/64]]]; psi = ArcTan[(1/2)*Sec[phi]]; beta = (1/2)*(Pi/2 - phi - 2*psi + Tan[phi] + Tan[psi])^(-1)
+A210974	decexp	0	~~arccos(sqrt(1/3))*180/Pi
+A222457	decexp	0	~~0-gamma-Pi*sqrt(3)/2-3*log(3)/2-2*log(2)
+A222458	decexp	0	~~Pi*sqrt(3)/2-gamma +  - 3*log(3)/2 - 2*log(2)
+A222392	(1 + erf(1))*e+1/sqrt(Pi)
+A222609	2*Pi^5/15
+A225119	Gamma(1/4)^2/(6*sqrt(2*Pi))
+A231187	cos(Pi/7) + sqrt(1+cos(Pi/7)^2)
+A233825	exp(gamma)*(4+gamma-log(4*pi))
+A239382	erfc(1/sqrt(2))/2
+A239383	erfc(2/sqrt(2))/2
+A239384	erfc(3/sqrt(2))/2
+A239385	erfc(4/sqrt(2))/2
+A239386	erfc(5/sqrt(2))/2
+A239387	erfc(6/sqrt(2))/2
+A239382	erfc(n/sqrt(2))/2
+A227717	1/3*sqrt(2/Pi)*Gamma(1/4)^2
+A240964	Gamma(1/4)^4/(32*Pi^3)-1/(4*Pi)
+A240965	Gamma(1/4)^8/(128*Pi^2)
+A240985	(2^9/9^2)*exp(-3/2 - 7*zeta(3)/(2*Pi^2))
+A242010	(Pi/sqrt(3))*(log(Gamma(1/3)/Gamma(2/3)) - (1/3)*(gamma + log(2*Pi)))
+A242011	(Pi/(2*sqrt(3)))*(log(Gamma(1/8)/Gamma(3/8)/(Gamma(5/8)/Gamma(7/8))) - (gamma + log(2*Pi)))
+A244336	27/(4*(8*sqrt(3)*Pi - 27))
+A244337	3/(208 + 72*Pi - 96*sqrt(2)*Pi
+A244338	1/(32 - (64*Sqrt(50 - 82/sqrt(5))*Pi)/25)
+A244823	299792458/9192631770
+A245201	(243/8)^(1/3)
+A245263	sqrt(17+7*sqrt(5)+sqrt(6*(65+29*sqrt(5))))/2
+A245278	8/7*cos(2*Pi/7)*cos(Pi/7)^2
+A245293	(512/375)^(1/4)
+A245295	(24/5)^(1/4)
+A245296	(1953125/1572864)^(1/5)
+A245297	(125/72)^(1/5)
+A245298	(1/2)*(15/2)^(2/5)
+A245299	(15/2)^(1/5)
+A245333	(1/32)*(exp(6) - 6*exp(4) + 3*exp(2) - 98)
+A245673	1/12 + Pi^2/(6*log(2)^2)
+A245720	35/4 - 3/(2*sin(Pi/18))

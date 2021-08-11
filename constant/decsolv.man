@@ -119,3 +119,35 @@ A188543	decsolv	0	~~sin((1+sqrt(2))*x+x)-(1+sqrt(2))*sin(x)
 A188544	decsolv	0	~~sin(e*x+x)-e*sin(x)
 A152149	decsolv	0	~~sin(phi*x+x)-phi*sin(x)
 A191220	decsolv	0	~~agm(x,1)-Pi
+A214097	decsolv	0	~~509607936*x^22-9384230912*x^20-7214465024*x^18+11738382336*x^16+5482373120*x^14-4279234560*x^12-369279488*x^10-45531392*x^8+2774880*x^6+158928*x^4+4068*x^2-45
+A215668		Decimal expansion of the zero z in (0,Pi/2) of the function sin(sin(x))/x - cos(cos(x))/x
+A215670		Decimal expansion of the min value of F(x) := cos(sin(x)) - sin(cos(x)), x in R.
+A215832		-cos(x)*sin(sin(x))/cos(sin(x))/ln(sin(cos(x)))+ln(cos(sin(x)))/ln(sin(cos(x)))^2*sin(x)*cos(cos(x))/sin(cos(x))	Decimal expansion of the maximum of the function f(x) = log(cos(sin(x)))/log(sin(cos(x))), x in (0,Pi/2).
+A168546		-cos(x)*sin(sin(x))/cos(sin(x))/ln(sin(cos(x)))+ln(cos(sin(x)))/ln(sin(cos(x)))^2*sin(x)*cos(cos(x))/sin(cos(x))	Decimal expansion of the argument z in (0,Pi/2) for which the function log(cos(sin(x)))/log(sin(cos(x))) possesses the maximum in (0,Pi/2).
+A220359		(1-x)^(2*x-1) - x^(2*x)
+A226278		2*log(x)-x+1
+A226469		-2*ln(x)-4+4*x	maximum value reached by the function -2*x*log(x)-2*x*(1-x)
+A226568		x^x + x-1
+A226604		1-x+2*x*ln(x)	maximum value reached by the function x-x^2+x^2 log(x) in the interval [0,1].
+A226750		x*exp(x)+3/exp(3)
+A226776		1-ln(x)^ln(x)*(1/x*ln(ln(x))+1/x)	 maximum value of f(x) = x - log(x)^log(x)
+A227422		9*x^7+55*x^6-14*x^5-948*x^4-3247*x^3-5013*x^2-3780*x-1134	Young-Fejér-Jackson constant linked to the nonnegativity of certain cosine sums.		3
+A227423		(1+x)*Pi-tan(x*Pi)
+A227472		1/2*sqrt(3)*cos(1/2*x)*csc(1/3*Pi+x)-sqrt(3)*(1+sin(1/2*x))*csc(1/3*Pi+x)*cot(1/3*Pi+x)
+A229553		x*log(x)-2*(x-1)
+A236229		x-exp(x/(x-1))
+A236230		x-exp(x/(x-1))
+A237421		(1-x)^(2*x)-x^(2*x+1)
+A240358		log(x + Sqrt(x^2 + 1))-sqrt(1 + 1/x^2)
+A240723		erf(x/sqrt(2))-sqrt(1 - sqrt(2/Pi))
+A240885		sqrt(Pi/2)*erf(x/sqrt(2))-1
+A244054		5*x^6-15*x^4+3*x^2-2
+A244262		cos(x)-x/(x^2 + 1)*sin(x)+1
+A245259		x^(2*x-1)-(x+1)^(2*x)
+A245260		x*log(x/(1-x))-1
+A226094		x^x+log(x)
+A245533		x^30 - 81*x^28 + 2613*x^26 - 43629*x^24 + 417429*x^22 - 2450985*x^20 + 9516137*x^18 - 26203659*x^16 + 53016480 x^14 - 83714418*x^12 + 112601340*x^10 - 140002992*x^8 + 156204288*x^6 - 124361568*x^4 + 55427328*x^2 - 10077696
+A245967		x*(x^2+2)*exp(x^2/2)*sqrt(Pi/2)*erfc(x/sqrt(2))-x^2-1
+A246671		2*x - sqrt(2*Pi)*(1 - x^2)*exp(x^2/2)*(1 + erf(x/sqrt(2)))
+A246672		(2/x + 1)*log(x/2 + 1)-3/2
+A246770		45x^3 - 180x^2 + 90x + 4
