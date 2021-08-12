@@ -8,7 +8,7 @@ UPDATE seq4 SET parm2    = '.inverse()'  WHERE aseqno IN ('A196503');
 -- UPDATE seq4 SET parm3=0.00340, parm4=0.00345 WHERE aseqno='A135800';
 
 COMMIT;
-UPDATE seq4 SET offset =  0              WHERE aseqno IN ('A196829','A197283','A201938');
+UPDATE seq4 SET offset =  0              WHERE aseqno IN ('A196829','A197283','A197290','A201938');
 UPDATE seq4 SET offset =  -1             WHERE aseqno IN ('A202494');
 --  UPDATE seq4 SET offset =  1 WHERE aseqno IN ('A316161');
 COMMIT;

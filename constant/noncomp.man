@@ -98,3 +98,9 @@ A345411	0	5,6,8,2,5,2,6,6	null	Decimal expansion of the ratio between the positi
 
 # 2021-08-11
 A236629	sci		Decimal expansion of G/(3*c^2), where G is the Newtonian constant of gravitation and c is the speed of light in vacuum, in SI units
+A247385
+A248508
+A252852
+A324031	nok=-1	0	??	the conversion factor from the old SI unit A (ampere) to the combination of 2019 SI units e*Δν_{Cs}.
+A324032	nok=-1	0	??	the conversion factor from the old SI K (kelvin) to the combination of 2019 SI units h*Δν_{Cs}/k.
+A324033	nok=-1	0	??	the conversion factor from the old derived SI unit lm (lumen) to the combination of 2019 SI units K_{cd}*h*(Δν_{Cs})^2.

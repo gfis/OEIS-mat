@@ -315,7 +315,8 @@ joeis_pull:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 #--
-joeis_reload: joeis_load joeis_ofter joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_analog joeis_progress 
+joeis_reload: joeis_load joeis_ofter joeis_ofdec poeis_delete \
+	joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_analog joeis_progress 
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -348,6 +349,16 @@ joeis_ofter: # A-numbers in jOEIS with offset and first ~7 reliable terms
 	>        $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
+joeis_ofdec: # same, but for constants only
+	$(DBAT) -x "SELECT i.aseqno, i.offset1, i.terms \
+	FROM  asinfo i INNER JOIN joeis j ON i.aseqno = j.aseqno \
+	WHERE i.keyword LIKE '%cons%' \
+	ORDER BY 1" \
+	| perl -pe "s{\,\-?\d+\r?\Z}{};" \
+	| sed -e "s/\r//" \
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
 joeis_stamp:
 	$(DBAT) "DELETE FROM joeis WHERE aseqno = 'A000000';"
 	$(DBAT) "INSERT INTO joeis VALUES ('A000000', '`date +%Y-%m-%d.%H`','created','cc','Georg');"
@@ -355,8 +366,10 @@ joeis_stamp:
 joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
-	cd $(FISCHER); make analog
-ALAST=A050000
+	# currently not; cd $(FISCHER); make analog
+poeis_delete: # delete * from poeis
+	$(DBAT) "DELETE FROM poeis;"
+ALAST=A051000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -386,6 +399,11 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 	    || '% out of ' || CAST(b AS CHAR) || ', remaining are:' FROM \
 	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%core%') j1 \
 	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%core%') j2 \
+	    );"
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' cons sequences = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
+	    || '% out of ' || CAST(b AS CHAR) || ', remaining are:' FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%cons%') j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%cons%') j2 \
 	    );"
 	$(DBAT) -x "SELECT i.aseqno, n.name \
 	    FROM asinfo i, asname n \

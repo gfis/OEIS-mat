@@ -294,6 +294,7 @@ decsolv2:
 decsolv3:
 	make load       LIST=decsolv2.tmp
 	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -f decsolv3.sql
 	make interval   LIST=$@.tmp
 decsolv4: # Check with Maple's fsolve
 	perl -e 'print join("\t", qw(aseqno cc ofs Maple OEIS low high formula)), "\n";' > $@.txt
@@ -369,7 +370,7 @@ decexp1:
 	>        $@.2.tmp
 	wc -l    $@.2.tmp
 	make overwrite SRC=$@.2.tmp TAR=$@.1.tmp
-	gawk -e '{print $$1 "\t" $$2 "\t" $$3 "\t" $$4 "\t" $$4 }' $@.1.tmp \
+	gawk -e '{print $$1 "\tdecexp\t" $$3 "\t" $$4 "\t" $$4 }' $@.1.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -381,7 +382,9 @@ decexp2:
 	make post_cr    LIST=$@.tmp
 decexp3:
 	make load       LIST=decexp2.tmp
-	make interval   LIST=$@.tmp
+	# $(DBAT) "UPDATE seq4 SET callcode='decexp';"
+	$(DBAT) -x -44444 seq4 \
+	>        $@.tmp
 decexp4:
 	cat decexp3.tmp \
 	| perl -ne 'my ($$aseqno, $$callcode, $$offset, $$parm1, @rest) = split(/\t/); '\
