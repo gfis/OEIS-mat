@@ -12,7 +12,7 @@ findit := proc(aseqno, offset, list); local list2, skip, rec, rord, ope, A, n, k
   rord:=degree(ope,A):
   ope:=add(coeff(ope,A,j)*A^j,j=0..rord):
   ope:=eval(ope, n = n-skip): # shift to make DIST=0
-  if coeff(coeff(ope,A,rord),n,degree(coeff(ope,A,rord))) >= 0 then ope:= -1*ope fi:
+# if coeff(coeff(ope,A,rord),n,degree(coeff(ope,A,rord))) >= 0 then ope:= -1*ope fi:
   ( [[0], seq([if coeff(ope,A,j) = 0 then 0 else seq(coeff(coeff(ope,A,j),n,k),k=0..degree(coeff(ope,A,j)))  end if],j=0..rord) ] # matrix
   , [seq(list[j], j=1..rord) ] # inits
   , 0   # dist

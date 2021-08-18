@@ -10,8 +10,8 @@
 # 2019-01-22: unpacking from ../dumps
 # 2019-01-17: Georg Fischer
 #
-# make lrlink_prep on the server.
-# make lr0 lrlink
+# (make lrlink_prep on the server, now in lrlink_pull)
+# make lr0 lrlink_pull lrlink
 # make lrindx, repair duplicate key in lrindx.tmp
 # make lrlink_insert lrindx_post
 # examine the diff files, whether the right side has more
@@ -35,13 +35,17 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 all: lrindex
 	# grep -E "^[a-z]" makefile
 #======================================================
-lrindex: lr0 lrlink lrindx 
+lrindex: lr0 lrlink_pull lrlink lrindx 
 lr0:
 	perl extract_lrindex.pl -d $(D) -m lrindx > lrindx.create.sql
 	$(DBAT) -f                                  lrindx.create.sql
 	perl extract_lrindex.pl -d $(D) -m lrlink > lrlink.create.sql
 	$(DBAT) -f                                  lrlink.create.sql
 #--
+REMOTE=set_remove_server
+lrlink_pull:
+	ssh $(REMOTE) 'cd ~/work/gits/OEIS-mat/lrindex ; make lrlink_prep'
+	make lrlink_scp
 lrlink_prep: # extract all links (faster on Linux)
 	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \
 	"Index entries for linear recurrence" \
@@ -49,7 +53,7 @@ lrlink_prep: # extract all links (faster on Linux)
 	head -n4 lrlink1.tmp
 	wc   -l  lrlink1.tmp
 lrlink_scp:
-	scp gfis@atair:~/work/gits/OEIS-mat/lrindex/lrlink1.tmp .
+	scp $(REMOTE):~/work/gits/OEIS-mat/lrindex/lrlink1.tmp .
 #----
 lrlink: lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
 lrlink2: 
@@ -120,9 +124,6 @@ lrindx1:
 	cat lrindx.raw \
 	| perl -pe 's/\<\/?strong\>//g; s/\:\(0\,0\,1\,1\,1\,1\)\:/\:\(0\,0\,1\,1\,1\,1\)\:  A017819\, A245596/; s/\:\(0\,0\,1\,1\,1\,1\)\: A017819\, A245596//; ' \
 	>       lrindx.wiki
-	# :(0,0,1,1,1,1):
-	# :(0,0,1,1,1,1,1,1): A180158
-	# :(0,0,1,1,1,1) A245596
 	grep strong lrindx.wiki || :
 	echo >> lrindx.wiki # append linefeed
 	# diff -y --suppress-common-lines lrindx.raw lrindx.wiki || :
@@ -133,6 +134,16 @@ lrindx2:
 	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
 	$(DBAT) -n                lrindx
 	$(DBAT) -4 lrindx
+	# 2021-08-12:
+	# :(0,0,1,1,1,1):
+	# :(0,0,1,1,1,1,1,1): A180158
+	# :(0,0,1,1,1,1) A245596
+	# 9	9 -36 84 -126 126 -84 36 -9 1	337956	9	9,-36,84,-126,126,-84,36,-9,1	#
+	# 9	9 -36 84 -126 126 -84 36 -9 1	337957	9	9,-36,84,-126,126,-84,36,-9,1	#
+	# 9	9 -36 84 -126 126 -84 36 -9 1	337962	9	9,-36,84,-126,126,-84,36,-9,1	#
+	# ****
+	# ==== maybe edit lrindx.tmp and repair duplicate keys, which result from wrong rec_orders
+	# ****
 #--------
 lrlink_insert: lrlink_insert1 lrlink_insert2
 lrlink_insert1:
@@ -162,7 +173,7 @@ lrindx3:
 	# diff -C0 -w                      lrindx.tmp lrindx.sort.tmp || :
 lrindx4:
 	perl extract_lrindex.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
-	| perl -pe 's/\<\/?strong\>//g;' \
+	| perl -pe 's/\<\/?strong\>//g; s/88888888//g;' \
 	> lrindx.new.tmp
 	# | grep -vE "^ *$$"
 	tail -2 lrindx.new.tmp | hexdump -C
@@ -291,11 +302,21 @@ order_only:
 	>>       $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-sig_only:
+sig_only: # ???
 	echo "A-number	signature" > $@.tmp
-	perl -ne 'if ((m{ajson\/(A\d+)\.json\:) [^#]+\#(order_\d+)[^\,]*\,\s*(order\s+(\d+))}) '\
+	perl -ne 'if ((m{ajson\/(A\d+)\.json\: [^#]+\#(order_\d+)[^\,]*\,\s*(order\s+(\d+))}) '\
 	'{ my $$order = $$4; if ($$order < 100) { print "$$1\t$$2\t$$3\n"; }} ' lrlink1.tmp \
 	>>       $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----------------
+lrindx_nyi_check:
+	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, i.signature \
+	   FROM lrindx i, asinfo a \
+	   WHERE 'A' || i.seqno = a.aseqno \
+	     AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	   ORDER by 1" \
+	>     $@.txt
+	wc -l $@.txt
+	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 

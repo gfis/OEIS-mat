@@ -395,15 +395,15 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%nice%') j1 \
 	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%nice%') j2 \
 	    );"
+	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' cons sequences = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
+	    || '% out of ' || CAST(b AS CHAR) FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%cons%') j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%cons%') j2 \
+	    );"
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' core sequences = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
 	    || '% out of ' || CAST(b AS CHAR) || ', remaining are:' FROM \
 	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%core%') j1 \
 	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%core%') j2 \
-	    );"
-	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' cons sequences = ' || SUBSTR(CAST(a/b * 100 AS CHAR),1,5) \
-	    || '% out of ' || CAST(b AS CHAR) || ', remaining are:' FROM \
-	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j, asinfo i WHERE j.aseqno = i.aseqno AND i.keyword LIKE '%cons%') j1 \
-	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i           WHERE                         i.keyword LIKE '%cons%') j2 \
 	    );"
 	$(DBAT) -x "SELECT i.aseqno, n.name \
 	    FROM asinfo i, asname n \

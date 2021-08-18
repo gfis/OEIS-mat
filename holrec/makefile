@@ -15,6 +15,7 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
+HERE=../../../OEIS-mat/holrec
 MAXT=32
 COMMON=../common
 D=0
@@ -52,6 +53,19 @@ seq4: # parameter: $(LIST) with aseqno, offset, parm1, parm2, parm3, parm4, name
 	$(DBAT) -m csv -r seq4 < seq4.tmp
 	$(DBAT) -4 seq4
 	$(DBAT) -n seq4
+#--------
+overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC, key is aseqno
+	# ---- $@ SRC="(SRC) TAR=$(TAR)
+	grep -E "^A[0-9]" $(SRC) | cut -b1-7 > $@.sa.tmp
+	grep -vf $@.sa.tmp $(TAR) > $@.tn.tmp || :
+	sort $@.tn.tmp $(SRC) > $(TAR)
+	wc -l $(TAR)
+#----
+setofs: # LIST= ; update $(OFFSET)
+	#==== $@ LIST=$(LIST)
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
+	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno) \
+	  , callcode = 'holos';"
 #----
 bincoef: bincoef1 bincoef2
 	mv -v bincoef2.gen $@.gen
@@ -394,23 +408,29 @@ hermite: # A158811 HolonomicRecurrence     Numerator of Hermite(n, 1/3).
 #-------------------------------
 homgf:    homgf0 homgf1 homgf2 homgf3-7
 homgf3-7: homgf3 homgf4 homgf5 homgf6 homgf7
-homgf0:
-	perl extract_gf.pl -m extract $(COMMON)/cat25.txt \
+homgf0: # extract from jcat25.txt
+	perl extract_gf.pl -m extract $(COMMON)/jcat25.txt \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 homgf1:
 	make seq4 LIST=homgf0.tmp
-	$(DBAT) -v "DELETE FROM seq4 \
-		WHERE  aseqno IN (SELECT aseqno FROM joeis) \
-		   OR  aseqno IN (SELECT aseqno FROM poeis)"
-		   OR (aseqno IN (SELECT aseqno FROM cojec) AND parm2 = 'ogf'"
+	# $(DBAT) -v "DELETE FROM seq4 \
+	# 	WHERE  aseqno IN (SELECT aseqno FROM joeis) \
+	# 	   OR  aseqno IN (SELECT aseqno FROM poeis)"
+	# 	   OR (aseqno IN (SELECT aseqno FROM cojec) AND parm2 = 'ogf'"
 	$(DBAT) -v "DELETE FROM seq4 \
 		WHERE callcode LIKE 'homgfe%' \
 		  AND aseqno IN (SELECT aseqno callcode FROM seq4 WHERE callcode LIKE 'homgfo%')"
 	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, s.parm2 \
 	    FROM seq4 s \
 	    ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@*.tmp
+homgf2:
+	$(JPREP) -f homgf1.tmp \
+	| perl -ne 'if (length($$_) < 1024) { print; }' \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@*.tmp

@@ -11,7 +11,13 @@
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
+JPREP=$(RAMATH).sequence.JoeisPreparer
 PFRACT=java -cp  $(RAMATH).symbolic.PolyFraction
+LITE=$(GITS)/joeis-lite
+FISCHER=$(LITE)/internal/fischer
+JOEIS=$(GITS)/joeis
+HERE=../$(GITS)/OEIS-mat/linrec
+COMMON=$(GITS)/OEIS-mat/common
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
@@ -34,6 +40,52 @@ all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 	# the wiki index page for lin.rec.s is regenerated with 'make linrec'
+#======================================================
+overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC, key is aseqno
+	# ---- $@ SRC="(SRC) TAR=$(TAR)
+	grep -E "^A[0-9]" $(SRC) | cut -b1-7 > $@.sa.tmp
+	grep -vf $@.sa.tmp $(TAR) > $@.tn.tmp || :
+	sort $@.tn.tmp $(SRC) > $(TAR)
+	wc -l $(TAR)
+#----
+setofs: # LIST= ; update $(OFFSET)
+	#==== $@ LIST=$(LIST)
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
+	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno) \
+	  , callcode = 'holos';"
+#--------
+linman0: linman1 linman2 linman4
+	grep -E "^A[0-9]" linman3.tmp \
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+linman1: # merge man + fract1
+	cp -v fract1.tmp $@.tmp
+	make overwrite SRC=linrec.man TAR=$@.tmp
+linman2: # update offset and unload from seq4
+	make setofs LIST=linman1.tmp
+	$(DBAT) -x "DELETE FROM seq4 WHERE aseqno IN ('A116178');"  
+	$(DBAT)    "UPDATE seq4 SET callcode = 'fract1';"
+	$(DBAT) -x "SELECT * FROM seq4 ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+linman3: # convert rat.g.f. to holos parameters
+	perl $(COMMON)/callmaple.pl -t 8 -n 16 -p ../holrec/holratgf.mpat linman2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+linman4: # convert to num, den tuples with JPREP
+	$(JPREP) -f linman2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+linman: # -> lingf (*.gen)
+	grep -E "fract1" linman4.tmp \
+	| sed -e "s/fract1/lingf/" \
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
 #====================================
 raeval: raeval1 raeval2 raeval_count raeval_joeis raeval_null
 raeval0: # manually on the server, takes ~4 hours
@@ -229,20 +281,17 @@ plou2:
 njoeis: # LIST
 	make -f $(COMMON)/makefile seq 
 	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq \
-	WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
+	    WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
 #--------------------
-# Generating functions from cat25 file
+# Unimplemented Generating functions from jcat25 file
 catgf: catgf0 catgf1 fract
 # catgf1 catgf2 
 # %F A000032 G.f.: (2 - x)/(1 - x - x^2).
 # 1234567890123456789
 catgf0:
-	grep -E "\%[SOFN]" $(COMMON)/cat25.txt \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
 catgf1:
-	perl extract_catgf.pl -d 0 catgf0.tmp \
+	grep -E "\%[SOFN]" $(COMMON)/jcat25.txt \
+	| perl extract_catgf.pl -d 0 catgf0.tmp \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
@@ -394,7 +443,7 @@ coxgn1: # get Coxeter sequence names
 #----
 coxf1: # get coxG calls from 'names' subset
 	perl -ne 'm{^(A\d+)\D+(\d+)\D+(\d+)\D+(\d+)}; print "$$1\tcoxf\t$$4\t$$2\n"' \
-	coxgn1.tmp | sort > $@.tmp
+	  coxgn1.tmp | sort > $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	$(PFRACT) -n 24 -f $@.tmp > $@.txt
@@ -448,7 +497,6 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
-#======================================================
 #-------------
 lrmmac: lrmmac1 lrmmac2 lrmmac3
 lrmmac1: # extract MMA LinearRecurrence calls from ./ajson 

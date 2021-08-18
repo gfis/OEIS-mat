@@ -58,6 +58,7 @@ my $offset   = 0;
 my $ok = 1;
 my %letters = ();
 my $letter;
+
 if (0) {
 } elsif ($mode =~ m{^extr}) {
     while(<>) {
@@ -170,8 +171,7 @@ if (0) {
         }
     } # while <>
     # mode eval
-  
-    
+
 } else {
     die "invalid mode \"$mode\"\n";
 } # mode

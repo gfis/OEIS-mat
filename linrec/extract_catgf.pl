@@ -87,6 +87,10 @@ while (<>) {
         $fraction =~ s{\*\*}{\^}g; # exponentiation
         $fraction =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
         $fraction =~ s{\s+\Z}{}; # remove trailing spaces
+        $fraction =~ s{(\d+)([a-z]|\()}{$1\*$2}g; # insert "*" 
+        $fraction =~ s{([a-z]|\))(\d+)}{$1\*$2}g; # insert "*" 
+        $fraction =~ s{\)\(}{\)\*\(}g; # insert "*" 
+        $fraction =~ s{([a-z])\(}{$1\*\(}g; # insert "*" 
         $comt = "";
         if ($oseqno eq $aseqno) {
             $comt = "?multi?";
@@ -106,14 +110,17 @@ while (<>) {
         if ($fraction =~ m{[a-zA-Z][a-zA-Z]}) { # at least 2 letters, sqrt ...
             $comt = "?stdf?";
         }
-        if ($fraction =~ m[\d{8}]) {
-            $comt = "?digt8?";
+        if ($fraction =~ m[\d{16}]) {
+            $comt = "?digt16?";
         }
         if ($fraction =~ m[\^\d{4}]) {
             $comt = "?powg4?";
         }
         if ($fraction =~ m{\^\(}) {
             $comt = "?popen?";
+        }
+        if ($fraction =~ m{[\+\-\*\/\^\(]\Z}) { # trailing "+" etc.
+            $comt = "?ellips?";
         }
     } else {
         # ignore

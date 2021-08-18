@@ -14,11 +14,11 @@ findit := proc(aseqno, offset, ratgf); local ser, inits, init2, skip, rord, ope,
   ope :=eval(ope, n = n-rord): # shift to make DIST=0
   # printf("# shifted : %a\n", ope);
   rord:=degree(ope,A):
-  if coeff(coeff(ope,A,rord),n,degree(coeff(ope,A,rord))) >= 0 then ope:= -1*ope fi: # make last negative
+  # if coeff(coeff(ope,A,rord),n,degree(coeff(ope,A,rord))) >= 0 then ope:= -1*ope fi: # make last negative
   ser := series(ratgf, x, rord+24): 
-  inits:=seq(coeff(ser,x,n),n=0..rord+16);
-  k:=1; while k <= rord+16 and inits[k] = 0 do k:=k+1: end do:
-  inits:= [seq(coeff(ser,x,n),n=0..rord+2)]:
+  # inits:=seq(coeff(ser,x,n),n=0..rord+16);
+  # k:=1; while k <= rord+16 and inits[k] = 0 do k:=k+1: end do:
+  inits:= [seq(coeff(ser,x,n),n=skip..rord+2)]:
   ( [[0], seq([if coeff(ope,A,j) = 0 then 0 else seq(coeff(coeff(ope,A,j),n,k),k=0..degree(coeff(ope,A,j)))  end if],j=0..rord) ] # matrix
   , inits
   , 0   # dist
