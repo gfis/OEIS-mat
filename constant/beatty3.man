@@ -1,0 +1,254 @@
+A182835	ComplementSequence	n+floor(sqrt(2n+3)), complement of A179207.	nonn,easy,synth	1..80	compseq
+
+A183569	ComplementSequence	n+floor(sqrt(4n-3)), complement of A024206.	nonn,easy,synth	1..113	compseq
+
+A183570	null	a(n) = n + floor(sqrt(n + 1)).	nonn,easy,changed,synth	0..99	nyi
+
+A183571	null	n+floor(sqrt(n+2)).	nonn,easy,synth	1..80	nyi
+
+A183572	null	a(n) = n + floor(sqrt(2*n-1)).	nonn,easy,	1..10000	nyi
+
+A183573	null	a(n) = n + floor(sqrt(2n+1)).	nonn,easy,	1..10000	nyi
+
+A183574	null	n+Floor[sqrt(2n+2)].	nonn,easy,synth	1..80	nyi
+
+A183855	ComplementSequence	n+floor(sqrt(3n-3)); complement of A128422.	nonn,easy,synth	1..80	compseq
+
+A183856	ComplementSequence	n+floor(sqrt(3n-2)); complement of A143975.	nonn,easy,changed,	1..10000	compseq
+
+A183858	ComplementSequence	n+floor(sqrt(3n)); complement of A183859.	nonn,easy,synth	1..100	compseq
+A183859	LinearRecurrence	a(n) = n - 1 + ceiling((n^2)/3); complement of A183858.	nonn,easy,changed,synth	1..56	unkn
+
+A183860	ComplementSequence	n+floor(sqrt(3n+1)); complement of A183861.	nonn,easy,synth	1..90	compseq
+A183861	LinearRecurrence	n-1+ceiling((-1+n^2)/3); complement of A183860.	nonn,easy,synth	1..70	linrec
+
+A183862	ComplementSequence	n+floor(sqrt(5n/2)); complement of A183863.	nonn,easy,synth	1..80	compseq
+A183863	LinearRecurrence	n-1+ceiling((2/5)(-1/2+n^2)); complement of A183862.	nonn,easy,synth	1..70	unkn
+
+A183864	ComplementSequence	n+floor(sqrt(5*n/3)); complement of A183865.	nonn,easy,synth	1..100	compseq
+A183865	LinearRecurrence	n-1+ceiling(3(n+2)/5); complement of A183864.	nonn,easy,synth	1..60	unkn
+
+A183866	null	n+floor(2*sqrt(n-1)); complement of A035106.	nonn,easy,synth	1..100	nyi
+
+A183867	ComplementSequence	a(n) = n + floor(2*sqrt(n)); complement of A184676.	nonn,easy,	1..5000	compseq
+
+A183868	ComplementSequence	a(n) = n + floor(2*sqrt(n+1)); complement of A079524.	nonn,easy,changed,synth	1..59	compseq
+
+A183869	ComplementSequence	n+floor(sqrt(4n+5)); complement of A004116.	nonn,easy,synth	0..100	compseq
+
+A183870	ComplementSequence	n+floor(sqrt(5n-5)); complement of A183871.	nonn,easy,synth	1..100	compseq
+A183871	LinearRecurrence	a(n) = n + ceiling( (1/5)*n^2 ). Complement of A183870.	nonn,easy,changed,synth	1..80	unkn
+
+A183872	ComplementSequence	n+floor(sqrt(5n)); complement of A183873.	nonn,easy,synth	1..100	compseq
+A183873	LinearRecurrence	n-1+ceiling((1/5)n^2); complement of A183872.	nonn,easy,synth	1..80	unkn
+
+A183874	ComplementSequence	a(n) = n + floor(sqrt(3*n/2)). Complement of A183857.	nonn,easy,	1..10000	compseq
+A183857	LinearRecurrence	a(n) = n - 1 + ceiling((2/3)*n^2); complement of A183874.	nonn,easy,changed,synth	1..55	unkn
+
+A184004	ComplementSequence	a(n) = n + floor(sqrt(4n/3)); complement of A184005.	nonn,easy,	1..5000	compseq
+A184005	LinearRecurrence	a(n) = n - 1 + ceiling(3*n^2/4); complement of A184004.	nonn,easy,	1..5000	unkn
+
+A184006	null	floor(nr+h), where r=sqrt(3), h=-1/3; complement of A184007.	nonn,easy,synth	1..64	nyi
+A184007	null	floor(n*s+h-h*s), where s=(3+sqrt(3))/2, h=-1/3.  Complement of A184006.	nonn,synth	1..108	nyi
+
+A184008	ComplementSequence	n+floor(sqrt(7n/3)); complement of A184009.	nonn,easy,synth	1..100	compseq
+A184009	LinearRecurrence	n-1+ceiling((3/4)n^2); complement of A184008.	nonn,easy,synth	1..72	unkn
+
+A184010	null	n + floor(sqrt(-1+4n/3)); complement of A001859 (except for initial zero).	nonn,easy,synth	1..100	nyi
+
+A184012	ComplementSequence	n + floor(sqrt(5n-4)); complement of A184013.	nonn,easy,synth	1..100	compseq
+A184013	LinearRecurrence	n - 1 + ceiling((4+n^2)/5); complement of A184012.	nonn,easy,synth	1..80	unkn
+
+A184014	null	n + floor(sqrt(e*n)); complement of A184015.	nonn,easy,synth	1..120	nyi
+A184015	null	n-1+ceiling(n^2/e); complement of A184014.	nonn,easy,synth	1..80	nyi
+
+A184016	ComplementSequence	n+floor(3*sqrt(n)); complement of A184017.	nonn,easy,synth	1..100	compseq
+A184017	LinearRecurrence	n-1+ceiling((n/3)^2); complement of A184016.	nonn,easy,synth	1..80	unkn
+
+A184102	ComplementSequence	n+floor(4*sqrt(n)); complement of A184103.	nonn,easy,synth	1..100	compseq
+A184103	LinearRecurrence	n-1+ceiling(n^2/4); complement of A184102.	nonn,easy,changed,synth	1..80	unkn
+
+A184104	ComplementSequence	n+floor(5*sqrt(n)); complement of A184105.	nonn,easy,synth	1..100	compseq
+A184105	LinearRecurrence	n-1+ceiling((n/5)^2); complement of A184104.	nonn,easy,synth	1..70	unkn
+
+A184106	ComplementSequence	n+floor(6*sqrt(n)); complement of A184107.	nonn,easy,synth	1..100	compseq
+A184107	LinearRecurrence	n-1+ceiling((n/6)^2); complement of A184106.	nonn,easy,synth	1..70	unkn
+
+A184108	ComplementSequence	n + floor(3*sqrt(n-1)); complement of A184109.	nonn,easy,synth	1..100	compseq
+A184109	LinearRecurrence	n + ceiling(n^2/9); complement of A184108.	nonn,easy,changed,	1..10000	unkn
+
+A184110	null	n + floor(3*sqrt(n+1)).	nonn,easy,synth	1..100	nyi
+
+
+A184111	ComplementSequence	n+floor(4*sqrt(n-1)); complement of A184112.	nonn,easy,synth	1..100	compseq
+A184112	LinearRecurrence	n+ceiling(n^2/16); complement of A184111.	nonn,easy,synth	1..90	unkn
+
+A184114	null	n + floor(5*sqrt(n-1)); complement of A184115.	nonn,easy,synth	1..100	nyi
+A184413	null	Lower s(n)-Wythoff sequence, where s(n)=floor[(n+1)/2]; complement of A184414.	nonn,synth	1..100	nyi
+
+A184578	null	a(n) = floor((n+1/3)*sqrt(2)), complement of A184579.	nonn,	1..10000	nyi
+A184579	null	a(n) = floor((n-1/3)*(2+sqrt(2))), complement of A184578.	nonn,	1..10000	nyi
+
+A184580	null	a(n) = floor((n-1/4)*sqrt(2)), complement of A184581.	nonn,	1..10000	nyi
+A184581	null	a(n) = floor((n + 1/4)*(2 + sqrt(2))).	nonn,	1..10000	nyi
+
+A184582	null	floor[(n+1/5)r] where r=(1+sqrt(5))/2; complement of A184583.	nonn,synth	1..120	nyi
+A184583	null	floor[(n-1/5)(1+r)], where r=(1+sqrt(5))/2; complement of A184582.	nonn,synth	1..120	nyi
+
+A184584	null	floor[(n-1/3)r], where r=sqrt(5); complement of A184585.	nonn,synth	1..120	nyi
+A184585	null	floor[(n+1/3)(1+r)], where r=sqrt(5); complement of A184584.	nonn,synth	1..120	nyi
+
+A184586	null	a(n) = floor((n-1/2)*r), where r=sqrt(5); complement of A184587.	nonn,synth	1..120	nyi
+A184587	null	a(n) = floor((n+1/2)*s), where s=(5+sqrt(5))/4; complement of A184586.	nonn,synth	1..120	nyi
+
+A184589	null	floor(n*e-1); complement of A184590.	nonn,synth	1..120	nyi
+A184590	null	floor[(n*e+1)/(e-1)]; complement of A184589.	nonn,synth	1..120	nyi
+
+A184591	null	a(n) = floor(n*(Pi-1)-1); complement of A184592.	nonn,changed,synth	1..120	nyi
+A184592	null	a(n) = floor((n*(Pi-1) + 1)/(Pi-2)); complement of A184591.	nonn,changed,synth	1..120	nyi
+
+A184618	null	a(n) = floor(n*r + h), where r=sqrt(2) and h=1/3; complement of A184619.	nonn,	1..10000	nyi
+A184619	null	a(n) = floor((n-h)*s+h), where s=2+sqrt(2) and h=1/3; complement of A184618.	nonn,	1..10000	nyi
+
+A184674	HolonomicRecurrence	a(n) = n+floor((n/2-1/(2*n))^2); complement of A184675.	nonn,easy,changed,	1..10000	holos
+A184675	ComplementSequence	n + floor(sqrt(n) + sqrt(n+1)); complement of A184674.	nonn,easy,synth	1..67	compseq
+
+A184676	LinearRecurrence	a(n) = n + floor((n/2-1/(4*n))^2); complement of A183867.	nonn,easy,	1..5000	unkn
+A183867	ComplementSequence	a(n) = n + floor(2*sqrt(n)); complement of A184676.	nonn,easy,	1..5000	compseq
+
+
+A184776	null	Numbers m such that prime(m) is of the form floor(k*sqrt(2)); complement of A184779.	nonn,	1..10000	nyi
+A184779	null	Numbers m such that prime(m) is of the form 2k + floor(k*sqrt(2)); complement of A184776.	nonn,	1..10000	nyi
+
+A184793	null	Numbers m such that prime(m) is of the form floor(k*r), where r=(1+sqrt(5))/2; complement of A180736.	nonn,synth	1..97	nyi
+A184795	null	Numbers m such that prime(m) is of the form floor(k*s), where s=(3+sqrt(5))/2; complement of A184793.	nonn,synth	1..72	nyi
+
+A184798	null	Numbers m such that prime(m) is of the form floor(k*sqrt(3)); complement of A184801.	nonn,synth	1..93	nyi
+A184801	null	Numbers m such that prime(m) is of the form floor(ks), where s=(3+sqrt(3))/2; complement of A184778.	nonn,synth	1..102	nyi
+
+A184804	null	Numbers m such that prime(m) is of the form floor(k*sqrt(5)); complement of A184807.	nonn,synth	1..99	nyi
+A184807	null	Numbers m such that prime(m) is of the form floor(k*s), where s=(5+sqrt(5))/4; complement of A184804.	nonn,synth	1..99	nyi
+
+A184808	1+sqrt(2/3)
+A184809	1+sqrt(3/2)
+
+A184810	null	Numbers m such that prime(m) has the form floor(k*r), where r=sqrt(2/3); complement of A184811.	nonn,synth	1..105	nyi
+A184811	null	Numbers m such that prime(m) has the form floor(r*k), where r=sqrt(3/2); complement of A184810.	nonn,synth	1..91	nyi
+
+A184855	null	Numbers m such that prime(m) is of the form (k*e); complement of A184858.	nonn,synth	1..94	nyi
+A184858	null	Numbers m such that prime(m) is of the form floor(k*e/(e-1)); complement of A184855.	nonn,synth	1..106	nyi
+
+A184861	null	Numbers m such that prime(m) is of the form floor(nr+h), where r=(1+sqrt(5))/2 and h=1/2; complement of A184864.	nonn,synth	1..105	nyi
+A184864	null	Numbers m such that prime(m) is of the form floor(n+nr-r/2), where r=(1+sqrt(5))/2; complement of A184861.	nonn,synth	1..92	nyi
+
+A184867	null	Numbers m such that prime(m) is of the form floor(1/2+k*sqrt(2)).  Complement of A184870.	nonn,	1..10000	nyi
+A184870	null	Numbers m such that prime(m) is of the form floor[(k-1/2)*(2+2^(1/2))+1/2]; complement of A184867.	nonn,	1..10000	nyi
+
+A000093	Sequence	a(n) = floor(n^(3/2)).	nonn,easy,	0..500	unkn
+A185543	ComplementSequence	Numbers not of the form floor(k^(3/2)); complement of A000093.	nonn,	1..5000	compseq
+
+A185546	null	a(n) = floor((1/2)*(n+1)^(3/2)); complement of A185547.	nonn,	1..5000	nyi
+A185547	null	Numbers not of the form floor((1/2)(n+1)^(3/2)); complement of A185546.	nonn,	1..5000	nyi
+
+A185595	null	a(n) = floor(n^(3/2)) - floor(n^(1/2)); complement of A185596.	nonn,	1..5000	nyi
+A185596	null	Complement of A185595.	nonn,easy,	1..5000	nyi
+
+A185597	null	a(n) = floor(n^(3/2) - n^(1/2)); complement of A185598.	nonn,easy,	1..5000	nyi
+A185598	null	Numbers not of the form floor(n^(3/2)-n^(1/2)); complement of A185597.	nonn,	1..5000	nyi
+
+A185599	null	a(n) = floor(n^(3/2) - n^(1/2)) - n; complement of A185600.	nonn,	3..5000	nyi
+A185600	null	Numbers not of the form floor(n^(3/2) - n^(1/2)); complement of A185599.	nonn,	1..5000	nyi
+
+A185601	null	a(n) = floor(n^(3/2))-floor(n^(1/2))-n; complement of A185602.	nonn,	3..5000	nyi
+A185602	null	Numbers not of the form floor(n^(3/2))-floor(n^(1/2))-n; complement of A185601.	nonn,easy,	1..5000	nyi
+
+A185603	null	a(n) = floor(floor(n^(5/2))^(1/2)); complement of A185604.	nonn,easy,	1..5000	nyi
+A185604	null	Complement of A185603.	nonn,	1..5000	nyi
+
+
+A186544	(Pi-2)/(Pi-3)
+A187320	(Pi-2)       
+
+A187334	Sum{floor(kn/5), k=1,2,3,4,5}; complement of A187335.	nonn,synth	0..100	nyi
+A187335	Complement of A187334.	nonn,synth	1..100	nyi
+
+A187336	Sum{floor(kn/6), k=1,2,3,4,5}.	nonn,synth	0..109	nyi
+A187337	Sum{floor(kn/7), k=1,2,3,4,5,6}.	nonn,synth	0..101	nyi
+
+A187328	2-1/sqrt(2)
+A187338	3+sqrt(2)  
+
+A187330	(4-sqrt(5))
+A187339	(7+sqrt(5))/4
+
+A187341	(5-sqrt(5))
+A187342	((15+sqrt(5))/11)
+
+A187385	1+sqrt(3)+sqrt(2)
+A187386	1+sqrt(3)-sqrt(2)
+
+A187387	1+sqrt(6)+sqrt(5)
+A187388	1+sqrt(6)-sqrt(5)
+
+A187389	1 + sqrt(7) + sqrt(6)
+A187390	1 + sqrt(7) - sqrt(6)
+
+A187391	1+sqrt(8)+sqrt(7)
+A187392	1+sqrt(8)-sqrt(7)
+
+A187393	4 + sqrt(8)
+A187394	4 - sqrt(8)
+
+A187395	4 + sqrt(10) 
+A187396	-2 + sqrt(10)
+
+A194145	-1+sqrt(6)
+A194146	(4+sqrt(6))/2
+
+A249115	(5 - sqrt(5))/2	complement of A003231
+
+#----
+A087465	null	Rank array R of 3/2 read by antidiagonals; this array is the dispersion of the complement of the sequence given by r(n) = r(n-1) + 1 + floor(3n/2) for n>=1, with r(0) = 1; that is, A077043(n+1).	nonn,tabl,	0..1829	nyi
+A179185	null	Rank transform of the sequence floor(n*sqrt(2)); complement of A186543.	nonn,synth	1..79	nyi
+
+A187226	null	Rank transform of the sequence floor(n/4); complement of A187227.	nonn,synth	1..108	nyi
+A187228	null	Rank transform of the sequence floor(3n/4); complement of A187229.	nonn,synth	1..101	nyi
+A187230	null	Rank transform of the sequence floor(5n/4); complement of A187231.	nonn,synth	1..96	nyi
+A187232	null	Rank transform of the sequence floor(7n/4); complement of A187233.	nonn,synth	1..96	nyi
+A187319	null	Rank transform of the sequence floor(n/sqrt(3)); complement of A187410.	nonn,synth	1..92	nyi
+
+A187343	null	Rank transform of the sequence floor(6n/5); complement of A187244.	nonn,synth	1..68	nyi
+A187345	null	Rank transform of the sequence floor(7n/5); complement of A187346.	nonn,synth	1..67	nyi
+A187347	null	Rank transform of the sequence floor(8n/5); complement of A187348.	nonn,synth	1..66	nyi
+A187349	null	Rank transform of the sequence floor(9n/5); complement of A187348.	nonn,synth	1..65	nyi
+A187351	null	Rank transform of the sequence floor(n/sqrt(2)); complement of A187352.	nonn,synth	1..71	nyi
+
+
+A187411	null	Rank transform of the sequence floor(n*sqrt(3)); complement of A187412.	nonn,synth	1..89	nyi
+A187415	null	Rank transform of the sequence floor(n*(-1+sqrt(5))); complement of A187416.	nonn,synth	1..88	nyi
+A187472	null	Rank transform of the sequence floor((e-1)n); complement of A187473.	nonn,synth	1..66	nyi
+A187474	null	Rank transform of the sequence floor(n*(Pi-2)); complement of A187475.	nonn,changed,synth	1..68	nyi
+A187476	null	Rank transform of the sequence floor(3(n-1)/2)); complement of A187477.	nonn,synth	1..66	nyi
+A187478	null	Rank transform of the sequence floor(3(n-2)/2)); complement of A187479.	nonn,synth	1..67	nyi
+A187574	null	Rank transform of the sequence floor(3^(1/3)); complement of A187575.	nonn,synth	1..89	nyi
+A187576	null	Rank transform of the sequence 2*floor((n-1)/2)); complement of A187577.	nonn,synth	1..84	nyi
+A187578	null	Rank transform of the sequence 3*floor(n/3); complement of A187579.	nonn,synth	1..90	nyi
+A187580	null	Rank transform of the sequence 2*floor(n/2); complement of A187581.	nonn,synth	1..84	nyi
+A187582	null	Rank transform of the sequence 3*floor(n/2); complement of A187583.	nonn,synth	1..89	nyi
+A187681	null	Rank transform of the sequence floor(n/3); complement of A187682.	nonn,synth	1..97	nyi
+A187683	null	Rank transform of the sequence floor(2n/3); complement of A187683.	nonn,synth	1..95	nyi
+A187685	null	Rank transform of the sequence floor(4n/3); complement of A187686.	nonn,synth	1..82	nyi
+A187687	null	Rank transform of the sequence floor(5n/3); complement of A187688.	nonn,synth	1..81	nyi
+A187833	null	Rank transform of the sequence floor(3n/2-1/2); complement of A187834.	nonn,synth	1..82	nyi
+A187835	null	Rank transform of the sequence floor(3n/2-2/3); complement of A187836.	nonn,synth	1..82	nyi
+A187837	null	Rank transform of the sequence floor(rn/2-1/2), where r=(1+sqrt(5))/2 (the golden ratio); complement of A187838.	nonn,synth	1..81	nyi
+A187839	null	Rank transform of the sequence floor(n*sqrt(2)-1/2); complement of A187840.	nonn,	1..10000	nyi
+A187841	null	Rank transform of the sequence floor(n*sqrt(2)+1/2); complement of A187842.	nonn,synth	1..82	nyi
+A187899	null	Rank transform of the sequence floor((2-sqrt(2))n); complement of A187900.	nonn,synth	1..94	nyi
+A187901	null	Rank transform of the sequence floor((3-sqrt(3))n); complement of A187902.	nonn,synth	1..83	nyi
+A187903	null	Rank transform of the sequence floor((2-1/sqrt(2))n); complement of A187904.	nonn,synth	1..83	nyi
+A187905	null	Rank transform of the sequence floor((3-sqrt(5))n); complement of A187906.	nonn,synth	1..84	nyi
+A187907	null	Rank transform of the sequence floor((4 - sqrt(5))*n); complement of A187908.	nonn,synth	1..81	nyi
+A187909	null	Rank transform of the sequence floor((-1+sqrt(5))n/2); complement of A187910.	nonn,synth	1..84	nyi
+A187911	null	Rank transform of the sequence (1+floor(n*r)), where r=(-1+sqrt(5))/2; complement of A187912.	nonn,synth	1..84	nyi
+

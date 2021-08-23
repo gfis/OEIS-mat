@@ -266,6 +266,36 @@ interval: # LIST= WIDTH= ; unload and set low, high into $(PARM3), $(PARm4)
 	>        $(LIST)
 	wc -l    $(LIST)
 #========
+floor: floor0 floor1 floor2
+floor0: # generate from guides
+	perl solvetab.pl -a ABC \
+	| cut -f1-4 \
+	| sed -e "s/~~//g" \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+floor1: # simplify with Maple
+	perl $(COMMON)/callmaple.pl -t 2 -n 32 -p $(FISCHER)/simplify.mpat floor0.tmp \
+	| perl -ne 's/\s+\Z//; my ($$aseqno, $$callcode, $$ofs, $$expr) = split(/\t/); '\
+	' print join("\t", $$aseqno, $$callcode, $$ofs, "~~floor($$expr)", $$expr) . "\n"; ' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+floor2: # convert $(PARM1) -> postfix -> CR
+	cp -v floor1.tmp $@.tmp
+	make post_cr LIST=$@.tmp
+floor3:
+	make load LIST=floor2.tmp
+	# $(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	# $(DBAT) -f floor3.sql
+#----
+floorD:
+	grep -E "\[|floor" $(COMMON)/joeis_names.txt \
+	| perl ck_guide_D.pl -a D  \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#========
 decsolv: decsolv0 decsolv1 decsolv2 decsolv3 decsolv4 # solve()
 	cp -v decsolv3.tmp $@.gen
 	head -n4 $@.gen
@@ -350,7 +380,7 @@ solvepari: # intervals from GP/PARI solve()
 	  >      $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#----
+#----------------
 decexp: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
 	cp -v decexp4.tmp $@.gen
 	head -n4 $@.gen
