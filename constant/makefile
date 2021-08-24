@@ -266,35 +266,51 @@ interval: # LIST= WIDTH= ; unload and set low, high into $(PARM3), $(PARm4)
 	>        $(LIST)
 	wc -l    $(LIST)
 #========
-floor: floor0 floor1 floor2
+floor: floor0 floor1 floor2 floor3
+	cp floor3.tmp floor.gen
 floor0: # generate from guides
 	perl solvetab.pl -a ABC \
 	| cut -f1-4 \
-	| sed -e "s/~~//g" \
+	| perl -ne 's{\t~~(.*)\Z}{\tfloor\($$1\)}g; print; '\
 	| sort | uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 floor1: # simplify with Maple
-	perl $(COMMON)/callmaple.pl -t 2 -n 32 -p $(FISCHER)/simplify.mpat floor0.tmp \
+	cat floor0.tmp \
+	| perl $(COMMON)/callmaple.pl -t 2 -n 32 -p $(FISCHER)/simplify.mpat \
 	| perl -ne 's/\s+\Z//; my ($$aseqno, $$callcode, $$ofs, $$expr) = split(/\t/); '\
-	' print join("\t", $$aseqno, $$callcode, $$ofs, "~~floor($$expr)", $$expr) . "\n"; ' \
+	' $$expr =~ s{\(\-}{\(0\-}g; $$expr =~ s{\A\-}{0\-}; '\
+	' print join("\t", $$aseqno, $$callcode, $$ofs, "~~;$$expr", "", $$expr) . "\n"; ' \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 floor2: # convert $(PARM1) -> postfix -> CR
 	cp -v floor1.tmp $@.tmp
 	make post_cr LIST=$@.tmp
-floor3:
-	make load LIST=floor2.tmp
-	# $(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
-	# $(DBAT) -f floor3.sql
+floor3: # weird patches for leading "CR.mN" and "null."
+	cat floor2.tmp \
+	| perl -ne 's{(\.floor\(\)\.)(add|subtract)\(CR\.(\w+)\)\t}{$$1$$2\(Z\.$$3\)\t}; '\
+	' print; '\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----
-floorD:
+floorD: floorD1 floorD2 floorD3
+floorD1:
 	grep -E "\[|floor" $(COMMON)/joeis_names.txt \
 	| perl ck_guide_D.pl -a D  \
-	| tee    $@.tmp
+	| sort \
+	>        $@.tmp
+	head -n8 $@.tmp
 	wc -l    $@.tmp
+	cp -v    $@.tmp floor0.tmp
+floorD2:
+	make floor1 floor2 floor3
+floorD3:
+	perl expr_collect.pl floor3.tmp \
+	| perl -ne 's{\tCR\.valueOf\(mN}{\tZ\.valueOf\(mN}; print; '\
+	>        floorD.gen
 #========
 decsolv: decsolv0 decsolv1 decsolv2 decsolv3 decsolv4 # solve()
 	cp -v decsolv3.tmp $@.gen

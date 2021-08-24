@@ -43,11 +43,13 @@ while (<>) {
     $name =~ s{ *\. *\Z}{};
     $name =~ s{( with|\,? *where) }{\,}g;
     $name =~ s{ and }{\,}g;
-    $name =~ s{n mod (\d+)}{mod\(n\,$1\)}g;
+    next if $name =~ s{n mod (\d+)}{mod\(n\,$1\)}g;
     $name =~ s{\, *\[ *\] (denotes|represents) the floor function}{}g;
     $name =~ s{[\;\,] *\[ *\] *\= *floor}{}g;
     $name =~ s{\[}{floor\(}g; # [...] -> floor(...)
     $name =~ s{\]}{\)}g;
+    $name =~ s{(\d)([a-zA-Z])}{$1\*$2}g;
+    $name =~ s{pi}{Pi}g;
     if ($name =~ s{\, *tau *\= *golden *ratio( *\= *\(1 *\+ *sqrt\(5\)\) *\/ *2)?}{}) {
         $name =~ s{tau}{phi}g;
     }
@@ -57,18 +59,23 @@ while (<>) {
         $name =~ s{r}{phi}g;
     }
     $name =~ s{\;}{\,}g; # remove spaces
+    if ($name =~ s{\, *x\=([^\.\,\;]+)}{}) { # special treatment of "x" - the only nested one?
+        my $x = $1;
+        $name =~ s{x}{$x}g;
+    }
     if ($name =~ m{\An\+floor\(n}) {
         foreach my $part(split(/\,/, $name)) {
             my $cc = "floor_";
             $part =~ s{\A((\w)\=)?(.+)}{$3};
-            my $code = $2 || "0";
-            print join("\t", $aseqno, "$cc$code", $part) . "\n";
+            my $code = defined($2) ? ("m" . uc($2)) : "z"; # "Z" is the highest lowercase letter and may not be a variable name
+            print join("\t", $aseqno, "$cc$code", 0, "$part") . "\n";
         } # foreach
     } else {
     }
 } # while
 __DATA__
 #--------------------------------
+A190754	null	a(n)=n+[nr/u]+[ns/u]+[nt/u]+[nv/u]+[nw/u], where r=sinh(x),s=cosh(x),t=tanh(x),u=csch(x),v=sech(x),w=coth(x),x=Pi/2.	nonn,changed,synth	1..65	nyi
 A189377	null	a(n) = n + floor(ns/r) + floor(nt/r) with r=2, s=(-1+sqrt(5))/2, t=(1+sqrt(5))/2.	nonn,changed,synth	1..84	nyi
 A189378	null	a(n) = n + [nr/s] + [nt/s]; r=2, s=(-1+sqrt(5))/2, t=(1+sqrt(5))/2.	nonn,changed,synth	1..82	nyi
 A189379	null	n+[nr/t]+[ns/t]; r=2, s=(-1+sqrt(5))/2, t=(1+sqrt(5))/2.	nonn,changed,synth	1..84	nyi

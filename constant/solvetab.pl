@@ -283,9 +283,9 @@ while (<DATA>) {
         # b[n_]:=Floor[(1/2)(d+2+k)(n-r/(d+2))]; (* A184479 *)
         my ($k, $r);
         ($opt, $k, $r, @ans) = map { s{nnnn}{}; $_ } split(/\t/, $line, -5);
-        $r = - $r;
-        my $b1 = &polish("(sqrt(4+$k^2)+2-$k)*(n+$r/(sqrt(4+$k^2)+2))/2");
-        my $b2 = &polish("(sqrt(4+$k^2)+2+$k)*(n-$r/(sqrt(4+$k^2)+2))/2");
+        # $r = - $r; # invert the sign in the MMAs?
+        my $b1 = &polish("(sqrt(4+$k^2)+2-$k)*(n-$r/(sqrt(4+$k^2)+2))/2");
+        my $b2 = &polish("(sqrt(4+$k^2)+2+$k)*(n+$r/(sqrt(4+$k^2)+2))/2");
         &outstd($ans[0], "floor", $b1, $ans[1]);
         &outstd($ans[1], "floor", $b2, $ans[0]);
 
