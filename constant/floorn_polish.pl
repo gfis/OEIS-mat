@@ -1,12 +1,10 @@
 #!perl
-# Extract parameters from Clark Kimberling's guides
+# Polish formualae for floor|ceil|roudn|frac
 # @(#) $Id$
-# 2021-08-22, Georg Fischer
+# 2021-08-29, Georg Fischer
 #
-#:# Usage:
-#:#   perl ck_guide_D.pl [-d debug] [-a sel] [-m {old|new}]joeis_names.txt > output
-#:#       -a selection code (a letter)
-#:#       -m mode: old or new
+#:# Usage: (cf. makefile)
+#:#   perl floorn.pl [-d debug] input > output
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -19,24 +17,18 @@ if (0 && scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }
-my $asel = "0-9a-zA-Z"; # select all possible TAB codes
-my $mode = "new";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{a}) {
-        $asel      = shift(@ARGV);
-    } elsif ($opt  =~ m{m}) {
-        $mode      = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
 
 my $offset = 0;
-my $nok = 0; # assume ok
+my $nok; # assume ok
 # while (<DATA>) {
 while (<>) {
     $nok = 0;
@@ -45,19 +37,77 @@ while (<>) {
     next if ! m{\AA\d+};
     my ($aseqno, $superclass, $name, @rest) = split(/\t/, $line);
     my $orig_name = $name;
-    next if $superclass ne "null";
-    $name =~ s{ *\. *\Z}{}; # remove trailing "."
-    $name =~ s{ and }{\,}g; # normalize to ","
-    $name =~ s{golden ratio}{phi}g; # normalize to "phi"
+    $name =~ s{[\;\:]}{\,}g; # normalize to ","
+    $name =~ s{[\(\,]?complementofA\d+.*}{};
+    $name =~ s{ceiling}{ceil}ig;
+    $name =~ s{(ceil|floor|round|frac)}{lc($1)}ieg;
+    $name =~ s{\,\[\.?\](\=|denotes|is|represents)(the)?floor(function)?}{}; # remove explanation
+    $name =~ s{\,(\{\.?\}|frac)denotesthefract\w*}{}; # remove explanation
+    $name =~ s{\,\{\.?\}\=frac\w*}{}; # remove explanation
+    $name =~ s{\(thegoldenratio\.?\)?|isthegoldenratio}{}i; # remove expanation
+    $name =~ s{\=goldenratio}{\=phi}g; # normalize to "phi"
+    $name =~ s{pi}{Pi}g; # for Maple
+    $name =~ s{gamma\(}{GAMMA\(}ig; # for Maple
+    $name =~ s{cuberootof(\d)}{$1\^\(1\/3\)}g;
+    $name =~ s{\(1\+sqrt\(5\)\)\/2}{phi}g;
+    $name =~ s{\|}{abs\(}; # no! global
+    $name =~ s{\|}{\)};
+    $name =~ s{\)([a-z])}{\)\*$1}g; # insert "*" behind ")"
+    $name =~ s{(\d)([a-z])}{$1\*$2}g; # insert "*" behind digit
+    $name =~ s{(\W)([ne])([a-z])(\W)}{$1$2\*$3$4}g;
+    $name =~ s{floor\[([^\]]*)\]}{floor\($1\)}g;
+    $name =~ s{\*forx=}{\,x\=}g;
+    $name =~ s{n(cot|csc)\(}{n\*$1\(}g; # insert "*"
+    if ($name =~ s{\,fcomputesthefractionalpart}{}) {
+    	$name =~ s{f\(}{frac\(}g;
+    }
+    $name =~ s{cotangent}{cot}g;
+    $name =~ s{tau}{phi}g;
+    $name =~ s{phi\=phi}{phi}g;
+    $name =~ s{\,phi\Z}{}g;
+    $name =~ s{\[}{floor\(}g;
+    $name =~ s{\]}{\)}g;
+    $name =~ s{\{}{frac\(}g;
+    $name =~ s{\}}{\)}g;
+
+    $name =~ s{phi\=phi}{phi}g;
+    $name =~ s{phi\=phi}{phi}g;
+    $name =~ s{phi\=phi}{phi}g;
+    
+    
+    if (0) {
+    } elsif ($name =~ m{A\d\d\d+}) {
+        $nok = 1; # A-number
+    } elsif ($name =~ m{acciconstant}) {
+        $nok = 2;
+    } elsif ($name =~ m{(\W)[abcxyA-Z]\(}) {
+        $nok = 3;
+    } elsif ($name =~ m{(floors?|ceil)of}) {
+    	$nok = 4;
+    } elsif ($name =~ m{H_n}) {
+        $nok = 5;
+    } elsif ($name =~ m{fraction|sigma}) {
+        $nok = 6;
+    } elsif ($name =~ m{solution}) {
+        $nok = 7;
+    } elsif ($name =~ m{\w{7}}) {
+        $nok = 8;
+    } elsif ($name =~ m{with}) {
+        $nok = 9;
+    }
+    if ($nok == 0) {
+        print join("\t", $aseqno, $superclass, $name) . "\n";
+    } else { 
+    	print STDERR join("\t", $aseqno, "nok=$nok", $name) . "\n";
+    }
+} # while
+__DATA__
+
     $name =~ s{\(except for initial zero\)}{};
     $name =~ s{\,? *complement of A\d+}{}; # remove remark
-    $name =~ s{[\;\,] *\[ *\] *\= *floor.*}{}; # remove explanation
-    $name =~ s{[\;\,] *\{ *\} *\= *frac.*}{}; # remove explanation
     $name =~ s{\,? *(where )?\[ *\] (denotes|represents) (the )?floor.*}{}; # remove explanation
     $name =~ s{\,? *(where )?\{ *\} (denotes|represents) (the )?frac.*}{}; # remove explanation
-    $name =~ s{\(?complement of A\d+.*}{};
     $name =~ s{ceiling}{ceil}g; # for Maple
-    $name =~ s{pi}{Pi}g; # for Maple
     $name =~ s{\A[abc]\(n\) *\=? *}{};
     if (0) {
     } elsif ($name =~ m{(mod|sum|\.\.)|prod|binom|\!|fibon|lucas|concat|prime|number}i) { # skip the ones with "mod", "sum" or ".." 
@@ -177,28 +227,11 @@ sub insert_mul {
     return $name;
 } # insert_mul
 __DATA__
-#--------------------------------
-A051498	null	a(n) = floor(tan(n)^3).	sign,synth	0..72	nyi
-
-# A190427	uence	a(n) = [(b*n+c)*r] - b*[n*r] - [c*r], where (r,b,c)=(golden ratio,2,1) and []=floor.	nonn,	1..10000	floor
-# A190496	null	a(n) = [(bn+c)r]-b[nr]-[cr], where (r,b,c)=(sqrt(2),3,2) and []=floor.	nonn,	1000
-# A190504	null	n+[ns/r]+[nt/r]+[nu/r]; r=golden ratio, s=r+1, t=r+2, u=r+3.	nonn,synth	1..69	nyi
-# A190505	null	n+[nr/s]+[nt/s]+[nu/s];  r=golden ratio, s=r+1, t=r+2, u=r+3.	nonn,synth	1..71	nyi
-# A190506	null	n+[nr/t]+[ns/t]+[nu/t];  r=golden ratio, s=r+1, t=r+2, u=r+3.	nonn,synth	1..74	nyi
-# A190507	null	n+[nr/u]+[ns/u]+[nt/u];  r=golden ratio, s=r+1, t=r+2, u=r+3.	nonn,changed,synth	1..76	nyi
-# A190508	null	n+[ns/r]+[nt/r]+[nu/r]; r=golden ratio, s=r^2, t=r^3, u=r^4.	nonn,synth	1..68	nyi
-# 
-# A190754	null	a(n)=n+[nr/u]+[ns/u]+[nt/u]+[nv/u]+[nw/u], where r=sinh(x),s=cosh(x),t=tanh(x),u=csch(x),v=sech(x),w=coth(x),x=Pi/2.	nonn,changed,synth	1..65	nyi
-
-# A184820	null	n+[n/t]+[n/t^2];tisthetribonaccicon*stan*t.
-# A184821	null	n+[n*t]+[n/t];tisthetribonaccicon*stan*t.
-# A184822	null	n+[n*t]+[n*t^2];tisthetribonaccicon*stan*t.
-# A184823	null	n+[n/t]+[n/t^2]+[n/t^3];tisthetetranaccicon*stan*t.
-# A184824	null	n+[n*t]+[n/t]+[n/t^2];tisthetetranaccicon*stan*t.
-# A184825	null	n+[n*t]+[n*t^2]+[n/t];tisthetetranaccicon*stan*t.
-# A184826	null	n+[n*t]+[n*t^2]+[n*t^3];tisthetetranaccicon*stan*t.
-# A184835	null	n+[n/t]+[n/t^2]+[n/t^3]+[n/t^4];tisthepen*tanaccicon*stan*t.
-# A184836	null	n+[n*t]+[n/t]+[n/t^2]+[n/t^3];tisthepen*tanaccicon*stan*t.
-# A184837	null	n+[n*t]+[n*t^2]+[n/t]+[n/t^2];tisthepen*tanaccicon*stan*t.
-# A184838	null	n+[n*t]+[n*t^2]+[n*t^3]+[n/t];tisthepen*tanaccicon*stan*t.
-# A184839	null	n+[n*t]+[n*t^2]+[n*t^3]+[n*t^4];tisthepen*tanaccicon*stan*t.
+A184929	null	n+[rn/s]+[tn/s]+[un/s],[]=floor,r=sin(Pi/2),s=sin(Pi/3),t=sin(Pi/4),u=sin(Pi/5)
+A184930	null	n+[rn/t]+[sn/t]+[un/t],[]=floor,r=sin(Pi/2),s=sin(Pi/3),t=sin(Pi/4),u=sin(Pi/5)
+A184931	null	n+[rn/u]+[sn/u]+[tn/u],[]=floor,r=sin(Pi/2),s=sin(Pi/3),t=sin(Pi/4),u=sin(Pi/5)
+A185546	null	floor((1/2)*(n+1)^(3/2));complementofA185547
+A185548	null	floor(floor(n^(5/2))^(2/3))
+A185549	null	ceil(n^(3/2));complementofA185550
+A185592	null	floor(n^(3/2))*floor(1+n^(3/2))*floor(2+n^(3/2))/6
+A185593	null	floor(n^(3/2))*floor(3+n^(3/2))/2

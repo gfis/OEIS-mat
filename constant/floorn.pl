@@ -1,12 +1,10 @@
 #!perl
-# Extract parameters from Clark Kimberling's guides
+# Polish formualae for floor|ceil|roudn|frac
 # @(#) $Id$
-# 2021-08-22, Georg Fischer
+# 2021-08-29, Georg Fischer
 #
-#:# Usage:
-#:#   perl ck_guide_D.pl [-d debug] [-a sel] [-m {old|new}]joeis_names.txt > output
-#:#       -a selection code (a letter)
-#:#       -m mode: old or new
+#:# Usage: (cf. makefile)
+#:#   perl floorn.pl [-d debug] input > output
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -19,24 +17,18 @@ if (0 && scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }
-my $asel = "0-9a-zA-Z"; # select all possible TAB codes
-my $mode = "new";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{a}) {
-        $asel      = shift(@ARGV);
-    } elsif ($opt  =~ m{m}) {
-        $mode      = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
 
 my $offset = 0;
-my $nok = 0; # assume ok
+my $nok; # assume ok
 # while (<DATA>) {
 while (<>) {
     $nok = 0;
@@ -45,9 +37,7 @@ while (<>) {
     next if ! m{\AA\d+};
     my ($aseqno, $superclass, $name, @rest) = split(/\t/, $line);
     my $orig_name = $name;
-    next if $superclass ne "null";
-    $name =~ s{ *\. *\Z}{}; # remove trailing "."
-    $name =~ s{ and }{\,}g; # normalize to ","
+
     $name =~ s{golden ratio}{phi}g; # normalize to "phi"
     $name =~ s{\(except for initial zero\)}{};
     $name =~ s{\,? *complement of A\d+}{}; # remove remark

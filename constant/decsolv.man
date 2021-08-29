@@ -161,3 +161,6 @@ A255272	decsolv	0	~~tan(x)-x
 A255899	decsolv	0	~~2*arccos(x/2)-(1/2)*x*sqrt(4-x^2)-2*Pi/3
 A255913	decsolv	0	~~x/3*(sqrt((sqrt(4*x^2+1)-1)/(2*x^2)))^3-Pi/4+arcsin(sqrt((sqrt(4*x^2+1)-1)/(2*x^2)))
 A256514	decsolv	0	~~1/agm(1,cos(x/2))-2
+
+# 2021-08-27
+A072223	decsolv	0	~~(1-x^2)^2-x

@@ -278,7 +278,7 @@ floor0: # generate from guides
 	wc -l    $@.tmp
 floor1: # simplify with Maple
 	cat floor0.tmp \
-	| perl $(COMMON)/callmaple.pl -t 2 -n 32 -p $(FISCHER)/simplify.mpat \
+	| perl $(COMMON)/callmaple.pl -t 2 -n 64 -p $(FISCHER)/simplify.mpat \
 	| perl -ne 's/\s+\Z//; my ($$aseqno, $$callcode, $$ofs, $$expr) = split(/\t/); '\
 	' $$expr =~ s{\(\-}{\(0\-}g; $$expr =~ s{\A\-}{0\-}; '\
 	' print join("\t", $$aseqno, $$callcode, $$ofs, "~~;$$expr", "", $$expr) . "\n"; ' \
@@ -296,14 +296,37 @@ floor3: # weird patches for leading "CR.mN" and "null."
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
-floorD: floorD1 floorD2 floorD3
-floorD1:
-	grep -E "\[|floor" $(COMMON)/joeis_names.txt \
-	| perl ck_guide_D.pl -a D  \
+floorn: 
+	grep -Pi "^A\d+\tnull\t([ab]\(n\) *\=)?[0-9n\+\-\*\^ ]*(floor|ceil|round|frac|[\[\]])" $(COMMON)/joeis_names.txt \
+	| cut -f1-3 \
+	| grep -vPhi "mod|sum|\.\.|prod|binom|acci|lucas|digit|reverse|radius|Rounded|fractionalpart|Fractalization|elevator|concat|prime|power|number|integer|\-\>|\!|A[0-9]+\(|pi\(|\[x\^" \
+	| perl -ne 's{\t[ab]\(n\) *\= *(.*)}{\t$$1}; s{\.\Z}{}; s{ and }{\,}g; s{[\,\;]? *where}{\,}; s{ }{}g; print; ' \
+	| perl floorn_polish.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.*tmp
+dummy:
+	| perl ck_guide_D.pl -a D -m $(MODE) \
+	2>       $@.rest.tmp \
+	| perl -ne 's{\(n}{\(n\+1} if m{^A184116}; s{\t1\t}{\t0\t} if m{^A166477}; print; ' \
 	| sort \
 	>        $@.tmp
 	head -n8 $@.tmp
-	wc -l    $@.tmp
+	wc -l    $@.*tmp
+	cp -v    $@.tmp floor0.tmp
+floorD: floorD1 floorD2 floorD3
+MODE=new
+floorD1:
+	grep -E "\[\{|floor|ceil|round|frac" $(COMMON)/joeis_names.txt 
+	| grep -P "\tnull\t" \
+	| perl ck_guide_D.pl -a D -m $(MODE) \
+	2>       $@.rest.tmp \
+	| perl -ne 's{\(n}{\(n\+1} if m{^A184116}; s{\t1\t}{\t0\t} if m{^A166477}; print; ' \
+	| sort \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.*tmp
 	cp -v    $@.tmp floor0.tmp
 floorD2:
 	make floor1 floor2 floor3
@@ -311,6 +334,8 @@ floorD3:
 	perl expr_collect.pl floor3.tmp \
 	| perl -ne 's{\tCR\.valueOf\(mN}{\tZ\.valueOf\(mN}; print; '\
 	>        floorD.gen
+	head -n4 floorD.gen
+	wc -l    floorD.gen
 #========
 decsolv: decsolv0 decsolv1 decsolv2 decsolv3 decsolv4 # solve()
 	cp -v decsolv3.tmp $@.gen
@@ -526,4 +551,6 @@ bindec_check: # apply BinaryToDecimalExpansionSequence
 	head -n4 $@.txt
 	wc -l    $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+#================
+# ck_guides
 

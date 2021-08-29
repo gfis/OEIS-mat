@@ -1407,3 +1407,5 @@ A254666	decexp	0	~~1/(sqrt(2)*cos(1/sqrt(2)))
 A256425	decexp	0	~~gamma/3+Pi*sqrt(3)/18+log(3)/6
 A256719	decexp	0	~~(7+sqrt(97))/12
 A256720	decexp	0	~~(27+sqrt(489))/20
+# 2021-08-26
+A188636	decexp	0	~~(1/2)*1+sqrt(2)+sqrt(7+2*sqrt(2)))
