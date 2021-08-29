@@ -304,7 +304,9 @@ floorn:
 	| perl floorn_polish.pl \
 	2>       $@.rest.tmp \
 	>        $@.tmp
-	head -n8 $@.tmp
+	perl -ne 'if (s{\t\t}{\tnull\t}) { print; }' floorn.man > $@.1.tmp
+	make overwrite SRC=$@.1.tmp TAR=$@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.*tmp
 dummy:
 	| perl ck_guide_D.pl -a D -m $(MODE) \
@@ -331,7 +333,7 @@ floorD1:
 floorD2:
 	make floor1 floor2 floor3
 floorD3:
-	perl expr_collect.pl floor3.tmp \
+	perl expr_join.pl floor3.tmp \
 	| perl -ne 's{\tCR\.valueOf\(mN}{\tZ\.valueOf\(mN}; print; '\
 	>        floorD.gen
 	head -n4 floorD.gen

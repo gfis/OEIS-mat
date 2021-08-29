@@ -1,5 +1,6 @@
 #!perl
-# Polish formualae for floor|ceil|roudn|frac
+
+# Polish formulae for floor|ceil|roudn|frac
 # @(#) $Id$
 # 2021-08-29, Georg Fischer
 #
@@ -28,6 +29,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 my $offset = 0;
+my ($aseqno, $superclass, $name, @rest);
 my $nok; # assume ok
 # while (<DATA>) {
 while (<>) {
@@ -35,7 +37,7 @@ while (<>) {
     my $line = $_;
     $line =~ s/\s+\Z//; # chompr
     next if ! m{\AA\d+};
-    my ($aseqno, $superclass, $name, @rest) = split(/\t/, $line);
+    ($aseqno, $superclass, $name, @rest) = split(/\t/, $line);
     my $orig_name = $name;
     $name =~ s{[\;\:]}{\,}g; # normalize to ","
     $name =~ s{[\(\,]?complementofA\d+.*}{};
@@ -52,14 +54,11 @@ while (<>) {
     $name =~ s{\(1\+sqrt\(5\)\)\/2}{phi}g;
     $name =~ s{\|}{abs\(}; # no! global
     $name =~ s{\|}{\)};
-    $name =~ s{\)([a-z])}{\)\*$1}g; # insert "*" behind ")"
-    $name =~ s{(\d)([a-z])}{$1\*$2}g; # insert "*" behind digit
-    $name =~ s{(\W)([ne])([a-z])(\W)}{$1$2\*$3$4}g;
-    $name =~ s{floor\[([^\]]*)\]}{floor\($1\)}g;
+    $name =~ s{floor\[([^\]]*)\]}{floor\($1\)}g; # floor[ ] -> floor( )
     $name =~ s{\*forx=}{\,x\=}g;
     $name =~ s{n(cot|csc)\(}{n\*$1\(}g; # insert "*"
     if ($name =~ s{\,fcomputesthefractionalpart}{}) {
-    	$name =~ s{f\(}{frac\(}g;
+        $name =~ s{f\(}{frac\(}g;
     }
     $name =~ s{cotangent}{cot}g;
     $name =~ s{tau}{phi}g;
@@ -69,13 +68,23 @@ while (<>) {
     $name =~ s{\]}{\)}g;
     $name =~ s{\{}{frac\(}g;
     $name =~ s{\}}{\)}g;
+    $name =~ s{phi\^\-1}{\(1/phi\)}g;
 
-    $name =~ s{phi\=phi}{phi}g;
-    $name =~ s{phi\=phi}{phi}g;
-    $name =~ s{phi\=phi}{phi}g;
+    $name =~ s{(sin|cos|tan|cot|sec|csc)n\)}{$1\(n\)\)}g;
+    $name =~ s{0?\.5}{1\/2}g;
+    $name =~ s{(\W)E(\W)}{${1}e$2}g;
+    $name =~ s{\)([a-z])}{\)\*$1}g; # insert "*" behind ")"
+    $name =~ s{(\d)([a-z])}{$1\*$2}g; # insert "*" behind digit
+    $name =~ s{\)\(}{\)\*\(}g; # ")*(" 
+    $name =~ s{(\W)([eknrstu])([a-z])(\W)}{$1$2\*$3$4}g; # nr -> n*r
+    $name =~ s{(\W)(n)\*([a-z])(\W)}{$1$3\*$2$4}g; # n*r -> r*n
+
+    if ($name =~ s{\,([a-z])\=phi\Z}{}) {
+        my $var = $1;
+        $name =~ s{(\W)$var(\W)}{${1}phi$2}g;
+    }
     
-    
-    if (0) {
+    if ($nok > 0) { # already set
     } elsif ($name =~ m{A\d\d\d+}) {
         $nok = 1; # A-number
     } elsif ($name =~ m{acciconstant}) {
@@ -83,141 +92,42 @@ while (<>) {
     } elsif ($name =~ m{(\W)[abcxyA-Z]\(}) {
         $nok = 3;
     } elsif ($name =~ m{(floors?|ceil)of}) {
-    	$nok = 4;
+        $nok = 4;
     } elsif ($name =~ m{H_n}) {
         $nok = 5;
-    } elsif ($name =~ m{fraction|sigma}) {
+    } elsif ($name =~ m{(fraction|sigma|omega|phi\(n\)|isodd|Bell)}i) {
         $nok = 6;
-    } elsif ($name =~ m{solution}) {
+    } elsif ($name =~ m{solution|L\=}) {
         $nok = 7;
     } elsif ($name =~ m{\w{7}}) {
         $nok = 8;
     } elsif ($name =~ m{with}) {
         $nok = 9;
+    } elsif (($name =~ m{\=}) && ($name !~ m{\,})) {
+        $nok = 10;
     }
+    &check_parentheses();
     if ($nok == 0) {
         print join("\t", $aseqno, $superclass, $name) . "\n";
     } else { 
-    	print STDERR join("\t", $aseqno, "nok=$nok", $name) . "\n";
+        print STDERR join("\t", $aseqno, "nok=$nok", $name) . "\n";
     }
 } # while
-__DATA__
-
-    $name =~ s{\(except for initial zero\)}{};
-    $name =~ s{\,? *complement of A\d+}{}; # remove remark
-    $name =~ s{\,? *(where )?\[ *\] (denotes|represents) (the )?floor.*}{}; # remove explanation
-    $name =~ s{\,? *(where )?\{ *\} (denotes|represents) (the )?frac.*}{}; # remove explanation
-    $name =~ s{ceiling}{ceil}g; # for Maple
-    $name =~ s{\A[abc]\(n\) *\=? *}{};
-    if (0) {
-    } elsif ($name =~ m{(mod|sum|\.\.)|prod|binom|\!|fibon|lucas|concat|prime|number}i) { # skip the ones with "mod", "sum" or ".." 
-        $nok = 1; # wrong functions
-    } elsif ($name =~ m{A\d\d\d+\(}) {
-        $nok = 2; # A-number
-    } elsif ($name =~ m{acci constant|if n is even}) {
-        $nok = 4;
-    } elsif ($name =~ m{([n\d\+\-\*\^ ]+)?(floor|ceil(ing)?|round|frac)}i) {
-        $name =~ s{([n\d\+\-\*\^ ]+)?(floor|ceil(ing)?|round|frac)}{($1 || "") . lc($2)}ie;
-        if ($name =~ m{(\W)[a-dxy]\(}) { # still contains a(n...)
-            $nok = 7;
-        }
-    } else {
-        $nok = 8;
-        print STDERR "$aseqno, nok=8, name=\"$name\"\n";
+#----
+sub check_parentheses {
+    my $expr = $name;
+    $expr =~ s{[^\(\)]}{}g;
+    my $len = length($expr);
+    my $leo = $len + 1;
+    while ($len < $leo) {
+        $expr =~ s{\(\)}{}g;
+        $leo = $len;
+        $len = length($expr);
     }
-    if ($nok == 0)  {
-        $name =~ s{(\d)([a-zA-Z])}{$1\*$2}g; # insert "*"
-        $name =~ s{(\d)\[}{$1\*\[}g; # insert "*"
-        if ($name =~ s{floor\[}{floor\(}g) { # normalize "floor[" -> "floor("
-            $name =~ s{\]}{\)}g;
-        }
-        if ($name =~ s{[\,\;]? *r *\= *golden +ratio *\,}{}) { # normalize to "phi"
-            $name =~ s{\=r}{\=phi}g;
-        }
-        $name =~ s{phi\^\-1}{1\/phi}g;
-        $name =~ s{where phi *\= *.*}{}g;
-        if ($name =~ s{[\,\;]? *tau *\= *golden *ratio( *\= *\(1 *\+ *sqrt\(5\)\) *\/ *2)?}{}) {  # normalize to "phi"
-            $name =~ s{tau}{phi}g;
-        }
-        $name =  &insert_mul($name);
-        if ($name =~ s{r\=golden *ratio\,?}{}) { # normalize to "phi"
-            $name =~ s{(\W)r(\W)}{${1}phi$2}g;
-        }
-        
-        my %vhash = ();
-        if ($name =~ s{( *with|\,? *where|\;) *\(([^\)]+)\) *\= *\(([^\)]+)\).*}{}) { # extract the variables
-            #          1                    1    2      2          3      3
-            my $varlist = $2;
-            my $explist = $3;
-            my @vars = split(/\, */, $varlist);
-            my @exps = split(/\, */, $explist);
-            if (scalar(@vars) == scalar(@exps)) {
-                my $list = "";
-                for (my $ivar = 0; $ivar < scalar(@vars); $ivar ++) {
-                    $list .= ",$vars[$ivar]=$exps[$ivar]";
-                    $vhash{$vars[$ivar]} = $exps[$ivar];
-                } # for $ivar
-                $name .= $list;
-            }
-        } else {  
-            $name =~ s{( *with|\,? *where|\;) *}{\,}g; 
-        }
-        foreach my $var (keys(%vhash)) { # insert nested variables
-            $vhash{$var} =~ s{([bcdefgrstuvwx])}{$vhash{$1}}eg;
-        } # foreach key
-        $name =~ s{\[}{floor\(}g; # normalize [...] -> floor(...)
-        $name =~ s{\]}{\)}g; # normalize
-        $name =~ s{\{}{frac\(}g; # normalize {...} -> frac(...)
-        $name =~ s{\}}{\)}g; # normalize
-        $name =~ s{ }{}g; # remove spaces
-        $name =~ s{\;}{\,}g; # normalize to ","
-    #   if ($name =~ s{\, *x\=([^\.\,\;]+)}{}) { # special treatment of "x" - the only nested one?
-    #       my $x = $1;
-    #       $name =~ s{x}{$x}g;
-    #   }
-        $name =~ s{(\W)n\*(\w)(\W)}{$1$2\*n$3}g; # convert Z*CR to CR*Z
-        my $cc = "floor_";
-        if ($mode eq "old") { # old code
-            $name =~ s{\,\,+}{\,}g; # only one separator
-            if (0 or ($name =~ m{\An([\+\-\*])?(floor|ceil|round|frac)\(})) {
-                foreach my $part(split(/\, */, $name)) {
-                    $part =~ s{\A((\w)\=)?(.+)}{$3};
-                    my $code = defined($2) ? ("m" . uc($2)) : "z"; # "z" is the highest lowercase letter and may not be a variable name
-                    print join("\t", $aseqno, "$cc$code", 0, $part) . "\n";
-                } # foreach
-            } elsif ($nok == 0) {
-                $nok = 5;
-            }
-        } else { # new code
-            $name =~ s{\,\,+}{\,}g; # only one separator
-            if (($name =~ m{\A([n\d\+\-\*\^ ]+)?(floor|ceil|round|frac)\(})) {
-                foreach my $part(split(/\, */, $name)) {
-                    $part =~ s{\A((\w)\=)?(.+)}{$3};
-                    my $code = defined($2) ? ("m" . uc($2)) : "z"; # "z" is the highest lowercase letter and may not be a variable name
-                    print join("\t", $aseqno, "$cc$code", 0, $part) . "\n";
-                } # foreach
-            } elsif ($nok == 0) {
-                $nok = 6;
-            }
-        #   my ($var, $mVar);
-        #   $name =~ s{\,.*}{}; # remove all behind main formula
-        #   if (1 or ($name =~ m{\An(\+)?floor\(})) {
-        #       foreach $var (keys(%vhash)) {
-        #           $mVar = "m" . uc($var);
-        #           $name =~ s{(\W)$var(\W)}{$1$mVar$2}g; # replace "r" by "mR" etc.
-        #           print join("\t", $aseqno, "$cc$mVar", 0, "$vhash{$var}") . "\n";
-        #       } # variables
-        #       $mVar = "z"; # "z" is the highest lowercase letter and may not be a variable name
-        #       print     join("\t", $aseqno, "$cc$mVar", 0, $name, $orig_name) . "\n";
-        #   } else {
-        #       print STDERR "$line\n";
-        #   }
-        }
+    if ($len > 0) {
+        $superclass = "$expr";
     }
-    if ($nok > 0) {
-       print STDERR "# nok=$nok: $name # $line\n";
-    }
-} # while
+}
 #----
 sub insert_mul {
     my ($name) = @_;

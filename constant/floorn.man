@@ -1,0 +1,195 @@
+A058210		floor(exp(gamma)*n*(log(log(n))))
+A058634	nok=3	floor(b(n)),b(n)=1/cos(b(n-1)),b(0)=1
+A060144		floor(n/(1+phi))
+A061229	nok=4	floorofgeometricmeanofn,thereversalofn
+A061418	nok=3	floor(a(n-1)*3/2)*witha(1)=2
+A061419	nok=3	ceil(a(n-1)*3/2)*witha(1)=1
+A061723		floor(agm(n;2*n-1))
+A062005		floor(agm(n;2*n))
+A062121		floor(exp(n/Pi))
+A062787	nok=6	floor(exp(gamma)*nloglogn)-phi(n),gammaisEuler'sconstant(A001620)
+A063457	nok=3	floor(a(n-1)*(Pi-1)),a(1)=1
+A063458	nok=3	floor(a(n-1)^(Pi-1)),a(1)=2
+A063827	nok=3	round(sqrt(a(n-2)^2+a(n-1)^2))*witha(0)=1,a(1)=2
+A064650	nok=3	floor(a(n-1)/2)+a(n-2)*witha(0)=1,a(1)=2
+A064651	nok=3	ceil(a(n-1)/2)+a(n-2)*witha(0)=0,a(1)=1
+A065550	nok=6	floor(sqrt(phi(w)*sigma(w)+w^2)),w=10^n
+A065552	nok=8	floor(Sqrtfloor(Phifloor(w)*Sigmafloor(w)+(w^3))),w=10^n
+A066378	nok=8	floor(log(n))*dividesn
+A072648	nok=8	floor(log_frac(Phi)(n*sqrt(5))),log_frac(Phi)islogarithminthebasePhi(=(sqrt(5)+1)/2),floor()standsforthefloorfunction
+A075364	nok=1	floor(geometricmeanofn-throwofA075363)
+A076145		floor(agm(n;n^2))
+A076255		floor(t^n),t=3450844193^(1/9)
+A076829	nok=8	floor(log(log(n^n^n))(or0*ifnotfinite)
+A078141		floor(exp(0-gamma+n))
+A078619	nok=8	floor(averageoffirstnfactorials)
+A079038	nok=6	fractionalpartofsinh(n)*decreasesmonotonicallytozero
+A079039	nok=6	fractionalpartofcosh(n)*decreasesmonotonicallytozero
+A079040	nok=6	fractionalpartof1/(1-tanh(n))*decreasesmonotonicallytozero
+A079526	nok=5	floor(exp(H_n)*log(H_n))-sigma(n)
+A079527	nok=5	floor(exp(H_n)*log(H_n))
+A079553	nok=1	floor(d(n^2)/d(n)),d()=A000005
+A079554	nok=1	floor(d(n)/(2*logn)),d()=A000005
+A081464	nok=6	fractionalpartof(3/2)^ndecreasesmonotonicallytozero
+A082482		floor((2^n-1)/n)
+A084626	nok=3	floor(C(n+6,6)/C(n+2,2))
+A084627	nok=3	floor(C(n+6,6)/C(n+3,3))
+A084631	nok=3	floor(C(n+8,8)/C(n+2,2))
+A086863		floor(frac(((1*n^0+1*n^1+2*n^2+4*n^3)/(1*n^0+2*n^1+1*n^2))^2))
+A087192	nok=3	ceil(a(n-1)*4/3),witha(1)=1
+A089897		floor(Li(2^n))
+A089959		floor(1/(f-f^2)),f=frac(phi*n)
+A089961		floor(1/(frac(1/phi*n)-frac(1/phi*n)^2))-1
+A089997	nok=8	floor(Expfloor((Compositefloor(n)-Sqrtfloor(Compositefloor(n)*CompositePifloor(n)))/(-CompositePifloor(n)+Sqrtfloor(Compositefloor(n)*CompositePifloor(n)))))
+A090038		floor(1/(frac(k*n)-frac(k*n)^2))-1,k=sqrt(2)-1
+A090901	nok=8	floor(geometricmeanoffirstnfactorials)
+A091542		floor(abs(n*sin(n)))
+A091560	nok=3	fractionalpartofe^a(n)*isthelargestyet
+A092106	nok=8	fractalmountainsinbase3
+A094062		ceil((3-sqrt(3))*4^(n-3))+1
+A094393	nok=1	floor(A058303*(2^(n-2)+1/2))
+A096036	nok=3	ceil(n/a(ceil(n/2))),a(1)=1
+A096049	nok=3	floor(B(2*n,5)/B(2*n))(floor(x)=floor(x),seecommentforB(n,k)*definition)
+A096426	nok=4	flooroftheareaconsecutiveoddsidedtriangles
+A096605	nok=3	floor((floor(n/2)+a(floor(n/2)))/2),a(1)=1
+A097051	nok=3	floor(n/a(floor(n/2))),a(1)=1
+A098004	nok=6	fractionalPisot4X4MarkovsequenceBezierfrac(1/4,1/2,1/4)ofgoldenmean,theta0,theta1
+A098228	nok=8	floor(n/(n-phi(n))=floor(n/cototient(n))
+A100594		floor(Pi^(2*n)/Zeta(2*n))
+A100659	nok=4	floorofmeasure(indegrees)*oftheinternalanglesofaregularpolygonwithnsides
+A101667		ceil(2*(1-cos(2*n)))
+A103180		floor(2(1-cos(2*n)))
+A103354	nok=7	floor(x),xisthesolutiontox=2^(n-x)
+A103537	nok=7	round(1000*x),xisthesolutiontox=3^(n-x)
+A104744	nok=7	round(1000*x),xisthesolutiontox=5^(n-x)
+A104803	nok=3	floor(sqrt(a(n-1)^2+a(n-2)^2)),a(1)=1,a(2)=3
+A104863	nok=3	floor(sqrt(a(n-1)^2+a(n-2)^2)),a(1)=10,a(2)=30
+A104908	nok=3	floor(sqrt(a(n-1)^2+a(n-2)^2)),a(1)=100,a(2)=300
+A106694	nok=8	fractal-jumpsequence(FJS)*basedonPi
+A108775	nok=6	floor(sigma(n)/n)
+A108956	nok=3	floor(R(2*n)-R(n))
+A109271	nok=4	floorofexpansion(1+Pi*x)^e
+A109272	nok=4	floorofexpansion(1+e*x)^Pi
+A111495	nok=4	floor(10^n/Li(10^n)-1)
+A114181	nok=1	flooroflogbase10*ofsequenceA029722
+A116953		 floor(1/2*((1-2/sqrt(3))^n+(1-2/sqrt(3))^n))
+A117590	nok=3	ceil(x(n)),x(n)=3*x(n-1)/2,x(1)=1
+A117681		floor(exp(n^2))
+A120873	nok=1	fractalsequenceoftheWythoffdifferencearray(A080164)
+A120874	nok=1	fractalsequenceoftheFraenkelarray(A038150)
+A125893		floor((Pi^4/90)^n)
+A129229	nok=3	floor(n*r)-a(n-1),risthegoldenmean,phi
+A129231	nok=3	floor(n*r)-a(n-1),r=2^(1/2)
+A130705	nok=4	floorsofconstantsinDeBruijn'sapproachtoweightedCarleman'sinequality
+A136423		floor((x^n-(1-x)^n)/2+1/2),x=3/2
+A133299	nok=1	fractalsequenceoftheStolarskyarray,A035506
+A135607	nok=4	flooroftheareaofacircleintermsofitscircumferencen
+A135675		ceil(n^(4/3)-n)
+A135941	nok=8	floor(n/S2(n)),S2(n)*isthebinaryweightofn
+A136013	nok=3	floor(n/2)+2*a(floor(n/2)),a(0)=0
+A136424		floor((x^n-(1-x)^n)/(2*x-1)+.5),x=(sqrt(6)+1)/2
+A136670	nok=3	floor(a(n-1)*exp(Pi)),starting0,1
+A137507		100^floor(n/10)+2*n*10^floor(1/10*n)
+A137687		round(1/(log(n+2)*2)*3*n)
+A139333	nok=4	floorofentry(2,1)*offloor(0,1,1,phi)^n
+A140231		ceil(e^(phi*n))
+A140233		floor(e^(phi)*n)
+A140276	nok=4	floorofthe(first-quadrant)*angleindegreeswhosetangentisn
+A140474	nok=3	fractionalnoise-likesequence,a(n)=a(n-a(n-1))+a(floor(a0*n/b0)),a0<b0,a0=1,b0=8
+A140979		floor(phi*2*floor(phi*n))
+A144222	nok=4	floorofthevolumesofthefirstsixteenLobellpolyhedra
+A147789	nok=8	round(2*(3/2)^n),usinground-to-evenmethod
+A153063	nok=3	floor(b(n)),b(0)=1,b(n)=b(n-1)^2-n^b(n-1)
+A153064	nok=3	floor(b(n)),b(-1)=2,b(n)=b(n-1)^2-n^b(n-1)
+A153517	nok=4	floorofreciprocalofZeta'(n),Zeta'(n)*isthederivativeofRiemannZetafunction
+A153577	nok=4	floorofvalueofn-thderivativeofZeta(x)*atx=2
+A153595	nok=4	floorofdifferencebetweenimaginarypartsofconsecutivenontrivialzerosofRiemannZetafunction
+A154255	nok=4	floorofharmonicenergyoftheconjecturalminimal-energyconfigurationsofnpointsontheunitsphereinR^4,undertheharmonicpotentialfunction
+A157001	nok=6	fractionsx/y,with1<=x,y<=n,thatreduceto(odd)/(even)
+A161430	nok=1	fractaltrianglewhosevirtualskeletonisapolyedgeastheY-toothPickstructureofA160120
+A163256	nok=1	fractalsequenceoftheinterspersionA163253
+A163258	nok=1	fractalsequenceoftheinterspersionA163257
+A163568	nok=4	flooroftheintegralofx/log(x),x=2*to10^n
+A164083	nok=4	ceilof2^(n-1)*timesthesurfaceareaoftheunitspherein2*n-dimensionalspace
+A167198	nok=1	fractalsequenceoftheinterspersionA083047
+A167430	nok=1	fractalsequenceoftheinterspersionA163255
+A169778	nok=1	ceil(A170905/2)
+A169860		floor(1/5*n*127)
+A169861		ceil(1/5*n*127)
+A171622	nok=8	floor(n-thnoncomposite/n)
+A171626	nok=8	ceil(n-thnoncomposite/n)
+A174198	nok=4	floorofinverseofMinkowski'sconstant
+A174576	nok=8	floor((alpha^n-beta^n)(alpha-beta)),withalpha=(1+Sqrt(a0))/2,beta=(1-Sqrt(a0))/2,a0=(1+Sqrt(5))/2
+A174631	nok=8	floor((alpha^n-beta^n)(alpha-beta)),withalpha=(1+Sqrt(a0))/2,beta=(1-Sqrt(a0))/2,a0=realminimalPisotrootofx^3-x-1=0(1.324717957244746)
+A174805		n+ceil(sqrt(n))+floor(sqrt(n))
+A176302	nok=8	floor(abs((i+n)^n)),"i"istheImaginaryunit
+A181712		floor(3*phi*n)-floor(2*phi*n)-floor(phi*n)
+A182280	nok=3	floor(a(n-1)/4)+a(n-2)*witha(0)=3,a(1)=4
+A182281	nok=3	floor(a(n-1)/3)+a(n-2)*witha(0)=2,a(1)=3
+A182640	nok=3	n+floor(r*a(n-1)),r=phi
+A184007		floor(s*n+h-h*s),s=(3+sqrt(3))/2,h=-1/3
+A195458	nok=3	floor(sqrt(n)*a(n-1)),startingwith1
+A198272		round(sqrt(17)*n)
+A204544		frac((3/2)^n)
+A205840	nok=1	floor(s(k)-s(j))/2,thepairs(k,j)*aregivenbyA205837,A205838
+A206224	nok=8	floor(n^2/4)*appears1+floor(n/2)*times
+A213172	nok=4	flooroftheEuclideandistanceofapointonthe(1,2,3,4,5,6)3Dwalk
+A213633	nok=1	floor(A000027/A007978)
+A213634	nok=1	n-floor(n/m),mistheleastnondivisorofn(asinA007978)
+A219087		floor((n+1/2)^(4/3))
+A224985	nok=4	flooroftheEuclideandistanceofapointonthe(1,1,1,2,2,2)3Dwalk
+A225086	nok=8	floor(ksexp(n,11/10)),ksexp(n,z)=n^ksexp(n,z-1)*isKneser'ssuperexponential
+A225087	nok=8	floor(ksexp(n,12/10)),ksexp(n,z)=n^ksexp(n,z-1)*isKneser'ssuperexponential
+A225088	nok=8	floor(ksexp(n,13/10)),ksexp(n,z)=n^ksexp(n,z-1)*isKneser'ssuperexponential
+A225215	nok=4	flooroftheEuclideandistanceofapointonthe(1,1,1,1,1,1)3Dwalk
+A225541	nok=3	floor(W(n)),WistheLambertWfunction
+A225545	nok=8	floor(exp(w(n))),WistheLambertWfunction
+A231603		floor(agm(n+n;n*n))
+A232424	nok=4	floorofthehalfderivativeofx^2*atn
+A234362		floor(agm(n^2;n^3))
+A234363		floor(agm(n;n*n(n+1)))
+A234369		floor(agm(1;n*(n+1)))
+A234604	nok=4	floorofthesolutionstoc=exp(1+n/c)*forn>=0,usingrecursion
+A236212	nok=4	floorofthevalueofRiemann'sxifunctionatn
+A236312		floor((e+n)^2)
+A239297		floor(Pi*(10^n-10^(n+1)))
+A241906	nok=1	floor(bell(2*n)/bell(n)^2),bell=A000110
+A247179	nok=4	floorofareaenclosedintheinteriorofnunitcirclesarrangedinacircle
+A248347		floor(1/(Pi-2^(n+1)*sin(Pi/2^(n+1))))
+A248360		floor(1/(1-cos(Pi/n)))
+A254400	nok=3	floor(b(n)),b(n)=b(n-1)^(3/2),b(1)=2
+A254401	nok=3	floor(b(n)),b(n)=b(n-1)^(3/2),b(1)=3
+A254402	nok=3	floor(a(n-1)^(3/2)),a(1)=3
+A254403	nok=3	floor(b(n)),b(n)=b(n-1)^(3/2),b(1)=4
+A254404	nok=3	floor(a(n-1)^(3/2)),a(1)=4
+A254405	nok=3	floor(b(n)),b(n)=b(n-1)^(5/2),b(1)=2
+A254406	nok=3	floor(a(n-1)^(5/2)),a(1)=2
+A258033	nok=1	fractalsequencederivedfromA022328
+A258051	nok=1	fractalsequencederivedfromA258033
+A259506	nok=8	floor((LogGAMMA(n/2+1)-n*log(Pi)/2)/Pi)
+A272464	nok=1	fractalsequencerelatedtoStern'sdiatomicsequence(A002487)
+A275862	nok=3	floor(r*a(n-1))+floor(r*a(n-2)),r=3/2,a(0)=1,a(1)=1
+A275863	nok=3	floor(r*a(n-1))+floor(r*a(n-2)),r=5/2,a(0)=1,a(1)=1
+A275864	nok=3	floor(r*a(n-1))+floor(r*a(n-2)),r=5/3,a(0)=1,a(1)=1
+A275865	nok=3	floor(r*a(n-1))-floor(r*a(n-2)),r=3/2,a(0)=1,a(1)=1
+A275873	nok=3	floor(r*a(n-1))+floor(r*a(n-2))+floor(r*a(n-3)),r=3/2,a(0)=a(1)=a(2)=1
+A286522	nok=4	floorofthevolumeofthed-thChern-Vaalerstarbody
+A288758	nok=4	floorofthevolumeofthe"monicslice"ofthed-thChern-Vaalerstarbody
+A296357		ceil(1/Pi*n)
+A303607	nok=1	floor(C(n+1/2)),C=A000108
+A305559	nok=1	floor(0,-1,-1)togetherwithA000290
+A318053	nok=3	ceil(sqrt(2*a(n-1)*a(n-2))),a(1)=a(2)=1
+A318258	nok=1	floor(x)OmegaPolynomial(5,n).OmegaPolynomialsaredefinedinA318146
+A320472	nok=3	round(x(n)),(x(n),y(n))*aredefinedbytheChirikov"standardmap"y(n)=y(n-1)+sin(x(n-1)),x(n)=x(n-1)+y(n),withx(0)=y(0)=1
+A320474	nok=3	floor(x(n)),(x(n),y(n))*aredefinedbytheChirikov"standardmap"y(n)=y(n-1)+sin(x(n-1)),x(n)=x(n-1)+y(n),withx(0)=y(0)=1
+A320475	nok=3	round(x(n)),(x(n),y(n))*aredefinedbytheChirikov"standardmap"y(n)=y(n-1)+2*sin(x(n-1)),x(n)=x(n-1)+y(n),withx(0)=y(0)=1
+A320477	nok=3	floor(x(n)),(x(n),y(n))*aredefinedbytheChirikov"standardmap"y(n)=y(n-1)+2*sin(x(n-1)),x(n)=x(n-1)+y(n),withx(0)=y(0)=1
+A320478	nok=3	round(x(n)),(x(n),y(n))*aredefinedbytheChirikov"standardmap"y(n)=y(n-1)+3*sin(x(n-1)),x(n)=x(n-1)+y(n),withx(0)=y(0)=1
+A320480	nok=3	floor(x(n)),(x(n),y(n))*aredefinedbytheChirikov"standardmap"y(n)=y(n-1)+3*sin(x(n-1)),x(n)=x(n-1)+y(n),withx(0)=y(0)=1
+A325943	nok=1	floor(n/omega(n)),omega=A001221
+A329111	nok=3	round(b(n)),b(n)=b(n-1)^(b(n-1)^(1/b(n-1))),b(1)=2
+A330080	nok=3	floor(b(n)),b(1)=b(2)=b(3)=1,b(n)=(b(n-1)+b(n-2))/b(n-3))*forn>3
+A330306		floor(1/2+frac(Pi^n))
+A333588	nok=3	floor(-(3/2)*a(n-1)),a(1)=-2
+A333589	nok=3	floor(a(n-1)*3/2)*bitwise-ORLSB(a(n-1)*n),witha(1)=2(LSB=LeastSignificantBit)
+A339412	nok=3	floor(x(n)),x(n)=(frac(x(n-1))+1)*floor(x(n-1)),x(1)=Pi

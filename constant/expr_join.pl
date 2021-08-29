@@ -1,10 +1,11 @@
 #!perl
-# Recombine expressions splitted over several seq4 records
+
+# Recombine expressions splitted over several seq4 records by expr_split.pl
 # @(#) $Id$
 # 2021-08-23, Georg Fischer
 #
 #:# Usage:
-#:#   perl expr_collect.pl [-d debug] input.seq4 > output.seq4
+#:#   perl expr_join.pl [-d debug] input.seq4 > output.seq4
 #
 # The records must be sorted by aseqno and callcode, 
 # and the callcode ending in "_z" must be the last in each group.
