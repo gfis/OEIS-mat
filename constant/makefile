@@ -246,8 +246,9 @@ post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
 	$(JPREP) -cc infix -p $(FISCHER)/CR.xpat -f $@.tmp \
 	| sed -e "s/\r//" \
 	| perl $(FISCHER)/cr_polish.pl \
-	>        $(LIST)
-	wc -l    $(LIST)
+	>        $(LIST) \
+	2>       rest.$(LIST)
+	wc -l    *$(LIST)
 #--
 load: # LIST= ; update $(OFFSET)
 	#==== $@ LIST=$(LIST)
@@ -296,27 +297,40 @@ floor3: # weird patches for leading "CR.mN" and "null."
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
-floorn: 
+floorn: floorn0 floorn1 floorn2 floorn3
+floorn0:
 	grep -Pi "^A\d+\tnull\t([ab]\(n\) *\=)?[0-9n\+\-\*\^ ]*(floor|ceil|round|frac|[\[\]])" $(COMMON)/joeis_names.txt \
 	| cut -f1-3 \
 	| grep -vPhi "mod|sum|\.\.|prod|binom|acci|lucas|digit|reverse|radius|Rounded|fractionalpart|Fractalization|elevator|concat|prime|power|number|integer|\-\>|\!|A[0-9]+\(|pi\(|\[x\^" \
 	| perl -ne 's{\t[ab]\(n\) *\= *(.*)}{\t$$1}; s{\.\Z}{}; s{ and }{\,}g; s{[\,\;]? *where}{\,}; s{ }{}g; print; ' \
 	| perl floorn_polish.pl \
 	2>       $@.rest.tmp \
+	| sort \
 	>        $@.tmp
-	perl -ne 'if (s{\t\t}{\tnull\t}) { print; }' floorn.man > $@.1.tmp
+	perl -ne 'if (s{\t\t}{\tfloor\t0\t}) { print; }' floorn.man > $@.1.tmp
 	make overwrite SRC=$@.1.tmp TAR=$@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
-dummy:
-	| perl ck_guide_D.pl -a D -m $(MODE) \
-	2>       $@.rest.tmp \
-	| perl -ne 's{\(n}{\(n\+1} if m{^A184116}; s{\t1\t}{\t0\t} if m{^A166477}; print; ' \
-	| sort \
+floorn1: # simplify with Maple
+	cat floorn0.tmp \
+	| perl expr_split.pl \
+	| perl -ne 's/\s+\Z//; my ($$aseqno, $$callcode, $$ofs, $$expr) = split(/\t/); '\
+	' print join("\t", $$aseqno, $$callcode, $$ofs, "~~;$$expr", "", $$expr) . "\n"; ' \
 	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.*tmp
-	cp -v    $@.tmp floor0.tmp
+	head -n4 $@.tmp
+	wc -l    $@*.tmp
+	# | perl $(COMMON)/callmaple.pl -t 2 -n 64 -p $(FISCHER)/simplify.mpat 
+floorn2: # convert $(PARM1) -> postfix -> CR
+	cp -v floorn1.tmp $@.tmp
+	make post_cr LIST=$@.tmp
+floorn3: # weird patches for leading "CR.mN" and "null."
+	sort floorn2.tmp \
+	| perl expr_join.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp floorn.gen
+#---------------------------------
 floorD: floorD1 floorD2 floorD3
 MODE=new
 floorD1:

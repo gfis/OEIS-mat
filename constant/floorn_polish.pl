@@ -78,7 +78,8 @@ while (<>) {
     $name =~ s{\)\(}{\)\*\(}g; # ")*(" 
     $name =~ s{(\W)([eknrstu])([a-z])(\W)}{$1$2\*$3$4}g; # nr -> n*r
     $name =~ s{(\W)(n)\*([a-z])(\W)}{$1$3\*$2$4}g; # n*r -> r*n
-
+    $name =~ s{\(\-}{\(0\-}g; 
+    $name =~ s{\A\-}{0\-};
     if ($name =~ s{\,([a-z])\=phi\Z}{}) {
         my $var = $1;
         $name =~ s{(\W)$var(\W)}{${1}phi$2}g;
@@ -108,7 +109,7 @@ while (<>) {
     }
     &check_parentheses();
     if ($nok == 0) {
-        print join("\t", $aseqno, $superclass, $name) . "\n";
+        print join("\t", $aseqno, "floor", 0, $name) . "\n";
     } else { 
         print STDERR join("\t", $aseqno, "nok=$nok", $name) . "\n";
     }

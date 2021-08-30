@@ -31,8 +31,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
-my $offset = 0;
-my ($aseqno, $superclass, $name, @rest);
+my ($aseqno, $callcode, $offset, $name, @rest);
 my $nok; # assume ok
 # while (<DATA>) {
 while (<>) {
@@ -40,7 +39,7 @@ while (<>) {
     my $line = $_;
     $line =~ s/\s+\Z//; # chompr
     next if ! m{\AA\d+};
-    ($aseqno, $superclass, $name, @rest) = split(/\t/, $line);
+    ($aseqno, $callcode, $offset, $name, @rest) = split(/\t/, $line);
     my $orig_name = $name;
     
     my $cc = "floor_";
@@ -55,7 +54,9 @@ while (<>) {
     # $name =~ s{[\;\:]}{\,}g; # normalize to ","
 } # while
 __DATA__
-A184809	null	n+floor(sqrt(3/2)*n)
-A184909	null	n+floor(s*n/r)+floor(t*n/r),r=2^(1/4),s=2^(1/2),t=2^(3/4)
-A184910	null	n+floor(r*n/s)+floor(r*n/t),r=2^(1/4),s=2^(1/2),t=2^(3/4)
-A184911	null	n+floor(r*n/t)+floor(s*n/t),r=2^(1/4),s=2^(1/2),t=2^(3/4)
+A190343	floor	0	floor(n^((n-1)/2))
+A190504	floor	0	n+floor(s*n/r)+floor(t*n/r)+floor(u*n/r),r=phi,s=r+1,t=r+2,u=r+3
+A190505	floor	0	n+floor(r*n/s)+floor(t*n/s)+floor(u*n/s),r=phi,s=r+1,t=r+2,u=r+3
+A190506	floor	0	n+floor(r*n/t)+floor(s*n/t)+floor(u*n/t),r=phi,s=r+1,t=r+2,u=r+3
+A190507	floor	0	n+floor(r*n/u)+floor(s*n/u)+floor(t*n/u),r=phi,s=r+1,t=r+2,u=r+3
+A190508	floor	0	n+floor(s*n/r)+floor(t*n/r)+floor(u*n/r),r=phi,s=r^2,t=r^3,u=r^4
