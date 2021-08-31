@@ -308,6 +308,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #--------
+list: joeis_list
 joeis_list: joeis_local joeis_pull joeis_reload
 joeis_local:
 	cd $(JOEIS) ; git pull ; ant jar

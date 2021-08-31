@@ -238,17 +238,16 @@ correct: # CC= ; generate term list for manual correction
 #-------
 post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
 	#==== $@ LIST=$(LIST)
-	$(JPREP) -cc post  -f $(LIST) \
-	| sed -e "s/\r//" \
+	$(JPREP) -cc post  -f $(LIST) | sed -e "s/\r//" \
 	| perl -pe 's{\~\~\;?}{}g; '\
 	>        $@.tmp
 	wc -l    $@.tmp
-	$(JPREP) -cc infix -p $(FISCHER)/CR.xpat -f $@.tmp \
-	| sed -e "s/\r//" \
-	| perl $(FISCHER)/cr_polish.pl \
-	>        $(LIST) \
-	2>       rest.$(LIST)
-	wc -l    *$(LIST)
+	$(JPREP) -cc infix -p $(FISCHER)/CR.xpat -f $@.tmp | sed -e "s/\r//" \
+	>        $@.1.tmp \
+	2>       $@.rest.tmp
+	perl $(FISCHER)/cr_polish.pl $@.1.tmp \
+	>        $(LIST)
+	wc -l    $@*.tmp $(LIST)
 #--
 load: # LIST= ; update $(OFFSET)
 	#==== $@ LIST=$(LIST)

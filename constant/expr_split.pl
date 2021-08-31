@@ -48,6 +48,7 @@ while (<>) {
         $part =~ s{\A((\w)\=)?(.+)}{$3};
         my $var = $2;
         $part =~ s{\;}{\,}g; # e.g. "agm(a;b)"
+        $part =~ s{\A\-}{0\-};
         my $code = defined($var) ? ("m" . uc($var)) : "z"; # "z" is the highest lowercase letter and may not be a variable name
         print join("\t", $aseqno, "$cc$code", 0, $part) . "\n";
     } # foreach
