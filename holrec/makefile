@@ -524,6 +524,13 @@ homegf2:
 	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+homegf4:
+	cat homegf4.man \
+	| perl holmaple.pl -n 16 -t 8 \
+	  2>&1 > $@.1.tmp
+	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
 #--
 homerr:
 	grep -A3 syntax homegf2.1.tmp | grep timelimit | cut -d" " -f2 | sed -e "s/\,/\|/" | perl -e 'undef $$/; $$_ = <>; s/\r?\n//g; print;'

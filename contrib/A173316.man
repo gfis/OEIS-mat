@@ -1,0 +1,2 @@
+# n:=8; f:= gfun:-rectoproc({k*(k+1)*a(k) - (k-n)*(k-n-1)*a(k-1) = 0, a(0)=1}, a(k), remember): map(f, [$0..n-1]);
+# n:=20; f:= gfun:-rectoproc({a(k)-a(k-1)=(a(k-1)-a(k-2))*(k-1)/(k-2)*(k-1), a(0)=5, a(1)=5, a(2)=11}, a(k), remember): map(f, [$0..n-1]);

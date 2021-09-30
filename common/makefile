@@ -311,7 +311,7 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 list: joeis_list
 joeis_list: joeis_local joeis_pull joeis_reload
 joeis_local:
-	cd $(JOEIS) ; git pull ; ant jar
+	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; ant jar
 joeis_pull:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .

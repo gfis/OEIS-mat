@@ -78,7 +78,7 @@ if (length($buffer) > 0) {
 }
 
 sub execute {
-	my ($aseqno) = @_;
+    my ($aseqno) = @_;
     my $filename = sprintf("holmaple.tmp"); # $count
     open(MPL, ">", $filename) || die "cannot write to \"$filename\"";
     print MPL "$pat1\n";

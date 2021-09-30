@@ -298,10 +298,10 @@ floor3: # weird patches for leading "CR.mN" and "null."
 #----
 floorn: floorn0 floorn1 floorn2 floorn3
 floorn0:
-	grep -Pi "^A\d+\tnull\t([ab]\(n\) *\=)?[0-9n\+\-\*\^ ]*(floor|ceil|round|frac|[\[\]])" $(COMMON)/joeis_names.txt \
+	grep -Pi "^A\d+\tnull\t([abc]\(n\) *\=)?[0-9n\+\-\*\^ ]*(floor|ceil|round|frac|[\[\]])" $(COMMON)/joeis_names.txt \
 	| cut -f1-3 \
 	| grep -vPhi "mod|sum|\.\.|prod|binom|acci|lucas|digit|reverse|radius|Rounded|fractionalpart|Fractalization|elevator|concat|prime|power|number|integer|\-\>|\!|A[0-9]+\(|pi\(|\[x\^" \
-	| perl -ne 's{\t[ab]\(n\) *\= *(.*)}{\t$$1}; s{\.\Z}{}; s{ and }{\,}g; s{[\,\;]? *where}{\,}; s{ }{}g; print; ' \
+	| perl -ne 's{\t[abc]\(n\) *\= *(.*)}{\t$$1}; s{\.\Z}{}; s{ and }{\,}g; s{[\,\;]? *where}{\,}; s{ }{}g; print; ' \
 	| perl floorn_polish.pl \
 	2>       $@.rest.tmp \
 	| sort \

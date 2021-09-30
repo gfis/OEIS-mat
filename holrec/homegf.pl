@@ -32,7 +32,7 @@ my $offset = 0;
 while (<>) {
     s/\s+\Z//;
     my $line = $_;
-    if ($line =~ m{\A(A\d+)\s+(Expansion of )?(([Ee])\.)?[Gg]\.f\.\:?\s*(.*)}) {
+    if ($line =~ m{\A(A\d+)\s+(Expansion of )?(([Ee]|[Oo])\.)?[Gg]\.f\.\:?\s*(.*)}) {
         my ($gftype, $aseqno, $formula) = (lc($4 || "o"), $1, $5);
         $gftype =~ s{\.}{};
         next if $formula =~ m{\.\.\.};

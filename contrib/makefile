@@ -192,4 +192,14 @@ karn:
 	perl karn_reformat.pl a180g.mma > b180g.mma
 	perl karn_reformat.pl a180h.mma > b180h.mma
 	diff -wC0 b180h.mma b180g.mma
-
+#----------------
+a051990: # Discriminants ... of ERD type
+	perl a051990.pl -a 10  > b051990.txt
+	perl a051990.pl -a 20  > b051991.txt
+	perl a051990.pl -a 30  > b051992.txt
+	perl a051990.pl -a 11  > b051993.txt
+	perl a051990.pl -a 21  > b051994.txt
+	perl a051990.pl -a 31  > b051995.txt
+	perl a051990.pl -a 12  > b051996.txt
+	perl a051990.pl -a 22  > b051997.txt
+	perl a051990.pl -a 32  > b051998.txt

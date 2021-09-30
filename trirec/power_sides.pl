@@ -1,6 +1,6 @@
 #!perl
 
-# Determine triangles where the LeftSide andRightSide traits are some n^k
+# Determine triangles where the LeftSide and RightSide traits are some n^k
 # @(#) $Id$
 # 2020-04-01, Georg Fischer
 #

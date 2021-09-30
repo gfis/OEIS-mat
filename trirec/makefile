@@ -38,6 +38,16 @@ seq: # parameter: $(LIST)
 	cut -b1-7 $(LIST) | grep -E "^A" | $(DBAT) -m csv -r seq
 	$(DBAT) -n seq
 #====================================
+tabl:
+	$(DBAT) -x "SELECT i.aseqno, i.offset1, n.name FROM asinfo i, asname n \
+	  WHERE i.aseqno = n.aseqno \
+	    AND i.keyword LIKE '%tabl%' \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY n.name, i.aseqno;" \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
+#====================================
 tasin: # "array T as in A-number"
 	cat $(COMMON)/joeis_names.txt \
 	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
@@ -46,6 +56,7 @@ tasin: # "array T as in A-number"
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
 cdrof: # (column|diagonal|row) of"
 	cat $(COMMON)/joeis_names.txt \
 	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
@@ -54,11 +65,14 @@ cdrof: # (column|diagonal|row) of"
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
 tablof: # "Table T(n,k) by antidiagonals of ..."
-	cat $(COMMON)/joeis_names.txt \
-	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
-	'if ($$name =~ m{\ATable T\(n\, *k\) by antidiagonals of (.*)}) { my $$expr = $$1;'\
-	' print join("\t", $$aseqno, "$@", 0, $$expr, $$superclass, $$name) . "\n"; }'\
+	grep -E "^\%[NF] A" $(COMMON)/jcat25.txt \
+	| cut -b4- | sed -e "s/ /\tnull\t/" \
+	| perl -ne 'my ($$aseqno, $$superclass, $$name) = split(/\t/);'\
+	' if ($$name =~ m{\A(Table|Array) +\w\(\w\, *\w\) +(read )?by +antidiagonals +(of )?(.*)}) { my $$expr = $$4; s{\..*}{}; '\
+	' my $$dummy = "    1-----------1                  2-----2                    3---3 4--4"; '\
+	' print join("\t", $$aseqno, "$@", 0, $$expr, $$name) . "\n"; }'\
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -79,10 +93,10 @@ dhd2: # separate finite and continued fractions
 	grep -vE "\.\.\." dhd2.tmp | uniq > dhd2_fini.tmp
 	grep "seq" dhd2_fini.tmp || :
 	wc -l    dhd*.tmp
-dhd_joeis: # join with any JOEIS superclass
+dhd_joeis: # subset: nyi in jOEIS
 	make -f $(COMMON)/makefile seq2 LIST=dhd2_fini.tmp
-	$(DBAT) "SELECT s.aseqno, j.superclass, s.info \
-	FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
+	$(DBAT) "SELECT s.aseqno, 'null', s.info \
+	FROM seq2 s, joeis j WHERE s.aseqno = j.aseqno \
 	ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -260,7 +274,7 @@ trimore4:
 #-------------------------------
 traits: traits1 traits2 traits_ff
 traits_ff: traits3 traits4 traits5 traits7
-traits1:
+traits1: # select those with keyword tabl
 	$(DBAT) -x "SELECT a.aseqno \
 	FROM asinfo a \
 	WHERE a.keyword LIKE '%tabl%' \
@@ -269,12 +283,12 @@ traits1:
 	>         $@.tmp
 	head -n2  $@.tmp
 	wc -l     $@.tmp
-traits2:
+traits2: # compute the TraitCard
 	$(RAMATH).sequence.Triangle -d 0 -trait -b ../common/bfile -f traits1.tmp -m 528 \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
-traits3: 
+traits3: # Process triangle sequences with "more" and generate SQL SELECT statements
 	# no skipping in trimore.pl
 	perl trimore.pl -l 1 -t traits2.tmp \
 	>         $@.tmp
@@ -301,8 +315,32 @@ traits7_depr:
 	cd ../common; scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
 traits7:
 	scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
+#----
+pascal: traits1 pascal2 pascal3 pascal4 pascal5
+pascal2:
+	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 528 \
+	| tee     $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+pascal3: # Process triangle and generate SQL SELECT statements
+	perl trimore.pl -l 1 -t pascal2.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+pascal4:
+	$(DBAT) -x -f pascal3.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+	# | grep -vE "A000041|A00004|A00007" \
+	# | sort \ grep -vE "A000041|A00004|A00007" \
+	#
+pascal5:
+	perl html_traits.pl -d 0 pascal4.tmp \
+	>         pascal_check.html
+	wc -l     pascal_check.html
 #--------
-power_sides:
+power_sides: # Determine triangles where the LeftSide and RightSide traits are some n^k
 	perl power_sides.pl traits2.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
@@ -319,3 +357,4 @@ joeismore:
 	head -n4  $@.tmp
 	wc -l     $@.tmp
 	# They all run too slow, or are Colin's conjectures.
+#-------------------------------

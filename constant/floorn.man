@@ -212,3 +212,20 @@ A333189		floor(2^n*csc(1/n))-floor(2^n*cot(1/n))-floor(2^n*(csc(1/n)-cot(1/n)))
 A333588	nok=3	floor(-(3/2)*a(n-1)),a(1)=-2
 A333589	nok=3	floor(a(n-1)*3/2)*bitwise-ORLSB(a(n-1)*n),witha(1)=2(LSB=LeastSignificantBit)
 A339412	nok=3	floor(x(n)),x(n)=(frac(x(n-1))+1)*floor(x(n-1)),x(1)=Pi
+
+# 2021-09-01
+A127757		floor(agm(1,n))
+A127758		floor(agm(1,n^2))
+A127759		floor(agm(1,n^3))
+A127760		floor(agm(1,n^4))
+A127761		floor(agm(1,n^5))
+A127762		floor(agm(2,n^2))
+A127763		floor(agm(2,n))
+A127764		floor(agm(2,n^3))
+A127765		floor(agm(2,n^4))
+A127766		floor(agm(2,n^5))
+A105662		abs(floor(n*sin(n)))
+A105663		abs(floor(n*cos(n)))
+A105664		abs(floor(n*tan(n)))
+A105665		abs(floor(n/cos(n)))
+A105666		abs(floor(n/sin(n)))

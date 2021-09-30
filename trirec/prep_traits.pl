@@ -2,7 +2,7 @@
 
 # Prepare traits for HTML page
 # @(#) $Id$
-# 2020-03-28: changes for Peter; Wolfgang = 73
+# 2020-03-28: changes for Peter; WK = 73
 # 2020-03-23, Georg Fischer
 #
 #:# Usage:
