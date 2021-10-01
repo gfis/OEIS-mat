@@ -321,19 +321,20 @@ traits7_depr:
 traits7:
 	scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
 #----
-pascal: pascal2 pascal3 pascal4
-pascal2:
+pascal: pascal1 pascal2 pascal3 pascal4 pascal5
+pascal1:
 	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 528 \
 	| tee     $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
-	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$@.tmp
+pascal2:
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/pascal1.tmp
 pascal3: # Process triangle and generate SQL SELECT statements
-	perl trimore.pl -l 1 -p -t pascal2.tmp \
+	perl trimore.pl -l 1 -p -t pascal1.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
-pascal4:
+pascal4: # SELECT/determine the sequences for Left Righ Pasc traits
 	$(DBAT) -x -f pascal3.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
@@ -341,10 +342,17 @@ pascal4:
 	# | grep -vE "A000041|A00004|A00007" \
 	# | sort \ grep -vE "A000041|A00004|A00007" \
 	#
-pascal5:
+pascal5: # assemble groups into seq4 parameters
 	perl prep_pascal.pl -l 6 pascal4.tmp \
-	>         pascal.tmp
-	wc -l     pascal.tmp
+	>         pascal.tmp \
+	2>        $@.rest.tmp
+	head -n4  pascal.tmp
+	wc -l     pascal*.tmp
+pascal_add: # Which nonzero Pasc traits do occur?
+	grep Pasc pascal4.tmp \
+	| grep -vP "Pasc\t\d+\tA000004" \
+	| sort -k4,4 
+	| tee     $@.tmp
 #--------
 power_sides: # Determine triangles where the LeftSide and RightSide traits are some n^k
 	perl power_sides.pl traits2.tmp \
