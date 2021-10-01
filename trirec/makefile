@@ -12,7 +12,12 @@ DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
 PFRACT=java -cp  $(RAMATH).symbolic.PolyFraction
 JOEISPREP=java -cp  $(RAMATH).sequence.JoeisPreparer
+LITE=$(GITS)/joeis-lite
+FISCHER=$(LITE)/internal/fischer
+JOEIS=$(GITS)/joeis
+HERE=../../../OEIS-mat/trirec
 D=0
+#========
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
@@ -316,14 +321,15 @@ traits7_depr:
 traits7:
 	scp traits_check.html gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat/common
 #----
-pascal: traits1 pascal2 pascal3 pascal4 pascal5
+pascal: pascal2 pascal3 pascal4
 pascal2:
 	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 528 \
 	| tee     $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$@.tmp
 pascal3: # Process triangle and generate SQL SELECT statements
-	perl trimore.pl -l 1 -t pascal2.tmp \
+	perl trimore.pl -l 1 -p -t pascal2.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
@@ -336,9 +342,9 @@ pascal4:
 	# | sort \ grep -vE "A000041|A00004|A00007" \
 	#
 pascal5:
-	perl html_traits.pl -d 0 pascal4.tmp \
-	>         pascal_check.html
-	wc -l     pascal_check.html
+	perl prep_pascal.pl -l 6 pascal4.tmp \
+	>         pascal.tmp
+	wc -l     pascal.tmp
 #--------
 power_sides: # Determine triangles where the LeftSide and RightSide traits are some n^k
 	perl power_sides.pl traits2.tmp \

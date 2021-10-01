@@ -2,6 +2,7 @@
 
 # Process triangle sequences with "more" and generate SQL SELECT statements
 # @(#) $Id$
+# 2021-09-30: all ones was A000041, -> A000012; -p for PascalTrait; AH=79
 # 2020-03-22: -t = process traits, -l limit
 # 2020-02-22, Georg Fischer
 #
@@ -10,6 +11,7 @@
 #:#   perl trimore.pl [-d debug] [-m 2] [-t] [-l 2] [-s] trimore.tmp > trimore.sql
 #:#       -l limit SQL SELECT yields so many sequences which contain these terms in the DATA section
 #:#       -m skip initial terms with abs() < this value
+#:#       -p special SQL for PascalTraits
 #:#       -t process traits (otherwise generate some)
 #:#       -s do skip initial terms (default: off)
 #--------------------------------------------------------
@@ -20,10 +22,11 @@ my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (ti
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
-my $name_len = 24;
+my $name_len = 64;
 my $limit = 2;
 my $minterm = 2;
 my $skip_init = 0; # no skipping, 1 = with skipping
+my $pascal_traits = 0;
 my $with_traits = 0;
 my $debug = 0;
 if (scalar(@ARGV) == 0) {
@@ -39,6 +42,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $limit     = shift(@ARGV);
     } elsif ($opt  =~ m{m}) {
         $minterm   = shift(@ARGV);
+    } elsif ($opt  =~ m{p}) {
+        $pascal_traits = 1;
     } elsif ($opt  =~ m{t}) {
         $with_traits = 1;
     } else {
@@ -98,21 +103,36 @@ sub vector {
             }
         } @terms;
     $width = ($width >= scalar(@widlen)) ? $widlen[scalar(@widlen) - 1] : $widlen[$width];
-    if (scalar(@terms) >= $width) { # long enough
+    if ($pascal_traits or scalar(@terms) >= $width) { # long enough
         my $termlist = join(",", @terms);
+        $title = substr($title, 0, 4);
         my $tseqno_name_list = &is_known($termlist);
         if (length($tseqno_name_list) > 0) {
-            print "SELECT \'$aseqno\', \'$title\', $tseqno_name_list"
+            print "SELECT \'$aseqno\', \'$title\', 296, $tseqno_name_list"
                 . ", \'well-known\',  \'\',  \'\'"
             #   . ", a.keyword"
             #   . " FROM asinfo a"
             #   . " WHERE a.aseqno  = \'$aseqno\'"
                 . ";\n"
                 ;  
-        } else {
-            print "SELECT \'$aseqno\', \'$title\', t.aseqno, SUBSTR(n.name, 1, $name_len), \'$termlist\'"
-                . " , i.keyword, i.author, a.keyword"
-                . " FROM asinfo a, asinfo i, asdata t, asname n"
+        } elsif ($pascal_traits) {
+            print "SELECT \'$aseqno\', SUBSTR(s.callcode, 1, 4), s.offset, COALESCE(d.aseqno, s.parm1)" 
+                . ", COALESCE(SUBSTR(n.name, 1, $name_len), \'unknown\')" 
+                . " FROM seq4 s "
+                . " LEFT JOIN asdata d ON d.data LIKE \'$termlist\%' AND d.aseqno <> s.aseqno "
+                . " LEFT JOIN asname n ON d.aseqno = n.aseqno"
+                . " WHERE s.aseqno  = \'$aseqno\' "
+                . "   AND s.callcode = \'$callcode\' "
+                . " ORDER BY 1,3 LIMIT $limit;" 
+                # "LIMIT" is MariaDB specific, DB2 would need "FETCH FIRST $limit ROWS ONLY"
+                . "\n"
+                ;
+        } else { # deprecated code
+            print "SELECT \'$aseqno\', \'$title\', COALESCE(t.aseqno, 'Annnnnn')" 
+                . ", COALESCE(SUBSTR(n.name, 1, $name_len), 'unknown')" 
+                . " , \'$termlist\'"
+                . " , COALESCE(i.keyword, ''), COALESCE(i.author, ''), COALESCE(a.keyword, '')"
+                . " FROM asinfo a, asinfo i, asname n, asdata t"
                 . " WHERE t.data LIKE \'$termlist\%' "
                 . "   AND a.aseqno  = \'$aseqno\'"
                 . "   AND t.aseqno <> \'$aseqno\'"
@@ -133,17 +153,22 @@ sub is_known {
     if (0) {
 
     } elsif (index("1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1", $list) == 0) { 
-        $result = "\'A000041\', \'all ones\', \'$list\'";
+        $result = "\'A000012\', \'all ones\', \'$list\'";
     } elsif (index("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", $list) == 0) { 
         $result = "\'A000004\', \'all zeroes\', \'$list\'";
     } elsif (index("1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", $list) == 0) { 
         $result = "\'A000007\', \'one, zeroes\', \'$list\'";
     } elsif (index("0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,24,26,28,40", $list) == 0) { 
         $result = "\'A005843\', \'even numbers\', \'$list\'";
+    } elsif (index("1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181,6765,10946,17711,28657,46368,75025,121393,196418,317811,514229,832040,1346269,2178309", $list) == 0) {
+        $result = "\'A000045\', \'Fibonacci numbers\', \'$list\'";
+    } elsif (index("2,1,3,4,7,11,18,29,47,76,123,199,322,521,843,1364,2207,3571,5778,9349,15127,24476,39603,64079,103682,167761,271443,439204,710647,1149851,1860498,3010349,4870847,7881196,12752043,20633239,33385282,54018521,87403803", $list) == 0) {
+        $result = "\'A000032\', \'Lucas numbers\', \'$list\'";    
     } elsif (index("1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41", $list) == 0) { 
         $result = "\'A005408\', \'odd numbers\', \'$list\'";
-    } elsif (index("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20"
-               . ",21,22,23,24,25,26,27,28,29,30,31", $list) == 0) { 
+    } elsif (index("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32", $list) == 0) { 
+        $result = "\'A001477\', \'nonnegative integers\', \'$list\'";
+    } elsif (index("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32", $list) == 0) { 
         $result = "\'A000027\', \'positive integers\', \'$list\'";
     } elsif (index("1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384", $list) == 0) { 
         $result = "\'A000079\', \'powers of 2\', \'$list\'";
@@ -151,7 +176,7 @@ sub is_known {
         $result = "\'A000225\', \'2^n - 1\', \'$list\'";
     } elsif (index("1,3,9,27,81,243,729,2187,6561,19683,59049", $list) == 0) { 
         $result = "\'A000244\', \'powers of 3\', \'$list\'";
-    } elsif (index("1,1,2,6,24,120,720,5040,40320,362880,3628800,39916800,479001600", $list) == 0) { 
+    } elsif (index("1,1,2,6,24,120,720,5040,40320,362880,3628800,39916800,479001600,6227020800,87178291200,1307674368000,20922789888000,355687428096000,6402373705728000,121645100408832000,2432902008176640000,51090942171709440000,1124000727777607680000,25852016738884976640000,620448401733239439360000,15511210043330985984000000,403291461126605635584000000,10888869450418352160768000000,304888344611713860501504000000,8841761993739701954543616000000,265252859812191058636308480000000,8222838654177922817725562880000000", $list) == 0) {
         $result = "\'A000142\', \'factorials\', \'$list\'";
     } elsif (index("1,1,2,5,14,42,132,429,1430,4862,16796,58786,208012,742900", $list) == 0) {
         $result = "\'A000108\', \'Catalan numbers\', \'$list\'";
@@ -173,7 +198,6 @@ sub is_known {
         $result = "\'A000302\', \'powers of 4\', \'$list\'";
     } elsif (index("1,2,4,5,6,8,9,11,12,13,15,16,18,19,20,22,23,25,26,27,29,30,32,33,34,36,37,38,40", $list) == 0) { 
         $result = "\'A000062\', \'Beatty a(n) = floor(n/(e-2))\', \'$list\'";
-
     } elsif (index("1,6,21,56,126,252,462,792,1287,2002,3003,4368", $list) == 0) { 
         $result = "\'A000389\', \'binomial C(n,5)\', \'$list\'";
     } elsif (index("1,6,21,56,126,252,462,792,1287,2002,3003,4368", $list) == 0) { 
