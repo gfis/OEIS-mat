@@ -5,7 +5,9 @@
 # 2021-10-01, Georg Fischer: copied from prep_traits.pl
 #
 #:# Usage:
-#:#   perl prep_pascal.pl pascal4.tmp > output 2> rest
+#:#   perl prep_pascal.pl [-l minlen] [-t trait4] pascal4.tmp > output 2> rest
+#:#       -l minimum length for a relevant trait (default 6)
+#:#       -t 4-letter abbreviation of main trait in group ("Pasc" or "Cons")
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -16,6 +18,7 @@ $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
 my $debug = 0;
 my $minlen = 6;
+my $trait4 = "Pasc";
 if (scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
@@ -27,6 +30,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $debug     = shift(@ARGV);
     } elsif ($opt  =~ m{l}) {
         $minlen    = shift(@ARGV);
+    } elsif ($opt  =~ m{t}) {
+        $trait4    = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -42,16 +47,16 @@ while (<>) {
     my $line = $_;
     $line =~ s{\s+\Z}{}; # chompr
     if ($line =~ m{\A(A\d+)}) {
-        my ($aseqno, $trait, $len, $parm1, @rest) = split(/\t/, $line);
+        my ($aseqno, $callcode, $len, $parm1, @rest) = split(/\t/, $line);
         if ($parm1 !~ m{\A[A-Z]}) { # A-number or sequence class starting with uppercase letter
             $gok = 0;
         }
         if (0) { # switch for traits
-        } elsif ($trait =~ m{Left}i) {
+        } elsif ($callcode =~ m{Left}i) {
             $lseqno = $parm1;
-        } elsif ($trait =~ m{Righ}i) {
+        } elsif ($callcode =~ m{Righ}i) {
             $rseqno = $parm1;
-        } elsif ($trait =~ m{Pasc}i) { # end of group: generate the seq4 record
+        } elsif ($callcode =~ m{$trait4}i) { # end of group: generate the seq4 record
             $pseqno = $parm1;
             if ($gok && $len >= $minlen) {
                 my $callcode = "pastri";
@@ -61,6 +66,9 @@ while (<>) {
                 }
                 if ($rseqno =~ s{_(\d+)\Z}{}) {
                     $skip_parm .= "${sep}skipRight($1);";
+                }
+                if ($pseqno =~ s{_(\d+)\Z}{}) {
+                    $skip_parm .= "${sep}skipAdd($1);";
                 }
                 if (length($skip_parm) > 0) {
                     $skip_parm = "${sep}    $skip_parm";
@@ -74,10 +82,11 @@ while (<>) {
                     $compute_parm .= "$default_compute\.add(1)";
                 } elsif ($pseqno =~ m{\A(A\d+)\Z}) { # more complicated sequence
                     $callcode = "pastrico"; # will evaluate mSeqA
+                    $compute_parm .= "$default_compute\.add(getA())";
                 } elsif ($pseqno =~ m{\-1\,\-1\,\-1\,\-1\,\-1\,\-1\,\-1\,\-1\,}) { # all -1
                     $compute_parm .= "$default_compute\.subtract(1)";
                 } else {
-                	$gok = 0;
+                    $gok = 0;
                 }
                 if (length($compute_parm) > 0) {
                     $compute_parm = "${sep}    ${sep}return $compute_parm;";
@@ -87,9 +96,9 @@ while (<>) {
                 # pastrico uses:                               PARM1    PARM2    PARM3    PARM4       PARM5
                 # pastri   uses:                               PARM1    PARM2             PARM4
             } else {
-                print STDERR join("\t", $aseqno, "Left", 0, $lseqno) . "\n";
-                print STDERR join("\t", $aseqno, "Righ", 0, $rseqno) . "\n";
-                print STDERR join("\t", $aseqno, "Pasc", 0, $pseqno) . "\n";
+                print STDERR join("\t", $aseqno, "Left"   , 0, $lseqno) . "\n";
+                print STDERR join("\t", $aseqno, "Righ"   , 0, $rseqno) . "\n";
+                print STDERR join("\t", $aseqno, "$trait4", 0, $pseqno) . "\n";
                 print STDERR "#--------\n";
             }
             $gok = 1; # assume successful group

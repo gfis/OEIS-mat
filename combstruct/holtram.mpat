@@ -1,0 +1,26 @@
+#!Maple 
+# Compute a recurrence from a transfer matrix
+# 2021-10-05, Georg Fischer
+interface(prettyprint=0):
+# read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER-gfis.txt";
+with(StringTools):
+with(LinearAlgebra):
+toString:=proc(expr) DeleteSpace(convert(expr,string)) end:
+
+holtram:=proc(aseqno, msize, differ); local A, e, n, cp, p, pord, offset, matrix, inits, dist, gftype;
+  A := ToeplitzMatrix([seq(1,n=1..differ+1), seq(0,n=differ+2..msize)], symmetric):
+  e := Vector(msize, 1):
+  p := expand(CharacteristicPolynomial(A,x));
+# p := expand(MinimalPolynomial(A,x));
+  pord   :=degree(p, x):
+  cp     := [[0], seq([coeff(p,x,j)],j=0..pord)];
+  matrix := toString(cp);
+  inits  := toString([1, seq(e^%T . A^n . e, n=0..msize-1)]);
+  offset := 0;
+  dist   := 0;
+  gftype := 0;
+  printf("%a\tholos\t%a\t%s\t%s\t%a\t%a\t%a\n", aseqno      , offset, matrix, inits, dist, 0, p);
+  printf("# make runholo OFF=%a MATRIX=\"%s\" INIT=\"%s\"\n", offset, matrix, inits);
+  end:
+#  holtram(A126358, 4, 1);
+timelimit($(TIMEOUT), holtram($(PARM0), $(PARM4), $(PARM5)));

@@ -23,6 +23,13 @@ all:
 	grep -E "^[a-z]" makefile
 	# the wiki index page for lin.rec.s is regenerated with 'make linrec'
 #--------
+trepl:
+	$(DBAT) -f $@.create.sql
+	grep -E "^A[0-9]+" $@.man |	cut -f1-2 \
+	| $(DBAT) -r $@
+	$(DBAT) -4   $@
+	$(DBAT) -n   $@
+#--------
 njoeis: # LIST
 	make -f $(COMMON)/makefile seq 
 	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq \
@@ -323,7 +330,7 @@ traits7:
 #----
 pascal: pascal1 pascal2 pascal3 pascal4 pascal5
 pascal1:
-	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 528 \
+	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 136 \
 	| tee     $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
@@ -336,6 +343,7 @@ pascal3: # Process triangle and generate SQL SELECT statements
 	wc -l     $@.tmp
 pascal4: # SELECT/determine the sequences for Left Righ Pasc traits
 	$(DBAT) -x -f pascal3.tmp \
+	| sed -e "s/A062292/A000578_1/g" \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
@@ -353,6 +361,49 @@ pascal_add: # Which nonzero Pasc traits do occur?
 	| grep -vP "Pasc\t\d+\tA000004" \
 	| sort -k4,4 
 	| tee     $@.tmp
+	wc -l     $@.tmp
+#--------
+const: const1 const2 const3 const4 const5
+const1:
+	$(RAMATH).sequence.Triangle -d 0 -const -b ../common/bfile -f traits1.tmp -m 136 \
+	| tee     $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+const2:
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/const1.tmp
+const3: # Process triangle and generate SQL SELECT statements
+	perl trimore.pl -l 1 -p -t const1.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+const4: # SELECT/determine the sequences for Left Righ Constant traits
+	$(DBAT) -x -f const3.tmp \
+	| sed -e "s/A062292/A000578_1/g" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+	# | grep -vE "A000041|A00004|A00007" \
+	# | sort \ grep -vE "A000041|A00004|A00007" \
+	#
+const5: # assemble groups into seq4 parameters
+	perl prep_pascal.pl -l 6 -t Cons const4.tmp \
+	>         const.tmp \
+	2>        $@.rest.tmp
+	head -n4  const.tmp
+	wc -l     const*.tmp
+const_add: # Which nonzero Pasc traits do occur?
+	grep Pasc const4.tmp \
+	| grep -vP "Constant\t\d+\tA000004" \
+	| sort -k4,4 
+	| tee     $@.tmp
+	wc -l     $@.tmp
+#--------
+tnrec1:
+	grep -E "^\%[N] " $(COMMON)/jcat25.txt \
+	| grep -P "T[\(\)\[\][i-n\)\]\, ]+\= *[\, Ti-n\+\-\*\/\^\d\(\)\[\]]*" \
+	| grep -vEi "number of" \
+	| tee $@.tmp
+	wc -l     $@.tmp
 #--------
 power_sides: # Determine triangles where the LeftSide and RightSide traits are some n^k
 	perl power_sides.pl traits2.tmp \

@@ -1,0 +1,75 @@
+with(LinearAlgebra):
+I4:=Matrix([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]);
+# A126358		Number of base 4 n-digit numbers with adjacent digits differing by one or less.		36
+# 1, 4, 10, 26, 68, 178, 466, 1220, 3194, 8362, 21892, 57314, 150050, 392836, 1028458, 2692538, 7049156, 18454930, 48315634, 126491972, 331160282, 866988874
+# G.f.: (1+x-x^2)/(1-3*x+x^2). - Bruno Berselli, Jun 28 2012
+# From David Nacin, May 31 2017: (Start)
+# For n>2, a(n) = 3*a(n-1)-a(n-2), a(0)=1, a(1)=4, a(2)=10.
+M41 := Matrix(
+  [ [1,1,0,0]
+  , [1,1,1,0]
+  , [0,1,1,1]
+  , [0,0,1,1]
+  ]);
+factor(CharacteristicPolynomial(M41,x));
+# (x^2-3*x+1)*(x^2-x-1)
+----
+# A126395		Number of base 8 n-digit numbers with adjacent digits differing by two or less.
+# 1, 8, 34, 150, 668, 2986, 13362, 59816, 267802, 1199022, 5368412, 24036226, 107618586, 481846232, 2157395218, 9659418342, 43248619100, 193639305850, 866991400098, 3881825980040, 17380302665002, 77817738944382
+# Conjectures from Colin Barker, Jun 01 2017: (Start)
+# G.f.: (1 + 3*x - 5*x^2 - 6*x^3) / (1 - 5*x + x^2 + 6*x^3).
+# a(n) = 5*a(n-1) - a(n-2) - 6*a(n-3) for n>3.
+M82 := Matrix(
+
+  [ [1,1,1,0,0,0,0,0]
+  , [1,1,1,1,0,0,0,0]
+  , [1,1,1,1,1,0,0,0]
+  , [0,1,1,1,1,1,0,0]
+  , [0,0,1,1,1,1,1,0]
+  , [0,0,0,1,1,1,1,1]
+  , [0,0,0,0,1,1,1,1]
+  , [0,0,0,0,0,1,1,1]
+  ]);
+factor(CharacteristicPolynomial(M82,x));
+x^2*(x^3-5*x^2+x+6)*(x^3-3*x^2-x+2)
+#----
+A126360		Number of base 6 n-digit numbers with adjacent digits differing by one or less.		7
+1, 6, 16, 44, 122, 340, 950, 2658, 7442, 20844, 58392, 163594, 458356, 1284250, 3598338, 10082246, 28249720, 79153804, 221783810, 621424108, 1741191198, 4878708658, 13669836930, 38302030548, 107319902744, 300703682402 (list; graph; refs; listen; history; text; internal format)
+OFFSET	
+0,2
+COMMENTS	
+[Empirical] a(base,n)=a(base-1,n)+3^(n-1) for base>=n; a(base,n)=a(base-1,n)+3^(n-1)-2 when base=n-1
+Leading 0's are allowed. - Robert Israel, Aug 12 2019
+LINKS	
+Robert Israel, Table of n, a(n) for n = 0..2231
+Arnold Knopfmacher, Toufik Mansour, Augustine Munagi, Helmut Prodinger, Smooth words and Chebyshev polynomials, arXiv:0809.0551v1 [math.CO], 2008.
+FORMULA	
+Conjecture: a(n) = 4*a(n-1)-3*a(n-2)-a(n-3) for n>3. 
+G.f.: -(x^3+5*x^2-2*x-1)/(x^3+3*x^2-4*x+1). [Colin Barker, Nov 26 2012]
+From Robert Israel, Aug 12 2019: (Start)
+a(n) = e^T A^(n-1) e for n>=1, where A is the 6 X 6 matrix with 1 on the main diagonal and first super- and sub-diagonals, 0 elsewhere, and e the column vector (1,1,1,1,1,1).
+Barker's conjecture follows from the fact that (A^3-4*A^2+3*A+1) e = 0. (End)
+MAPLE	
+A:=LinearAlgebra:-ToeplitzMatrix([1, 1, 0, 0, 0, 0], symmetric):
+e:= Vector(6, 1):
+1, seq(e^%T . A^n . e, n=0..30); # Robert Israel, Aug 12 2019
+#----
+A126361		Duplicate of A002714.		5
+1, 7, 19, 53, 149, 421, 1193, 3387, 9627, 27383, 77923, 221805, 631469
+G.f. (2*x^4 - 5*x^3 - 7*x^2 + 3*x + 1)/(-x^4 + 4*x^3 + 2*x^2 - 4*x + 1).
+#----
+A126362		Number of base 8 n-digit numbers with adjacent digits differing by one or less.		8
+1, 8, 22, 62, 176, 502, 1436, 4116, 11814, 33942, 97582, 280676, 807574, 2324116, 6689624, 19257202, 55439298, 159611886, 459545688, 1323132230, 3809653732, 10969153364, 31583803574, 90940708414, 261850874726, 753964626300 (list; graph; refs; listen; history; text; internal format)
+OFFSET	
+0,2
+COMMENTS	
+[Empirical] a(base,n)=a(base-1,n)+3^(n-1) for base>=n; a(base,n)=a(base-1,n)+3^(n-1)-2 when base=n-1
+LINKS	
+Robert Israel, Table of n, a(n) for n = 0..2174
+Jim Bumgardner, Variations of the Componium, 2013
+FORMULA	
+Conjecture: a(n) = 5*a(n-1)-6*a(n-2)-a(n-3)+2*a(n-4) for n>4. G.f.: -(4*x^4+x^3-12*x^2+3*x+1)/((2*x-1)*(x^3-3*x+1)). [Colin Barker, Nov 26 2012]
+From Robert Israel, Aug 12 2019: (Start)
+a(n) = e^T A^(n-1) e for n>=1, where A is the 8 X 8 matrix with 1 on the main diagonal and first super- and sub-diagonals, 
+0 elsewhere, and e the column vector (1,1,1,1,1,1,1,1). 
+Barker's conjecture follows from the fact that (A^4-5*A^3+6*A^2+A-2*I) e = 0. (end)
