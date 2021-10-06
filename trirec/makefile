@@ -363,6 +363,11 @@ pascal_add: # Which nonzero Pasc traits do occur?
 	| tee     $@.tmp
 	wc -l     $@.tmp
 #--------
+wraptr:
+	perl wraptr_prepare.pl $@.man \
+	| grep wraptr \
+	>         $(FISCHER)/$@.gen
+#--------
 const: const1 const2 const3 const4 const5
 const1:
 	$(RAMATH).sequence.Triangle -d 0 -const -b ../common/bfile -f traits1.tmp -m 136 \
