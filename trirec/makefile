@@ -51,14 +51,14 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 #====================================
 tabl:
-	$(DBAT) -x "SELECT i.aseqno, i.offset1, n.name FROM asinfo i, asname n \
+	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), i.offset1 \
+	    , n.name FROM asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE i.aseqno = n.aseqno \
 	    AND i.keyword LIKE '%tabl%' \
-	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY n.name, i.aseqno;" \
 	>         $@.tmp
 	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	wc -l     $@.tmp
 #====================================
 tasin: # "array T as in A-number"
 	cat $(COMMON)/joeis_names.txt \
@@ -89,7 +89,7 @@ tablof: # "Table T(n,k) by antidiagonals of ..."
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #====================================
-# Deléham's DELTA operator
+# DelÃ©ham's DELTA operator
 #
 dhd: dhd1 dhd2 dhd_joeis dhd_cf dhd_gf
 dhd1: # raw extract of word "DELTA" 
@@ -139,6 +139,14 @@ fract2man:
 	| grep -vE "A134552" \
 	| sed -e "s/$$/\t0\t0/" \
 	| $(JOEISPREP) -f - \
+	>        $@.tmp
+	head -4  $@.tmp
+	wc -l    $@.tmp
+#--------------------
+invbinom:
+	cat $(COMMON)/joeis_names.txt \
+	| grep -iE "binomial transform" \
+	| perl invbinom.pl \
 	>        $@.tmp
 	head -4  $@.tmp
 	wc -l    $@.tmp
@@ -330,7 +338,7 @@ traits7:
 #----
 pascal: pascal1 pascal2 pascal3 pascal4 pascal5
 pascal1:
-	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 136 \
+	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 528 \
 	| tee     $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
@@ -356,16 +364,117 @@ pascal5: # assemble groups into seq4 parameters
 	2>        $@.rest.tmp
 	head -n4  pascal.tmp
 	wc -l     pascal*.tmp
-pascal_add: # Which nonzero Pasc traits do occur?
+pascal_add: # Which nonzero Pascal traits do occur?
 	grep Pasc pascal4.tmp \
 	| grep -vP "Pasc\t\d+\tA000004" \
 	| sort -k4,4 
 	| tee     $@.tmp
 	wc -l     $@.tmp
+#----
+binomialx:
+	grep BinomialTransform $(COMMON)/joeis_names.txt \
+	>         $@.1.tmp
+	head -n4  $@.1.tmp
+	wc -l     $@.1.tmp
+	cut -f1   $@.1.tmp \
+	| perl -ne 's/\s+\Z//; print lc(substr($$_, 0,4)) . "/$$_\n"; ' \
+	| xargs -l -innn grep -iH super ../../joeis/src/irvine/oeis/nnn.java \
+	| tee     $@.tmp
+	cat       $@.tmp \
+	| perl -ne 'if (m{(A\d\d\d+)[^\(]+\(new (A\d\d\d+)}) { print "$$1\tbinomialx\t0\t$$2\n"; }'\
+	>         $@.gen
+	head -n4  $@.gen
+	wc -l     $@.gen
+#----
+# Modified constant and Pascal triangles
+border1: # 32 rows
+	$(RAMATH).sequence.Triangle -d 0 -border -b ../common/bfile -f traits1.tmp -m 528 \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+#--
+modtri: modpa modip modco modic
+modpa:
+	perl traitsel.pl -s "ls,rs,pa" border1.tmp \
+	| sed -e "s/Pascal/modpas/" \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
+modip:
+	perl traitsel.pl -s "ls,rs,ip" border1.tmp \
+	| sed -e "s/InnerPascal/modipas/" \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
+modco:
+	perl traitsel.pl -s "ls,rs,co" border1.tmp \
+	| sed -e "s/Constant/modcon/" \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
+modic:
+	perl traitsel.pl -s "ls,rs,ic" border1.tmp \
+	| sed -e "s/InnerConstant/modicon/" \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
+sortsides: # sort and count the LeftSide and RightSide traits
+	grep -E "LeftSide|RightSide" border1.tmp \
+	| cut -f4 \
+	| perl -ne 'my @terms = split(/\,/); '\
+	' splice(@terms, 0, 3); print join(",", @terms) . "\n"; '\
+	| sort | uniq -c \
+	>   x.tmp
+	cat x.tmp \
+	| perl accumulate_sides.pl \
+	| sort -nr \
+	>         $@.tmp
+	head -n32 $@.tmp
+#---------
+# Square array T, read by antidiagonals
+trideleh:
+	grep -P "Square array T,? read by antidiagonals" tabl.tmp \
+	| sort \
+	| tee     $@.tmp
+#---------
+triprod2:
+	cat $(COMMON)/joeis_names.txt \
+	| perl -ne 'if (m{[\t\,]tabl[\t\,]} and m{\A(A\d+)\t\w+\t(A\d+) *\* *(A\d+)\.}) { my ($$aseqno, $$rseqno, $$sseqno) = ($$1, $$2, $$3);'\
+	' print join("\t", $$aseqno, "triprod", 0, $$rseqno, $$sseqno). "\n"; }'\
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+#---------
+trisimple:
+	cat $(COMMON)/joeis_names.txt \
+	| perl trisimple.pl \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
 #--------
 wraptr:
 	perl wraptr_prepare.pl $@.man \
 	| grep wraptr \
+	| sort | uniq -w7 \
+	>         $(FISCHER)/$@.gen
+#--------
+sumpown: # Sums of two powers of m
+	grep -P "\t2\," $(COMMON)/bfdata.txt \
+	| perl sumpown_guess.pl \
+	| tee     $@.tmp
+	wc -l     $@.tmp
+#--------
+triconst:
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$@.man
+	$(DBAT) "DELETE FROM seq4 \
+	  WHERE SUBSTR(parm1, 1, 7) LIKE 'A%' AND SUBSTR(parm1, 1, 7) NOT IN (SELECT aseqno FROM joeis) \
+	     OR SUBSTR(parm2, 1, 7) LIKE 'A%' AND SUBSTR(parm2, 1, 7) NOT IN (SELECT aseqno FROM joeis) \
+	     OR SUBSTR(parm3, 1, 7) LIKE 'A%' AND SUBSTR(parm3, 1, 7) NOT IN (SELECT aseqno FROM joeis); "
+	$(DBAT) -x -44444 seq4 > $@.tmp
+	wc -l     $@.tmp
+	perl wraptr_prepare.pl -2 $@.tmp \
+	| perl -pe 's/\twraptr\d\t/\ttriconst\t/' \
+	| sort | uniq -w7 \
 	>         $(FISCHER)/$@.gen
 #--------
 const: const1 const2 const3 const4 const5
@@ -409,11 +518,22 @@ tnrec1:
 	| grep -vEi "number of" \
 	| tee $@.tmp
 	wc -l     $@.tmp
+#---------
+trialt3: # 3 triangles constructed by the same rule (alternating)
+	grep -E "A202692" tabl.tmp 
+	grep -E "constructed by the same rule" tabl.tmp 
 #--------
 power_sides: # Determine triangles where the LeftSide and RightSide traits are some n^k
 	perl power_sides.pl traits2.tmp \
 	>         $@.tmp
 	head -n4  $@.tmp
+	wc -l     $@.tmp
+#--------
+# Weight array of ...
+weightar:
+	grep -E "^[\%\#][NCF]" $(COMMON)/jcat25.txt \
+	| grep -E "Weight array" \
+	| tee     $@.tmp
 	wc -l     $@.tmp
 #-------------------------------	
 joeismore:

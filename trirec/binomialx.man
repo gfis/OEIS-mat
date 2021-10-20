@@ -1,0 +1,76 @@
+# A006342.java:    super(new AlternatingSequence(new A002001(), new A000004()), 0);
+# A038200.java:    super(new PrependSequence(new A000005(), 0), 0);
+# A101370.java:    super(new PrependSequence(new A007322(), Z.ZERO), 0);
+# A019442 special Sequence!
+
+A000371	invbinom	0	A001146	0	true	
+A005043	invbinom	0	A000108	0	true	
+A005923	invbinom	0	A000557	0	false	
+A006930	invbinom	0	A000081	1	false	!
+A007157	invbinom	0	A007154	0	true	
+A007158	invbinom	0	A007155	0	true	
+A007317	invbinom	0	A000108	0	false	
+A007405	invbinom	0	A004211	0	false	
+A007442	invbinom	0	A000040	0	true	
+A007443	invbinom	0	A000040	0	false	
+A016121	invbinom	0	A008934	0	false	
+A019301	invbinom	0	A010059	0	false	
+A019302	invbinom	0	A010060	0	false	
+A029879	invbinom	0	A001285	0	false	
+A029880	invbinom	0	A001285	0	true	
+A030015	invbinom	0	A008578	0	false	
+A030016	invbinom	0	A008578	0	true	
+A032347	invbinom	0	A032346	0	true	
+A035530	invbinom	0	A003603	0	false	
+A054185	invbinom	0	A000031	0	false	
+A054190	invbinom	0	A001037	0	false	
+A054195	invbinom	0	A001371	0	false	
+A054196	invbinom	0	A000013	0	false	
+A054197	invbinom	0	A000048	0	false	
+A054198	invbinom	0	A000011	0	false	
+A055217	invbinom	0	A117186	0	false	
+A060719	invbinom	0	A186021	0	false	
+A065979	invbinom	0	A002024	0	false	
+A071014	invbinom	0	A002487	2	false	!
+A073596	invbinom	0	A000254	0	false	
+A075272	invbinom	0	A005329	0	false	
+A081673	invbinom	0	A081672	0	false	
+A083330	invbinom	0	A053156	0	false	
+A083331	invbinom	0	A083330	0	false	
+A084153	invbinom	0	A084152	0	false	
+A084625	invbinom	0	A084624	0	false	
+A086331	invbinom	0	A000312	0	false	
+A088129	invbinom	0	A037256	0	false	
+A097332	invbinom	0	A097331	0	false	
+A097656	invbinom	0	A038507	0	false	
+A098340	invbinom	0	A012000	0	false	
+A099063	invbinom	0	A000960	0	false	
+A100442	invbinom	0	A003418	0	false	
+A106397	invbinom	0	A002321	0	false	
+A110810	invbinom	0	A000796	0	false	
+A112657	invbinom	0	A100098	0	false	
+A116387	invbinom	0	A116383	0	false	
+A119968	invbinom	0	A036987	0	false	
+A126082	invbinom	0	A001113	0	false	
+A128334	invbinom	0	A000594	0	false	
+A136281	invbinom	0	A000986	0	false	
+A136649	invbinom	0	A014070	0	false	
+A152226	invbinom	0	A027826	0	false	
+A153197	invbinom	0	A006789	0	false	
+A166078	invbinom	0	A114191	0	false	
+A172634	invbinom	0	A002898	0	false	
+A196154	invbinom	0	A004111	0	false	
+A227094	invbinom	0	A013999	0	false	
+A266497	invbinom	0	A015128	0	false	
+A294502	invbinom	0	A026007	0	false	
+A294504	invbinom	0	A156616	0	false	
+A294529	invbinom	0	A001156	0	false	
+A294530	invbinom	0	A023871	0	false	
+A305923	invbinom	0	A005444	0	false	
+A307259	invbinom	0	A022629	0	false	
+A307264	invbinom	0	A000700	0	false	
+A318127	invbinom	0	A006906	0	false	
+A320566	invbinom	0	A005651	0	false	
+A320567	invbinom	0	A007837	0	false	
+A330046	invbinom	0	A006154	0	false	
+
