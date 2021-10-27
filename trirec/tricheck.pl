@@ -2,6 +2,7 @@
 
 # Check tabl triangles for some condition
 # @(#) $Id$
+# 2021-10-26: -m trixy
 # 2020-07-28, Georg Fischer
 #
 #:# Usage:

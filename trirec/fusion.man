@@ -1,0 +1,19 @@
+A202453	parm3	0	A202670	new A000045()	1	Symmetric matrix based on (1,2,3,5,8,13,...), by antidiagonals.
+A202670	parm3	0	A202670	new A000290()	1	Symmetric matrix based on A000290 (the squares), by antidiagonals.
+A202674	parm3	0	A202670	new A005408()	0	Symmetric matrix based on (1,3,5,7,9,...), by antidiagonals.
+A202676	parm3	0	A202670	new A016777()	0	Symmetric matrix based on (1,4,7,10,13,...), by antidiagonals.
+A202869	parm3	0	A202670	new A000201()	0	Symmetric matrix based on the lower Wythoff sequence, A000201, by antidiagonals.
+A202871	parm3	0	A202670	new A000032()	0	Symmetric matrix based on the Lucas sequence, A000032, by antidiagonals.
+A202873	parm3	0	A202670	new A126646()	0	Symmetric matrix based on (1,3,7,15,31,...), by antidiagonals.
+A202874	parm3	0	A202670	new A000045()	2	Symmetric matrix based on (1,2,3,5,8,13,...), by antidiagonals.
+A202876	parm3	0	A202670	new A000071()	0	Symmetric matrix based on A000071, by antidiagonals.
+A202970	parm3	0	A202670	new A001911()	0	Symmetric matrix based on A001911, by antidiagonals.
+A203001	parm3	0	A202670	new A007598()	0	Symmetric matrix based on A007598, by antidiagonals.
+A203003	parm3	0	A202670	new A007598()	1	Symmetric matrix based on A007598(n+1), by antidiagonals.
+A203905	parm3	0	A202670	new PeriodicSequence("1,0")	0	Symmetric matrix based on (1,0,1,0,1,0,1,0,...), by antidiagonals.
+A203945	parm3	0	A202670	new PeriodicSequence("1,0,0")	0	Symmetric matrix based on (1,0,0,1,0,0,1,0,0,...), by antidiagonals.
+A203947	parm3	0	A202670	new PeriodicSequence("1,0,1")	0	Symmetric matrix based on (1,0,1,1,0,1,1,0,1,...), by antidiagonals.
+A203949	parm3	0	A202670	new PeriodicSequence("1,1,0")	0	Symmetric matrix based on (1,1,0,1,1,0,1,1,0,...), by antidiagonals.
+A203951	parm3	0	A202670	new PeriodicSequence("1,0,0,0")	0	Symmetric matrix based on (1,0,0,0,1,0,0,0,...), by antidiagonals.
+A203953	parm3	0	A202670	new PeriodicSequence("1,2")	0	Symmetric matrix based on (1,2,1,2,1,2,...), by antidiagonals.
+A203955	parm3	0	A202670	new PeriodicSequence("1,2,3")	0	Symmetric matrix based on (1,2,3,1,2,3,1,2,3...), by antidiagonals.

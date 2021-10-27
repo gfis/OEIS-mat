@@ -1,0 +1,131 @@
+# A002024	triuple	0	1, 1, -1	Z.valueOf(i+j-1)	i+j-1
+# A003057	triuple	0	1, 1, -1	Z.valueOf(i+j)	i+j
+# A003989	triuple	0	1, 1, -1	Z.valueOf(gcd(i, j))	gcd(i,j)
+# A003983	triuple	0	1, 1, -1	Z.valueOf(Math.min(i, j))	min(i,j)
+# A003991	triuple	0	1, 1, -1	Z.valueOf(i*j)	i*j
+# A007318	triuple	0	1, 1, -1	Z.valueOf(C(i+j, j))	C(i+j,j)
+# A008288	triuple	0	1, 1, -1	Z.valueOf(Delannoy matrix)	Delannoy matrix
+A049581	triuple	0	1, 1, -1	Z.valueOf(Math.abs(i-j))	|i-j|
+A051125	triuple	0	1, 1, -1	Z.valueOf(Math.max(i, j))	max(i,j)
+A203990	triuple	0	1, 1, -1	Z.valueOf((i+j)*Math.min(i, j))	(i+j)*min(i,j)
+A143182	triuple	0	1, 1, -1	Z.valueOf(Math.max(i-j+1, j-i+1))	max(i-j+1,j-i+1)
+A203994	triuple	0	1, 1, -1	Z.valueOf(Math.min(i-j+1, j-i+1))	min(i-j+1,j-i+1)
+A203996	triuple	0	1, 1, -1	Z.valueOf(Math.min(i*(j+1), j*(i+1)))	min(i(j+1),j(i+1))
+A203998	triuple	0	1, 1, -1	Z.valueOf(Math.max(i*(j+1)-1, j*(i+1)-1))	max(i(j+1)-1,j(i+1)-1)
+A204000	triuple	0	1, 1, -1	Z.valueOf(Math.min(i*(j+1)-1, j*(i+1)-1))	min(i(j+1)-1,j(i+1)-1)
+A204002	triuple	0	1, 1, -1	Z.valueOf(Math.min(2*i+j, i+2*j))	min(2*i+j,i+2*j)
+A204004	triuple	0	1, 1, -1	Z.valueOf(Math.max(2*i+j-2, i+2*j-2))	max(2*i+j-2,i+2*j-2)
+A204006	triuple	0	1, 1, -1	Z.valueOf(Math.min(2*i+j-2, i+2*j-2))	min(2*i+j-2,i+2*j-2)
+A204008	triuple	0	1, 1, -1	Z.valueOf(Math.max(3*i+j-3, i+3*j-3))	max(3i+j-3,i+3j-3)
+A204012	triuple	0	1, 1, -1	Z.valueOf(Math.min(3*i+j-3, i+3*j-3))	min(3i+j-3,i+3j-3)
+A204028	triuple	0	1, 1, -1	Z.valueOf(Math.min(3*i-2, 3*j-2))	min(3i-2,3j-2)
+A204014	triuple	0	1, 1, -1	Z.valueOf(1 + Math.min(j % i, i % j))	1+min(j mod i, i mod j)
+A204016	triuple	0	1, 1, -1	Z.valueOf(Math.max(j % i, i % j))	max(j mod i, i mod j)
+A204018	triuple	0	1, 1, -1	Z.valueOf(1 + Math.max(j % i, i % j))	1+max(j mod i, i mod j)
+A106314	triuple	0	1, 1, -1	Z.valueOf(Math.min(i*i, j*j))	min(i^2,j^2)
+A157454	triuple	0	1, 1, -1	Z.valueOf(Math.min(2*i-1, 2*j-1))	min(2*i-1, 2*j-1)
+A204022	triuple	0	1, 1, -1	Z.valueOf(Math.max(2*i-1, 2*j-1))	max(2*i-1, 2*j-1)
+A106255	triuple	0	1, 1, -1	Z.valueOf(Math.min(i*(i+1)/2, j*(j+1)/2))	min(i(i+1)/2,j(j+1)/2)
+A204030	triuple	0	1, 1, -1	Z.valueOf(i + 1).gcd(Z.valueOf(j + 1))	gcd(i+1,j+1)
+A204116	triuple	0	1, 1, -1	Z.ONE.shiftLeft(i).subtract(1).gcd(Z.ONE.shiftLeft(j).subtract(1))		gcd(2^i-1,2^j-2)
+A144464	triuple	0	1, 1, -1	Z.ONE.shiftLeft(i-1).gcd(Z.ONE.shiftLeft(j-1))	gcd(2^(i-1),2^(j-1))
+A204123	triuple	0	1, 1, -1	Z.valueOf(Math.max(i/j, j/i))	max(floor(i/j),floor(j/i))
+A204154	triuple	0	1, 1, -1	Z.valueOf(Math.max(2*i-j, 2*j-i))	max(2*i-j,2*j-i)
+A204156	triuple	0	1, 1, -1	Z.valueOf(-1 + Math.max(3*i-j, 3*j-i))	-1+max(3i-j,3j-i)
+A204158	triuple	0	1, 1, -1	Z.valueOf(Math.max(3*i-2*j, 3*j-2*i))	max(3i-2*j,3j-2*i)
+A204164	triuple	0	1, 1, -1	Z.valueOf((i+j)/2)	floor((i+j)/2)
+A204125	triuple	0	1, 1, -1	Z.valueOf(i != j ? 1 : i)	AOE f(i,i)=i
+A204131	triuple	0	1, 1, -1	Z.valueOf(i != j ? 1 : 2*i - 1)	AOE f(i,i)=2*i-1
+A204133	triuple	0	1, 1, -1	i != j ? Z.ONE : Z.ONE.shiftLeft(i-1)	AOE f(i,i)=2^(i-1)
+A204160	triuple	0	1, 1, -1	Z.valueOf(i != j ? 1 : 3*i - 2)	AOE f(i,i)=3i-2
+A204162	triuple	0	1, 1, -1	Z.valueOf(i != j ? 1 : (i+1)/2)	AOE f(i,i)=floor((i+1)/2)
+A204171	triuple	0	1, 1, -1	Z.valueOf((Math.max(i, j) & 1) == 1 ? 1 : 0)	Symmetric matrix based on f(i,j)=(1 if max(i,j) is odd, and 0 otherwise)
+A204173	triuple	0	1, 1, -1	Z.valueOf((Math.max(i, j) & 1) == 1 ? (1 + Math.max(i, j))/2 : 0)	Symmetric matrix based on f(i,j)=(2*i-1 if max(i,j) is odd, and 0 otherwise)
+A204175	triuple	0	1, 1, -1	Z.valueOf((Math.max(i, j) & 1) == 0 ? 1 : 0)	Symmetric matrix based on f(i,j)=(1 if max(i,j) is even, and 0 otherwise)
+A204177	triuple	0	1, 1, -1	Z.valueOf(i == 1 || j == 1 || i == j ? 1 : 0)	Symmetric matrix based on f(i,j)=(1 if i=1 or j=1 or i=j, and 0 otherwise)
+A204179	triuple	0	1, 1, -1	Z.valueOf(i == 1 || j == 1 ? 1 : (i == j ? i : 0))	Symmetric matrix based on f(i,j) defined by f(i,1)=f(1,j)=1; f(i,i)= i; f(i,j)=0 otherwise; by antidiagonals.
+A204181	triuple	0	1, 1, -1	Z.valueOf(i == 1 || j == 1 ? 1 : (i == j ? 2*i - 1 : 0))	Symmetric matrix based on f(i,j) defined by f(i,1)=f(1,j)=1; f(i,i)= 2*i-1; f(i,j)=0 otherwise; by antidiagonals.
+A204183	triuple	0	1, 1, -1	Z.valueOf(i == 1 || j == 1 ? 1 : (i == j ? ((i & 1) == 0 ? -1 : 1) : 0))	Symmetric matrix based on f(i,j) defined by f(i,1)=f(1,j)=1; f(i,i)= (-1)^(i-1); f(i,j)=0 otherwise; by antidiagonals.
+
+# 2021-10-24
+## A204026	triuple	0	1, 1, -1	Z.valueOf(Math.min(F(i+1), F(j+1), F=A000045)	min(F(i+1),F(j+1),F=A000045
+## A204112	triuple	0	1, 1, -1	Z.valueOf(gcd(F(i+1), F(j+1), F=A000045)	gcd(F(i+1),F(j+1),F=A000045
+## A204114	triuple	0	1, 1, -1	Z.valueOf(gcd(L(i), L(j), L=A000032)	gcd(L(i),L(j),L=A000032
+## A204127	triuple	0	1, 1, -1	Z.valueOf(i != j ? 1 : A000045(i+1))	AOE f(i,i)=A000045(i+1)
+## A204129	triuple	0	1, 1, -1	Z.valueOf(i != j ? 1 : A000032(i))	AOE f(i,i)=A000032(i)
+A204143	triuple	0	1, 1, -1	new irvine.math.q.Q(i, j).ceiling().max(new irvine.math.q.Q(j, i).ceiling())	min(ceiling(i/j),ceiling(j/i))
+A204166	triuple	0	1, 1, -1	new irvine.math.q.Q((i + j), 2).ceiling()	ceiling((i+j)/2)		
+## A204118	triuple	0	1, 1, -1	Z.valueOf(gcd(prime(i), prime(j)))	gcd(prime(i),prime(j))
+## A204120	triuple	0	1, 1, -1	Z.valueOf(gcd(prime(i+1), prime(j+1)))	gcd(prime(i+1),prime(j+1))
+
+
+## A259572	null	1	Reciprocity array of 0; rectangular, read by antidiagonals. Use Q
+## A259575	null	1	Reciprocity array of 1; rectangular, read by antidiagonals.
+## A259578	null	1	Reciprocity array of 2; rectangular, read by antidiagonals.
+## A259581	null	1	Reciprocity array of 3; rectangular, read by antidiagonals.
+# A075994	notabl	0	1, 1, -1	Z.valueOf(i == 1 ? 1 : (j <= i/2 ? i/j : i/2))	Array T(n,k) = Floor(n/k) for k=1,2,..., Floor(n/2) for n>=2 and T(1,1)=1.
+A077029	triuple	0	1, 1, +1	Z.valueOf(j > i ? 0 : (i - j) * (j - 1) + 1)	column j has j-1 zeros followed by numbers congruent to 1 mod j-1.
+A086270	triuple	0	1, 1, -1	Z.valueOf(i).multiply(irvine.math.z.Binomial.binomial(j, 2)).add(j)		
+A086271	triuple	0	1, 1, -1	Z.valueOf(j).multiply(irvine.math.z.Binomial.binomial(i, 2)).add(i)	T(n, k) = k*C(n, 2)+n		
+A086272	triuple	0	1, 1, -1	Z.valueOf(i + 1).multiply(irvine.math.z.Binomial.binomial(j, 2)).add(1)	T(k, n)=(k+1)*binomial(n, 2)+1. 		
+A086273	triuple	0	1, 1, -1	Z.valueOf(j + 1).multiply(i).multiply(i - 1).divide2().add(1)	(k+1)*n*(n-1)/2+1.		
+A114327	triuple	0	0, 0, +1	Z.valueOf(i - j)	Table T(n,m) = n - m read by upwards antidiagonals.	easy,sign,tabl,nice,changed,	0..8000	nyi
+A143901	triuple	0	1, 1, -1	Z.valueOf((i * j + 1) / 2)		
+A143902	triuple	0	1, 1, -1	Z.valueOf(i * j / 2)		
+A144216	triuple	0	1, 1, -1	Z.valueOf((i*(i - 1) + j*(j - 1))/2)	C(m,2)+C(n,2)	, m>=1, n>=1: a rectangular array R read by antidiagonals.
+A182828	triuple	0	0, 0, -1	Z.valueOf(3*i+1).multiply(Z.THREE.pow(j))	Array of the numbers (3*i+1)*3^j, i>=0, j>=0, read by antidiagonals.
+A182830	triuple	0	0, 0, -1	Z.valueOf(3*i+2).multiply(Z.THREE.pow(j))	Array of the numbers (3*i+2)*3^j, i>=0, j>=0, read by antidiagonals.
+A185730	triuple	0	1, 1, -1	Z.valueOf(j*(j + 1)).multiply(Z.valueOf(i)).multiply(Z.valueOf(i + 1)).multiply(Z.valueOf(j*i - i + 2*j + 7)).divide(36)	Array by antidiagonals: T(n,k) = k*(k+1)*n*(n+1)*(k*n-n+2*k+7)/36.
+A185731	triuple	0	1, 1, -1	Z.valueOf(j*(j + 1)).multiply(Z.valueOf(j + 2)).multiply(Z.valueOf(i*(i + 1))).multiply(Z.valueOf(i + 2)).multiply(Z.valueOf(j*i - i + 3*j + 13)).divide(576)	Array by antidiagonals: T(n,k)=F*(k*n-n+3*k+13), where F = k*(k+1)*(k+2)*n*(n+1)*(n+2)/576.
+A185738	triuple	0	1, 1, -1	Z.ONE.shiftLeft(i).add(Z.valueOf(j - 2))		
+A185780	triuple	0	1, 1, -1	Z.valueOf(j).multiply(Z.valueOf(i*j - i + 1))	Array T(n,k) = k*(n*k-n+1), by antidiagonals.
+A185877	triuple	0	1, 1, -1	Z.valueOf(j*j + (2*i - 3)*j - 2*i + 3)	Array T given by T(n,k) = k^2 +(2*n-3)*k -2*n +3, by antidiagonals.
+A185905	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(j + 3, 4).multiply(irvine.math.z.Binomial.binomial(i + 3, 4))	Rectangular array binomial(k+3,4)*binomial(n+3,4), by antidiagonals.
+A185908	triuple	0	1, 1, -1	Z.valueOf(i - 1 + Math.min(i, j))	Array: T(n,k) = n-1 + min{n,k}, by antidiagonals.
+A185910	triuple	0	1, 1, -1	Z.valueOf(i*i + j - 1)	Array: T(n,k) = n^2 + k - 1, by antidiagonals.
+A185914	triuple	0	1, 1, -1	Z.valueOf(j >= i ? j - i + 1 : 0)	Array: T(n,k)=k-n+1 for k>=n; T(n,k)=0 for k<n; by antidiagonals.
+A204237	triuple	0	1, 1, -1	Z.valueOf(Math.max(3*i - j, 3*j - i))		
+A204242	triuple	0	1, 1, -1	j == 1 || i == 1 ? Z.ONE : (i == j ? Z.ONE.shiftLeft(i).subtract(1) : Z.ZERO)	Infinite symmetric matrix given by f(i,1)=1, f(1,j)=1, f(i,i)=2^i-1 and f(i,j)=0 otherwise, read by antidiagonals.
+A204244	triuple	0	1, 1, -1	i == 1 || j == 1 ? Z.ONE : (i == j ? irvine.math.factorial.Factorial(i) : Z.ZERO)		
+A204250	triuple	0	1, 1, -1	Z.valueOf(i*j + i + j - 2)		
+A204253	triuple	0	1, 1, -1	Z.valueOf(1 + (i + j) % 3)		
+A204255	triuple	0	1, 1, -1	Z.valueOf(1 + (i + j) % 4)		
+A204257	triuple	0	1, 1, -1	Z.valueOf(1 + (i + 2*j) % 3)	Matrix given by f(i,j)=1+[(i+2j) mod 3], by antidiagonals.
+A204259	triuple	0	1, 1, -1	Z.valueOf(1 + (2*i + j) % 3)	Matrix given by f(i,j) = 1 + [(2i+j) mod 3], by antidiagonals.
+A204260	triuple	0	1, 1, -1	new irvine.math.q.Q(i*j, (i + j)).ceiling()		
+A204421	triuple	0	1, 1, -1	Z.valueOf((i + j + 2) % 3)		
+A204423	triuple	0	1, 1, -1	Z.valueOf(2*i + j).mod(Z.THREE)	Infinite matrix: f(i,j)=(2i+j mod 3), by antidiagonals.
+A204425	triuple	0	1, 1, -1	Z.valueOf(2*i + j + 1).mod(Z.THREE)	Infinite matrix: f(i,j)=(2i+j+1 mod 3), by antidiagonals.
+A204427	triuple	0	1, 1, -1	Z.valueOf(2*i + j + 2).mod(Z.THREE)	Infinite matrix: f(i,j)=(2i+j+2 mod 3), read by antidiagonals.
+A204435	triuple	0	1, 1, -1	Z.valueOf(i + j).square().mod(Z.THREE)		
+A204437	triuple	0	1, 1, -1	Z.valueOf(i + j + 1).square().mod(Z.THREE)		
+A204439	triuple	0	1, 1, -1	Z.valueOf(i + j + 2).square().mod(Z.THREE)		
+A204429	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j) % 3)		
+A204431	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j + 1) % 3)		
+A204433	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j + 2) % 3)		
+A205548	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(Math.max(i + 1, j + 1), Math.min(i + 1, j + 1))	Symmetric matrix by antidiagonals:  C(max(i+1,j+1),min(i+1,j+1)), i>=1, j>=1.	nonn,tabl,synth	1..68	nyi		
+A205549	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(Math.max(i + 2, j + 2), Math.min(i + 2, j + 2))	Symmetric matrix by antidiagonals: C(max(i+2,j+2),min(i+2,j+2)), i>=1, j>=1.	nonn,tabl,synth	1..64	nyi		
+A205550	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(Math.max(2*i - 1, 2*j - 1), Math.min(2*i - 1, 2*j - 1))	Symmetric matrix by antidiagonals: C(max(g(i),g(j)),min(g(i),g(j)), where g(k)=2k-1.	nonn,tabl,synth	1..60	nyi		
+A205552	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(Math.max(2*i - 2, j - 1), Math.min(2*i - 2, j - 1))	Square array: C(max(2*i-2,j-1),min(2*i-2,j-1)), i>=1, j>=1; by antidiagonals.		
+A205553	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(Math.max(i - 1, 2*j - 2), Math.min(i - 1, 2*j - 2))	Square array by antidiagonals: C(max(i-1,2*j-2),min(i-1,2*j-2)), i>=1, j>=1.		
+A205545	triuple	0	0, 0, -1	irvine.math.z.Binomial.binomial(Math.max(3*i, 3*j), Math.min(3*i, 3*j))		
+A205456	triuple	0	1, 1, -1	irvine.math.z.Binomial.binomial(Math.max(i, j), Math.min(i, j))		
+A205457	triuple	0	0, 0, -1	irvine.math.z.Binomial.binomial(Math.max(2*i, 2*j), Math.min(2*i, 2*j))		
+A204562	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j + 6)/4 - (i + j + 3)/4)		
+A204263	triuple	0	1, 1, -1	Z.valueOf((i + j) % 3)		
+A204267	triuple	0	1, 1, -1	Z.valueOf((i + j + 1) % 3)		
+A204551	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j + 1)/4 - (i + j)/4)		
+A204553	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j + 2)/4 - (i + j + 1)/4)		
+A204560	triuple	0	1, 1, -1	Z.valueOf((2*i + 2*j + 4)/4 - (i + j + 2)/4)		
+A204269	triuple	0	1, 1, -1	Z.valueOf((i + j + 2)/4 - (i + j)/4)		
+A204441	triuple	0	1, 1, -1	Z.valueOf((i + j + 2)/4 - (i + j - 1)/4)		
+A204443	triuple	0	1, 1, -1	Z.valueOf((i + j + 3)/4 - (i + j)/4)		
+A204545	triuple	0	1, 1, -1	Z.valueOf((i + j + 3)/4 - (i + j + 1)/4)		
+A204445	triuple	0	1, 1, -1	Z.valueOf((i + j + 4)/4 - (i + j + 1)/4)		
+A204547	triuple	0	1, 1, -1	Z.valueOf((i + j + 4)/4 - (i + j + 2)/4)		
+A204447	triuple	0	1, 1, -1	Z.valueOf((i + j + 5)/4 - (i + j + 2)/4)		
+A204549	triuple	0	1, 1, -1	Z.valueOf((i + j + 5)/4 - (i + j + 3)/4)		
+A128442	triuple	0	1, 1, -1	irvine.math.cr.CR.TWO.pow(i).sqrt().multiply(j).floor()	Array T by antidiagonals: T(n,k)=Floor(k*2^(n/2)).
+A128444	triuple	0	1, 1, -1	irvine.math.cr.CR.THREE.pow(i).sqrt().multiply(j).floor()	Array T by antidiagonals: T(n,k)=Floor(k*3^(n/2)).
+A128440	triuple	0	1, 1, -1	irvine.math.cr.CR.PHI.pow(i).multiply(j).floor()	Array T by antidiagonals: T(n,k)=Floor(k*t^n) where t=golden ratio=(1+sqrt(5))/2.
+

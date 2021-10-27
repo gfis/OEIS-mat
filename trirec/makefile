@@ -59,6 +59,16 @@ tabl:
 	>         $@.tmp
 	head -n 4 $@.tmp
 	wc -l     $@.tmp
+cktabl:
+	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), i.offset1 \
+	    , n.name FROM asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE i.aseqno = n.aseqno \
+	    AND i.keyword LIKE '%tabl%' \
+	    AND i.author  LIKE '%Kimberling%' \
+	  ORDER BY n.name, i.aseqno;" \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.tmp
 #====================================
 tasin: # "array T as in A-number"
 	cat $(COMMON)/joeis_names.txt \
@@ -177,6 +187,13 @@ rio3:
 	head -4  $@.tmp
 	wc -l    $@.tmp
 #--------
+riordan:
+	grep -iE "Riordan" $(COMMON)/jcat25.txt \
+	| grep -E "^\%[NCF]" \
+	>       $@.tmp
+	head -4 $@.tmp
+	wc -l   $@.tmp
+#--------
 rsrio: rsrio1 rsrio2
 rsrio1:
 	grep -E "^A[0-9]" ralf*-riordan.lst \
@@ -248,6 +265,20 @@ triknoll:
 	# 2> $@.viol.tmp 
 	head -n 4 $@.tmp
 	wc -l     $@.*tmp  
+#----
+trixam:
+	$(DBAT) -x "SELECT i.aseqno, i.offset1, d.data FROM asinfo i, bfdata d \
+		WHERE i.aseqno = d.aseqno \
+		  AND i.keyword LIKE '%tabl%' \
+	    ORDER BY i.aseqno;" \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
+trixy:
+	perl trixamine.pl -m trixy -r 6 -s 2 trixam.tmp \
+	>         $@.tmp 
+	head -n 4 $@.tmp
+	wc -l     $@.tmp  
 #--------
 # Triangle recurrences
 trec:
@@ -388,7 +419,14 @@ binomialx:
 #----
 # Modified constant and Pascal triangles
 border1: # 32 rows
-	$(RAMATH).sequence.Triangle -d 0 -border -b ../common/bfile -f traits1.tmp -m 528 \
+	$(RAMATH).sequence.Triangle -border -b ../common/bfile -f traits1.tmp -m 528 \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+#----
+# Whether the inner elements have a constant difference
+difftr: # InnerDiffTrait
+	$(RAMATH).sequence.Triangle -border -b ../common/bfile -f traits1.tmp -m 528 \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
@@ -414,10 +452,20 @@ modco:
 	wc -l     $@.tmp
 modic:
 	perl traitsel.pl -s "ls,rs,ic" border1.tmp \
-	| sed -e "s/InnerConstant/modicon/" \
 	>         $@.tmp
 	head -n12 $@.tmp
 	wc -l     $@.tmp
+modid: # Whether the inner elements have a constant difference
+	perl traitsel.pl -s "ls,rs,ic,id" border1.tmp \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
+modic2:
+	perl $(FISCHER)/find_period.pl -d 0 -g -n 3 modic.tmp \
+	>         $@.tmp
+	head -n12 $@.tmp
+	wc -l     $@.tmp
+#----
 sortsides: # sort and count the LeftSide and RightSide traits
 	grep -E "LeftSide|RightSide" border1.tmp \
 	| cut -f4 \
@@ -430,6 +478,33 @@ sortsides: # sort and count the LeftSide and RightSide traits
 	| sort -nr \
 	>         $@.tmp
 	head -n32 $@.tmp
+#---------
+triuple: 
+	perl tri_guides.pl -a C \
+	>         $@.1.tmp
+	grep $@   $@.1.tmp \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+triupcp: triuple
+	grep -P "\tparm" triuple.1.tmp \
+	| grep -vP "new A00" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+# triuple_man:
+	# cp -v triuple.tmp triuple.man
+#---------
+fusion: # "correlation triangle"
+	grep -E "^%[NCF]" $(COMMON)/jcat25.txt \
+	| grep -Pi "self[\- ]fusion" \
+	| tee     $@.tmp
+	wc -l     $@.tmp
+trigB:
+	perl tri_guides.pl -a B \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
 #---------
 # Square array T, read by antidiagonals
 trideleh:
