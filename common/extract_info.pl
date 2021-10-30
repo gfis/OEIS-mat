@@ -251,6 +251,11 @@ sub extract_from_json { # read JSON of 1  sequence
         }
     } # foreach $line
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
+    if ($keyword =~ m{tabl}) {
+        if ($name =~ m{rray|antidiagonals|pper left|quare}) {
+            $keyword .= ",tar" . (($name =~ m{ascend}) ? "a" : "d");
+        }
+    }
     if (0) {
     } elsif ($action =~ m{n}) {
         print join("\t", ($aseqno

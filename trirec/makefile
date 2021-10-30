@@ -51,9 +51,11 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 #====================================
 tabl:
-	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), i.offset1 \
-	    , n.name FROM asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
-	  WHERE i.aseqno = n.aseqno \
+	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), n.name, i.author \
+	    , i.keyword, b. bfimin || '..' || b.bfimax \
+	  FROM asinfo i, bfinfo b, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE i.aseqno = b.aseqno \
+	    AND b.aseqno = n.aseqno \
 	    AND i.keyword LIKE '%tabl%' \
 	  ORDER BY n.name, i.aseqno;" \
 	>         $@.tmp
@@ -133,6 +135,10 @@ dhd_gf: # generating function
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+deleham: 
+	grep Delé tabl.tmp | grep null > $@.tmp
+	grep DELTA $@.tmp | wc -l
 #--------------------
 fract2:
 	grep -vE "^#" $(LINREC)/catgf1.tmp \
@@ -245,7 +251,25 @@ factabl2:
 	    ORDER BY s.aseqno;" \
 	>         $@.tmp
 	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	wc -l     $@.tmp
+#--------
+tricolk:
+	grep -E "^[\%\?][NCFY]" $(COMMON)/jcat25.txt \
+	| grep -iE "column" \
+	| perl rowsums.pl -c \
+	2>        $@.rest.tmp \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.*tmp
+#--------
+rowsums:
+	grep -E "^[\%\?][NCFY]" $(COMMON)/jcat25.txt \
+	| grep -iE "row sum" \
+	| perl rowsums.pl -r \
+	2>        $@.rest.tmp \
+	>         $@.tmp
+	head -n 4 $@.tmp
+	wc -l     $@.*tmp
 #--------
 # Triangles
 trigen:
