@@ -1,0 +1,49 @@
+== Counts of arrays ==
+More than 20000 sequences in the [https://oeis.org OEIS] enumerate arrays with special properties. The sequences were defined by Ron Hardin, often with conjectured ordinary (rational) generating functions. Such o.g.f.s and/or linear recurrences with constant coefficients were also contributed by Colin Barker. We want to derive such g.f.s. systematically. As a first example, we take:
+ '''[https://oeis.org/A223615 A223615]''' Number of n X 3 0..1 arrays with rows and columns unimodal.
+ Column 3 of [https://oeis.org/A223620 A223620]
+ G.f.: x*(7 + 44*x^2 - 20*x^3 + 20*x^4 - 6*x^5 + x^6) / (1 - x)^7.
+ a(n) = 7*a(n-1) - 21*a(n-2) + 35*a(n-3) - 35*a(n-4) + 21*a(n-5) - 7*a(n-6) + a(n-7) for n &gt; 7.
+=== Unimodal words ===
+A unimodal word ''w<sub>i</sub>'' has one "plateau" - first the symbols are increasing (''w<sub>i</sub> &lt;= w<sub>i+1</sub>''), then they are decreasing (''w<sub>i</sub> &gt;= w<sub>i+1</sub>'').
+
+For the alphabet {''0'', ''1''} the unimodal words of length ''n'' are:
+  n=1   2    3     4
+    0  00  000  0000
+    1  01  001  0001
+       10  010  0010
+       11  011  0011
+           100  0100
+           110  0110
+           111  0111
+                1000
+                1100
+                1110
+                1111
+  ------------------
+  # 2   4    7    11 -&gt; [https://oeis.org/A000124 (central polygonal numbers)]
+A word is unimodal iff it does not match the regular expression pattern ''100*1''. Words of length 1 or 2 are always unimodal.
+===Deterministic Finite State Automaton (DFSA)===
+The DFSA for unimodal words over the alphabet {''0'', ''1''} has a simple transition table with 3 states:
+          symbol
+  state|   0   1 
+  -----+--------- 
+     s1|  s1  s2
+     s2|  s3  s2
+     s3|  s3  x0
+We always use a start state of ''1''. Successor state ''0'' is "forbidden", since it would lead to a non-unimodal word.
+===Matrices of words===
+Now we arrange the words in columns of an ''n X k'' matrix, with a specified number ''k'' of parallel columns of length ''n'', and we ask for the number of such arrangeents depending on ''n''. In addition, we require that the rows in the matrix also have the unimodal property. Then we get the following DFSA table for ''k=2'' :
+
+We begin with 2 columns, and we denote the states by pairs of substates ''s</sub>i</sub>t<sub>j</sub>''.
+       |  0 0   0 1   1 0   1 1
+  -----+-------------------------
+   s1t1|  s1t1  s1t2  s2t1  s2t2
+   s1t2|  s1t3  s1t2  s2t3  s2t2
+   s1t3|  s1t3  s1x0  s2t3  s2x0
+   s2t1|  s3t1  s3t2  s2t1  s2t2
+   s2t2|  s3t3  s3t2  s2t3  s2t2
+   s2t3|  s3t3  s3x0  s2t3  s2x0
+   s3t1|  s3t1  s3x0  x0t3  x0t2
+   s3t2|  s3t3  s3x0  x0t3  x0t2
+   s3t3|  s3t3  s3x0  x0t3  x0x0
