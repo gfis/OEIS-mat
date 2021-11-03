@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2021-10-30: keywords tara,tard
 # 2021-08-07: F -> program field
 # 2021-05-02: monotone increasing
 # 2020-02-22: -as:program
@@ -253,7 +254,7 @@ sub extract_from_json { # read JSON of 1  sequence
     $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
     if ($keyword =~ m{tabl}) {
         if ($name =~ m{rray|antidiagonals|pper left|quare}) {
-            $keyword .= ",tar" . (($name =~ m{ascend}) ? "a" : "d");
+            $keyword .= ",tar" . (($name =~ m{ascend|upward}) ? "a" : "d");
         }
     }
     if (0) {

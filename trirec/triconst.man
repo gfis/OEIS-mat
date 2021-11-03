@@ -89,3 +89,13 @@ A279891	triconst	0	A005843	A005843	A032583								dummy
 A282063	triconst	0	A007540	A128666	A000244_1							dummy
 A318274	triconst	0	______1	______1	A159062								dummy
 A319840	triconst	0	A000027	A000027	A032583								dummy
+
+# A168256	triconst	0	A000108	A000108	A000108_2								dummy
+# A172417	triconst	0	A000108_1	A000108_1	A000108_3								dummy
+# A057944	triconst	0	A000217	A000217	A000217_2								dummy
+# A123081	triconst	0	A000110	A000110	A000110_2								dummy
+# A127739	triconst	1	A000217_1	A000217_1	A000217_3								dummy
+# A130493	triconst	1	A000142_1	A000142_1	A000142_3								dummy
+# A143536	triconst	1	A010051	A010051	A010051_2								dummy
+
+

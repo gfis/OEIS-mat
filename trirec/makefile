@@ -51,8 +51,7 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 #====================================
 tabl:
-	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), n.name, i.author \
-	    , i.keyword, b. bfimin || '..' || b.bfimax \
+	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), i.offset1, n.name, b. bfimin || '..' || b.bfimax, i.keyword, i.author \
 	  FROM asinfo i, bfinfo b, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE i.aseqno = b.aseqno \
 	    AND b.aseqno = n.aseqno \
@@ -62,16 +61,29 @@ tabl:
 	head -n 4 $@.tmp
 	wc -l     $@.tmp
 cktabl:
-	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), i.offset1 \
-	    , n.name FROM asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
-	  WHERE i.aseqno = n.aseqno \
-	    AND i.keyword LIKE '%tabl%' \
-	    AND i.author  LIKE '%Kimberling%' \
-	  ORDER BY n.name, i.aseqno;" \
+	grep "Kimberling" tabl.tmp \
 	>         $@.tmp
 	head -n 4 $@.tmp
 	wc -l     $@.tmp
 #====================================
+A144562: # A144562 Triangle read by rows: T(n, k) = 2*n*k + n + k - 1.
+	cat tabl.tmp \
+	| perl -ne 'use strict; s/\s//g; my $$line = $$_; '\
+	' if ($$line =~ m{\=((\d+)\*?[a-z]\*?[a-z]\+[a-z]\+[a-z]([\+\-]\d+))(.*)}) {'\
+	' my ($$d1, $$d2, $$expr) = ($$2, $$3, $$1); '\
+	' print join("\t", substr($$line, 0, 7), "parm3", 0, "A144562", $$d1, $$d2, $$expr, $$line) ."\n"; } '\
+	| sort \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	# ' if ($$line =~ m{\= *(\d+) *\* *n *\* *k *\+ *n *\+ *k *([\+\-] *\d+)(.*)}) {'\
+	#
+#----
+A176627:
+	grep -P "\= *\d+\^\(k *\* *\(n *[\-\+]k *\)\)" tabl.tmp
+	# grep -P "\= *\d+\^\([nk]" tabl.tmp
+
+#----
 tasin: # "array T as in A-number"
 	cat $(COMMON)/joeis_names.txt \
 	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
@@ -164,6 +176,24 @@ invbinom:
 	| grep -iE "binomial transform" \
 	| perl invbinom.pl \
 	>        $@.tmp
+	head -4  $@.tmp
+	wc -l    $@.tmp
+#--------------------
+trimirror:
+	grep -Ei "mirror|transpose" tabl.tmp \
+	| perl -ne 'use strict; s/\s+\Z//; my $$line = $$_; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/, $$line, 4); '\
+	' if ($$callcode eq "null" && ($$line =~ m{([Mm]irror|[Tt]ranspose) of[^A]*(A\d+)})) { '\
+	' print join("\t", $$aseqno, "$@", 0, $$2, $$name) ."\n"; } '\
+	>        $@.tmp
+	head -4  $@.tmp
+	wc -l    $@.tmp
+#--------------------
+trirecur:
+	grep -P "\tnull\t" tabl.tmp | grep -vE "\,tar[ad]" \
+	| grep -iE "T\(" \
+	| perl trirecur.pl \
+	| sort -k4,4 \
+	| tee    $@.tmp
 	head -4  $@.tmp
 	wc -l    $@.tmp
 #--------------------
@@ -354,9 +384,10 @@ traits1: # select those with keyword tabl
 	FROM asinfo a \
 	WHERE a.keyword LIKE '%tabl%' \
 	  AND a.offset1 >= 0 \
+	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
 	>         $@.tmp
-	head -n2  $@.tmp
+	head -n4  $@.tmp
 	wc -l     $@.tmp
 traits2: # compute the TraitCard
 	$(RAMATH).sequence.Triangle -d 0 -trait -b ../common/bfile -f traits1.tmp -m 528 \
@@ -441,57 +472,74 @@ binomialx:
 	head -n4  $@.gen
 	wc -l     $@.gen
 #----
-# Modified constant and Pascal triangles
-border1: # 32 rows
+# Modified constant and Pascal triangles 
+border: traits1 border1 border2
+border1: # 528 = 32 rows
 	$(RAMATH).sequence.Triangle -border -b ../common/bfile -f traits1.tmp -m 528 \
 	>         $@.tmp
 	head -n4  $@.tmp
 	wc -l     $@.tmp
-#----
-# Whether the inner elements have a constant difference
-difftr: # InnerDiffTrait
-	$(RAMATH).sequence.Triangle -border -b ../common/bfile -f traits1.tmp -m 528 \
+border2:
+	$(DBAT) -x "SELECT i.aseqno, 'Name', i.offset1, n.name, b. bfimin || '..' || b.bfimax, i.keyword, i.author \
+	  FROM asinfo i, bfinfo b, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE i.aseqno = b.aseqno \
+	    AND b.aseqno = n.aseqno \
+	    AND i.keyword LIKE '%tabl%' \
+	    AND i.offset1 >= 0 \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    ORDER BY i.aseqno;" \
 	>         $@.tmp
-	head -n4  $@.tmp
 	wc -l     $@.tmp
+	sort $@.tmp border1.tmp >      border.tmp
 #--
 modtri: modpa modip modco modic
 modpa:
-	perl traitsel.pl -s "ls,rs,pa" border1.tmp \
+	perl traitsel.pl -s "ls,rs,pa" border.tmp \
 	| sed -e "s/Pascal/modpas/" \
 	>         $@.tmp
 	head -n12 $@.tmp
-	wc -l     $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 modip:
-	perl traitsel.pl -s "ls,rs,ip" border1.tmp \
+	perl traitsel.pl -s "ls,rs,ip" border.tmp \
 	| sed -e "s/InnerPascal/modipas/" \
 	>         $@.tmp
 	head -n12 $@.tmp
-	wc -l     $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 modco:
-	perl traitsel.pl -s "ls,rs,co" border1.tmp \
+	perl traitsel.pl -s "ls,rs,co" border.tmp \
 	| sed -e "s/Constant/modcon/" \
 	>         $@.tmp
 	head -n12 $@.tmp
-	wc -l     $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
+moddi:
+	perl traitsel.pl -s "ls,di"    border.tmp \
+	| sed -e "s/Diff/moddi/" \
+	>         $@.tmp
+	head -n12 $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
+moddi2:
+	perl $(FISCHER)/find_period.pl -d 0 -g -n 3 moddi.tmp \
+	>         $@.tmp
+	head -n12 $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 modic:
-	perl traitsel.pl -s "ls,rs,ic" border1.tmp \
+	perl traitsel.pl -s "ls,rs,ic" border.tmp \
 	>         $@.tmp
 	head -n12 $@.tmp
-	wc -l     $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 modid: # Whether the inner elements have a constant difference
-	perl traitsel.pl -s "ls,rs,ic,id" border1.tmp \
+	perl traitsel.pl -s "ls,rs,ic,id" border.tmp \
 	>         $@.tmp
 	head -n12 $@.tmp
-	wc -l     $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 modic2:
 	perl $(FISCHER)/find_period.pl -d 0 -g -n 3 modic.tmp \
 	>         $@.tmp
 	head -n12 $@.tmp
-	wc -l     $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 #----
 sortsides: # sort and count the LeftSide and RightSide traits
-	grep -E "LeftSide|RightSide" border1.tmp \
+	grep -E "LeftSide|RightSide"   border.tmp \
 	| cut -f4 \
 	| perl -ne 'my @terms = split(/\,/); '\
 	' splice(@terms, 0, 3); print join(",", @terms) . "\n"; '\
@@ -547,6 +595,7 @@ triprod2:
 trisimple:
 	cat $(COMMON)/joeis_names.txt \
 	| perl trisimple.pl \
+	| sort -k4,4 \
 	>         $@.tmp
 	head -n12 $@.tmp
 	wc -l     $@.tmp
@@ -573,6 +622,19 @@ triconst:
 	wc -l     $@.tmp
 	perl wraptr_prepare.pl -2 $@.tmp \
 	| perl -pe 's/\twraptr\d\t/\ttriconst\t/' \
+	| sort | uniq -w7 \
+	>         $(FISCHER)/$@.gen
+#--------
+tricodiff:
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$@.man
+	$(DBAT) "DELETE FROM seq4 \
+	  WHERE SUBSTR(parm1, 1, 7) LIKE 'A%' AND SUBSTR(parm1, 1, 7) NOT IN (SELECT aseqno FROM joeis) \
+	     OR SUBSTR(parm2, 1, 7) LIKE 'A%' AND SUBSTR(parm2, 1, 7) NOT IN (SELECT aseqno FROM joeis) \
+	     OR SUBSTR(parm3, 1, 7) LIKE 'A%' AND SUBSTR(parm3, 1, 7) NOT IN (SELECT aseqno FROM joeis); "
+	$(DBAT) -x -44444 seq4 > $@.tmp
+	wc -l     $@.tmp
+	perl wraptr_prepare.pl -2 $@.tmp \
+	| perl -pe 's/\twraptr(\d)\t/\ttricodiff\t/;' \
 	| sort | uniq -w7 \
 	>         $(FISCHER)/$@.gen
 #--------
