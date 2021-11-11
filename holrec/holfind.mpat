@@ -6,7 +6,7 @@ read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER-gfis.txt";
 with(StringTools):
 toString:=proc(expr) DeleteSpace(convert(expr,string)) end:
 findit := proc(aseqno, offset, list); local list2, skip, rec, rord, ope, A, n, k, str, j;
-  skip:= 2;
+  skip:= 1;
   list2:=[seq(list[i],i=skip..nops(list))];
   ope:=Findrec(list2,n,A,10):
   rord:=degree(ope,A):

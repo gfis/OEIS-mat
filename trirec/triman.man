@@ -1,0 +1,48 @@
+# A162620	trian1	0		lists n consecutive natural numbers A000027, start A000040(n)-n+1.	_Omar E. Pol_, Jul 10 2009	easy,nonn,tabl,synth	1..74
+# A162618	trian1	0		lists n consecutive natural numbers A000027, start A008578(n-1) - n + 1.	_Omar E. Pol_, Jul 10 2009	easy,nonn,tabl,synth	1..77
+# A162619	trian1	0		lists n consecutive natural numbers A000027, start A014689(n) = A000040(n)-n.	_Omar E. Pol_, Jul 10 2009	easy,nonn,tabl,synth	1..75
+# A162621	trian1	0		lists n consecutive natural numbers A000027, start A014689(n+1) = A000040(n+1)-n-1.	_Omar E. Pol_, Jul 10 2009	easy,nonn,tabl,synth	1..74
+A159798	trian	0	~~    ~~return k == 0 ? Z.ONE : get(n, k - 1).add(n - 2);	lists n terms, start 1, diff  is equal to n-3.	_Omar E. Pol_, Jul 09 2009	easy,nonn,tabl,	1..5050
+A162609	trian	0	~~    ~~return k == 0 ? Z.ONE : get(n, k - 1).add(n - 1);	lists n terms, start 1, with gaps = n-2 .	_Omar E. Pol_, Jul 09 2009	easy,nonn,tabl,changed,synth	1..75
+A162610	trian	0	~~    ~~return k == 0 ? Z.valueOf(2*n + 1) : get(n, k - 1).add(n);	lists n terms, start 2n-1, with gaps = n-1 .	_Omar E. Pol_, Jul 09 2009	easy,tabl,nonn,changed,	1..10000
+A162615	trian	0	~~    ~~return k == 0 ? Z.valueOf(n + 1) : get(n, k - 1).add(Z.valueOf(n + 1).pow(3)).subtract(1);	lists n terms, start n, diff  is equal to n^3 - 1 = A068601(n).	_Omar E. Pol_, Jul 12 2009	easy,nonn,tabl,changed,	1..10000
+A162623	trian	0	~~    ~~return k == 0 ? Z.valueOf(n + 1) : get(n, k - 1).add(Z.valueOf(n + 1).pow(4)).subtract(1);	lists n terms, start n, diff  is equal to n^4 - 1 = A123865(n).	_Omar E. Pol_, Jul 12 2009	easy,nonn,tabl,changed,synth	1..46
+A162613	trian	0	~~    ~~return k == 0 ? Z.valueOf(n + 1) : get(n, k - 1).add(n*(n + 2));	lists n terms, start n, with gaps = n^2-1 .	_Omar E. Pol_, Jul 09 2009	easy,nonn,tabl,changed,	1..1000
+A162612	trian	0	~~    ~~return k == 0 ? Z.valueOf(n + 1).pow(2).add(n) : get(n, k - 1).add(Z.valueOf(n + 1).pow(2)).subtract(1);	lists n terms, start n^2 + n - 1, with gaps = n^2-1 .	_Omar E. Pol_, Jul 09 2009	easy,nonn,tabl,synth	1..57
+A162616	trian	0	~~    ~~return k == 0 ? Z.valueOf(n + 1).pow(3).add(n) : get(n, k - 1).add(Z.valueOf(n + 1).pow(3)).subtract(1);	lists n terms, start n^3 + n - 1, diff  is equal to n^3 - 1 = A068601(n).	_Omar E. Pol_, Jul 12 2009	easy,nonn,tabl,changed,synth	1..47
+A162624	trian	0	~~    ~~return k == 0 ? Z.valueOf(n + 1).pow(4).add(n) : get(n, k - 1).add(Z.valueOf(n + 1).pow(4)).subtract(1);	lists n terms, start n^4 + n - 1, diff  is equal to n^4 - 1 = A123865(n).	_Omar E. Pol_, Jul 12 2009	easy,nonn,tabl,changed,	1..10000
+A162608	trian	0	~~    ~~return k == 0 ? Z.valueOf(n) : get(n, k - 1).add(n);	lists n+1 terms, start n!, diff  is also equal to n!.	_Omar E. Pol_, Jul 22 2009	easy,nonn,tabl,changed,	0..11475
+A159797	trian	0	~~    ~~return k == 0 ? Z.valueOf(n) : get(n, k - 1).add(n - 1);	lists n+1 terms, start n, diff  is equal to n-1.	_Omar E. Pol_, Jul 09 2009	easy,nonn,tabl,changed,	0..1000
+A162611	trian	0	~~    ~~return k == 0 ? Z.valueOf(n) : get(n, k - 1).add(Z.valueOf(n).pow(2)).subtract(1);	lists n+1 terms, start n, diff  is equal to n^2 - 1.	_Omar E. Pol_, Jul 09 2009	easy,nonn,tabl,synth	0..61
+A162614	trian	0	~~    ~~return k == 0 ? Z.valueOf(n) : get(n, k - 1).add(Z.valueOf(n).pow(3)).subtract(1);	lists n+1 terms, start n, diff  is equal to n^3 - 1.	_Omar E. Pol_, Jul 15 2009	easy,nonn,tabl,changed,synth	0..53
+A162622	trian	0	~~    ~~return k == 0 ? Z.valueOf(n) : get(n, k - 1).add(Z.valueOf(n).pow(4)).subtract(1);	lists n+1 terms, start n, diff  is equal to n^4 - 1.	_Omar E. Pol_, Jul 15 2009	nonn,easy,tabl,changed,	0..1000
+A163282	trian	0	~~    ~~return k == 0 ? Z.valueOf(n).pow(2) : get(n, k - 1).add(Z.valueOf(n).multiply(n - 1));	lists n+1 terms, start n^2 and end n^3, such that difference  is equal to n^2 - n.	_Omar E. Pol_, Jul 24 2009	nonn,tabl,easy,changed,	0..1274
+A163283	trian	0	~~    ~~return k == 0 ? Z.valueOf(n).pow(3) : get(n, k - 1).add(Z.valueOf(n).pow(2).multiply(n - 1));	lists n+1 terms, start n^3 and end n^4, diff  is equal to n^3 - n^2.	_Omar E. Pol_, Jul 24 2009	easy,nonn,tabl,	0..1274
+A163284	trian	0	~~    ~~return k == 0 ? Z.valueOf(n).pow(4) : get(n, k - 1).add(Z.valueOf(n).pow(3).multiply(n - 1));	lists n+1 terms, start n^4 and end n^5, diff  is equal to n^4 - n^3.	_Omar E. Pol_, Jul 24 2009	easy,nonn,tabl,	0..1274
+A163285	trian	0	~~    ~~return k == 0 ? Z.valueOf(n).pow(5) : get(n, k - 1).add(Z.valueOf(n).pow(4).multiply(n - 1));	lists n+1 terms, start n^5 and end n^6, diff  is equal to n^5 - n^4.	_Omar E. Pol_, Jul 24 2009	easy,nonn,tabl,	0..1274
+A237587	trian1	0	~~    ~~return Z.valueOf(2 * (n - k + 1) - 1).square();	lists the first n odd squares in decreasing order.	_Omar E. Pol_, Feb 16 2014	nonn,tabl,synth	1..66
+# A245093	trian	0		lists the first n terms of A000203.	_Omar E. Pol_, Jul 15 2014	nonn,tabl,look,	1..7875
+# A275078	trian	0		lists the lexicographic composition of the elements of symmetric group S_n.	_David Nickerson_, Jul 15 2016	nonn,tabl,synth	1..78
+# A162630	trian	0		lists the number of states of the subshells of the n-th shell of the nuclear shell model ordered by energy level in increasing order.	_Omar E. Pol_, Jul 10 2009	nonn,tabl,synth	1..73
+# A154792	trian	0		lists the pair of noncomposite numbers that are equidistant from and nearest to n, with 0''s inserted, as shown below in the example.	_Omar E. Pol_, Jan 25 2009	more,nonn,tabl,synth	1..55
+# A092080	trian1	0		A000041 lists the partition numbers of the first n positive integers.	_Wolfdieter Lang_, Mar 19 2004	nonn,tabl,easy,synth	1..88
+A176224	trian	0	~~    ~~return Z.ONE.shiftLeft(k).add(Z.ONE.shiftLeft(n - k)).subtract(Z.ONE.shiftLeft(n));	T(n, k)=q^k + q^(n-k) - q^n, with q=2
+A176225	trian	0	~~    ~~return Z.THREE.pow(k).add(Z.THREE.pow(n - k)).subtract(Z.THREE.pow(n));	T(n, k)=q^k + q^(n-k) - q^n, with q=3
+A176227	trian	0	~~    ~~return Z.FOUR.pow(k).add(Z.FOUR.pow(n - k)).subtract(Z.FOUR.pow(n));	T(n, k)=q^k + q^(n-k) - q^n, with q=4
+A176226	trian	0	~~    ~~return Z.FIVE.pow(k).add(Z.FIVE.pow(n - k)).subtract(Z.FIVE.pow(n));	T(n, k)=q^k + q^(n-k) - q^n, with q=5
+A079901	trian	0	~~    ~~return Z.valueOf(n).pow(k);	T(n,k)=n^k, 0<=k<=n
+A079904	trian	0	~~    ~~return Z.valueOf(n).multiply(k);	T(n,k)=n*k, 0<=k<=n
+A096133	trian1	1	~~    ~~return Z.valueOf(n).pow(k).mod(Z.valueOf(n * k));	T(j,k)=(j^k) mod (j*k) for 1 <= k <= j
+A104567	trian1	1	~~    ~~return Z.valueOf((k & 1) == 1 ? n - k + 1 : 2 * (n - k + 1));	T(i,j)=i-j+1 if j is odd; T(i,j) = 2(i-j+1) if j is even (1 <= j <= i)
+# A095802	trian1	1	must be squared: ~~    ~~return Z.valueOf((n & 1) == 0 ? 1 - 2 * n : -1 + 2 * n);	T(i,j)=(-1)^i*(1-2*i) for 1 <= i <= j
+A303872	trian	0	~~    ~~return n == 0 ? Z.ONE : get(n - 1, k - 1 ).multiply2().subtract(get(n - 1, k));	T(0,0)=1; T(n,k) = -T(n-1,k) + 2 T(n-1,k-1) for k = 0,1,
+A166279	trian	0	~~    ~~return n == 0 ? Z.ONE : get(n - 1, k - 1 ).mod(Z.TWO).add(get(n - 1, k).mod(Z.TWO));	T(0,0)=1, T(n,k) = T(n-1,k-1) (mod 2) + T(n-1,k) (mod 2), T(n,k) = 0 if k < 0 or k > n
+A108083	trian	0	~~    ~~return n == 0 ? Z.ONE : get(n - 1, k).multiply((n & 1) == 0 ? 2 * n + 1 : - 2 * n - 1).subtract(get(n - 1, k - 1));		0	T(0,0)=1, T(n,k) = (-1)^n*(2n+1)*T(n-1,k) - T(n-1,k-1)
+A108084	trian	0	~~    ~~return n == 0 ? Z.ONE : get(n - 1, k).multiply(Z.ONE.shiftLeft(n)).add(get(n - 1, k - 1));		0	T(0,0)=1, T(n,k) = 2^n*T(n-1,k) + T(n-1,k-1)
+A108085	trian	0	~~    ~~return n == 0 ? Z.ONE : get(n - 1, k).multiply(Z.ONE.shiftLeft(n)).subtract(get(n - 1, k - 1));		0	T(0,0)=1, T(n,k) = 2^n*T(n-1,k) - T(n-1,k-1)
+A108086	trian	0	~~    ~~return n == 0 ? Z.ONE : (((n + k) & 1) == 0 ? get(n - 1, k) : get(n - 1, k).negate()).add(get(n - 1, k - 1));	null	0	T(0,0)=1, T(n,k) = (-1)^(n+k)*T(n-1,k) + T(n-1,k-1); a signed version of Pascal''s triangle
+A241747	trian	0	~~    ~~return Z.valueOf(4 * n + 3).multiply(Z.valueOf(4 * k + 3));	Triangle read by rows: T(n,k) = (4*n+3)*(4*k+3).
+A093995	trian1	1	~~    ~~return Z.valueOf(n).square();	n^2 repeated n times, triangle read by rows.
+A098355	trian	0	~~    ~~return n == 0 ? Z.ONE : Z.THREE.pow(n);		
+A140978	trian	0	~~    ~~return Z.valueOf(n + 2).square();		
+A245235	trian	0	~~    ~~return Z.ONE.shiftLeft(n * (n + 1) / 2);	Repeat 2^(n*(n+1)/2) n+1 times.

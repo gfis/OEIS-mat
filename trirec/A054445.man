@@ -1,0 +1,11 @@
+A054445	parm2	0	A054445	new Transpose(new A033184())	Triangle read by rows giving partial row sums of triangle A033184(n,m), n >= m >= 1 (Catalan triangle).	easy,nonn,tabl,synth	0..58	nyi
+A054446	parm2	0	A054445	new A037027()	Triangle of partial row sums of triangle A037027(n,m), n >= m >= 0 (Fibonacci convolution triangle).	easy,nonn,tabl,synth	0..62	nyi
+A054448	parm2	0	A054445	new A054446()	Triangle of partial row sums of triangle A054446(n,m), n >= m >= 0.	easy,nonn,tabl,synth	0..58	nyi
+A054449	parm2	0	A054445	new A054448()	Row sums of triangle A054448 (second member of partial row sums triangle family of Fibonacci convolution triangle).	easy,nonn,synth	0..25	nyi
+A054450	parm2	0	A054445	new AbsoluteSequence(new A049310())	Triangle of partial row sums of unsigned triangle A049310(n,m), n >= m >= 0 (Chebyshev S-polynomials).	easy,nonn,tabl,synth	0..65	nyi
+A054453	parm2	0	A054445	new A054450()	Triangle of partial row sums of triangle A054450(n,m), n >= m >= 0.	easy,nonn,tabl,synth	0..65	nyi
+A058399	parm2	0	A054445	new Transpose(new A008284())	Triangle of partial row sums of partition triangle A008284.	nonn,tabl,changed,	1..10011	nyi
+A058400	parm2	0	A054445	new Transpose(new A058398())	Triangle of partial row sums of partition triangle A058398.	nonn,tabl,synth	1..79	nyi
+A058401	parm2	0	A054445	new A026820()	Triangle of partial row sums of partition triangle A026820.	nonn,tabl,synth	1..64	nyi
+A127057	parm2	0	A054445	new Transpose(new A127013())	Triangle T(n,k), partial row sums of the n-th row of A127013 read right to left.	nonn,tabl,changed,	1..7875	nyi
+A261363	parm2	0	A054445	new A047999()	Triangle read by rows: partial row sums of Sierpinski's triangle.	nonn,tabl,	0..8000	nyi

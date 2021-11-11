@@ -98,11 +98,11 @@ sub compute {
     for (my $istr = 0; $istr < length($nstr); ++$istr) {
         my $sym = substr($nstr, $istr, 1);
         $nstat = $table[$nstat][$sym];
-        if ($debug >= 2) {
-            print substr($nstr, 0, $istr) 
-                . "[>$nstat]"
-                . substr($nstr, $istr) . " ";
-        }
+    #   if ($debug >= 2) {
+    #       print substr($nstr, 0, $istr) 
+    #           . "[>$nstat]"
+    #           . substr($nstr, $istr) . " ";
+    #   }
     }
     $nstat = $table[$nstat][$nsym];
     if ($nstat != $END_STATE) {
@@ -146,3 +146,20 @@ W
    9|  9  0  0  0    1
 
 perl dfsa.pl -d 1 4 "1,2,4,5,3,2,6,5,3,0,6,0,7,8,4,5,9,8,6,5,9,0,6,0,7,8,0,0,9,8,0,0,9,0,0,0"
+
+A124696	Number of base-3 circular n-digit numbers with adjacent digits differing by 1 or less.
+Insert after 1st digit
+          0  1  2
+      1   2  3  4    
+0     2   5  6  0    
+1     3   7  8  9    
+2     4   0 10 11    
+00    5   5  6  0    
+01    6   5  6  0    
+10    7   7  8  0    
+11    8   7  8  9    
+12    9   0  8  9    
+21   10   0 10 11    
+22   11   0 10 11
+
+perl dfsa.pl -d 0 3 "2  3  4/5  6  0/7  8  9/0 10 11/5  6  0/5  6  0/7  8  0/7  8  9/0  8  9/0 10 11/0 10 11"

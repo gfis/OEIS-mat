@@ -159,7 +159,7 @@ fract2:
 	| sed -e "s/$$/\t0\t0/" \
 	| $(JOEISPREP) -f - \
 	>        $@.tmp
-	head -4  $@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.tmp
 fract2man:
 	grep -vE "^#" fract2.man \
@@ -168,7 +168,7 @@ fract2man:
 	| sed -e "s/$$/\t0\t0/" \
 	| $(JOEISPREP) -f - \
 	>        $@.tmp
-	head -4  $@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------------------
 invbinom:
@@ -176,16 +176,40 @@ invbinom:
 	| grep -iE "binomial transform" \
 	| perl invbinom.pl \
 	>        $@.tmp
-	head -4  $@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------------------
+transpose: transpose1 transpose2 transpose3
+transpose1:
+	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data  \
+	  FROM asinfo i, bfdata d \
+	  WHERE i.aseqno = d.aseqno \
+	    AND i.keyword LIKE '%tabl%' \
+	  ORDER BY i.aseqno;" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+transpose2:
+	perl transpose.pl -s 3   transpose1.tmp \
+	| sort -k5,5 -k2,2 \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+transpose3:
+	perl transpose_detect.pl transpose2.tmp \
+	| sort | uniq -w7 \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+	mv -v     $@.tmp transpose.tmp
+#--------------------
 trimirror:
-	grep -Ei "mirror|transpose" tabl.tmp \
+	grep -Ei "mirror|transpose|revers" tabl.tmp \
 	| perl -ne 'use strict; s/\s+\Z//; my $$line = $$_; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/, $$line, 4); '\
-	' if ($$callcode eq "null" && ($$line =~ m{([Mm]irror|[Tt]ranspose) of[^A]*(A\d+)})) { '\
+	' if ($$callcode eq "null" && ($$name =~ m{([Mm]irror|[Tt]ranspose|[Rr]evers)[^A]*(A\d+)})) { '\
 	' print join("\t", $$aseqno, "$@", 0, $$2, $$name) ."\n"; } '\
 	>        $@.tmp
-	head -4  $@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------------------
 trirecur:
@@ -194,41 +218,41 @@ trirecur:
 	| perl trirecur.pl \
 	| sort -k4,4 \
 	| tee    $@.tmp
-	head -4  $@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------------------
 # Riordan arrays
 rio: rio0 rio1 rio2 rio3
 rio0:
 	grep -iE "Riordan *array" $(COMMON)/cat25.txt \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 rio1:
 	perl extract_rio.pl $(COMMON)/cat25.txt \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 LIST=rio1.tmp
 rio2: # LIST=
 	grep -vE "[\?\#]" $(LIST) \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 rio3:
 	cat rio2.tmp \
 	| sed -e "s/$$/\t0\t0\t0/" -e "s/rioarr/fract2/"\
 	| $(JOEISPREP) -f - \
 	>        $@.tmp
-	head -4  $@.tmp
+	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
 riordan:
 	grep -iE "Riordan" $(COMMON)/jcat25.txt \
 	| grep -E "^\%[NCF]" \
-	>       $@.tmp
-	head -4 $@.tmp
-	wc -l   $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------
 rsrio: rsrio1 rsrio2
 rsrio1:
@@ -248,8 +272,8 @@ rsrio3:
 	$(DBAT) -x "SELECT s.aseqno, 'rioarr', 0, '(' || s.info || ')' FROM seq2 s \
 	  WHERE s.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
-	| tee $@.tmp
-	wc -l $@.tmp
+	| tee    $@.tmp
+	wc -l    $@.tmp
 #--------
 # Tables with factorial elements
 factabl: factabl1 factabl2
@@ -262,9 +286,9 @@ factabl1:
 		  AND d.data LIKE '%,720,%' \
 	    ORDER BY i.aseqno;" \
 	| perl factabl.pl \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp  
 	$(DBAT) -f $(COMMON)/seq.create.sql
 	cut -d "	" -f 1 $@.tmp | sort | uniq \
 	| $(DBAT) -r seq
@@ -279,27 +303,27 @@ factabl2:
 	$(DBAT) -x "SELECT s.aseqno, s2.info FROM seq s, seq2 s2 \
 		WHERE s.aseqno = s2.aseqno \
 	    ORDER BY s.aseqno;" \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------
 tricolk:
 	grep -E "^[\%\?][NCFY]" $(COMMON)/jcat25.txt \
 	| grep -iE "column" \
 	| perl rowsums.pl -c \
-	2>        $@.rest.tmp \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.*tmp
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
 #--------
 rowsums:
 	grep -E "^[\%\?][NCFY]" $(COMMON)/jcat25.txt \
 	| grep -iE "row sum" \
 	| perl rowsums.pl -r \
-	2>        $@.rest.tmp \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.*tmp
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
 #--------
 # Triangles
 trigen:
@@ -307,32 +331,32 @@ trigen:
 		WHERE i.aseqno = d.aseqno \
 		  AND i.keyword LIKE '%tabl%' \
 	    ORDER BY i.aseqno;" \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp  
 trigen1:
 	perl extract_trigen1.pl   trigen.tmp > $@.tmp  
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	head -n4 $@.tmp
+	wc -l    $@.tmp  
 triknoll:
 	perl tricheck.pl -b ../common/bfile -m knoll trigen.tmp > $@.tmp 
 	# 2> $@.viol.tmp 
-	head -n 4 $@.tmp
-	wc -l     $@.*tmp  
+	head -n4 $@.tmp
+	wc -l    $@.*tmp  
 #----
 trixam:
 	$(DBAT) -x "SELECT i.aseqno, i.offset1, d.data FROM asinfo i, bfdata d \
 		WHERE i.aseqno = d.aseqno \
 		  AND i.keyword LIKE '%tabl%' \
 	    ORDER BY i.aseqno;" \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp  
 trixy:
 	perl trixamine.pl -m trixy -r 6 -s 2 trixam.tmp \
-	>         $@.tmp 
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	>        $@.tmp 
+	head -n4 $@.tmp
+	wc -l    $@.tmp  
 #--------
 # Triangle recurrences
 trec:
@@ -342,9 +366,9 @@ trec:
 	'if  ((! m{[\!\|]|\.\.\.|ceil|floor|min|max|[Nn]umber|Pi|[Ss]um|[ATa]\d{6}\S}) '\
 	' and (m{^\%\w (A\d+)\s+(T\([hi-n]\,\s*[hi-n]\)\s*\=[^\.]*)\.}))'\
 	'{ print join("\t", $$1, "$@", 0, $$2) . "\n" }' \
-	>         $@.tmp
-	head -n 4 $@.tmp
-	wc -l     $@.tmp  
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp  
 #---------------------------
 # "more" triangles
 trimore: trimore1 trimore2 trimore3
@@ -357,20 +381,20 @@ trimore1:
 	  AND LENGTH(a.program) = 0 \
 	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 trimore2:
 	# with skipping in trimore.pl
 	perl trimore.pl -s trimore1.tmp \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 trimore3:
 	$(DBAT) -x -f trimore2.tmp \
-	| tee     $@.tmp
-	wc -l     $@.tmp
-	less      $@.tmp
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	less     $@.tmp
 trimore4:
 	grep symmetric trimore2.tmp \
 	| cut -f2- \
@@ -386,35 +410,35 @@ traits1: # select those with keyword tabl
 	  AND a.offset1 >= 0 \
 	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 traits2: # compute the TraitCard
 	$(RAMATH).sequence.Triangle -d 0 -trait -b ../common/bfile -f traits1.tmp -m 528 \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 traits3: # Process triangle sequences with "more" and generate SQL SELECT statements
 	# no skipping in trimore.pl
 	perl trimore.pl -l 1 -t traits2.tmp \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 traits4:
 	$(DBAT) -x -f traits3.tmp \
 	| grep -vE "A000041|A00004|A00007" \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 traits5_depr:
 	perl prep_traits.pl -d 0 traits4.tmp \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 traits5:
 	perl html_traits.pl -d 0 traits4.tmp \
-	>         traits_check.html
-	wc -l     traits_check.html
+	>        traits_check.html
+	wc -l    traits_check.html
 traits6_depr:
 	cd ../common; perl html_checks.pl -m checks.make ../trirec/traits5.tmp > traits_check.html
 traits7_depr:
@@ -425,60 +449,60 @@ traits7:
 pascal: pascal1 pascal2 pascal3 pascal4 pascal5
 pascal1:
 	$(RAMATH).sequence.Triangle -d 0 -pascal -b ../common/bfile -f traits1.tmp -m 528 \
-	| tee     $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 pascal2:
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/pascal1.tmp
 pascal3: # Process triangle and generate SQL SELECT statements
 	perl trimore.pl -l 1 -p -t pascal1.tmp \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 pascal4: # SELECT/determine the sequences for Left Righ Pasc traits
 	$(DBAT) -x -f pascal3.tmp \
 	| sed -e "s/A062292/A000578_1/g" \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 	# | grep -vE "A000041|A00004|A00007" \
 	# | sort \ grep -vE "A000041|A00004|A00007" \
 	#
 pascal5: # assemble groups into seq4 parameters
 	perl prep_pascal.pl -l 6 pascal4.tmp \
-	>         pascal.tmp \
-	2>        $@.rest.tmp
-	head -n4  pascal.tmp
-	wc -l     pascal*.tmp
+	>        pascal.tmp \
+	2>       $@.rest.tmp
+	head -n4 pascal.tmp
+	wc -l    pascal*.tmp
 pascal_add: # Which nonzero Pascal traits do occur?
 	grep Pasc pascal4.tmp \
 	| grep -vP "Pasc\t\d+\tA000004" \
 	| sort -k4,4 
-	| tee     $@.tmp
-	wc -l     $@.tmp
+	| tee    $@.tmp
+	wc -l    $@.tmp
 #----
 binomialx:
 	grep BinomialTransform $(COMMON)/joeis_names.txt \
-	>         $@.1.tmp
-	head -n4  $@.1.tmp
-	wc -l     $@.1.tmp
-	cut -f1   $@.1.tmp \
+	>        $@.1.tmp
+	head -n4 $@.1.tmp
+	wc -l    $@.1.tmp
+	cut -f1  $@.1.tmp \
 	| perl -ne 's/\s+\Z//; print lc(substr($$_, 0,4)) . "/$$_\n"; ' \
 	| xargs -l -innn grep -iH super ../../joeis/src/irvine/oeis/nnn.java \
-	| tee     $@.tmp
-	cat       $@.tmp \
+	| tee    $@.tmp
+	cat      $@.tmp \
 	| perl -ne 'if (m{(A\d\d\d+)[^\(]+\(new (A\d\d\d+)}) { print "$$1\tbinomialx\t0\t$$2\n"; }'\
-	>         $@.gen
-	head -n4  $@.gen
-	wc -l     $@.gen
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
 #----
 # Modified constant and Pascal triangles 
 border: traits1 border1 border2
 border1: # 528 = 32 rows
 	$(RAMATH).sequence.Triangle -border -b ../common/bfile -f traits1.tmp -m 528 \
-	>         $@.tmp
-	head -n4  $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 border2:
 	$(DBAT) -x "SELECT i.aseqno, 'Name', i.offset1, n.name, b. bfimin || '..' || b.bfimax, i.keyword, i.author \
 	  FROM asinfo i, bfinfo b, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
@@ -488,8 +512,8 @@ border2:
 	    AND i.offset1 >= 0 \
 	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	    ORDER BY i.aseqno;" \
-	>         $@.tmp
-	wc -l     $@.tmp
+	>        $@.tmp
+	wc -l    $@.tmp
 	sort $@.tmp border1.tmp >      border.tmp
 #--
 modtri: modpa modip modco modic

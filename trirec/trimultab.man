@@ -1,0 +1,27 @@
+A073060	parm2	0	A073060	new A006005()		Multiplication table for 1 and odd primes, read by antidiagonals.	0..68	nonn,tabl,easy,synth,tard	Stuart M. Ellerstein (ellerstein(AT)aol.com), Aug 16 2002
+A097902	parm2	0	A073060	new A000796()		Multiplication table of the digits of Pi read by antidiagonals.	0..84	nonn,tabl,base,changed,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A097903	parm2	0	A073060	new A002194()		Multiplication table of the digits of the square root of 3 read by antidiagonals.	0..88	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098350	parm2	1	A073060	new A000040()		Multiplication table of the primes read by antidiagonals.	1..66	nonn,tabl,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098351	parm2	1	A073060	new A002808()		Multiplication table of the composites read by antidiagonals.	1..64	nonn,tabl,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098352	parm3	1	A073060	new A005843()	1	Multiplication table of the even numbers read by antidiagonals.	1..5050	nonn,tabl,easy,changed,,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098353	parm2	1	A073060	new A005408()		Multiplication table of the odd numbers read by antidiagonals.	1..5050	nonn,tabl,changed,,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098356	parm2	0	A073060	new A000045()		Multiplication table of the Fibonacci numbers read by antidiagonals.	0..11324	nonn,tabl,easy,changed,,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098358	parm3	0	A073060	new A000217()	1	Multiplication table of the triangular numbers read by antidiagonals.	0..1274	nonn,tabl,,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098359	parm3	0	A073060	new A000290()	1	Multiplication table of the square numbers read by antidiagonals.	0..57	nonn,tabl,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098361	parm2	0	A073060	new A000142()		Multiplication table of the factorial numbers read by antidiagonals.	0..5150	nonn,tabl,changed,,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098363	parm2	0	A073060	new A001113()		Multiplication table of the digits of e read by antidiagonals.	0..82	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098364	parm2	0	A073060	new A002193()		Multiplication table of the digits of the square root of 2 read by antidiagonals.	0..92	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098366	parm2	0	A073060	new A002580()		Multiplication table of the digits of the cube root of 2 read by antidiagonals.	0..86	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098367	parm2	0	A073060	new A010767()		Multiplication table of the digits of the fourth root of 2 read by antidiagonals.	0..90	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098368	parm2	0	A073060	new A001620()		Multiplication table of the digits of the Euler-Mascheroni constant read by antidiagonals.	0..77	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098369	parm2	0	A073060	new A001622()		Multiplication table of the digits of the golden ratio read by antidiagonals.	0..90	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A098370	parm2	0	A073060	new A030190()		Multiplication table of the binary digits of the natural numbers read by antidiagonals.	0..90	nonn,tabl,base,synth,tard	Douglas Stones (dssto1(AT)student.monash.edu.au), Sep 04 2004
+A185904	parm3	1	A073060	new A000292()	1	Multiplication table for the tetrahedral numbers (A000292), by antidiagonals.	1..1275	nonn,tabl,,tard	_Clark Kimberling_, Feb 06 2011
+# A219875	trimultab	1	A073060			Multiplication table of the operation n•m = n*m + ceiling(n/phi)*ceiling(m/phi), with phi=(1+sqrt(5))/2, read by antidiagonals.	1..66	nonn,tabl,synth,tard	_Michel Marcus_, Dec 01 2012
+# A325820	trimultab	0	A073060			Multiplication table for carryless product i X j in base 3 for i >= 0 and j >= 0, read by antidiagonals.	0..10584	nonn,base,tabl,new,,tard	_Antti Karttunen_, May 22 2019
+# A325821	trimultab	1	A073060			Multiplication table for carryless product i X j in base 3 for i >= 1 and j >= 1, read by antidiagonals.	1..5050	nonn,base,tabl,new,,tard	_Antti Karttunen_, May 22 2019
+# A337662	trimultab	1	A073060			Multiplication table from A337655, read by antidiagonals.	1..10011	nonn,tabl,new,,tard	_N. J. A. Sloane_, Oct 04 2020.
+# A337975	trimultab	1	A073060			Multiplication table from A337946, read by antidiagonals.	1..10011	nonn,tabl,new,,tard	_Peter Kagey_, Oct 05 2020
+# A338017	trimultab	1	A073060			Multiplication table of A338012, read by antidiagonals.	1..10011	nonn,tabl,new,,tard	_Peter Kagey_, Oct 06 2020
+# A338034	trimultab	1	A073060			Multiplication table of A337656, read by antidiagonals.	1..10011	nonn,tabl,new,,tard	_Peter Kagey_, Oct 07 2020
+# 

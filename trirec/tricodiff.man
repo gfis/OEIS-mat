@@ -1,0 +1,7 @@
+A168256	tricodiff	0	A000108	0									dummy
+A057944	tricodiff	0	A000217	0									dummy
+A123081	tricodiff	0	A000110	0									dummy
+A143536	tricodiff	1	A010051	0									dummy
+A172417	tricodiff	0	A000108_1	0									dummy
+A127739	tricodiff	1	A000217_1	0									dummy
+A130493	tricodiff	1	A000142_1	0									dummy

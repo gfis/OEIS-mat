@@ -2,6 +2,7 @@
 
 # OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
+# 2021-11-05: extract Maple lines
 # 2021-02-04: REMOTE
 # 2019-06-24: joeis_ofter
 # 2019-07-16: joeis parallel to joeis-lite
@@ -309,15 +310,18 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #--------
 list: joeis_list
-joeis_list: joeis_local joeis_pull joeis_reload
+joeis_list: joeis_local joeis_pullloc joeis_reload
 joeis_local:
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; ant jar
-joeis_pull:
+joeis_pull:   # refresh remote and local
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
-#--
+joeis_pullloc: # refresh local önly
+	cd    $(JOEIS) ; git pull ; make joeis_list
+	cp -v $(JOEIS)/joeis_list.txt .
+	make joeis_reload
 joeis_reload: joeis_load joeis_ofter joeis_ofdec poeis_delete \
-	joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_analog joeis_progress 
+	joeis_stamp joeis_ccanloc joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_analog joeis_progress 
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -370,7 +374,7 @@ joeis_analog:
 	# currently not; cd $(FISCHER); make analog
 poeis_delete: # delete * from poeis
 	$(DBAT) "DELETE FROM poeis;"
-ALAST=A051000
+ALAST=A053000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -417,6 +421,14 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 joeis_ccan:
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list1.all.tmp .
 	# cp -v ../../joeis/joeis_list1.all.tmp .
+	perl joeis_list.pl             joeis_list1.all.tmp \
+	>        $@.cc.tmp \
+	2>       $@.an.tmp
+	head -n4 $@.*.tmp
+	wc -l    $@.*.tmp
+joeis_ccanloc:
+	# scp gfis@$(REMOTE):work/gits/joeis/joeis_list1.all.tmp .
+	cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
 	>        $@.cc.tmp \
 	2>       $@.an.tmp
@@ -566,6 +578,14 @@ bfpartial:
 	tar -czvf bfile.`date +%Y-%m-%d.%H`.tgz --files-from=$@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+#----------------------------
+maple_lines:
+combstruct:
+	grep -E "^\%p" jcat25.txt | grep combstruct | cut -b4- \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #----------------------------
 uncat_diff:
 	perl -w uncat25.pl -m comp -o ./ajson cat25.txt \

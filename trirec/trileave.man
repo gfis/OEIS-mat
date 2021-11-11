@@ -1,0 +1,40 @@
+A156348	null	Triangle T(n,k) read by rows. Column of Pascal's triangle interleaved with k-1 zeros.	nonn,tabl,easy,look,	1..7875	nyi
+A156663	null	Triangle by columns, powers of 2 interleaved with zeros.	nonn,tabl,changed,synth	0..77	nyi
+A176919	null	Triangle by columns: (1, 2, 3,...) in each column interleaved with (0, 1, 2,...)zeros. Columns >1 shifted down twice.	nonn,tabl,synth	1..78	nyi
+A135871	null	Triangle by columns: A013610 signed and interleaved with zeros.	tabl,sign,synth	1..36	nyi
+A158944	null	Triangle by columns: the natural numbers interleaved with zeros in every column: (1, 0, 2, 0, 3, 0, 4, ...)	nonn,tabl,easy,changed,synth	1..78	nyi
+A175012	null	Triangle generated from the g.f of A000712 (i.e., 1/(1-x^m)^2) interleaved with zeros.	nonn,tabl,more,synth	0..45	nyi
+A228813	null	Triangle read by rows T(n,k) in which column k lists 1's interleaved with A004526(k-1) zeros starting from the row A002620(k+1), with n>=1, k>=1.	nonn,tabf,synth	1..90	nyi
+A238288	null	Triangle read by rows T(n,k), n>=1, k>=1, in which column k lists the positive integers interleaved with k-1 zeros, but starting from 2*k at row k^2.	nonn,tabf,changed,synth	1..75	nyi
+A228814	null	Triangle read by rows T(n,k), n>=1, k>=1, in which column k starts in row A002620(k+1). If k is odd the column k lists j's interleaved with (k-1)/2 zeros, where j = (k+1)/2. Otherwise, if k is even the column k lists the positive integers but starting from k/2+1, interleaved with (k-2)/2 zeros.	nonn,tabf,synth	1..83	nyi
+A167269	null	Triangle read by rows, Pascal's triangle columns interleaved with 1's.	nonn,tabl,synth	0..90	nyi
+A153659	null	Triangle read by rows. A074206 interleaved with k-1 zeros in the k-th column.	nonn,tabl,synth	1..105	nyi
+A141701	null	Triangle read by rows: A001414 interleaved with (k-1) zeros.	nonn,tabl,synth	1..105	nyi
+A142971	null	Triangle read by rows: A061397 with negative signs interleaved with (k-1) zeros.	sign,tabl,synth	1..117	nyi
+A141700	null	Triangle read by rows: A120007 interleaved with (k-1) zeros.	nonn,tabl,synth	1..105	nyi
+A261699	null	Triangle read by rows: T(n,k), n >= 1, k >= 1, in which column k lists positive terms interleaved with k-1 zeros, starting in row k(k+1)/2. If k is odd the positive terms of column k are k's, otherwise if k is even the positive terms of column k are the odd numbers greater than k in increasing order.	nonn,tabf,synth	1..106	nyi
+A196020	null	Triangle read by rows: T(n,k), n >= 1, k >= 1, in which column k lists the odd numbers interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,changed,	1..2489	nyi
+A211343	null	Triangle read by rows: T(n,k), n >= 1, k >= 1, in which column k lists the positive integers interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,look,changed,	1..28864	nyi
+A239446	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the elements of A004273 interleaved with k zeros, and the first element of column k is in row k*(k+1)/2.	nonn,tabf,synth	1..84	nyi
+A272026	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the numbers A016945 interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,synth	1..94	nyi
+A239662	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the numbers A017113 interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,synth	1..94	nyi
+A231345	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the odd numbers interleaved with k-1 zeros but T(n,1) = -1 and the first element of column k is in row k(k+1)/2.	sign,tabf,nice,synth	1..76	nyi
+A231347	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the odd numbers interleaved with k-1 zeros but T(n,1) = n - 1 and the first element of column k is in row k(k+1)/2.	nonn,tabf,changed,synth	1..82	nyi
+A239313	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the odd numbers interleaved with k-1 zeros, except the first column which lists 0 together with the nonnegative integers, and the first element of column k is in row k*(k+1)/2.	nonn,tabf,synth	1..82	nyi
+A271344	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the odd numbers multiplied by -1, interleaved with k-1 zeros, but T(n,1) = 1 and the first element of column k is in row k(k+1)/2.	sign,tabf,synth	1..94	nyi
+A266537	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the twice odd numbers (A016825) interleaved with 2*k-1 zeros, and the first positive element of column k is in the row A002378(k), with T(1,1) = 0.	nonn,tabf,synth	1..86	nyi
+A236106	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the twice odd numbers (A016825) interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,synth	1..76	nyi
+A235794	null	Triangle read by rows: T(n,k), n>=1, k>=1, in which column k starts with k zeros and then lists the odd numbers interleaved with k zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,synth	1..83	nyi
+A144966	null	Square array T(n,k) read by antidiagonals up. A055615 interleaved with k-1 zeros in each column. Redheffer type matrix.	sign,tabl,synth,tard	1..97	nyi
+A143142	null	Square array T(n,k) read by antidiagonals up. Mobius function interleaved with k-1 zeros in each column. Redheffer type matrix.	tabl,sign,synth,tard	1..120	nyi
+A144778	null	Square array T(n,k) read by antidiagonals upwards. Mobius function interleaved with k-1 zeros in each column. Every second value in the first row is either 1 or -1. Redheffer type matrix.	sign,tabl,synth,tard	1..96	nyi
+A221641	null	Square array read by antidiagonals T(n,k) in which column k lists 1 interleaved with j-1 zeros, if k = j^2 or k = j^2 + j, otherwise column k lists only zeros, with n>=1, j>=1, k>=1.	nonn,tabl,synth,tard	1..91	nyi
+A161780	null	Square array read by antidiagonals up. Redheffer type matrix. A007427 interleaved with k-1 zeros in the columns.	sign,tabl,synth,tard	1..94	nyi
+A221642	null	Square array read by antidiagonals: T(n,k) in which if k = j^2 then column k lists j interleaved with j-1 zeros. Otherwise if k = j^2 + j then column k lists the positive integers, starting with j+1, interleaved with j-1 zeros. Otherwise column k lists only zeros. n>=1, j>=1, k>=1.	nonn,tabl,synth,tard	1..91	nyi
+A176202	interleave	Convolution triangle, row sums = A000041. M = A000041 in each column with two interleaved zeros; Q = A000726 diagonalized with the rest zeros. A176202 = M*Q.	nonn,tabl,synth	0..77	nyi
+
+
+A237048	null	Irregular triangle read by rows: T(n,k), n >= 1, k >= 1, in which column k lists 1's interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,easy,tabf,changed,	1..1600	nyi
+A339275	null	Irregular triangle read by rows: T(n,k), n >= 1, k >= 1, in which column k lists the terms of A040000: 1, 2, 2, 2, ... interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,synth	1..101	nyi
+A285914	null	Irregular triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists k's interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,changed,synth	1..112	nyi
+A286013	null	Irregular triangle read by rows: T(n,k), n>=1, k>=1, in which column k lists the positive integers starting with k, interleaved with k-1 zeros, and the first element of column k is in row k(k+1)/2.	nonn,tabf,	1..10944	nyi

@@ -1,0 +1,24 @@
+A155102	trisimple	0	Z.valueOf(n == k ? 1 : (n == 2*k ? - (k + 1) : 0))	Triangle T(n,k) read by rows. 
+# If n=k then T(n,k)=1, elseif n=2*k then T(n,k)=-(k+1), else T(n,k)=0.	sign,tabl,synth	1..102	nyi
+A177121	trisimara	0	Z.valueOf(n == 1 ? 1 : (k % n == 0 ? - n + 1 : 1))	Square array T(n,k) read by antidiagonals up: 
+# T(n,k) = 1 if n=1; otherwise if n divides k then T(n,k) = -n+1; otherwise T(n,k) = 1.	sign,tabl,look,changed,,tard	1..65703	nyi
+A191907	trisimara	0	Z.valueOf(k % n == 0 ?  - (n - 1) : 1)	Square array read by antidiagonals up: 
+# T(n,k) = -(n-1) if n divides k, else 1.	sign,tabl,synth,tard	1..136	nyi
+# A237450	trisimple	0	Z.valueOf(!n + (k - 1).multiply((n - 1)!)	Triangle read by rows, T(n,k) = !n + (k-1)*(n-1)!, with n>=1, 1<=k<=n; Position 
+#A140946	trisimple	0	Z.valueOf(( - 2).pow(n.multiply((xx) ? :  - k)	Triangle T(n,k) = (-2)^n*(-1)^k if k<n; T(n,n) = (-1)^(n+1)*A001045(n+1).	sign,tabl,synth	0..59	nyi
+A255044	trisimara	0	Z.NINE.pow(k).multiply(2*n + 1).subtract(1).divide2()	Array A read by upward antidiagonals: 
+# A(n,k) = ((2*n+1)*9^k-1)/2, n,k >= 0.	nonn,tabl,synth,tard	0..44	nyi
+A266577	trisimard	0	Z.ONE.shiftLeft(n + 1).add(1).pow(k - 1).add(1).divide2()	Table read by antidiagonals (from upper right to lower left): 
+# T(i,j) = ((2^(i+1) + 1)^(j-1) + 1)/2.	tabl,nonn,synth,tard	1..55	nyi
+A211377	trisimard	0	Z.valueOf((k + n).square().add(- 4 * k + 3 + ((k & 1) == 0 ? 1 : -1).subtract(((k + n) & 1 == 0 ? k + n - 2 : - k - n + 2)).divide2()	
+# T(n,k) = ((k + n)^2 - 4*k + 3 + (-1)^k - (k + n - 2)*(-1)^(k + n))/2; n, k > 0, read by antidiagonals.	nonn,tabl,,tard	1..9870	nyi
+A213171	trisimard	0	Z.valueOf((k + n).square().add(- 4 * k + 3 - ((n % 1) == 0 ? 1 : -1) - ((k + n) & 1 == 0 ? k + 1 : - k - n))).divide2()	
+# T(n,k) = ((k+n)^2 - 4*k + 3 - (-1)^n - (k+n)*(-1)^(k+n))/2; n, k > 0, read by antidiagonals.	nonn,tabl,,tard	1..9870	nyi
+A213205	trisimard	0	Z.valueOf((k + n) * (k + n) - 4*k + 3 + ((k & 1) == 0 ? 1 : -1) - 2 * ((n % 1) == 0 ? 1 : -1) - (k + n) * ((k + n) & 1 == 0 ? 1 : -1) / 2)	
+# T(n,k) = ((k+n)^2-4*k+3+(-1)^k-2*(-1)^n-(k+n)*(-1)^(k+n))/2; n , k > 0, read by antidiagonals.	nonn,tabl,,tard	1..9870	nyi
+A338198	trisimple	0	Z.ONE.shiftLeft(n - k).multiply(k + 1).subtract((k - 2) * ((n  - k) & 1 == 0 ? 1 : -1)).divide(3)	
+# ((k+1)*2^(n-k)-(k-2)*(-1)^(n-k))/3 nonn,easy,tabl,new,synth	0..77	nyi
+A057145	trisimara	0	Z.valueOf(n - 2).multiply(k * k).subtract((n - 4) * k).divide2()	Square array of polygonal numbers 
+# T(n,k) = ((n-2)*k^2 - (n-4)*k)/2, n >= 2, k >= 1, read by antidiagonals upwards.	nonn,nice,tabl,easy,changed,,tard	2..4951	nyi
+A072024	trisimard	0	Z.valueOf(n + 1).pow(k).subtract(Z.valueOf(-n).pow(k)).divide(2 * n + 1)	Table by antidiagonals of 
+# T(n,k) = ((n+1)^k - (-n)^k)/(2*n+1).	nonn,tabl,changed,,tard	0..1275	nyi
