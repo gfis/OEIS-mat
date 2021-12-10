@@ -1,24 +1,63 @@
-A256890	parm2	0	A257606	new Function() { protected long value(final long x) { return x + 2; } }
-A257180	parm2	0	A257606	new Function() { protected long value(final long x) { return x + 3; } }
-A257606	parm2	0	A257606	new Function() { protected long value(final long x) { return x + 4; } }
-A257607	parm2	0	A257606	new Function() { protected long value(final long x) { return x + 5; } }
-A257608	parm2	0	A257606	new Function() { protected long value(final long x) { return 9*x + 1; } }
-A257609	parm2	0	A257606	new Function() { protected long value(final long x) { return 2*x + 2; } }
-A257610	parm2	0	A257606	new Function() { protected long value(final long x) { return 3*x + 2; } }
-A257611	parm2	0	A257606	new Function() { protected long value(final long x) { return 2*x + 3; } }
-A257612	parm2	0	A257606	new Function() { protected long value(final long x) { return 4*x + 2; } }
-A257613	parm2	0	A257606	new Function() { protected long value(final long x) { return 2*x + 4; } }
-A257614	parm2	0	A257606	new Function() { protected long value(final long x) { return 5*x + 2; } }
-A257615	parm2	0	A257606	new Function() { protected long value(final long x) { return 2*x + 5; } }
-A257616	parm2	0	A257606	new Function() { protected long value(final long x) { return 6*x + 2; } }
-A257617	parm2	0	A257606	new Function() { protected long value(final long x) { return 7*x + 2; } }
-A257618	parm2	0	A257606	new Function() { protected long value(final long x) { return 8*x + 2; } }
-A257619	parm2	0	A257606	new Function() { protected long value(final long x) { return 9*x + 2; } }
-A257620	parm2	0	A257606	new Function() { protected long value(final long x) { return 3*x + 3; } }
-A257621	parm2	0	A257606	new Function() { protected long value(final long x) { return 4*x + 3; } }
-A257622	parm2	0	A257606	new Function() { protected long value(final long x) { return 3*x + 4; } }
-A257623	parm2	0	A257606	new Function() { protected long value(final long x) { return 5*x + 3; } }
-A257624	parm2	0	A257606	new Function() { protected long value(final long x) { return 3*x + 5; } }
-A257625	parm2	0	A257606	new Function() { protected long value(final long x) { return 6*x + 3; } }
-A257626	parm2	0	A257606	new Function() { protected long value(final long x) { return 3*x + 6; } }
-A257627	parm2	0	A257606	new Function() { protected long value(final long x) { return 7*x + 3; } }
+# Guide in A256890:
+# Related triangles may be found by varying the function f(x). If f(x) is a linear function, it can be parameterized as f(x) = a*x + b. With different values for a and b, the following triangles are obtained:
+# a\b 1.......2.......3.......4.......5.......6
+# -1  A144431
+# 0   A007318 A038208 A038221
+# 1   A008292 A256890 A257180 A257606 A257607
+# 2   A060187 A257609 A257611 A257613 A257615
+# 3   A142458 A257610 A257620 A257622 A257624 A257626
+# 4   A142459 A257612 A257621
+# 5   A142460 A257614 A257623
+# 6   A142461 A257616 A257625
+# 7   A142462 A257617 A257627
+# 8   A167884 A257618
+# 9   A257608 A257619
+
+A256890	modpas2	0	(n - k) + 2	k + 2
+A257180	modpas2	0	(n - k) + 3	k + 3
+A257606	modpas2	0	(n - k) + 4	k + 4
+A257607	modpas2	0	(n - k) + 5	k + 5
+A257608	modpas2	0	9*(n - k) + 1	9*k + 1
+A257609	modpas2	0	2*(n - k) + 2	2*k + 2
+A257610	modpas2	0	3*(n - k) + 2	3*k + 2
+A257611	modpas2	0	2*(n - k) + 3	2*k + 3
+A257612	modpas2	0	4*(n - k) + 2	4*k + 2
+A257613	modpas2	0	2*(n - k) + 4	2*k + 4
+A257614	modpas2	0	5*(n - k) + 2	5*k + 2
+A257615	modpas2	0	2*(n - k) + 5	2*k + 5
+A257616	modpas2	0	6*(n - k) + 2	6*k + 2
+A257617	modpas2	0	7*(n - k) + 2	7*k + 2
+A257618	modpas2	0	8*(n - k) + 2	8*k + 2
+A257619	modpas2	0	9*(n - k) + 2	9*k + 2
+A257620	modpas2	0	3*(n - k) + 3	3*k + 3
+A257621	modpas2	0	4*(n - k) + 3	4*k + 3
+A257622	modpas2	0	3*(n - k) + 4	3*k + 4
+A257623	modpas2	0	5*(n - k) + 3	5*k + 3
+A257624	modpas2	0	3*(n - k) + 5	3*k + 5
+A257625	modpas2	0	6*(n - k) + 3	6*k + 3
+A257626	modpas2	0	3*(n - k) + 6	3*k + 6
+A257627	modpas2	0	7*(n - k) + 3	7*k + 3
+#
+A144431	modpas2	0	(k - n) + 1	1 - k
+# A008292	modpas2	0	(n - k) + 1	k + 1
+A060187	modpas2	0	2*(n - k) + 1	2*k + 1
+A142458	modpas2	0	3*(n - k) + 1	3*k + 1
+A142459	modpas2	0	4*(n - k) + 1	4*k + 1
+A142460	modpas2	0	5*(n - k) + 1	5*k + 1
+A142461	modpas2	0	6*(n - k) + 1	6*k + 1
+A142462	modpas2	0	7*(n - k) + 1	7*k + 1
+A167884	modpas2	0	8*(n - k) + 1	8*k + 1
+A257608	modpas2	0	9*(n - k) + 1	9*k + 1
+
+# The formula can be further generalized to: t(n,m) = f(m+s)*t(n-1,m) + f(n-s)*t(n,m-1), where f(x) = a*x + b. The following table specifies triangles with nonzero values for s (given after the slash).
+# a\ b  0           1           2          3
+# -2    A130595/1
+# -1
+# 0
+# 1     A110555/-1  A120434/-1  A144697/1  A144699/2
+
+A130595	modpas2	0	1	-1
+A110555	modpas2	0	(n - k + 1) + 0	k - 1 + 0	0/-1  
+A120434	modpas2	0	(n - k + 1) + 1	k - 1 + 1	1/-1  
+A144697	modpas2	0	(n - k + 1) + 2	k - 1 + 2	2/1  
+A144699	modpas2	0	(n - k + 2) + 3	k - 2 + 3	3/2

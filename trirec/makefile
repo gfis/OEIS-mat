@@ -405,10 +405,10 @@ traits: traits1 traits2 traits_ff
 traits_ff: traits3 traits4 traits5 traits7
 traits1: # select those with keyword tabl
 	$(DBAT) -x "SELECT a.aseqno \
-	FROM asinfo a \
-	WHERE a.keyword LIKE '%tabl%' \
-	  AND a.offset1 >= 0 \
-	  AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  FROM asinfo a \
+	  WHERE a.keyword LIKE '%tabl%' \
+	    AND a.offset1 >= 0 \
+	    AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -515,6 +515,43 @@ border2:
 	>        $@.tmp
 	wc -l    $@.tmp
 	sort $@.tmp border1.tmp >      border.tmp
+#--------
+trait_match: trait_match0 trait_match1 trait_match2 trait_match3 trait_match4
+trait_match0:
+	$(DBAT) -x "SELECT aseqno \
+	  FROM asinfo \
+	  WHERE keyword LIKE '%tabl%' \
+	    AND offset1 >= 0 \
+	    AND aseqno IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+trait_match1:
+	$(RAMATH).sequence.Triangle -trait -b ../common/bfile -f trait_match0.tmp -m 528 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+trait_match2:
+	grep -vE "Sequence" trait_match1.tmp > $@.1.tmp
+	sort -k4,4 $(COMMON)/bfdata_uniq.tmp   $@.1.tmp > $@.tmp
+trait_match3:
+	cat trait_match2.tmp \
+	| perl trait_match.pl -m 16 \
+	2>       $@.rest.tmp \
+	| grep -E "bf" \
+	| cut -b1-100 \
+	>        $@.tmp
+	head -n4 $@*.tmp
+	wc -l    $@*.tmp
+trait_match4:
+	cd $(FISCHER) ; make seq4 LIST=$(HERE)/trait_match3.tmp
+	$(DBAT) "DELETE FROM seq4 \
+	  WHERE parm1 NOT IN (SELECT aseqno FROM joeis) \
+	     OR aseqno = parm1"
+	$(DBAT) -x -44444 seq4 \
+	| tee trait_match.tmp
+	wc -l trait_match.tmp
 #--
 modtri: modpa modip modco modic
 modpa:

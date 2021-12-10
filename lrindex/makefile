@@ -42,7 +42,7 @@ lr0:
 	perl extract_lrindex.pl -d $(D) -m lrlink > lrlink.create.sql
 	$(DBAT) -f                                  lrlink.create.sql
 #--
-REMOTE=set_remove_server
+REMOTE=set_remote_server
 lrlink_pull:
 	ssh $(REMOTE) 'cd ~/work/gits/OEIS-mat/lrindex ; make lrlink_prep'
 	make lrlink_scp

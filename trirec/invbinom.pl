@@ -39,25 +39,13 @@ while (<>) { # from joeis_names.txt
         my $rest = $1;
         if ($rest =~  m{(A\d\d\d\d\d\d+)}) {
             $rseqno = $1;
-            print join("\t", $aseqno, "invbinom", $offset, $rseqno, 0, $name) . "\n";
+            print join("\t", $aseqno, "invbinom", $offset, $rseqno, 0, "true" , $name) . "\n";
         }
     } elsif ($name =~ m{binomial transform (.*)}i) {
         my $rest = $1;
         if ($rest =~  m{(A\d\d\d\d\d\d+)}) {
             $rseqno = $1;
-            print join("\t", $aseqno, "binomtf", $offset, $rseqno, 0, $name) . "\n";
-        }
-    } elsif ($name =~ m{xxinverse binomial transform (.*)}i) {
-        my $rest = $1;
-        if ($rest =~  m{(A\d\d\d\d\d\d+)}) {
-            $rseqno = $1;
-            print join("\t", $aseqno, "invbinom", $offset, $rseqno, 0, $name) . "\n";
-        }
-    } elsif ($name =~ m{xxbinomial transform (.*)}i) {
-        my $rest = $1;
-        if ($rest =~  m{(A\d\d\d\d\d\d+)}) {
-            $rseqno = $1;
-            print join("\t", $aseqno, "binomtf", $offset, $rseqno, 0, $name) . "\n";
+            print join("\t", $aseqno, "binomtf" , $offset, $rseqno, 0, "false", $name) . "\n";
         }
     }
 } # while <>

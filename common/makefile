@@ -309,10 +309,30 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
 #--------
+bfdata_uniq_old:
+	sort -k3,3 bfdata.txt \
+	| perl -ne 'use strict; my ($$aseqno, @fields) = split(/\t/); print join("\t", $$aseqno, "cc", @fields); ' \
+	| perl $@.pl -m 16 \
+	2> $@.rest.tmp \
+	>  $@.tmp
+	head -n4 $@*.tmp
+	wc -l    $@*.tmp
+bfdata_uniq:
+	$(DBAT) -x "SELECT aseqno, 'cc', termno, data \
+	  FROM  bfdata d \
+	  WHERE termno >= 16 \
+	    AND aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    ORDER BY 4" \
+	| perl $@.pl -m 16 \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@*.tmp
+	wc -l    $@*.tmp
+#--------
 list: joeis_list
-joeis_list: joeis_local joeis_pullloc joeis_reload
+joeis_list: joeis_local joeis_pull joeis_reload
 joeis_local:
-	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; ant jar
+	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; cmd /c pause ; ant jar
 joeis_pull:   # refresh remote and local
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
