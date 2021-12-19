@@ -147,6 +147,15 @@ holgf2:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------------------------------
+sectrec0:
+	grep -E "^%[NF]" $(COMMON)/jcat25.txt \
+	| perl sectrec.pl \
+	2>       $@.rest.tmp \
+	| sort | uniq > $@.tmp
+	head -n4 $@.tmp
+	cut -f4 sectrec0.tmp | sort | uniq -c
+	wc -l    $@*.tmp
+#--------------------------------
 greprec0:
 	grep -E "^%[NF]" $(COMMON)/jcat25.txt \
 	| perl greprec.pl \

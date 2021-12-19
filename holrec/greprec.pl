@@ -26,21 +26,21 @@ while(<>) {
     s{\s+\Z}{}; # chompr
     $line = $_;
     if (0) {
-    #} elsif ($line =~ m{\.\.\.}) { # ignore ellipsis
-    #                              1        2                  3
-    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+([^\.\,]*)}) { # aseqno, formula, dot, author
+    } elsif ($line =~ m{\.\.\.}) { # ignore ellipsis
+    #                              1    1   2        2
+    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+([^\.]*)}) { # aseqno, formula, dot, author
         $aseqno = $1;
         $rec    = $2 || "";
         $empir  = "";
         $cond   = "";
         $inits  = "";
         my $name = $rec;
-        # $rec    =~ s{ \- [A-Z][\.a-zA-Z0-9\,\- ]+\Z}{}; # remove author and date
+        $rec    =~ s{ \- [A-Z][\.a-zA-Z0-9\,\- ]+\Z}{}; # remove author and date
         while ($rec =~ s{(\, *a\(\d+\) *\= *\d+)}{}) { # remove initial terms
             $inits .= $1;
             $inits =~ s{ }{}g;
         }
-        if ($rec =~ s{(\,|for |with |if )([n\=\>0-9 ]+)\Z}{}) { # extract condition
+        if ($rec =~ s{(\,|for |with |if |when )([n\=\>0-9 ]+)\Z}{}) { # extract condition
             $cond = $2;
             $cond =~ s{ }{}g;
         }
@@ -49,7 +49,7 @@ while(<>) {
         }
         $rec =~ s{ }{}g;
         if ($rec =~ m{\A[an\d\+\-\*\/\!\^\(\)\=]+\Z}) {
-            if ($rec =~ m{a\(n\)}) {
+            if ($rec =~ m{a\((\d+\*?)?n([\+\-]\d+)?\)}) {
                 print join("\t", $aseqno, "rec", 0, $rec, $inits, $cond, $empir, $name) . "\n";
             }
         }
