@@ -93,8 +93,8 @@ my @methods = qw(
 
     nextOn
     nextOn2n_1
-    dummy
-    dummy
+    partsum2
+    diffseq2
 
     nextLeftOriginB
     nextOriginRightB
@@ -111,8 +111,8 @@ my %dists = qw(
     1   0
     man 10
     2a  12
-    2b  14
-    2c  18
+    2b  16
+    2c  20
     );
 
 my $rulelist;
@@ -153,7 +153,8 @@ if (0) {
             @anums = split(/\;/, $anumlist);
             print "# " . join("\t", join(",", @rules), join(";", @anums)) . "\n";
             for (my $ian =0; $ian < scalar(@anums); $ian ++) {
-                print join("\t", $anums[$ian], $callcodes[$ian], $offset, $rule0) . "\n";
+                print join("\t", $anums[$ian], $callcodes[$dists{$dim} + $ian], $offset, $rule0, ""
+                    , (($dim eq "2a") && $ian >= 2 ? "new $anums[0]()" : ""), ""). "\n";
             } # for $ian
         } elsif ($line =~ m{\A +(\d+(\, ?\d+)*)}) {
             print STDERR "#dim=$dim $line\n";
@@ -167,7 +168,7 @@ if (0) {
 } elsif ($mode =~ m{\Aj}) { # jpat
     for (my $icc = 0; $icc < scalar(@methods); $icc ++) {
         my $file = "$callcodes[$icc].jpat";
-        $extends = ($file =~ m{ca1}) ? "Cellular1DAutomaton" : "Cellular5NeighborAutomaton";
+        $extends = ($file =~ m{ca1}) ? "Cellular1DAutomaton" : "FiveNeighbor2DAutomaton";
         open(JPAT, ">", $file) || die "cannot write \"$file\"";
         print JPAT <<"GFis";
 package irvine.oeis.\$(PACK);
