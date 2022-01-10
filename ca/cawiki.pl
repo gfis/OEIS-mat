@@ -61,7 +61,7 @@ my @callcodes = qw(
     ca1righthalf
 
     ca2on
-    ca2on2n_1
+    ca2on2n1
     partsum
     diffseq
 
@@ -92,7 +92,7 @@ my @methods = qw(
     nextRightHalf
 
     nextOn
-    nextOn2n_1
+    nextOn2n1
     partsum2
     diffseq2
 

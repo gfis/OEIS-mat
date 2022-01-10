@@ -35,6 +35,7 @@ ari:
 #---
 calist:
 	grep -Ei "cellular automat" $(COMMON)/joeis_names.txt \
+	| grep -P "\tnull\t" \
 	>        $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
@@ -99,8 +100,10 @@ ca2elem2:
 #----
 jpats: # generated all ca1*.jpat
 	perl cawiki.pl -m jpat
-	cp -v ca*.jpat $(FISCHER)
-	# partsum.jpat and diffseq.jpat may not be copied!
+	ls -1 ca*.jpat \
+	| grep -v "ca2on.jpat" \
+	| xargs -l -innn cp -v nnn $(FISCHER)
+	# ca2on, partsum.jpat and diffseq.jpat may not be copied!
 #----
 dist:
 	cd $(LITE) ; ant -silent dist 2>&1
@@ -114,6 +117,8 @@ test1:
 	$(JAVA) irvine.oeis.ca.Cellular1DAutomaton         -d $(D) $(BF) -cc $(CC) -n $(NT) -m $(MODE) -r $(R)
 test2:
 	$(JAVA) irvine.oeis.ca.FiveNeighbor2DAutomaton     -d $(D) $(BF) -cc $(CC) -n $(NT) -m $(MODE) -r $(R)
+test_A074890:
+	$(JAVA) irvine.oeis.ca.A074890
 #----
 old_gather3: # determine all weidis with their main attributes
 	$(DBAT) -x "SELECT s.aseqno, j.superclass, d.termno, b.bfimax - b.bfimin + 1, i.offset2, i.keyword, n.name \

@@ -330,12 +330,15 @@ bfdata_uniq:
 	wc -l    $@*.tmp
 #--------
 list: joeis_list
-joeis_list: joeis_local joeis_pull joeis_reload
+joeis_list: joeis_local joeis_pull joeis_jar joeis_reload
 joeis_local:
-	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; cmd /c pause ; ant jar
+	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt
+	# cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; cmd /c pause ; ant jar
 joeis_pull:   # refresh remote and local
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
+joeis_jar:
+	scp gfis@$(REMOTE):work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/
 joeis_pullloc: # refresh local önly
 	cd    $(JOEIS) ; git pull ; make joeis_list
 	cp -v $(JOEIS)/joeis_list.txt .
@@ -394,7 +397,7 @@ joeis_analog:
 	# currently not; cd $(FISCHER); make analog
 poeis_delete: # delete * from poeis
 	$(DBAT) "DELETE FROM poeis;"
-ALAST=A053000
+ALAST=A055000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -684,4 +687,7 @@ noprog:
 	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	  ORDER BY 1" \
 	| tee $@.tmp
+#--------
+kill:
+	cmd /c tasklist | grep make | cut -b28-34 | xargs -l -innn cmd /c taskkill /F /PID nnn
 	
