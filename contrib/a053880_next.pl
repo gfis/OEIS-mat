@@ -1,83 +1,94 @@
 #!perl
 
-# A053880 ff.: Squares with 3 digits; here: 1 2 4
+# Numbers k such that k^2 contains only 3 specific digits, or
+# Squares k^2 composed of 3 specific digits; here: 1,2,4
 # 2022-01-09, Georg Fischer
+#
 #:# Usage:
-#:# perl A053880_next.pl [-b base] [-e exponent] [-d debug] [-k] [-z] {-s sample|sample}
+#:# perl A053880_next.pl [-b base] [-d debug] [-2] [-k] [-n noterms] [-s sample] [-z]
+#:#     -2 output k^2 instead of k
 #:#     -b number base (default: 10)
 #:#     -d debugging mode: 0=none, 1=some, 2=more
-#:#     -e compute up to this power of 10 (default: 12)
-#:#     -k whether k must also consist only of these digits (default: only k^2)
+#:#     -n number of terms (default: 64)
+#:#     -k whether k must also consist of these digits only (default: all digits for k)
 #:#     -s sample digits (default: 124)
-#:#     -z forbid a trailing zero (default: off)
-
+#:#     -z forbid a trailing zero (default: allow)
+#
+# Applicable to:
+#   A053880-A053975 (option -2 for odd A-numbers)
+#   A058411-A058474 (option -z and option -2 for even A-numbers)
+#   A136808-A137147 (option -k)
+#--------
 use strict;
 use integer;
 
-my $maxexp  = 12;
-my $kToo    = 0; 
+my $noTerms = 64;
+my $mTestK  = 0;
+my $mNextK2 = 0;
 my $sample  = "124"; # A053880
-my $debug   = 0;
-my $noEndZero  = 0;
-my $mBase = 10;
+my $sDebug  = 0;
+my $mNoZeroTail  = 0;
+my $mBase   = 10;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
-    } elsif ($opt   =~ m{\-b}  ) {
-        $mBase      = shift(@ARGV);
-    } elsif ($opt   =~ m{\-d}  ) {
-        $debug      = shift(@ARGV);
-    } elsif ($opt   =~ m{\-e}  ) {
-        $maxexp     = shift(@ARGV);
-    } elsif ($opt   =~ m{\-k}  ) {
-        $kToo       = 1;
-    } elsif ($opt   =~ m{\-s}  ) {
-        $sample     = shift(@ARGV);
-    } elsif ($opt   =~ m{\A\d}  ) {
-        $sample     = shift(@ARGV);
-    } elsif ($opt   =~ m{-z}  ) {
-        $noEndZero  = 1;
+    } elsif ($opt    =~ m{\-2}  ) {
+        $mNextK2     = 1;
+    } elsif ($opt    =~ m{\-b}  ) {
+        $mBase       = shift(@ARGV);
+    } elsif ($opt    =~ m{\-d}  ) {
+        $sDebug      = shift(@ARGV);
+    } elsif ($opt    =~ m{\-k}  ) {
+        $mTestK      = 1;
+    } elsif ($opt    =~ m{\-n}  ) {
+        $noTerms      = shift(@ARGV);
+    } elsif ($opt    =~ m{\-s}  ) {
+        $sample      = shift(@ARGV);
+    } elsif ($opt    =~ m{-z}  ) {
+        $mNoZeroTail = 1;
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
 
-my @mOlds = ();
-for (my $mDig = 0; $mDig < 10; $mDig ++) {
-    if ((($mDig * $mDig) % 10) =~ m{\A[$sample]+\Z}o) {
-        push(@mOlds, $mDig);
-    }
-}
-print "# $0, digits: $sample, start with " . join(",", @mOlds) . "\n";
-my @mNews = ();
-my $mLen = 1;
-my $mAdd1 = $mBase;
-my $mAdd = $mAdd1;
-my $mMod = $mBase * $mBase;
-my $mDig = 0;
+my @mOldBlock = (0);
 my $mOldIx = 0;
 my $mNewIx = 0;
+my $mOldLen = scalar(@mOldBlock);
+my $mNewLen = 0;
+my @mNewBlock = ();
+my $mAdd1 = 1;
+my $mAdd = $mAdd1;
+my $mMod = $mBase;
+my $mDig = 0;
 my $mN = 0;
+
+print "# $0, digits: $sample\n";
 while (1) {
   my $result = &next();
   print "$mN $result\n";
 }
 
   sub next {
+    if ($mN == 0 && &isAllowed(0)) {
+      ++$mN;
+      return 0;
+    }
     while (1) {
       while ($mDig < $mBase) {
-        while ($mOldIx < scalar(@mOlds)) {
-          my $num = $mOlds[$mOldIx++];
-          my $k = $mAdd + $num;
+        while ($mOldIx < $mOldLen) {
+          my $k = $mAdd + $mOldBlock[$mOldIx++]; # pop
           my $k2 = $k * $k;
-          if (($k2 % $mMod) =~ m{\A[$sample]+\Z}o) {
-            push(@mNews, $k);
-            if ($k2  =~ m{\A[$sample]+\Z}o) {
-              if (($kToo == 0 || ($k  =~ m{\A[$sample]+\Z}o)) && ($noEndZero == 0 || $k % 10 != 0)) {
-                ++$mN;
-                return $k;
+          if (&isAllowed($k2 % $mMod)) {
+            $mNewBlock[$mNewIx ++] = $k; # push
+            if (&isAllowed($k2)) {
+              if ($mTestK == 0 || &isAllowed($k)) {
+                if ($mNoZeroTail == 0 || $k % $mBase != 0) {
+                  ++$mN;
+                  return $mNextK2 == 0 ? $k : $k2;
+                }
               }
-            } elsif ($debug >= 1) {
+            } elsif ($sDebug >= 1) {
                 print "    # $k $k2\n";
             }
           }
@@ -87,12 +98,18 @@ while (1) {
         ++$mDig;
       }
       $mDig = 0;
-      @mOlds = @mNews;
-      @mNews = ();
+      $mOldLen = $mNewIx;
+      @mOldBlock = @mNewBlock;
+      $mNewLen = $mOldLen * $mBase;
+      @mNewBlock = ();
+      $mNewIx = 0;
       $mAdd1 *= $mBase;
       $mMod *= $mBase;
       $mAdd = $mAdd1;
-      ++$mLen;
-      if ($debug >= 1) { print "---- next add1: $mAdd1, len=$mLen\n"; }
     }
   } # next
+#----
+sub isAllowed {
+  my ($k) = @_;
+  return ($k  =~ m{\A[$sample]+\Z}o) ? 1 : 0;
+}
