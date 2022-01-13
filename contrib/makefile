@@ -203,3 +203,7 @@ a051990: # Discriminants ... of ERD type
 	perl a051990.pl -a 12  > b051996.txt
 	perl a051990.pl -a 22  > b051997.txt
 	perl a051990.pl -a 32  > b051998.txt
+#--------
+sdstest:
+	perl a053880_next.pl $(PARMS)
+

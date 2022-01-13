@@ -25,7 +25,7 @@ use integer;
 my $noTerms = 64;
 my $mTestK  = 0;
 my $mNextK2 = 0;
-my $sample  = "124"; # A053880
+my $mSubset = "124"; # A053880
 my $sDebug  = 0;
 my $mNoZeroTail  = 0;
 my $mBase   = 10;
@@ -43,13 +43,14 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     } elsif ($opt    =~ m{\-n}  ) {
         $noTerms      = shift(@ARGV);
     } elsif ($opt    =~ m{\-s}  ) {
-        $sample      = shift(@ARGV);
+        $mSubset     = shift(@ARGV);
     } elsif ($opt    =~ m{-z}  ) {
         $mNoZeroTail = 1;
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
+$mSubset     =~ s{\D}{}g; # remove non-digits
 
 my @mOldBlock = (0);
 my $mOldIx = 0;
@@ -60,17 +61,22 @@ my @mNewBlock = ();
 my $mAdd1 = 1;
 my $mAdd = $mAdd1;
 my $mMod = $mBase;
-my $mDig = 0;
+my $mDig = 0; # was 0 !!
 my $mN = 0;
+my @mAllowedDigits;
+my $mOldK = 0; # new !!
+for (my $isub = 0; $isub < $mBase; ++$isub) {
+  $mAllowedDigits[$isub] = index($mSubset, $isub) >= 0 ? 1 : 0;
+} # for $isub
 
-print "# $0, digits: $sample\n";
+print "# $0, digits: $mSubset, " . join(",", @mAllowedDigits) . "\n";
 while (1) {
   my $result = &next();
   print "$mN $result\n";
 }
 
   sub next {
-    if ($mN == 0 && &isAllowed(0)) {
+    if ($mN == 0 && &isAllowed(0) && $mNoZeroTail == 0) {
       ++$mN;
       return 0;
     }
@@ -79,25 +85,28 @@ while (1) {
         while ($mOldIx < $mOldLen) {
           my $k = $mAdd + $mOldBlock[$mOldIx++]; # pop
           my $k2 = $k * $k;
+          my $k2div = $k2 / $mMod;
           if (&isAllowed($k2 % $mMod)) {
             $mNewBlock[$mNewIx ++] = $k; # push
+            if ($sDebug >= 1) {
+                print "    # push $k $k2 mOldIx=$mOldIx mAdd=$mAdd mMod=$mMod mDig=$mDig\n";
+            }
             if (&isAllowed($k2)) {
               if ($mTestK == 0 || &isAllowed($k)) {
-                if ($mNoZeroTail == 0 || $k % $mBase != 0) {
+                if (($mNoZeroTail == 0 || $k % $mBase != 0) && $k > $mOldK) {
                   ++$mN;
+                  $mOldK = $k;
                   return $mNextK2 == 0 ? $k : $k2;
                 }
               }
-            } elsif ($sDebug >= 1) {
-                print "    # $k $k2\n";
-            }
+            } 
           }
         }
         $mOldIx = 0;
         $mAdd += $mAdd1;
         ++$mDig;
       }
-      $mDig = 0;
+      $mDig = 0; # was 0 !!
       $mOldLen = $mNewIx;
       @mOldBlock = @mNewBlock;
       $mNewLen = $mOldLen * $mBase;
@@ -105,11 +114,12 @@ while (1) {
       $mNewIx = 0;
       $mAdd1 *= $mBase;
       $mMod *= $mBase;
-      $mAdd = $mAdd1;
+      $mAdd = 0; # was $mAdd1;
+      if ($sDebug >= 1) { print "---- new block, mOldLen=$mOldLen, mMod=$mMod, mAdd=$mAdd, mAdd1=$mAdd1, mDig=$mDig\n"; }
     }
   } # next
 #----
 sub isAllowed {
   my ($k) = @_;
-  return ($k  =~ m{\A[$sample]+\Z}o) ? 1 : 0;
+  return ($k  =~ m{\A[$mSubset]+\Z}o) ? 1 : 0;
 }
