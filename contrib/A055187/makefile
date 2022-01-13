@@ -1,9 +1,10 @@
 #!make
 
-# Generate OEIS A030707, A055187, A217760 and related 
-# "cumulative counting" sequences as defined by Clark Kimberling.
+# Generate OEIS A030707, A055187, A217760 and related "cumulative counting" sequences 
+# as defined by Clark Kimberling.
 # http://faculty.evansville.edu/ck6/integer/unsolved.html, Problem 4
 # @(#) $Id$
+# 2022-01-13, copied from gits/fasces/oeis/A055187
 # 2018-04-27, Georg Fischer (previous version in makefile2)
 #
 # C.f. listing.tmp (produced by target "listing", below)
@@ -24,7 +25,7 @@ START=1
 WITH0=0
 
 all:    0307nn 0551nn misc
-quick:  030707 030708 030717 030718 055168 055186 055187 misc
+quick:  030707 030708 030717 030718 030740 055168 055186 055187 misc
 0307nn: 0307io 0307do 
 0551nn: 05516n 05518n 
 #----------
@@ -332,9 +333,9 @@ misc:   051120 \
 #---------------------------------------------------------------
 cumulcount:
 	# -------------------------------------------------------
-	test -s b$(NOEIS).txt || wget http://oeis.org/A$(NOEIS)/b$(NOEIS).txt
-	grep -E "^[0-9]" b$(NOEIS).txt    | head -n $(LEN)                           > bf.tmp
-#	wc -l bf.tmp
+#	test -s b$(NOEIS).txt || wget http://oeis.org/A$(NOEIS)/b$(NOEIS).txt
+	grep -E "^[0-9]" ../../common/bfile/b$(NOEIS).txt | head -n $(LEN)          > bf.tmp
+	wc -l bf.tmp
 	perl cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d $(DEBUG) > A$(NOEIS).pn.tmp
 	grep -E "^[0-9]" A$(NOEIS).pn.tmp | head -n `wc -l bf.tmp | cut -d " " -f 1` > pn.tmp
 #	diff -w -y                         --width=32  bf.tmp pn.tmp || :
