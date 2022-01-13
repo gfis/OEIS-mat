@@ -1,5 +1,7 @@
 #!perl
 
+use strict;
+
   # Generate OEIS A030707, A055187, A217760 and related
   # "cumulative counting" sequences as defined by Clark Kimberling.
   # http://faculty.evansville.edu/ck6/integer/unsolved.html, Problem 4
@@ -53,88 +55,99 @@
   #       debug  = 0 (none; default)
   #                1 (with segments)
   #--------------------------------------------------------
-  use strict;
+  my $sDebug;
+  my $mAppear;
+  my $mFirst;
+  my $mMethod;
+  my $mNoeis;
+  my $mOffset;
+  my $mParm;
+  my $mRow; # count in both rows,    output both; default
+  my $mStart;
+  my $mWith0;
 
-  my $appear = 2;
-  my $sDebug  = 0;
-  my $first  = 0;
-  my $noTerms    = 256;
-  my $method = "A";
-  my $noeis  = "030707";
-  my $offset = 1;
-  my $parm   = 0;
-  my $row    = 3; # count in both rows, output both; default
-  my $start  = 1;
-  my $with0  = 0;
-
-  my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
-    = localtime (time);
-  my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d"
-    , $year + 1900, $mon + 1, $mday, $hour, $min);
-  my $mK = $offset;
-  my $mK2 = $mK; # copy of k, running as if it were rule A
-  my %inverse = (); # inverse sequence
-  my $mCurMax = $start - 1;
-  my $mSegNo = 0;
-  my @mSegment = ();
+  my %mInverse; # inverse sequence
+  my $mSegNo;
+  my @mSegment;
   # $mSegment[i+0] = attribute, how often (i = 1, 3, 5 ..)
   # $mSegment[i+1] = noun, which number is counted,
   # always this order, increasing nouns, always complete with zero attributes
   my @mCount;  # temporary copy of the attributes
   my @m1stApp; # 1st appearance of a noun
-  my @mSeqLen = (1); # cumulative length of sequence so far, indexed with $mSegNo
+  my @mSeqLen; # cumulative length of sequence so far, indexed with $mSegNo
+  my $mCurMax;
   my $attr;   # attribute, count of nouns
   my $noun;   # the numbers to be counted
+  my $iseg;   # index in @mSegment
+  my $mK;
+  my $mK2;
 
-  &main();
+  sub A055187 {
+    my ($offset, $noeis, $method, $start, $appear, $row, $first, $with0, $parm) = @_;
+    $mOffset = $offset;
+    $mNoeis = $noeis;
+    $mMethod = $method;
+    $mStart = $start;
+    $mAppear = $appear;
+    $mRow = $row;
+    $mFirst = $first;
+    $mWith0 = $with0;
+    $mParm = $parm;
 
-  sub A055187() {
+    %mInverse = ();
+    $mSegNo = 0;
+    @mSegment = ();
+    $mCurMax = $mStart - 1;
+    @mSeqLen = (1);
     # first segment
     $noun = 0;
-    while ($noun < $start) { # fill before $start
+    while ($noun < $mStart) { # fill before $mStart
       push(@mSegment, 0, $noun);
       $noun ++;
     } # while filling
-    push(@mSegment, 1, $start);
-    
+    push(@mSegment, 1, $mStart);
+
     # first b-file entry
+    $mK = $mOffset;
+    $mK2 = $mK; # copy of k, running as if it were rule A
     if (0) {
-    } elsif ($method =~ m{[ABIJKP]}i) {
-      if (($row & 1) != 0) {
-        &emit($start, -1);
+    } elsif ($mMethod =~ m{[ABIJKP]}i) {
+      if (($mRow & 1) != 0) {
+        &emit($mStart, -1);
       }
-    } elsif ($method =~ m{[D]}i) {
-      &store($start);
-    } elsif ($method =~ m{[N]}i) {
-      # &store(1);
+    } elsif ($mMethod =~ m{[D]}i) {
+      &store($mStart);
+    } elsif ($mMethod =~ m{[N]}i) {
+      # print "$mK 1\n"; $mK ++;
       $mSeqLen[0] = 0;
-    } elsif ($method =~ m{[S]}i) {
-    } elsif ($method =~ m{[T]}i) {
-      if ($noeis eq "240508") {
+    } elsif ($mMethod =~ m{[S]}i) {
+    } elsif ($mMethod =~ m{[T]}i) {
+      if ($mNoeis eq "240508") {
         &store(1);
       }
     } else {
-      die "invalid method \"$method\" at bf(1)\n";
+      die "invalid method \"$mMethod\" at bf(1)\n";
     }
-    push(@m1stApp, $start);
+    push(@m1stApp, $mStart);
     $mSegNo ++;
-  }
+  } # constructor A055187
+
   sub advance { # count between 0 and $nmax, and store in @mCounts
     my $amax = -1; # $nmax is the current segment length / 2
     if (1) { # compute length of current segment
       $mSeqLen[$mSegNo] = 0; # number of elements in segment
-      for (my $iseg = $first; $iseg < scalar(@mSegment); $iseg += 2) { # increment for valid entries
+      for (my $iseg = $mFirst; $iseg < scalar(@mSegment); $iseg += 2) { # increment for valid entries
         $attr = $mSegment[$iseg + 0];
         $noun = $mSegment[$iseg + 1];
-        if ($attr != 0 or ($with0 & 1) != 0) {
+        if ($attr != 0 or ($mWith0 & 1) != 0) {
           $mSeqLen[$mSegNo] ++;
         }
       } # for incrementing
     } # segment length
-  
+
     if ($sDebug >= 1) {
       print "seg#$mSegNo:";
-      for (my $iseg = $first; $iseg < scalar(@mSegment); $iseg += 2) { # print the elements of this segment
+      for (my $iseg = $mFirst; $iseg < scalar(@mSegment); $iseg += 2) { # print the elements of this segment
         $attr = $mSegment[$iseg + 0];
         $noun = $mSegment[$iseg + 1];
         print " $attr.$noun";
@@ -142,41 +155,41 @@
       print "   mSeqLen=$mSeqLen[$mSegNo]\n";
       print "m1stApp: " . join(" ", @m1stApp) . "\n";
     } # debug
-  
+
     # now the b-file entries
     if (0) {
-    } elsif ($method =~ m{[ABIJKP]}i) { # first or second row or both
+    } elsif ($mMethod =~ m{[ABIJKP]}i) { # first or second row or both
       if (0) {
-      } elsif ($appear == 1) { # order of first appearance
-        for (my $iapp = 0; $iapp < scalar(@m1stApp)     ; $iapp ++) {
-          my $iseg = $m1stApp[$iapp] << 1;
+      } elsif ($mAppear == 1) { # order of first appearance
+        for (my $iapp = 0; $iapp < scalar(@m1stApp); $iapp ++) {
+          $iseg = $m1stApp[$iapp] << 1;
           $attr = $mSegment[$iseg + 0];
           $noun = $mSegment[$iseg + 1];
-          if ($attr != 0 or ($with0 & 1) != 0) {
-            &emit($attr, $noun); # for method I: store %inverse only
+          if ($attr != 0 or ($mWith0 & 1) != 0) {
+            &emit($attr, $noun); # for method I: store %mInverse only
           }
         } # for
-      } elsif ($appear == 2) { # decreasing order
-        for (my $iseg = scalar(@mSegment) - 2; $iseg >= $first; $iseg -= 2) {
+      } elsif ($mAppear == 2) { # decreasing order
+        for (my $iseg = scalar(@mSegment) - 2; $iseg >= $mFirst; $iseg -= 2) {
           $attr = $mSegment[$iseg + 0];
           $noun = $mSegment[$iseg + 1];
-          if ($attr != 0 or ($with0 & 1) != 0) {
-            &emit($attr, $noun); # for method I: store %inverse only
+          if ($attr != 0 or ($mWith0 & 1) != 0) {
+            &emit($attr, $noun); # for method I: store %mInverse only
           }
         } # for
-      } elsif ($appear == 3) { # increasing order
-        for (my $iseg = $first; $iseg < scalar(@mSegment)     ; $iseg += 2) {
+      } elsif ($mAppear == 3) { # increasing order
+        for (my $iseg = $mFirst; $iseg < scalar(@mSegment); $iseg += 2) {
           $attr = $mSegment[$iseg + 0];
           $noun = $mSegment[$iseg + 1];
-          if ($attr != 0 or ($with0 & 1) != 0) {
-            &emit($attr, $noun); # for method I: store %inverse only
+          if ($attr != 0 or ($mWith0 & 1) != 0) {
+            &emit($attr, $noun); # for method I: store %mInverse only
           }
         } # for
       } else {
-        die "invalid parameter op=\"$appear\"\n";
+        die "invalid parameter op=\"$mAppear\"\n";
       }
-  
-    } elsif ($method =~ m{[D]}i) { # new terms (for $appear eq "fa")
+
+    } elsif ($mMethod =~ m{[D]}i) { # new terms (for $mAppear eq "fa")
       if ($sDebug >= 1) {
         print "range " . ($mSeqLen[$mSegNo - 1]) . ".." . ($mSeqLen[$mSegNo] - 1) . "\n";
       }
@@ -184,102 +197,101 @@
         my $iseg = $m1stApp[$iapp] << 1;
         $attr = $mSegment[$iseg + 0];
         $noun = $mSegment[$iseg + 1];
-        if ($attr != 0 or ($with0 & 1) != 0) {
+        if ($attr != 0 or ($mWith0 & 1) != 0) {
           &emit($attr, $noun);
         }
       } # for
-  
-    } elsif ($method =~ m{[N]}i) { # no. of new terms in segment
+
+    } elsif ($mMethod =~ m{[N]}i) { # no. of new terms in segment
       &emit($mSeqLen[$mSegNo] - $mSeqLen[$mSegNo - 1], -1);
-  
-    } elsif ($method =~ m{[T]}i) { # no. of terms in segment
+
+    } elsif ($mMethod =~ m{[T]}i) { # no. of terms in segment
       &emit($mSeqLen[$mSegNo], -1);
     }
+
     # compute following segment
-    for (my $iseg = $first; $iseg < scalar(@mSegment) ; $iseg += 2) { # copy attr and determine maximum attr
+    for (my $iseg = $mFirst; $iseg < scalar(@mSegment); $iseg += 2) { # copy attr and determine maximum attr
       $attr = $mSegment[$iseg + 0];
       $noun = $mSegment[$iseg + 1];
       $mCount[$noun] = $attr; # copy old attr
       if ($attr > $amax) {
         $amax = $attr;
       }
-    } # for copying
+    } # while copying
     my $last_noun = $noun;
-  
+
     $noun = $last_noun + 1;
     while ($noun <= $amax) { # insert nouns with 0 attributes
       $mCount[$noun ++] = 0;
     } # while inserting
     my $ffCount = $noun;
-  
+
     # now add all (or row1, row2) to @mCount
     if (0) {
-    } elsif ($appear == 1) {
+    } elsif ($mAppear == 1) {
       for (my $iapp = 0; $iapp < $mSeqLen[$mSegNo]; $iapp ++) {
         &assemble($m1stApp[$iapp] << 1);
       } # for $iapp
     } else { # "io", "do"
-      for (my $iseg = $first; $iseg < scalar(@mSegment); $iseg += 2) { # add
+      for (my $iseg = $mFirst; $iseg < scalar(@mSegment); $iseg += 2) { # add
         &assemble($iseg);
       } # for $iseg
     } # "io", "do"
-  
+
     # copy it back to the segment
     my $iseg = 0;
-    $noun = 0;
-    while ($noun < $ffCount) { # add
+    for ($noun = 0; $noun < $ffCount; $noun ++) { # add
       $mSegment[$iseg + 0] = $mCount[$noun];
       $mSegment[$iseg + 1] = $noun;
       $iseg += 2;
-      $noun ++;
-    } # while copying back
+    } # for copying back
   } # sub advance
-  #----------------
+
   sub assemble {
-    my ($iseg) = @_;
-    $attr = $mSegment[$iseg + 0];
-    $noun = $mSegment[$iseg + 1];
-    if (($attr != 0 or ($with0 & 1) != 0) and ($row != 6)) {
-      if ($mCount[$attr] == 0) { # appears for the first time
+    my ($pseg) = @_;
+    $attr = $mSegment[$pseg + 0];
+    $noun = $mSegment[$pseg + 1];
+    if (($attr != 0 or (($mWith0 & 1) != 0)) and ($mRow != 6)) {
+      if (!defined($mCount[$attr]) or $mCount[$attr] == 0) { # appears for the first time
         push(@m1stApp, $attr);
       }
       $mCount[$attr] ++;
     }
-    if (($attr != 0 or ($with0 & 1) != 0) and ($noun != 0 or ($with0 & 2) != 0) and ($row != 5)) {
+    if (($attr != 0 or ($mWith0 & 1) != 0) and ($noun != 0 or ($mWith0 & 2) != 0) and ($mRow != 5)) {
       $mCount[$noun] ++;
     }
-    if ($attr == 0 and $noeis eq "079668") {
-      $first = 0;
+    if ($attr == 0 and $mNoeis eq "079668") {
+      $mFirst = 0;
     }
   } # assemble
-  #----------------
+
   sub emit {
-    if ($mK > $noTerms) {
-      return;
-    }
+  # if ($mK > $noTerms) {
+  #   return;
+  # }
     my ($attr, $noun) = @_;
     if (0) {
-    } elsif ($method =~ m{P}i) {
-      if ($attr == $parm) {
+    } elsif ($mMethod =~ m{P}i) {
+      if ($attr == $mParm) {
         &store($mK2);
       }
       $mK2 ++;
-    } elsif ($method =~ m{I}i) {
-      if (! defined($inverse{$attr})) {
+    } elsif ($mMethod =~ m{I}i) {
+      if (! defined($mInverse{$attr})) {
         # assume that method "I" is called with row=1 only !
-        $inverse{$attr} = $mK;
+        $mInverse{$attr} = $mK;
         if ($sDebug >= 1) {
-          print "# stored $mK in inverse{$attr}\n";
+          print "# stored $mK in mInverse{$attr}\n";
         }
       }
       $mK ++;
-    } elsif ($method =~ m{J}i) {
+    } elsif ($mMethod =~ m{J}i) {
       if ($attr > $mCurMax) {
         &store($attr);
         $mCurMax = $attr;
       }
       $mK2 ++;
-    } elsif ($method =~ m{K}i) {
+    } elsif ($mMethod =~ m{K}i) {
       if ($attr > $mCurMax) {
         &store($mK2);
         $mCurMax = $attr;
@@ -287,54 +299,88 @@
       $mK2 ++;
     } elsif ($noun < 0) {
         &store($attr);
-    } elsif ($method =~ m{N}i) {
+    } elsif ($mMethod =~ m{N}i) {
         &store($attr);
-    } elsif ($method =~ m{T}i) {
+    } elsif ($mMethod =~ m{T}i) {
         &store($attr);
-    } elsif ($method =~ m{[AD]}i) { # attribute before noun
-      if (($row & 1) != 0) {
+    } elsif ($mMethod =~ m{[AD]}i) { # attribute before noun
+      if (($mRow & 1) != 0) {
         &store($attr);
       }
-      if (($row & 2) != 0 and $mK <= $noTerms) {
+      if (($mRow & 2) != 0) { # and $mK <= $noTerms) {
         &store($noun);
       }
-    } elsif ($method =~ m{[BD]}i) { # noun before attribute
-      if (($row & 1) != 0) {
+    } elsif ($mMethod =~ m{[BD]}i) { # noun before attribute
+      if (($mRow & 1) != 0) {
         &store($noun);
       }
-      if (($row & 2) != 0 and $mK <= $noTerms) {
+      if (($mRow & 2) != 0) { # and $mK <= $noTerms) {
         &store($attr);
       }
     } else {
-      die "invalid method \"$method\" in sub bfile\n";
+      die "invalid method \"$mMethod\" in sub bfile\n";
     }
   } # emit
-  
+
   sub store {
     my ($val) = @_;
     print "$mK $val\n";
     ++$mK;
   }
-  
+
   sub main {
+    my $appear = 2;
+    $sDebug  = 0;
+    my $first  = 0;
+    my $noTerms    = 256;
+    my $method = "A";
+    my $noeis  = "030707";
+    my $offset = 1;
+    my $parm   = 0;
+    my $row    = 3; # count in both rows,    output both; default
+    my $start  = 1;
+    my $with0  = 0;
+
     while (scalar(@ARGV) > 0) {
       my $opt = shift(@ARGV);
       if (0) {
-      } elsif ($opt eq "-a") { $appear  = shift(@ARGV);
-      } elsif ($opt eq "-d") { $sDebug  = shift(@ARGV);
-      } elsif ($opt eq "-f") { $first   = shift(@ARGV);
-      } elsif ($opt eq "-l") { $noTerms = shift(@ARGV);
-      } elsif ($opt eq "-m") { $method  = shift(@ARGV);
-      } elsif ($opt eq "-n") { $noeis   = shift(@ARGV);
-      } elsif ($opt eq "-o") { $offset  = shift(@ARGV);
-      } elsif ($opt eq "-p") { $parm    = shift(@ARGV);
-      } elsif ($opt eq "-r") { $row     = shift(@ARGV);
-      } elsif ($opt eq "-s") { $start   = shift(@ARGV);
-      } elsif ($opt eq "-w") { $with0   = shift(@ARGV);
-      } else { die "invalid option \"$opt\"\n";
+      } elsif ($opt eq "-a") {
+        $appear  = shift(@ARGV);
+        if (0) {
+        } elsif ($appear eq "fa") {
+          $appear = 1;
+        } elsif ($appear eq "do") {
+          $appear = 2;
+        } elsif ($appear eq "io") {
+          $appear = 3;
+        } else  {
+          # keep numeric $appear
+        }
+      } elsif ($opt eq "-d") {
+        $sDebug  = shift(@ARGV);
+      } elsif ($opt eq "-f") {
+        $first   = shift(@ARGV);
+      } elsif ($opt eq "-l") {
+        $noTerms = shift(@ARGV);
+      } elsif ($opt eq "-m") {
+        $method  = shift(@ARGV);
+      } elsif ($opt eq "-n") {
+        $noeis   = shift(@ARGV);
+      } elsif ($opt eq "-o") {
+        $offset  = shift(@ARGV);
+      } elsif ($opt eq "-p") {
+        $parm    = shift(@ARGV);
+      } elsif ($opt eq "-r") {
+        $row     = shift(@ARGV);
+      } elsif ($opt eq "-s") {
+        $start   = shift(@ARGV);
+      } elsif ($opt eq "-w") {
+        $with0   = shift(@ARGV);
+      } else {
+        die "invalid option \"$opt\"\n";
       }
     } # while ARGV
-    
+
     if ($sDebug == 99) {
       print " [http://oeis.org/A$noeis A$noeis] $method $start $appear $row";
       if ($offset != 1) { print " offset=$offset"; }
@@ -344,39 +390,33 @@
       print "\n";
       exit(0);
     }
-    if (0) {
-    } elsif ($appear eq "fa") {
-      $appear = 1;
-    } elsif ($appear eq "do") {
-      $appear = 2;
-    } elsif ($appear eq "io") {
-      $appear = 3;
-    } else  {
-      # keep numeric $appear
-    }
     if ($sDebug == 98) { # seq4 format
       print join("\t", "A$noeis", "cumulcnt", $offset, $method, $start, $appear, $row, $first, $with0, $parm) . "\n";
       exit(0);
     }
+
+    &A055187($offset, $noeis, $method, $start, $appear, $row, $first, $with0, $parm);
+
     print <<"GFis";
-    # http://oeis.org/A$noeis/b$noeis.txt: table n,a(n) for n=1..$noTerms
-    # Generated  on $timestamp by
-    # perl cumulcount.pl -m $method -r $row -n $noeis -l $noTerms -a $appear -f $first -o $offset -s $start -p $parm -w $with0
+# http://oeis.org/A$noeis/b$noeis.txt: table n,a(n) for n=1..$noTerms
+# Generated by perl cumulcount.pl -m $method -r $row -n $noeis -l $noTerms -a $appear -f $first -o $offset -s $start -p $parm -w $with0
 GFis
-    
-    &A055187();
     # main loop
     while ($mK <= $noTerms and $mSegNo <= $noTerms) { # compute new segment from current
       &advance();
       $mSegNo ++;
     } # while b-file
-    
+
     if ($method =~ m{I}i) { # special treatment of the inverse
       $mK = 1;
-      foreach my $attr (sort {$a <=> $b} (keys(%inverse))) {
-        last if $attr > $mK; # must be monotone
-        &store($inverse{$attr});
+      foreach my $attr (sort {$a <=> $b} (keys(%mInverse))) {
+        if ($attr > $mK) {
+          last; # must be monotone
+        }
+        &store($mInverse{$attr});
       } # foreach
     } # method I
-  } 
-  
+  } # main
+
+  &main();
+

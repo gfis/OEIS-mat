@@ -333,17 +333,14 @@ misc:   051120 \
 #---------------------------------------------------------------
 cumulcount:
 	# -------------------------------------------------------
-#	test -s b$(NOEIS).txt || wget http://oeis.org/A$(NOEIS)/b$(NOEIS).txt
 	grep -E "^[0-9]" ../../common/bfile/b$(NOEIS).txt | head -n $(LEN)          > bf.tmp
 	wc -l bf.tmp
-	perl cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d $(DEBUG) > A$(NOEIS).pn.tmp
+	perl -w cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d $(DEBUG) > A$(NOEIS).pn.tmp
 	grep -E "^[0-9]" A$(NOEIS).pn.tmp | head -n `wc -l bf.tmp | cut -d " " -f 1` > pn.tmp
-#	diff -w -y                         --width=32  bf.tmp pn.tmp || :
-	diff -w -y --suppress-common-lines --width=32  bf.tmp pn.tmp | head -n 8
-#
+	diff -w -y --suppress-common-lines --width=32  bf.tmp pn.tmp | head -n 8 | tee A$(NOEIS).log.tmp
 debug:
 	# -------------------------------------------------------
-	perl cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d 1 | less
+	perl -w cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d 1 | less
 #--------
 list1:
 	perl cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d 99 
