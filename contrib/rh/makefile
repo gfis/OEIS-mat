@@ -99,3 +99,15 @@ hardname: # select Hardin's sequences
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+#----------------
+parts:
+	cat hardname.tmp \
+	| grep -v "with" \
+	| perl -ne 'use strict; my $$line = $$_; $$line =~ s{\s+\Z}{}; '\
+	' if ($$line =~ s{Number of n X n arrays of squares of integers summing to (\d+)}{$$1}) {'\
+	' $$line =~ s{\d+\.\.\d+\t}{}; $$line =~ s{\t\w+\t0}{\tbinom\t0}; $$line =~ s{\.}{}g; print "$$line\n"; }'\
+	| perl partition2.pl \
+	| perl parts_binom.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
