@@ -1,6 +1,6 @@
 #!perl
 
-# Squares summing up to a number -> binomial formula
+# Squares summing up to a number -> partition equations
 # @(#) $Id$
 # 2022-02-16, Georg Fischer
 # A159355 2..100 Number of n X n arrays of squares of integers summing to 4.
@@ -41,42 +41,57 @@ my @queue = ();
 my $comma = "/";
 print "# OEIS-mat/contrib/rh/partition5.pl $timestamp\n";
 
+if ($debug > 0) {
     for ($num = 2; $num <= $sumMax; $num ++) {
-        @queue = ();
-        $isq   = &isqrt($num);
-        $sq    = $isq**2;
-        while ($isq >= 1) { # queue all (num, starting square indexes)+
-            $factor = $num / $sq;
-            while ($factor >= 1) {
-               $rest   = $num - $factor *$sq;
-               $parts = " = $factor*$sq";
-                if ($debug >= 1) {
-                    print "    push1 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
-                }
-                push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
-                if ($isq == 1) {
-                    $factor = 0;
-                } else {
-                    $factor --;
-                }
-            } # while $factor
-            $isq --;
-            $sq = $isq**2;
-        } # while pushing
-        $newList = "";
-        while (scalar(@queue) > 0) { # not empty
-            my $elem = shift(@queue); # pop
-            ($rest, $factor, $isq, $parts) = split(/$comma/, $elem);
-            $newList .= &partition($rest, $factor, $isq, $parts);
-        } # while not empty
-        print "# $num$newList\n";
+        print "# $num" . &partitions($num) . "\n";
     } # for my $num
-
+} else {
+    while (<>) {
+        s/\s+\Z//; # chompr
+        my ($aseqno, $callcode, $offset, @parms) = split(/\t/);
+        $num = shift(@parms);
+        my $parts = &partitions($num);
+        print "# $aseqno\t$num$parts\n";
+        print join("\t", $aseqno, $callcode, $offset, $num, $parts, @parms) . "\n";
+    } # while <>
+}
 # end main
 #----
+sub partitions {
+	my ($num) = @_;
+    @queue = ();
+    $isq   = &isqrt($num);
+    $sq    = $isq**2;
+    while ($isq >= 1) { # queue all (num, starting square indexes)+
+        $factor = $num / $sq;
+        while ($factor >= 1) {
+           $rest   = $num - $factor *$sq;
+           $parts = " = $factor*$sq";
+            if ($debug >= 2) {
+                print "    push1 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
+            }
+            push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
+            if ($isq == 1) {
+                $factor = 0;
+            } else {
+                $factor --;
+            }
+        } # while $factor
+        $isq --;
+        $sq = $isq**2;
+    } # while pushing
+    $newList = "";
+    while (scalar(@queue) > 0) { # not empty
+        my $elem = shift(@queue); # pop
+        ($rest, $factor, $isq, $parts) = split(/$comma/, $elem);
+        $newList .= &partition($rest, $factor, $isq, $parts);
+    } # while not empty
+    return $newList;
+}
+
 sub partition () { # append the partition of $rest, with parts <= $isq**2
     my ($num, $factor, $isq, $parts) = @_;
-    if ($debug >= 1) {
+    if ($debug >= 2) {
         print "      pop num =$num, factor=$factor, isq=$isq, parts= \"$parts\"\n";
     }
     while ($num > 0 && $isq >= 1) { # queue all (num, starting square indexes)+
@@ -88,7 +103,7 @@ sub partition () { # append the partition of $rest, with parts <= $isq**2
                 $factor = 0; # break loop
             } else {
                 my $rest   = $num - $factor *$sq;
-                if ($debug >= 1) {
+                if ($debug >= 2) {
                     print "    push2 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
                 }
                 push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
@@ -113,14 +128,4 @@ A159355 binom   0   4
 A159359 binom   0   5
 A159363 binom   0   6
 A159367 binom   0   7
-# } else {
-#     while (<>) {
-#         s/\s+\Z//; # chompr
-#         my ($aseqno, $callcode, $offset, @parms) = split(/\t/);
-#         $num = shift(@parms);
-#         my $parts = &partition($num, &isqrt($num));
-#         print "# $aseqno\t$num = $parts\n";
-#         print join("\t", $aseqno, $callcode, $offset, $num, $parts, @parms) . "\n";
-#     } # while <>
-}
 

@@ -1,10 +1,14 @@
 #!perl
 
-# Convert partions into counting formulas with binomials
+# Convert partitions into counting formulas with binomials
 # @(#) $Id$
 # 2022-02-16, Georg Fischer
-# to be used in conjunction with partition2.pl
-
+#:# usage:
+#:#    grep ... \
+#:#    | perl partition5.pl \
+#:#    | perl parts_binom.pl -d debug -m mode > output.seq4
+#:#    -m z (joeis.Z expressions), mp (Maple seq), hol (for bincoef.mpat)
+#--------------------------------
 use strict;
 use warnings;
 use integer;
@@ -16,14 +20,14 @@ if (0 && scalar(@ARGV) == 0) {
     exit;
 }
 my $debug = 0;
-my $sumMax = 40;
+my $mode = "z";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
     } elsif ($opt  =~ m{m}) {
-        $sumMax    = shift(@ARGV);
+        $mode      = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -39,29 +43,36 @@ while (<>) {
         my $num   = shift(@parms);
         my $parts = shift(@parms);
         my $newParts = &generate($num, $parts);
+        $callcode = "binomlo";
         print join("\t", $aseqno, $callcode, $offset, $num, $newParts, $parts, @parms) . "\n";
     } else {
         print "$_\n";
     }
 } # while <>
 
-sub generate () { # recursively generate the partitions for $summax
+sub generate () { # convert the partitions into a binomial expression
     my ($num, $parts) = @_;
     my $oldList = $parts;
     my $newList = "";
     my $sepPlus = "";
+    my $sepTim = "";
+    my $newParts = "";
     foreach my $parts (split(/ \= /, $oldList)) { # a single partition
-        my $sepTim = "";
-        my $newParts = "";
         my $count = 0;
-        foreach my $part (split(/ \+ /, $parts)) { # occurrences of summand
-            my ($occ, $summand) = split(/\*/, $part);
-            $newParts .= "$sepTim" . "binomial(n\^2" . ($count > 0 ? "-$count" : "") . ", $occ)";
-            $count += $occ;
-            $sepTim = "*";
-        } # foreach $part
-        $newList .= "$sepPlus$newParts";
-        $sepPlus = " + ";
+        $sepTim = "";
+        $newParts = "";
+        if (0) {
+        } elsif ($mode =~ m{m.?p}i) {
+        } elsif ($mode =~ m{z}i   ) {
+            foreach my $part (split(/ \+ /, $parts)) { # occurrences of summand
+                my ($occ, $summand) = split(/\*/, $part);
+                $newParts .= "$sepTim" . "binomial(n\^2" . ($count > 0 ? "-$count" : "") . ", $occ)";
+                $count += $occ;
+                $sepTim = "*";
+            } # foreach $part
+            $newList .= "$sepPlus$newParts";
+            $sepPlus = " + ";
+        }
     } # foreach $parts
     return $newList;
 } # generate
