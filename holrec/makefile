@@ -796,7 +796,7 @@ recur5:
 #----
 recform: recform1 recform2 recform3 recform4
 recform1:
-	perl recform.pl $(COMMON)/cat25.txt \
+	perl recform.pl $(COMMON)/jcat25.txt \
 	| uniq -w 7 \
 	>        $@.tmp
 	head -n4 $@.tmp

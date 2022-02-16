@@ -690,4 +690,13 @@ noprog:
 #--------
 kill:
 	cmd /c tasklist | grep make | cut -b28-34 | xargs -l -innn cmd /c taskkill /F /PID nnn
-	
+#--------
+oeis_created:
+	echo '# created' `date +%Y-%m-%dT%H:%M` > $@.txt
+	cat $@.txt
+	$(DBAT) -x "select aseqno, substr(created,1, 10) from asinfo" \
+	>>       $@.txt
+	head -n4 $@.txt
+	tail -n4 $@.txt
+	wc -l    $@.txt
+	scp      $@.txt gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/$@.txt

@@ -770,3 +770,19 @@ joeismore:
 	wc -l     $@.tmp
 	# They all run too slow, or are Colin's conjectures.
 #-------------------------------
+trimpl: # sequences that are implemented with triangle.Triangle
+	$(DBAT) -x "SELECT j.aseqno, LOWER(SUBSTR(superclass, 1, 6)), 0, n.name \
+	  FROM joeis j, asname n \
+	WHERE j.superclass IN ('Triangle', 'UpperLeftTriangle') \
+	  AND j.aseqno = n.aseqno \
+	ORDER BY 1" \
+	>         $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+trimpl2:
+	cut -f1 trimpl.tmp | perl -ne 's{^(A\d+)}{"\.\.\/\.\.\/joeis\/src\/irvine\/oeis\/" . lc(substr($$1, 0, 4)) . "/$$1\.java"}eg; print;' \
+	| xargs -l -innn grep -P "compute|matrixElement| \* A\d\d+|get\(" nnn \
+	| tee     $@.tmp
+	head -n4  $@.tmp
+	wc -l     $@.tmp
+#-------------------------------

@@ -25,7 +25,7 @@ START=1
 WITH0=0
 
 all:    0307nn 0551nn misc
-quick:  030707 030708 030717 030718 030740 055168 055186 055187 misc
+quick:  030707 030708 030717 030718 055168 055186 055187 misc
 0307nn: 0307io 0307do 
 0551nn: 05516n 05518n 
 #----------
@@ -337,7 +337,7 @@ cumulcount:
 	wc -l bf.tmp
 	perl -w cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d $(DEBUG) > A$(NOEIS).pn.tmp
 	grep -E "^[0-9]" A$(NOEIS).pn.tmp | head -n `wc -l bf.tmp | cut -d " " -f 1` > pn.tmp
-	diff -w -y --suppress-common-lines --width=32  bf.tmp pn.tmp | head -n 8 | tee A$(NOEIS).log.tmp
+	diff -w -y --suppress-common-lines --width=32  bf.tmp pn.tmp | head -n 8 | tee A$(NOEIS).log
 debug:
 	# -------------------------------------------------------
 	perl -w cumulcount.pl -m $(METHOD) -r $(ROW) -n $(NOEIS) -l $(LEN) -a $(APPEAR) -f $(FIRST) -o $(OFFSET) -s $(START) -p $(PARM) -w $(WITH0) -d 1 | less
@@ -365,3 +365,6 @@ intern1:
 	test -s A$(NOEIS).int || wget -O A$(NOEIS).int "http://oeis.org/search?q=id:A$(NOEIS)\&fmt=text" 
 internal: 
 	make $(SIL) all TARGET=intern1
+#--------
+convert:
+	perl ../perl2java.pl cumulcount.pl | tee ../../../joeis-lite/internal/fischer/manual/A055187.java

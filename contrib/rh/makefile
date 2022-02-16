@@ -88,3 +88,14 @@ hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
 	| uniq -c | sort -rn > $@.tmp
 #----------------
+hardname: # select Hardin's sequences
+	$(DBAT) -x "SELECT i.aseqno, COALESCE(j.superclass, 'null'), 0, b.bfimin || '..' || b.bfimax, n.name \
+	    FROM asinfo i, asname n, bfinfo b \
+	    LEFT JOIN joeis j ON b.aseqno = j.aseqno \
+	    WHERE i.aseqno = n.aseqno \
+	      AND n.aseqno = b.aseqno \
+	      AND i.author LIKE '%Hardin%' ORDER BY 1" \
+	| head -n644444 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
