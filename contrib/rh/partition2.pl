@@ -64,10 +64,10 @@ sub partitions {
             if ($rest >= 0) {
                 $parts = " = $factor*$sq";
                 if ($debug >= 2) {
-                    print "    push1 rest=$rest, level=$top, isq=" 
+                    print "    push1 rest=$rest, level=" . ($top + 1) . ", isq=" 
                         . ($isq - 1) . ", parts= \"$parts\"\n";
                 }
-                push(@queue, join($comma, $rest, $top, $isq - 1, $parts));
+                push(@queue, join($comma, $rest, $top + 1, $isq - 1, $parts));
             } # $rest > 0
             if ($isq == 1) {
                 $factor = 0;
