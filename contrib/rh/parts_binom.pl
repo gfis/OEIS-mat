@@ -3,6 +3,7 @@
 # Convert partitions into counting formulas with binomials
 # @(#) $Id$
 # 2022-02-16, Georg Fischer
+#
 #:# usage:
 #:#    grep ... \
 #:#    | perl partition5.pl \
@@ -43,8 +44,12 @@ while (<>) {
         my $num   = shift(@parms);
         my $parts = shift(@parms);
         my $newParts = &generate($num, $parts);
+        $newParts =~ s{ }{}g;
+        $newParts =~ s{\A\+}{};
         $callcode = "binomlo";
-        print join("\t", $aseqno, $callcode, $offset, $num, $newParts, $parts, @parms) . "\n";
+        print join("\t", $aseqno, $callcode, $offset
+        #   , $num
+            , $newParts, $parts, @parms) . "\n";
     } else {
         print "$_\n";
     }
@@ -57,21 +62,29 @@ sub generate () { # convert the partitions into a binomial expression
     my $sepPlus = "";
     my $sepTim = "";
     my $newParts = "";
-    foreach my $parts (split(/ \= /, $oldList)) { # a single partition
+    foreach my $parts (split(/ *\= */, $oldList)) { # a single partition
         my $count = 0;
         $sepTim = "";
         $newParts = "";
         if (0) {
         } elsif ($mode =~ m{m.?p}i) {
         } elsif ($mode =~ m{z}i   ) {
-            foreach my $part (split(/ \+ /, $parts)) { # occurrences of summand
+            foreach my $part (split(/ *\+ */, $parts)) { # occurrences of summand
                 my ($occ, $summand) = split(/\*/, $part);
-                $newParts .= "$sepTim" . "binomial(n\^2" . ($count > 0 ? "-$count" : "") . ", $occ)";
+                if ($occ > 1) {
+                    $newParts .= "$sepTim" . "C(n^2" . ($count > 0 ? "-$count" : "") . ",$occ)";
+                } else {
+                    if ($count > 0) {
+                        $newParts .= "$sepTim" . "(n^2-$count)";
+                    } else {
+                        $newParts .= "$sepTim" . "n^2";
+                    }
+                }
                 $count += $occ;
                 $sepTim = "*";
             } # foreach $part
             $newList .= "$sepPlus$newParts";
-            $sepPlus = " + ";
+            $sepPlus = "+";
         }
     } # foreach $parts
     return $newList;

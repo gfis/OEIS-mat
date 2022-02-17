@@ -3,7 +3,7 @@
 # Squares summing up to a number -> partition equations
 # @(#) $Id$
 # 2022-02-16, Georg Fischer
-# A159355 2..100 Number of n X n arrays of squares of integers summing to 4.
+# A159355 Number of n X n arrays of squares of integers summing to 4.
 # Partitions of a number into squares
 
 use strict;
@@ -51,7 +51,7 @@ if ($debug > 0) {
         my ($aseqno, $callcode, $offset, @parms) = split(/\t/);
         $num = shift(@parms);
         my $parts = &partitions($num);
-        print "# $aseqno\t$num$parts\n";
+        # print "# $aseqno\t$num$parts\n";
         print join("\t", $aseqno, $callcode, $offset, $num, $parts, @parms) . "\n";
     } # while <>
 }
@@ -65,12 +65,14 @@ sub partitions {
     while ($isq >= 1) { # queue all (num, starting square indexes)+
         $factor = $num / $sq;
         while ($factor >= 1) {
-           $rest   = $num - $factor *$sq;
-           $parts = " = $factor*$sq";
-            if ($debug >= 2) {
-                print "    push1 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
-            }
-            push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
+            $rest   = $num - $factor *$sq;
+            if ($rest >= 0) {
+                $parts = " = $factor*$sq";
+                if ($debug >= 2) {
+                    print "    push1 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
+                }
+                push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
+            } # $rest > 0
             if ($isq == 1) {
                 $factor = 0;
             } else {
@@ -87,7 +89,7 @@ sub partitions {
         $newList .= &partition($rest, $factor, $isq, $parts);
     } # while not empty
     return $newList;
-}
+} # partitions
 
 sub partition () { # append the partition of $rest, with parts <= $isq**2
     my ($num, $factor, $isq, $parts) = @_;
@@ -98,15 +100,18 @@ sub partition () { # append the partition of $rest, with parts <= $isq**2
         $sq = $isq**2;
         $factor = $num / $sq;
         while ($factor >= 1) {
-            $parts .= " + $factor*$sq";
             if ($isq <= 1) {
+                $parts .= " + $factor*$sq";
                 $factor = 0; # break loop
             } else {
                 my $rest   = $num - $factor *$sq;
-                if ($debug >= 2) {
-                    print "    push2 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
-                }
-                push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
+                if ($rest >= 0) {
+                    $parts .= " + $factor*$sq";
+                    if ($debug >= 2) {
+                        print "    push2 rest=$rest, factor=$factor, isq=" . ($isq - 1) . ", parts= \"$parts\"\n";
+                    }
+                    push(@queue, join($comma, $rest, $factor, $isq - 1, $parts));
+                } # $rest > 0
             }
             $factor --;
         }

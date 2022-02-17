@@ -1,9 +1,9 @@
 #!perl
 
-# Squares summing up to a number -> binomial formula
+# Squares summing up to a number -> partition equations
 # @(#) $Id$
-# 2022-02-16, Georg Fischer
-# A159355 2..100 Number of n X n arrays of squares of integers summing to 4.
+# 2022-02-17, Georg Fischer: copied from partition5.pl
+# A159355 Number of n X n arrays of squares of integers summing to 4.
 # Partitions of a number into squares
 
 use strict;
@@ -23,88 +23,105 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{m}) {
+    } elsif ($opt  =~ m{n}) {
         $sumMax    = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
 
+my $comma = "/";
 print "# OEIS-mat/contrib/rh/partition2.pl $timestamp\n";
-my @partList; # of $n
-my $times = "x";
-my $eq    = " = ";
-my $plus  = ", ";
+my @queue = ();
+my $top = 0;
 
-if ($debug >= 2) {
-    for (my $sum = 2; $sum <= $sumMax; $sum ++) {
-        my $parts = &partition($sum);
-        print "# $sum$eq$parts\n";
-    } # for my $sum
+if ($debug > 0) {
+    my $num = $sumMax;
+    print "# $num" . &partitions($num) . "\n";
 } else {
     while (<>) {
         s/\s+\Z//; # chompr
         my ($aseqno, $callcode, $offset, @parms) = split(/\t/);
         my $num = shift(@parms);
-        my $parts = &partition($num);
-        print "# $aseqno\t$num = $parts\n";
+        my $parts = &partitions($num);
+        # print "# $aseqno\t$num$parts\n";
         print join("\t", $aseqno, $callcode, $offset, $num, $parts, @parms) . "\n";
     } # while <>
 }
 # end main
 #----
-sub partition () { # recursively generate the partitions for $summax
-    my ($sumMax) = @_;
-    $partList[0] = "";
-    $partList[1] = "1$times" . "1";
+sub partitions {
+    my ($num) = @_;
+    @queue = ();
+    $top = 0;
     my $parts;
-    for (my $sum = 2; $sum <= $sumMax; $sum ++) {
-        $parts = &partition1($sum);
-        $partList[$sum] = $parts;
-    } # for $sum
-    $parts = $partList[$sumMax];
-    $parts =~ s{$times}{\*}g;
-    $parts =~ s{$plus} { \+ }g;
-    $parts =~ s{ \+ 0\*\d+}{}g;
-    return $parts;
-} # for $sum
-
-sub partition1 {
-    my ($sum) = @_;
-    my $oldList = $partList[$sum - 1];
-    my $newList = "";
-    my $sepEq = "";
-    foreach my $parts (split(/$eq/, $oldList)) { # a partition of $sum
-        my $sepPlus = "";
-        my $newParts = "";
-        foreach my $part (split(/$plus/, $parts)) { # occurrences of summand
-            my ($occ, $summand) = split(/$times/, $part);
-            if ($summand == 1) {
-                $occ ++;
-                $part = "$occ$times$summand";
+    my $isq   = &isqrt($num);
+    my $sq    = $isq**2;
+    while ($isq >= 1) { # queue all (num, starting square indexes)+
+        my $factor = $num / $sq;
+        while ($factor >= 1) {
+            my $rest   = $num - $factor *$sq;
+            if ($rest >= 0) {
+                $parts = " = $factor*$sq";
+                if ($debug >= 2) {
+                    print "    push1 rest=$rest, level=$top, isq=" 
+                        . ($isq - 1) . ", parts= \"$parts\"\n";
+                }
+                push(@queue, join($comma, $rest, $top, $isq - 1, $parts));
+            } # $rest > 0
+            if ($isq == 1) {
+                $factor = 0;
+            } else {
+                $factor --;
             }
-            $newParts .= "$sepPlus$part";
-            $sepPlus = $plus;
-        } # foreach $part
-        $newList .= "$sepEq$newParts";
-        $sepEq = $eq;
-    } # foreach $parts
-    my $busy = 1;
-    my $isq = 2;
-    my $sq = $isq**2;
-    while ($busy && $sq <= $sum) {
-        my $factor = $sum / $sq;
-        my $rest   = $sum % $sq;
-        if ($rest == 0) {
-            $newList .= "$sepEq$factor$times$sq$plus" . "0$times" . "1";
-            $sepEq = $eq;
-        }
-        $isq ++;
+        } # while $factor
+        $isq --;
         $sq = $isq**2;
-    } # while
+    } # while pushing
+    my $newList = "";
+    while (scalar(@queue) > 0) { # not empty
+        my $elem = shift(@queue); # pop
+        my ($rest, $level, $isq2, $parts) = split(/$comma/, $elem);
+        $newList .= &partition($rest, $level, $isq2, $parts);
+        if ($debug >= 3) {
+            print "        level=$level, newList = \"$newList\"\n";
+        }
+    } # while not empty
     return $newList;
-} # partition
+} # partitions
 
+sub partition () { # append the partitions of $rest, with parts <= $isq**2
+    my ($num, $level, $isq, $parts) = @_;
+    if ($debug >= 2) {
+        print "      pop num =$num, level=$level, isq=$isq, parts= \"$parts\"\n";
+    }
+    $level ++;
+    while ($num > 0 && $isq >= 1) { # queue all (num, starting square indexes)+
+        my $sq = $isq**2;
+        my $factor = $num / $sq;
+        while ($factor >= 1) {
+            if ($isq <= 1) {
+                $parts .= " + $factor*$sq";
+                $factor = 0; # break loop
+            } else {
+                my $rest   = $num - $factor *$sq;
+                if ($rest >= 0) {
+                    $parts .= " + $factor*$sq";
+                    if ($debug >= 2) {
+                        print "    push2 rest=$rest, level=$level, isq=" 
+                            . ($isq - 1) . ", parts= \"$parts\"\n";
+                    }
+                    push(@queue, join($comma, $rest, $level, $isq - 1, $parts));
+                } # $rest > 0
+            }
+            $factor --;
+        }
+        $isq --;
+        $sq = $isq**2;
+    } 
+    return $parts;
+} # partition
+#----
 sub isqrt() { # determine $result**2 <= $n
     my ($n) = @_;
     my $result = 0;
@@ -114,8 +131,8 @@ sub isqrt() { # determine $result**2 <= $n
     return $result;
 } # isqrt
 __DATA__
-A159355	binom	0	4
-A159359	binom	0	5
-A159363	binom	0	6
-A159367	binom	0	7
+A159355 binom   0   4
+A159359 binom   0   5
+A159363 binom   0   6
+A159367 binom   0   7
 

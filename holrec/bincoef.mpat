@@ -1,6 +1,7 @@
 #!Maple
 # Derive a matrix for HolonomicRecurrence from a formula simplify(-expr(n)/expr(n-1), GAMMA)
 # 2021-06-04, Georg Fischer
+C:=binomial:
 interface(prettyprint=0):
 with(StringTools):
 binomin := proc(aseqno, offset, expr, inits); local fract, num, den, matrix, j, remark;

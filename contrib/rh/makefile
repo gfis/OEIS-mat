@@ -100,14 +100,20 @@ hardname: # select Hardin's sequences
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #----------------
-parts:
+parts: parts1 parts2 # A159355 Number of n X n arrays of squares of integers summing to 4.
+	mv -v parts2.tmp $@.tmp
+parts1: # using partition2.pl 
 	cat hardname.tmp \
 	| grep -v "with" \
 	| perl -ne 'use strict; my $$line = $$_; $$line =~ s{\s+\Z}{}; '\
 	' if ($$line =~ s{Number of n X n arrays of squares of integers summing to (\d+)}{$$1}) {'\
 	' $$line =~ s{\d+\.\.\d+\t}{}; $$line =~ s{\t\w+\t0}{\tbinom\t0}; $$line =~ s{\.}{}g; print "$$line\n"; }'\
-	| perl partition5.pl \
-	| perl parts_binom.pl \
+	| perl partition2.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+parts2:
+	perl parts_binom.pl parts1.tmp \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc   -l  $@.tmp
