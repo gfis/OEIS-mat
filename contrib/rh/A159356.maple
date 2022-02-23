@@ -1,29 +1,31 @@
 # read "C://Users/User/work/gits/OEIS-mat/contrib/rh/A159356.maple"
-target := 4:
-debugging := 1:
-total := proc(n, deb): local k; k := n-2: 
-  debug = deb:
-  + middle(k, 0,4) * border(k, 1,4)
-  + middle(k, 1,4) * border(k, 0,4)
-  + middle(k, 0,1) * border(k, 4,1)
+total := proc(n): local k; k := n-2: 
+  # distribute each possible partition between middle and borders
+  +                  border(k, 1,4)
+  + middle(k, 1,4) 
+  +                  border(k, 4,1)
   + middle(k, 1,1) * border(k, 3,1)
   + middle(k, 2,1) * border(k, 2,1)
   + middle(k, 3,1) * border(k, 1,1)
-  + middle(k, 4,1) * border(k, 0,1)
-  end ;
+  + middle(k, 4,1) 
+  end: # total
   
 middle := proc(k, m,t): # multiplicity, term
-  if k^2 <= m*t then 1 
-  else binomial(k^2, m) 
+  # select m locations in the center
+  result := (
+  if k^2 >= m then 
+    binomial(k^2, m) 
+  else
+    0
   fi 
-  end:
+    ); printf("middle(k=%a, %a,%a)=%a\n", k,m,t, result): result
+  end: # middle
 
 border := proc(k, m,t): # multiplicity, term
-  if   m = 0 then 1
-  elif t = 1 then
-    if   m = 0 then 1
-    elif m = 1 then 
-      + corners(k, 0,0, 0,0, 1,1)
+  # distribute the partition into 3 bins: h(k), a(1), b(k)
+  result := (
+    if m = 1 then 
+      + 2*k^2 + 4*k + 1
     elif m = 2 then 
       + corners(k, 0,0, 0,0, 2,1)
       + corners(k, 0,0, 1,1, 1,1)
@@ -37,123 +39,37 @@ border := proc(k, m,t): # multiplicity, term
       + corners(k, 0,0, 2,1, 2,1)
       + corners(k, 1,1, 1,1, 2,1)
     fi
-  elif t = 4 then
-    if   m = 0 then 1
-    elif m = 1 then 
-      + corners(k, 0,0, 0,0, 1,4)
-    fi
-  fi
-  end:
+    ); printf("border(k=%a, %a,%a)=%a\n", k,m,t, result): result
+  end: # border
 
 corners := proc(k, hm,ht, am,at, bm,bt): # multiplicity and terms of h, a, b
-  if hm = 0 then
+  if hm > k or am > k or bm > k then 0
+  elif hm = 0 then
     if am = 0 then                   # 0, 0, b
-      if bm <= k then
-        2*k^2 + 4*k + 1              # 4 triangles, 2 bars, 1 square
-      else 1
-      fi
+        + 4*binomial(k, bm)          # 4 triangles
+        + 2*binomial(k, bm)^2        # 2 bars     
+        + 1                          # 1 square  
     elif am = bm then                # 0, b, b
-      if bm <= k then
-        k^4 + 4*k^3 + 2*k^2          # 1 diamond, 4 triangles, 2 double-bars
-      else 1
-      fi
-    else
-      if bm <= k then                # 0, a=1, b=2|3
-        + 4*binomial(k, bm)^2*k      # 4 triangles
-        + 2*binomial(k, bm)^2        # 2 squares
-        + 2*binomial(k, bm)^2*k^2    # 2 crosses
-      else 1 
-      fi
+        + 4*binomial(k, bm)^3        # 4 triangles
+        + 2*binomial(k, bm)^2        # 2 double bars
+        + 1*binomial(k, bm)^4        # 1 diamond 
+    else                             # 0, a, b
+        + 4*(binomial(k, bm)^2 * binomial(k, am)) # 4 triangles
+        + 2* binomial(k, bm)^2       # 2 squares
+        + 2*(binomial(k, bm)^2 * binomial(k, am)^2) # 2 crosses
     fi 
   elif hm = am then                  # h, h, b
     if am = bm then
-      if bm <= k then                # 0, a=1, b=2|3
         2*k^2 + 4*k + 1              # 4 triangles, 2 bars, 1 square
-      else 1 
-      fi
     else 
-      if bm <= k then                # 1, 1, 2
         + 4*binomial(k, bm)^2*k      # 4 triangles
         + 2*binomial(k, bm)^2        # 2 squares
         + 2*binomial(k, bm)^2*k^2    # 2 crosses
-      else 1 
-      fi
     fi
   else 
     printf("error 1\n");
     0
   fi 
-  end:
+  end: # corners
 
-corners_99 := proc(k, hm,ht, am,at, bm,bt): # multiplicity and terms of h, a, b
-  if hm = 0 then
-    if am = 0 then                  # 0, 0, b
-      + corner(k, 0, 0,  0, 0,  bm,bt)
-      + corner(k, 0,0,   bm,bt, 0,0  )
-      + corner(k, bm,bt, 0,0,   0,0  )
-    elif am = bm then               # 0, b, b
-      + corner(k, 0,0,   bm,bt, bm,bt)
-      + corner(k, bm,bt, bm,bt, 0,0  )
-      + corner(k, bm,bt, 0,0,   bm,bt)
-    else                            # 0, a, b
-      + corner(k, 0,0,   am,at, bm,bt)
-      + corner(k, am,at, bm,bt, 0,0  )
-      + corner(k, am,at, 0,0,   bm,bt)
-      + corner(k, 0,0,   bm,bt, am,at)
-      + corner(k, bm,bt, am,at, 0,0  )
-      + corner(k, bm,bt, 0,0,   am,at)
-    fi 
-  elif hm = am then                 # h, h, b
-      + corner(k, hm,ht, hm,ht, bm,bt)
-      + corner(k, hm,ht, bm,bt, hm,ht)
-      + corner(k, bm,bt, hm,ht, hm,ht)
-  else 
-      + corner(k, hm,ht, am,at, bm,bt)
-      + corner(k, am,at, bm,bt, hm,ht)
-      + corner(k, am,at, hm,ht, bm,bt)
-      + corner(k, hm,ht, bm,bt, am,at)
-      + corner(k, bm,bt, am,at, hm,ht)
-      + corner(k, bm,bt, hm,ht, am,at)
-  fi 
-  end:
-
-corner := proc(k, hm0,ht0, am0,at0, bm0,bt0) local hab, bcd, def, fgh:
-  hab    := proc(k, hm,ht, am,at, bm,bt) local result:
-    result := (
-    if am > 1 then 0
-    else 
-      (if hm = 0 then 1 else edge(k, hm,ht) fi) * (bcd(k, bm,bt, hm,ht, am,at) + bcd(k, bm,bt, am,at, hm,ht))
-    fi
-    ): if 1 = 1 then printf("hab(%a, %a,%a, %a,%a, %a,%a)=%a\n", k, hm,ht, am,at, bm,bt, result); fi; result
-    end:
-  bcd  := proc(k, bm,bt, cm,ct, dm,dt) local result:
-    result := (
-    if cm > 1 then 0
-    else 
-      (if bm = 0 then 1 else edge(k, bm,bt) fi) * (def(k, dm,dt, bm,bt, cm,ct) + def(k, dm,dt, cm,ct, bm,bt))
-    fi
-    ): if 1 = 1 then printf("  bcd(%a, %a,%a, %a,%a, %a,%a)=%a\n", k, bm,bt, cm,ct, dm,dt, result); fi; result
-    end:
-  def  := proc(k, dm,dt, em,et, fm,ft) local result:
-    result := (
-    if em > 1 then 0
-    else 
-      (if dm = 0 then 1 else edge(k, dm,dt) fi) * (fgh(k, fm,ft, dm,dt, em,et) + fgh(k, fm,ft, em,et, dm,dt))
-    fi
-    ): if 1 = 1 then printf("    def(%a, %a,%a, %a,%a, %a,%a)=%a\n", k, dm,dt, em,et, fm,ft, result); fi; result
-    end:
-  fgh  := proc(k, fm,ft, gm,gt, hm,ht) local result:
-    result := (
-    if gm > 1 then 0
-    else
-      (if fm = 0 then 1 else edge(k, fm,ft) fi) * (if hm != hm0 then 0 else 1 fi)
-    fi
-    ): if 1 = 1 then printf("      fgh(%a, %a,%a, %a,%a, %a,%a)=%a\n", k, fm,ft, gm,gt, hm,ht, result); fi; result
-    end:
-  hab(k, hm0,ht0, am0,at0, bm0,bt0)
-  end:
-
-edge:= proc(k, hm,ht):
-  if hm > k then 0 else binomial(k, hm) fi
-  end:
-seq(total(n, 1), n=3..10);
+seq(total(n), n=3..5);
