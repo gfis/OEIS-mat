@@ -51,6 +51,7 @@ if ($debug > 0) {
         my ($aseqno, $callcode, $offset, @parms) = split(/\t/);
         my $num = shift(@parms);
         my $parts = &partitions($num);
+        $parts =~ s{\d+\>}{}g;
         # print "# $aseqno\t$num$parts\n";
         print join("\t", $aseqno, $callcode, $offset, $num, $parts, @parms) . "\n";
     } # while <>
