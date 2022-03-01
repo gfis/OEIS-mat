@@ -138,6 +138,8 @@ cofr4: # search for Dec.Exp.Seq. with corresponding expressions
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
+	cp -v    $@.tmp  $(COMMON)/cofr4.txt
+	cd $(COMMON) ; make -f checks.make -s html_check1 FILE=cofr4
 cofr5: # Continued fraction of aseqno
 	cat cofr2.tmp \
 	| perl -ne 'if (s{cofr2\t(\d+)\t(A[0-9]+)\.?\t.*}{cofr\t$$1\t$$2\t}) { print; }'\

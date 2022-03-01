@@ -2,6 +2,7 @@
 
 # OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
+# 2022-03-01: bfimer
 # 2021-11-05: extract Maple lines
 # 2021-02-04: REMOTE
 # 2019-06-24: joeis_ofter
@@ -187,14 +188,16 @@ infos:
 	make binfos DIR=.
 #----
 ainfos: asdata asinfo asname asxref
-binfos: bfdata bfinfo 
+# binfos: bfdata bfinfo 
+binfos: bfdata bfimer
 #----
 # process after data extraction on Linux
 herlin: herscp aloads bloads checks
 herscp: 
 	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
 aloads: asdata_load asinfo_load asname_load asxref_load 
-bloads: bfdata_load bfinfo_load bfdir_load 
+# bloads: bfdata_load bfinfo_load bfdir_load 
+bloads: bfdata_load bfimer_load bfdir_load 
 #--------
 asdata: # parameter: DIR
 	perl extract_info.pl -asr $(DIR)/ajson > $@.txt
@@ -279,6 +282,10 @@ bfdata_load: # Load table <em>bfdata</em>
 	$(DBAT) -4                  bfdata
 	$(DBAT) -n                  bfdata
 #----
+bfimer: # merge extract only
+	perl extract_info.pl -br bulk/bfile > $@.txt
+	cp $@.txt $@.`date +%Y-%m-%d.%H_%M`.txt
+	wc -l $@.txt
 bfinfo: # parameter: DIR
 	make bfinfo_extract DIR=.
 bfinfo_extract:
@@ -299,6 +306,12 @@ bfinfo_update:
 	$(DBAT) -m csv -s "\t" -r bfinfo < $(LIST)
 	$(DBAT) -4                bfinfo
 	$(DBAT) -n                bfinfo
+bfimer_load:
+	cut -b1-7 bfimer.txt > $@.tmp
+	make seq LIST=$@.tmp
+	$(DBAT) "DELETE FROM bfinfo WHERE aseqno IN (SELECT aseqno FROM seq)"
+	$(DBAT) -m csv -s "\t" -r bfinfo < bfimer.txt
+	$(DBAT) -n bfinfo
 #----
 bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	perl bfdir.pl -c > bfdir.create.sql
