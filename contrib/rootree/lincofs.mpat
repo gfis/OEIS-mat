@@ -1,0 +1,5 @@
+with(StringTools):
+toString := proc(expr) DeleteSpace(convert(expr,string)) end:
+lincofs  := proc(ope) local j:
+  printf("%s\n", toString([seq(coeff(ope,x,j),j=0..degree(ope,x))]) )
+  end :
