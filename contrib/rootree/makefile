@@ -20,6 +20,11 @@ all:
 #----	
 LIST=055278 055279 055280 055281 055282 055283 055284 055285 055286 055287
 #----
+java:
+	perl a055277.pl
+	wc -l *.java
+	cp -v *.java $(FISCHER)/manual
+#----
 to_bfile: # copy all files generated with PARI 
 	cp -v b0552??.txt $(COMMON)/bfile
 list1:
