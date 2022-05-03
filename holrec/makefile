@@ -408,6 +408,12 @@ gfsqrt5:
 gfsqrt6:
 	$(HOLT) -n 16 -f gfsqrt4.tmp
 #-------------------------------
+gftype:
+	perl gftype1.pl $(COMMON)/bfdata.txt \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#-------------------------------
 hermite: # A158811 HolonomicRecurrence     Numerator of Hermite(n, 1/3).
 	grep -E "Numerator of Hermite" $(COMMON)/joeis_names.txt \
 	| perl gen_hermite.

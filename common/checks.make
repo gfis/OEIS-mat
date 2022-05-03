@@ -35,12 +35,13 @@ checks: \
 	bfdata_check \
 	bfdir_check  \
 	bfsize_check \
-	brol_check   \
 	cojec_check  \
 	cons_check   \
 	denom_check  \
 	guide_check  \
 	lead0_check  \
+	listasc_check\
+	nxinc_check  \
 	nydone_check \
 	nydsdb_check \
 	offset_check \
@@ -55,7 +56,8 @@ checks: \
 	eval_checks  \
 	html_checks
 #
-#		bfdata_check \
+#	bfdata_check \
+#	brol_check   \
 #
 clean_checks:
 	rm -f *_check.txt *_check.htm*
@@ -371,6 +373,50 @@ keyword_check: # Forbidden combinations of keywords
 lead0_check:
 	cp -v ../lrindex/lead0.tmp $@.txt
 	wc -l $@.txt
+#---------------------------
+listinc_check:
+	$(DBAT) "SELECT b.aseqno, b.bfimax - b.bfimin, b.decindex, n.name \
+	  FROM bfinfo b, asname n \
+	  WHERE b.aseqno = n.aseqno \
+	    AND (n.name LIKE 'Numbers _ such that %' \
+	     OR  n.name LIKE  'Primes _ such that %' \
+	     OR  n.name LIKE  'Primes of form %' \
+	     ) \
+	    AND b.decindex < b.bfimax - 4 \
+	    AND b.decindex > b.bfimin + 4 \
+	  ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	make -f checks.make html_check1 FILE=$@
+#----
+listasc_check:
+	grep "^%o" jcat25.txt | grep -P "\(PARI\) is(Ok)?\(" \
+	| cut -b4-10 \
+	>     $@.tmp
+	grep -P "Numbers \w+ such that|(Numbers|Primes|Squares|Cubes) (with|whose|for which|which)" asname.txt \
+	| cut -b1-7 \
+	>>    $@.tmp
+	sort  $@.tmp | uniq -w7 > $@.1.tmp
+	make seq LIST=$@.1.tmp
+	$(DBAT) "SELECT s.aseqno, b.bfimax - b.bfimin, b.decindex, n.name \
+	  FROM seq s, bfinfo b, asname n \
+	  WHERE s.aseqno = b.aseqno \
+	    AND b.aseqno = n.aseqno \
+	    AND b.decindex < b.bfimax - 4 \
+	    AND b.decindex > b.bfimin + 4 \
+	  ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	make -f checks.make html_check1 FILE=$@
+#---------------------------
+nxinc_check:
+	$(DBAT) "SELECT b.aseqno, '[' || b.bfimin || '..' || b.bfimax || ']', b.message \
+	  FROM bfinfo b \
+	  WHERE b.message LIKE '%nxinc%' \
+	  ORDER BY 1" \
+	>     $@.txt
+	wc -l $@.txt
+	make -f checks.make html_check1 FILE=$@
 #---------------------------
 mma_check: # Terms in sequence differ from first terms in MMA Lin.Rec. call
 	make -f makefile seq2 LIST=$(FISCHER)/mmacheck.tmp

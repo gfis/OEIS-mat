@@ -40,7 +40,7 @@ my @ninits  = qw(     0      0      1      4     10     15     26     33     47 
 #  @seqnos  = qw(000000 000000 000000 000000 055335 055336 055337 055338 055339);
    @seqnos  = qw(000000 000000 000000 055341 055342 055343 055344 055345 055346);
    @seqnos  = qw(000000 000000 000000 055350 055351 055352 055353 055354 055355); # psplit
-#  @seqnos  = qw(000000 000000 000000 055357 055358 055359 055360 055361 055362);
+   @seqnos  = qw(000000 000000 000000 055357 055358 055359 055360 055361 055362);
 #  @seqnos  = qw(000000 000000 000000 055364 055365 055366 055367 055368 055369); # qsplit
 undef $/;
 my $pattern = <DATA>;
@@ -55,10 +55,14 @@ for (my $ias = 0; $ias < scalar(@seqnos); $ias ++) {
         my $name = `grep $aseqno ../../common/asname.txt`;
         $name =~ s{\t}{ }g;
         $name =~ s{[\r\n]}{}g;
-        my $nin1  = $ninits[$ias] + 2;
-        if ($rseqno eq "A055350") {
+        my $nin1  = $ninits[$ias] + 3;
+        if (0) {
+        } elsif ($rseqno eq "A055350") {
             $gftype = 1;
             $nin1 = $ias * 2;
+        } elsif ($rseqno eq "A055357") {
+            $gftype = 0;
+            $nin1  = $ninits[$ias] + $offset - 1;
         }
         my $inits = `perl ../data_bf.pl -to data -o $offset -n $nin1 ../../common/bfile/b$seqnos[$ias].txt`;
         $inits =~ s{\s}{}g;

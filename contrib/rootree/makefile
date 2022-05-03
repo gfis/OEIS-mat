@@ -77,7 +77,7 @@ hsplit1:
 	cp -v    x.tmp $(COMMON)/bfile/b$(SEQNO).txt
 	cp -v    x.tmp                 b$(SEQNO).txt
 #----
-psplit:
+psplit: # A055349 ff.
 	make -s psplit1 K=3  SEQNO=055350
 	make -s psplit1 K=4  SEQNO=055351
 	make -s psplit1 K=5  SEQNO=055352
@@ -97,15 +97,35 @@ psplit1:
 	cp -v    x.tmp $(COMMON)/bfile/b$(SEQNO).txt
 	cp -v    x.tmp                 b$(SEQNO).txt
 #----
-qsplit:
-	make -s qsplit1 K=3  SEQNO=055364
-	make -s qsplit1 K=4  SEQNO=055365
-	make -s qsplit1 K=5  SEQNO=055366
-	make -s qsplit1 K=6  SEQNO=055367
-	make -s qsplit1 K=7  SEQNO=055368
-	make -s qsplit1 K=8  SEQNO=055369
-	wc -l b05536*.txt
+qsplit: # A055356 ff.
+	make -s qsplit1 K=3  SEQNO=055357
+	make -s qsplit1 K=4  SEQNO=055358
+	make -s qsplit1 K=5  SEQNO=055359
+	make -s qsplit1 K=6  SEQNO=055360
+	make -s qsplit1 K=7  SEQNO=055361
+	make -s qsplit1 K=8  SEQNO=055362
+	wc -l "b0553[56]*.txt"
 qsplit1:
+	echo "#" `grep A$(SEQNO) $(COMMON)/asname.txt` > x.tmp
+	echo   "# Table n, a(n) generated with PARI in A055356 by Georg Fischer" `date "+%b %d %Y"` >> x.tmp
+	sed -e "s/[^\-\,0-9]//g" a055356.txt \
+	| perl split290.pl $(K) 0 >> x.tmp
+	echo "" >> x.tmp
+	echo "" >> x.tmp
+	head -n6 x.tmp
+	tail -n4 x.tmp
+	cp -v    x.tmp $(COMMON)/bfile/b$(SEQNO).txt
+	cp -v    x.tmp                 b$(SEQNO).txt
+#----
+rsplit: # A055363 ff.
+	make -s rsplit1 K=3  SEQNO=055364
+	make -s rsplit1 K=4  SEQNO=055365
+	make -s rsplit1 K=5  SEQNO=055366
+	make -s rsplit1 K=6  SEQNO=055367
+	make -s rsplit1 K=7  SEQNO=055368
+	make -s rsplit1 K=8  SEQNO=055369
+	wc -l b05536*.txt
+rsplit1:
 	echo "#" `grep A$(SEQNO) $(COMMON)/asname.txt` > x.tmp
 	echo   "# Table n, a(n) generated with PARI in A055363 by Georg Fischer" `date "+%b %d %Y"` >> x.tmp
 	sed -e "s/^[0-9]+\: *//g" -e "s/[^\-\,0-9]//g" a055363.txt \
@@ -127,3 +147,14 @@ java9:
 	wc -l *.java
 	cp -v *.java $(FISCHER)/manual
 	cp -v A055350.java.man $(FISCHER)/manual/A055350.java
+ja357:
+	rm -f *.java
+	perl a055277.pl -r A055357
+	wc -l *.java
+	cp -v *.java $(FISCHER)/manual
+	cp -v A055357.java.man $(FISCHER)/manual/A055357.java
+java6:
+	rm -f *.java
+	perl a055277.pl 
+	wc -l *.java
+	cp -v *.java $(FISCHER)/manual
