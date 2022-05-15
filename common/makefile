@@ -373,7 +373,7 @@ joeis_dead:
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi') \
+	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \

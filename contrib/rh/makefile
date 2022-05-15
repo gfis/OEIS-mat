@@ -88,8 +88,8 @@ hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
 	| uniq -c | sort -rn > $@.tmp
 #----------------
-hardname: # select Hardin's sequences
-	$(DBAT) -x "SELECT i.aseqno, COALESCE(j.superclass, 'null'), 0, b.bfimin || '..' || b.bfimax, n.name \
+rhlist: # select Hardin's sequences
+	$(DBAT) -x "SELECT i.aseqno, COALESCE(j.superclass, 'null ' || i.program), 0, b.bfimin || '..' || b.bfimax, n.name \
 	    FROM asinfo i, asname n, bfinfo b \
 	    LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	    WHERE i.aseqno = n.aseqno \
@@ -99,6 +99,9 @@ hardname: # select Hardin's sequences
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+stat:
+	wc -l rhlist.tmp
+	grep -vP "\tnull\t" rhlist.tmp | wc -l
 #----------------
 parts: parts1 parts2 # A159355 Number of n X n arrays of squares of integers summing to 4.
 	mv -v parts2.tmp $@.tmp
