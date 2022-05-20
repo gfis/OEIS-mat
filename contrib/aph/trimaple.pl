@@ -51,18 +51,18 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my $pattern = <<'GFis'; # this program does not really work
 package irvine.oeis.a075;
 
-import irvine.math.MemoryFunction2;
+import irvine.math.MemoryFunctionInt2;
 import irvine.math.factorial.MemoryFactorial;
 import irvine.math.z.Binomial;
 import irvine.math.z.Integers;
 import irvine.math.z.Z;
-import irvine.oeis.triangle.UpperLeftTriangle;
+import irvine.oeis.triangle.Triangle;
 
 /**
  * A075196 Table T(n,k) by antidiagonals: T(n,k) = number of partitions of n balls of k colors.
  * @author Georg Fischer
  */
-public class A075196 extends UpperLeftTriangle {
+public class A075196 extends Triangle {
 
   /** Construct the sequence. */
   public A075196 () {
@@ -71,10 +71,9 @@ public class A075196 extends UpperLeftTriangle {
   }
 
   /* Maple:
-  */
-  private final MemoryFunction2<Integer, Z> mB = new MemoryFunction2<Integer, Z>() {
+  private final MemoryFunctionInt2<Z> mB = new MemoryFunctionInt2<Z>() {
     @Override
-    protected Z compute(final Integer n, final Integer k) {
+    protected Z compute(final int n, final int k) {
       if (n == 0) {
         return Z.ONE;
       }
@@ -87,7 +86,7 @@ public class A075196 extends UpperLeftTriangle {
   };
  
   @Override
-  public Z matrixElement(final int n, final int k) {
+  protected Z compute(final int n, final int k) {
     return mB.get(n, k);
   }
 }
@@ -95,7 +94,7 @@ GFis
 # end of pattern
 
 my $apack = lc(substr($aseqno, 0, 4));
-my $tarfile = "$litedir/manual/$aseqno.java";
+my $tarfile = "$litedir/park/$aseqno.java";
 open(TAR, ">", $tarfile) || die "cannot write \"$tarfile\"\n";
 my $manfile = "$litedir/$aseqno.man";
 open(MAN, ">", $manfile) || die "cannot write \"$manfile\"\n";

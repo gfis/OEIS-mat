@@ -364,11 +364,22 @@ trec:
 	| perl -ne \
 	's{with |where |when |for |if }{for }g;'\
 	'if  ((! m{[\!\|]|\.\.\.|ceil|floor|min|max|[Nn]umber|Pi|[Ss]um|[ATa]\d{6}\S}) '\
-	' and (m{^\%\w (A\d+)\s+(T\([hi-n]\,\s*[hi-n]\)\s*\=[^\.]*)\.}))'\
+	' and (m{^\%[NFopt] (A\d+) [^T]*(T\([hi-n]\,\s*[hi-n]\)\s*\=[^\.]*)\.}))'\
 	'{ print join("\t", $$1, "$@", 0, $$2) . "\n" }' \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp  
+	wc -l    $@.tmp
+trecpas:
+	grep   -P "T\([i-n] *\- *1\, *[i-n] *\- *1\)" trec.tmp \
+	| grep -P "T\([i-n] *\- *1\, *[i-n]\)" \
+	| grep -vP "T\([i-n] *\- *[2-9k]" \
+	| grep -vP "T\([^\,]+\, *[i-n] *(\- *[2-9k]|\+)" \
+	| grep -vP "T\([i-n]\, *[i-n] *\- *1" \
+	| perl trecpas.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/$@.tmp
 #---------------------------
 # "more" triangles
 trimore: trimore1 trimore2 trimore3

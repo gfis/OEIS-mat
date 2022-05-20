@@ -410,7 +410,7 @@ joeis_analog:
 	# currently not; cd $(FISCHER); make analog
 poeis_delete: # delete * from poeis
 	$(DBAT) "DELETE FROM poeis;"
-ALAST=A056000
+ALAST=A058000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
