@@ -31,6 +31,7 @@ refers_many:
 		FROM  asxref x, asname n, asinfo i \
 		WHERE x.aseqno = n.aseqno \
 		  AND x.aseqno = i.aseqno \
+		  AND x.aseqno NOT IN (SELECT aseqno FROM joeis) \
 		GROUP BY x.aseqno, n.name, i.author, SUBSTR(created, 1, 10) \
 		ORDER BY 2 DESC" \
 	| tee $@.txt
@@ -53,7 +54,7 @@ reftabl:
 		FROM  asxref x, asname n, asinfo i \
 		WHERE x.rseqno = n.aseqno \
 		  AND x.rseqno = i.aseqno \
-          AND i.keyword like '%tabl%' \
+		  AND i.keyword like '%tabl%' \
 		GROUP BY x.rseqno, n.name, i.author, SUBSTR(created, 1, 10), i.keyword \
 		ORDER BY 2 DESC" \
 	| perl -pe "s{\'\'}{\'}g" > $@.txt

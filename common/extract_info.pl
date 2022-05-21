@@ -182,7 +182,7 @@ sub extract_from_json { # read JSON of 1  sequence
     my $value;
     my $synth = "synth";
     my $seqno = 0;
-    %xhash = (); # bits 1: in xref, bit 0: elsewhere
+    %xhash = (); # bits 1: in xrefs, bit 0: elsewhere
     foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\A\s*\"}) { # ignore closing brackets
             $in_xref = 0; # but terminate xref mode
@@ -288,13 +288,27 @@ sub extract_from_json { # read JSON of 1  sequence
 #-----------------------
 sub extract_aseqnos {
     my ($aseqno, $line) = @_;
-    foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
-        if ($aref eq $aseqno) { # ignore reference to own
-        } elsif (! defined($xhash{$aref})) {
-            $xhash{$aref}  = ($in_xref == 1 ? 2 : 1);
-        } else {
-            $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
-        }
+    if (1) {
+        foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
+            if ($aref eq $aseqno) { # ignore reference to own
+            } elsif (! defined($xhash{$aref})) {
+                $xhash{$aref}  = ($in_xref == 1 ? 2 : 1);
+            } else {
+                $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
+            }
+        } # foreach
+    }
+    foreach my $pair ($line =~ m{A(\d{6}\-A\d{6})}g) { # get Ammmmmm-Annnnnn
+        my ($lo, $hi) = split(/\-A/, $pair);
+        for (my $seqno = $lo + 1; $seqno < $hi; $seqno ++) {
+            my $aref = sprintf("A%06d", $seqno);
+            if ($aref eq $aseqno) { # ignore reference to own
+            } elsif (! defined($xhash{$aref})) {
+                $xhash{$aref}  = ($in_xref == 1 ? 2 : 1);
+            } else {
+                $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
+            }
+        } # for $seqno
     } # foreach
 } # extract_aseqnos;
 #-----------------------
