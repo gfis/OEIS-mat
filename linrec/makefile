@@ -1,7 +1,8 @@
 #!make
 
-# OEIS-mat/linrec - linear recurrences and index
+# OEIS-mat/linrec - linear recurrences and o.g.f.s (index regeneration now in ./lrindex)
 # @(#) $Id$
+# 2022-05-28: big o.g.f.s and recurrences
 # 2019-11-05: regenerate wiki index with 'make linrec'
 # 2019-03-29: revisited for joeis
 # 2019-02-19: HTMLIZE
@@ -27,15 +28,6 @@ D=0
 G=n
 AINIT=0
 RTLEN=256
-SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
-	      -k10$(G) -k11$(G) -k12$(G) -k13$(G) -k14$(G) -k15$(G) -k16$(G) -k17$(G) -k18$(G) -k19$(G) \
-	      -k20$(G) -k21$(G) -k22$(G) -k23$(G) -k24$(G) -k25$(G) -k26$(G) -k27$(G) -k28$(G) -k29$(G) \
-	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
-	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
-	      -k30$(G) -k31$(G) -k32$(G) -k33$(G) -k34$(G) -k35$(G) -k36$(G) -k37$(G) -k38$(G) -k39$(G) \
-	      -k40$(G) -k41$(G) -k42$(G) -k43$(G) -k44$(G) -k45$(G) -k46$(G) -k47$(G) -k48$(G) -k49$(G) \
-	      -k50$(G) -k51$(G) -k52$(G) -k53$(G) -k54$(G) -k55$(G) -k56$(G) -k57$(G) -k58$(G) -k59$(G) \
-	      -k60$(G) -k61$(G) -k62$(G) -k63$(G) -k64$(G) -k65$(G) -k66$(G) -k67$(G) -k68$(G) -k69$(G) 
 all:
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
@@ -53,6 +45,49 @@ setofs: # LIST= ; update $(OFFSET)
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
 	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno) \
 	  , callcode = 'holos';"
+#--------
+ogfbig: ogfbig1 ogfbig2 ogfbig3
+ogfbig1: # extract all lines with 123*x^3
+	grep -E "^\%[Fopt]" $(COMMON)/jcat25.txt \
+	| grep -P   "\d{3} *\** *x\^\d+" \
+	| grep -vPi "a\([i-n][+\-]\d+\)|empirical|sum|prod|add|mul|exp|\.\.\.|\'|reversion|conjecture|\b[tuvwyz]\b" \
+	| grep -vPi "hypergeom|log|arc|poly|eta|RealDigits|root|solve|satisf" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+ogfbig2: # extract aseqno and typecode only
+	cut -b1-10 ogfbig1.tmp \
+	| perl -ne 'm{\%(\w) (A\d+)}; my ($$type, $$aseqno) = ($$1, $$2); print join("\t", $$aseqno, $$type) . "\n"; '\
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+ogfbig3: # join with name and offset
+	cd $(COMMON) ; make seq2 LIST=../linrec/ogfbig2.tmp
+	$(DBAT) -x "SELECT s.aseqno, s.info, i.offset1, n.name, i.keyword, i.author \
+	  FROM seq2 s, asinfo i, asname n \
+	  WHERE s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND s.aseqno = i.aseqno \
+	    AND i.aseqno = n.aseqno \
+	    ORDER BY 1" > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+afiles: afiles1 afiles2
+afiles1:
+	grep -E "^\%[H]" $(COMMON)/jcat25.txt \
+	| grep -P   "\/a\d{6}" \
+	| grep -vPi "\.(jpg|pdf|htm|png|gif|tex|eps|nb)" \
+	| grep -vPi "\.(c|c\+\+|cpp|py|scm|ftn|gp|java|js|sage|pl|rb)\.txt" \
+	| grep -vPi "empirical|conjectureletter|discussion|description|notes|illustration|output|introduction|comment|table|rows|proof|supplement|rationals" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+afiles2:
+	grep -Pi "recurrence|gen(\.|erating) f|g\. *\f." afiles1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------
 linman0: linman1 linman2 linman4
 	grep -E "^A[0-9]" linman3.tmp \

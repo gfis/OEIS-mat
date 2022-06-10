@@ -1,28 +1,29 @@
 #!Maple
-# convert a D-finite recurrence into a matrix for HolonomicRecurrence
-# 2021-06-04, Georg Fischer
+# convert an algebraic equation into a matrix for HolonomicRecurrence
+# 2022-06-06, Georg Fischer; RH=76
 interface(prettyprint=0):
 read "C://Users/User/work/gits/OEIS-mat/software/SCHUTZENBERGER-gfis.txt";
 with(StringTools):
 tostring:=proc(list) local k:
   SubstituteAll(DeleteSpace(convert(list,string)), "[]", "[0]")
   end:
-findit := proc(aseqno, offset, ope); local rec, rord, k, str, j;
+findit := proc(aseqno, offset, ope); local rec, rord, k, str, j:
   rec:=eval(ope, n=n); # shift=0
   rord:=degree(rec,A):
   ([[0], seq([seq(coeff(coeff(rec,A,rord-j),n,k),k=0..degree(coeff(rec,A,rord-j)))],j=0..rord) ] # matrix
   ,[1]
   )
   end:
-holdfin:=proc(aseqno, offset, ope, inits, remark); local re, matrix, instr, dist, gftype;
-  re:= findit(aseqno, offset, ope);
-  matrix := tostring(re[1]);
-  instr  := tostring(inits);
-  dist   := 0;
-  gftype := 0;
+holrec:=proc(ope); local aseqno, offset, re, matrix, instr, dist, gftype, inits, remark:
+  aseqno := A123: inits=[1]: offset:= 0: remark := "a(n)": dist:=4:
+  re:= findit(aseqno, offset, ope):
+  matrix := tostring(re[1]):
+  instr  := tostring(inits):
+  dist   := 0:
+  gftype := 0:
   printf("%a\tholos\t%a\t%s\t%s\t%a\t%a\t%s\n", aseqno              , offset, matrix, instr, dist, gftype, remark);
   printf("# make runholo OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", offset, matrix, instr, dist);
   end:
-# holdfin(A120594,0,-89*(n-2)*(n-1)*n+588*(n-1)*(n-2)*(2*n-3)*A+28*(n-2)*(48*n^2-192*n+187)*A^2+16*(4*n-7)*(2*n-5)*(4*n-13)*A^3,[1,2,6],"a(n)");
+# holrec(A120594,0,-89*(n-2)*(n-1)*n+588*(n-1)*(n-2)*(2*n-3)*A+28*(n-2)*(48*n^2-192*n+187)*A^2+16*(4*n-7)*(2*n-5)*(4*n-13)*A^3,[1,2,6],"a(n)");
 
 timelimit($(TIMEOUT), holdfin($(PARM0), $(PARM2), $(PARM3), [$(PARM4)], "$(PARM7)"));

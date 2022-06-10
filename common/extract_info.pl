@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2022-05-21: xref ranges
 # 2021-10-30: keywords tara,tard
 # 2021-08-07: F -> program field
 # 2021-05-02: monotone increasing
@@ -241,7 +242,6 @@ sub extract_from_json { # read JSON of 1  sequence
             $keyword = "notexist";
         } elsif ($line =~   m{\A\s*\"xref\"\:}) {
             $in_xref = 1; # start xref mode
-
         } else {
             if ($line =~    m{\/$aseqno\/b$seqno\.txt}) { # link to b-file
                 $synth = ""; # not synthesized
@@ -298,9 +298,11 @@ sub extract_aseqnos {
             }
         } # foreach
     }
-    foreach my $pair ($line =~ m{A(\d{6}\-A\d{6})}g) { # get Ammmmmm-Annnnnn
+    if ($in_xref == 1) {
+      foreach my $pair ($line =~ m{A(\d{6}\-A\d{6})}g) { # get Ammmmmm-Annnnnn
         my ($lo, $hi) = split(/\-A/, $pair);
-        for (my $seqno = $lo + 1; $seqno < $hi; $seqno ++) {
+        if ($lo + 64 > $hi) {
+          for (my $seqno = $lo + 1; $seqno < $hi; $seqno ++) {
             my $aref = sprintf("A%06d", $seqno);
             if ($aref eq $aseqno) { # ignore reference to own
             } elsif (! defined($xhash{$aref})) {
@@ -308,8 +310,10 @@ sub extract_aseqnos {
             } else {
                 $xhash{$aref} |= ($in_xref == 1 ? 2 : 1);
             }
-        } # for $seqno
-    } # foreach
+          } # for $seqno
+        } # if limit
+      } # foreach
+    } # in_xref
 } # extract_aseqnos;
 #-----------------------
 sub print_create_asinfo {

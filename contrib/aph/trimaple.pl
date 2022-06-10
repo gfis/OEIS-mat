@@ -54,7 +54,6 @@ package irvine.oeis.a075;
 import irvine.math.MemoryFunctionInt2;
 import irvine.math.factorial.MemoryFactorial;
 import irvine.math.z.Binomial;
-import irvine.math.z.Integers;
 import irvine.math.z.Z;
 import irvine.oeis.triangle.Triangle;
 
@@ -124,7 +123,7 @@ while (<>) {
         } elsif ($type eq "p") {
             $maple .= "    $rest\n";
         } elsif ($type eq "Y") {
-            # print STDERR "# $line\n";
+            print MAN "# $line\n";
             $rest =~ s{\A([^A]*)}{};
             $xref = $1;
             my $comment = "",
@@ -133,8 +132,10 @@ while (<>) {
                 $xref = "";
                 $icol = $2;
             } else {
-                # $comment = "# ";
+                $comment = "# ";
             }
+            $xref =~ s{gives?}{};
+            $xref =~ s{\s+\Z}{};
             foreach my $ano ($rest =~ m{(A\d+)}g) {
                 print MAN join("\t", "$comment$ano", ($mode eq "t" ? "trionk" : "arronk"), 0, $aseqno, 0, "mN", $icol ++, $xref) . "\n",
             }

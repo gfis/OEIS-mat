@@ -25,14 +25,14 @@ asxref2:
 #---------------------
 many: refers_many referred_many
 refers_many:
-	$(DBAT) -256 \
-	"SELECT x.aseqno, COUNT(x.rseqno) \
-		, n.name, i.author, SUBSTR(created, 1, 10) AS created \
+	$(DBAT) -1024 \
+	"SELECT x.aseqno, COUNT(x.rseqno), n.name, i.author \
 		FROM  asxref x, asname n, asinfo i \
 		WHERE x.aseqno = n.aseqno \
 		  AND x.aseqno = i.aseqno \
 		  AND x.aseqno NOT IN (SELECT aseqno FROM joeis) \
-		GROUP BY x.aseqno, n.name, i.author, SUBSTR(created, 1, 10) \
+		  AND x.rseqno NOT IN (SELECT aseqno FROM joeis) \
+		GROUP BY x.aseqno, n.name, i.author \
 		ORDER BY 2 DESC" \
 	| tee $@.txt
 referred_many:

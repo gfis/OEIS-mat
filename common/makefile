@@ -357,7 +357,8 @@ joeis_pullloc: # refresh local önly
 	cp -v $(JOEIS)/joeis_list.txt .
 	make joeis_reload
 joeis_reload: joeis_load joeis_ofter joeis_ofdec poeis_delete \
-	joeis_stamp joeis_ccanloc joeis_update joeis_eval joeis_count joeis_names jcat25 joeis_analog joeis_progress 
+	joeis_stamp joeis_ccanloc joeis_update joeis_eval joeis_count joeis_rest
+joeis_rest: joeis_names jcat25 joeis_analog joeis_progress 
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -373,7 +374,7 @@ joeis_dead:
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	$(DBAT) -x "SELECT n.aseqno, j.superclass, n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
+	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \

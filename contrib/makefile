@@ -206,4 +206,15 @@ a051990: # Discriminants ... of ERD type
 #--------
 sdstest:
 	perl a053880_next.pl $(PARMS)
-
+#-------
+subdir:
+	mkdir $(DIR) || :
+	grep -P "$(NAME)" $(COMMON)/joeis_names.txt > $(DIR)/$(DIR)list.txt
+	wc -l $(DIR)/$(DIR)list.txt
+authors: ajlist rzlist
+ajlist:
+	make subdir DIR=aj NAME=Jasinski
+phlist:
+	make subdir DIR=ph NAME=Hanna
+rzlist:
+	make subdir DIR=rz NAME=Zumkeller

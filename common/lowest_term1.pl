@@ -29,28 +29,22 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     }
 } # while ARGV
 
-my $minterm = 0;
+my $extreme = 0;
 while (<>) {
     s/\s+\Z//; # chompr
     my $line = $_;
     my ($aseqno, $termno, $termlist) = split(/\t/, $line);
     my $term1 = substr($termlist, 0, index($termlist, ','));
     if ($term1 !~ m{\A\-}) {
-        # ignore nonegatives
-    } elsif ($term1 < $minterm) {
+        # ignore positives
+    } elsif (length($term1) >  length($extreme) && ($term1 !~ m{\A1+\Z})) {
         print join("\t", $aseqno, $term1) . "\n";
-        $minterm = $term1;
-    } elsif (length($term1) >= 15) {
+        $extreme = $term1;
+    } elsif (length($term1) == length($extreme) && ($term1 gt $extreme) && ($term1 !~ m{\A1+\Z})) {
         print join("\t", $aseqno, $term1) . "\n";
+        $extreme = $term1;
     }
 } # while <>
 #------------------------------------
 __DATA__
-A001529 9       1,2,3,6,15,63,567,14755,1366318
-A001530 9       1,1,1,3,9,48,504,14188,1351563
-
-A002070 -2,-
-A006311 -3,
-A011520 -362880,
-A011524 -6227020800,
 A011528 -355687428096000,
