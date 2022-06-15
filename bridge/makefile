@@ -113,5 +113,4 @@ pari_prep:
 #----
 paritest:
 	cat $(FISCHER)/$@.gen \
-	| perl paritest.pl -d $(D) 2>&1 \
-	| tee    $@.log
+	| perl paritest.pl -d $(D)

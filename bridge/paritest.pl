@@ -78,7 +78,7 @@ sub test1 {
     } elsif ($type eq "an") {
         print PIN "alarm($timeout,for(n=$offset,$bfimax,print(a(n))))\n";
     } else {
-        print STDERR "unknown type \"$type\" for $aseqno\n";
+        print "unknown type \"$type\" for $aseqno\n";
     }
     my $state = $IN_READ;
     my $index = $offset - 1;
@@ -88,11 +88,11 @@ sub test1 {
     while (<POUT>) {
         s/\s+\Z//; # chompr
         my $line = $_;
-        $index ++;
         if ($debug >= 1) {
-            print STDERR ($debug >= 2 ? "$aseqno ": "") . "gpout[$index]: $line\n";
+            print "" . ($debug >= 2 ? "$aseqno $state ": "") . "gpout[$index]: $line\n";
         }
         if ($line =~ m{\A([\-]?\d+)}) { # next term
+            $index ++;
             my $term = $1;
             if (0) {
             } elsif ($state == $IN_READ) {
@@ -115,10 +115,10 @@ sub test1 {
             }
         } else { # some message
             if ($debug >= 1) {
-                print STDERR "gpmsg[$index]: $line\n";
+                print "gpmsg[$index]: $line\n";
             }
             if (0) {
-            } elsif ($line =~ m{error\(\"alarm\D+(\d+[\,\.]\d+ ms)}) {
+            } elsif ($line =~ m{error\(\"alarm\D+(\d+[\,\.]\d+)}) {
                 # error("alarm interrupt after 1,141 ms.")
                 my $ms = $1;
                 $ms =~ s{[\.\,]}{};
@@ -127,6 +127,7 @@ sub test1 {
                 $result[3] = $ms;
                 $result[4] = "ms";
                 $state     = $IN_SKIP;
+                print join("\t", @result) . "\n";
                 last;
             } elsif ($line =~ m{warning}) { 
                 # ignore
@@ -136,21 +137,21 @@ sub test1 {
                 $result[3] = "";
                 $result[4] = "$line";
                 $state     = $IN_SKIP;
+                print join("\t", @result) . "\n";
                 last;
             }
         }  # some message
         if ($index >= $bfimax) {
-            print join("\t", @result) . "\n";
+            if ($state == $IN_READ) {
+                $result[1] = $index;
+                $result[2] = "pass";
+                $result[3] = "";
+                $result[4] = "";
+                print join("\t", @result) . "\n";
+            }
             last;
-        }
+        } # >= bfimax
     } # while POUT
-    if ($state == $IN_READ) {
-        $result[1] = $index;
-        $result[2] = "pass";
-        $result[3] = "";
-        $result[4] = "";
-    }
-    print join("\t", @result) . "\n";
 } # test1
 
 sub read_bfile { # parameter aseqno; writes to $offset, $bfimax, @terms
@@ -186,7 +187,7 @@ sub read_bfile { # parameter aseqno; writes to $offset, $bfimax, @terms
 
 sub shorten {
     my ($term) = @_;
-    if (length($term > 16)) {
+    if (length($term) > 16) {
         $term = substr($term, 0, 4) . "..." . substr($term, -4);
     }
     return $term;
