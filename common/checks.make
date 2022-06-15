@@ -339,6 +339,15 @@ joeis_check: # parameter: LOG in joeis-lite/internal/fischer
 	>>       $@.txt
 	wc -l    $@.txt
 	make -f checks.make html_check1 FILE=$@
+joeis_fail: # parameter: LOG in joeis-lite/internal/fischer
+	echo "A_Number	bfimax	Status	Expected	Computed" > $@.txt
+	grep -E "^A[0-9]" $(FISCHER)/$(LOG).fail.log \
+	| grep -vP "\tFATO\t" \
+	| gawk -e '{ print $$1 "\t" $$2 "\t" substr($$3,0,8) "\t" substr($$4,0,32) "...\t" substr($$6,0,32) }' \
+	| perl -pe "s{\.\.\.}{ ms} if m{pass};" \
+	>>       $@.txt
+	wc -l    $@.txt
+	make -f checks.make html_check1 FILE=$@
 #---------------------------
 joeis_fini_check: # keyword fini and not subclass of FiniteSequence
 	$(DBAT) "SELECT a.aseqno, a.keyword, j.superclass \

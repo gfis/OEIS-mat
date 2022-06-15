@@ -211,9 +211,11 @@ subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt > $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist rzlist
+authors: ajlist oglist phlist rzlist
 ajlist:
 	make subdir DIR=aj NAME=Jasinski
+oglist:
+	make subdir DIR=og NAME=Olivier
 phlist:
 	make subdir DIR=ph NAME=Hanna
 rzlist:

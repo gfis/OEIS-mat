@@ -61,7 +61,7 @@ setofs: # LIST= ; update $(OFFSET)
 #----
 pari_bad_header: # select unconventional (PARI) headers (55 x)
 	grep -Pi "^\%o A\d+ \(.*PARI.*\)" $(COMMON)/jcat25.txt | grep -vE "\(PARI\)"
-paria_mm:
+pari_mm:
 	grep -Pi "^\%o A\d+ \(PARI[^\)]*\) +\{?a\(n\)" $(COMMON)/jcat25.txt \
 	| grep "Michel Marcus" \
 	| perl -ne 's/^\%o //; s/ *\\\\.*/\;\tMM/; s/ *\(PARI[^\)]*\) */\tpari\t0\ta\(n\)\t/i;'\
@@ -69,4 +69,49 @@ paria_mm:
 	>        $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen
-#	| grep -P "\\\\ *_[^_]+_\, \w\w\w \d\d, (19|20)\d\d *\Z" 
+pari_cg:
+	grep -Pi "^\%o A\d+ \(PARI[^\)]*\) +\{?a\(n\)" $(COMMON)/jcat25.txt \
+	| grep "Greathouse" \
+	| perl -ne 's/^\%o //; s/ *\\\\.*/\;\tMM/; s/ *\(PARI[^\)]*\) */\tpari\t0\ta\(n\)\t/i;'\
+	' s/\\/\\\\/g; s/\"/\\\"/g; s/\;\;/\;/; print;'\
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+pari_ah:
+	grep -Pi "^\%o A\d+ \(PARI[^\)]*\) +\{?a\(n\)" $(COMMON)/jcat25.txt \
+	| grep "Howroyd" \
+	| perl -ne 's/^\%o //; s/ *\\\\.*/\;\tMM/; s/ *\(PARI[^\)]*\) */\tpari\t0\ta\(n\)\t/i;'\
+	' s/\\/\\\\/g; s/\"/\\\"/g; s/\;\;/\;/; print;'\
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+pari_ms:
+	grep -Pi "^\%o A\d+ \(PARI[^\)]*\) +\{?a\(n\)" $(COMMON)/jcat25.txt \
+	| grep "Michael Somos" \
+	| perl -ne 's/^\%o //; s/ *\\\\.*/\;\tMM/; s/ *\(PARI[^\)]*\) */\tpari\t0\ta\(n\)\t/i;'\
+	' s/\\/\\\\/g; s/\"/\\\"/g; s/\;\;/\;/; print;'\
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+pari_other:
+	grep -Pi "^\%o A\d+ \(PARI[^\)]*\) +\{?a\(n\)" $(COMMON)/jcat25.txt \
+	| grep -vE "Michel Marcus|Greathouse" \
+	>        $@.tmp
+	wc -l    $@.tmp
+	
+#----
+pari_an1:
+	grep -Pi "^\%o A\d+ \(PARI[^\)]*\) +\{?a\(n\)" $(COMMON)/jcat25.txt \
+	| perl pari_an.pl \
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+#----
+pari_prep:
+	grep -E "^A058" $(FISCHER)/paria.gen \
+	| perl pari_prep.pl
+#----
+paritest:
+	cat $(FISCHER)/$@.gen \
+	| perl paritest.pl -d $(D) 2>&1 \
+	| tee    $@.log

@@ -9,7 +9,7 @@
 #
 #:# usage:
 #:#   perl bfclean.pl [[+|-]increment] [-s seqno|-f infile] [outfile]
-#:#       -s  A-number, b-number or number
+#:#       -s A-number, b-number or number
 #:#       outfile is "bnnnnnn.txt" by default, or "-" for STDOUT
 #:#       default increment 0
 #---------------------------------
@@ -32,7 +32,6 @@ if (scalar(@ARGV) == 0) {
 }
 my $basedir   = "../common";
 my $names     = "$basedir/names";     
-my $stripped  = "$basedir/stripped";     
 my $increment = 0; # default
 my $seqno6    = -1;
 my $filename  = "";
