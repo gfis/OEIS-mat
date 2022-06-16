@@ -200,7 +200,7 @@ sub extract_from_json { # read JSON of 1 sequence
     foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\A\s*\"}) { # ignore closing brackets ], ] }
             if ($in_prog && $do_prog) { # accumulate records for asprog
-                print STDERR "$aseqno $prog_buffer\n";
+                # print STDERR "$aseqno $prog_buffer\n";
             }
             $in_prog = 0; # but terminate prog mode
             $in_xref = 0; # but terminate xref mode
