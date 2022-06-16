@@ -113,4 +113,16 @@ pari_prep:
 #----
 paritest:
 	cat $(FISCHER)/$@.gen \
-	| perl paritest.pl -d $(D)
+	| perl paritest.pl -d $(D) \
+	>        $@.all.log
+	grep  -P "\tpass\t" $@.all.log > $@.pass.log
+	grep -vP "\tpass\t" $@.all.log > $@.fail.log
+	wc -l    $@.*log
+#----
+an_cg:
+	# cp -v $(FISCHER)/pari_cg.gen $@.gen
+	perl paritest.pl -d $(D) $@.gen \
+	>        $@.all.log
+	grep  -P "\tpass\t" $@.all.log > $@.pass.log
+	grep -vP "\tpass\t" $@.all.log > $@.fail.log
+	wc -l    $@.*log

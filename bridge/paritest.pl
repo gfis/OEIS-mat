@@ -9,9 +9,11 @@
 #:#   aseqno type offset bfimax gpline1 gpline2 ...
 #--------------------------------
 use strict;
-use integer;
+# do not use integer; because of hires timing
 use warnings;
 use POSIX;
+use Time::HiRes qw(gettimeofday tv_interval);
+
 # use IPC::Open3;
 use IPC::Open2;
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday) = gmtime (time);
@@ -34,7 +36,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $dwindow   = shift(@ARGV);
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{to}) {
+    } elsif ($opt  =~ m{to}) {  # 91+4u6IPSH
         $timeout   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
@@ -42,12 +44,12 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 # my $pid = open3(\*PIN, \*POUT, \*PERR, 'gp -fq') or die "open3() failed $!";
-my $pid = open2(\*POUT, \*PIN, 'gp -fq') or die "open2() failed $!";
+my $pid = open2(\*POUT, \*PIN, 'gp -fq 2>&1') or die "open2() failed $!";
 print PIN <<'GFis';
 default(realprecision, 2000); default(parisize,1024000000);
 GFis
 print STDERR "Process gp created, pid = $pid\n";
-
+my $EOS = "nnnn";
 # states of the automaton in &test1
 my $IN_READ = 1;
 my $IN_DIFF = 2;
@@ -57,10 +59,15 @@ my $offset;
 my $bfimin;
 my $bfimax;
 my @terms;
+my $start_time;
+
 while (<>) { # read seq4 format
     s/\s+\Z//; # chompr
-    my ($aseqno, $type, $offset, $imax, @gplines) = split(/\t/);
-    &test1($aseqno, $type, $offset, $imax, @gplines);
+    if (m{\AA\d\d\d+\s}) { # starts with A.number
+        my ($aseqno, $type, $offset, $imax, @gplines) = split(/\t/);
+        my $revision = pop(@gplines);
+        &test1($aseqno, $type, $offset, $imax, @gplines);
+    }
 } # while seq4
 
 sub test1 {
@@ -71,12 +78,17 @@ sub test1 {
     my ($aseqno, $type, $offset, $bfimax, @gplines) = @_;
     &read_bfile($aseqno);
     foreach my $gpline(@gplines) {
-        print PIN "$gpline\n";
-        last; # ??? only one line for the moment
-    }
+        if (length($gpline) > 0) {
+            print PIN "$gpline\n";
+        } else {
+            last;
+        }
+    } # foreach gpline
+    $start_time = [gettimeofday];
+    # $elapsed = tv_interval ($start_time, [gettimeofday]);
     if (0) {
     } elsif ($type eq "an") {
-        print PIN "alarm($timeout,for(n=$offset,$bfimax,print(a(n))))\n";
+        print PIN "alarm($timeout,for(n=$offset,$bfimax,print(a(n)))); print(\"$EOS\")\n";
     } else {
         print "unknown type \"$type\" for $aseqno\n";
     }
@@ -91,9 +103,10 @@ sub test1 {
         if ($debug >= 1) {
             print "" . ($debug >= 2 ? "$aseqno $state ": "") . "gpout[$index]: $line\n";
         }
-        if ($line =~ m{\A([\-]?\d+)}) { # next term
-            $index ++;
+        if (0) {
+        } elsif ($line =~ m{\A([\-]?\d+)}) { # next term
             my $term = $1;
+            $index ++;
             if (0) {
             } elsif ($state == $IN_READ) {
                 if ($term ne $terms[$index]) { # first difference, start the window
@@ -103,6 +116,8 @@ sub test1 {
                     $result[4] = &shorten($term);
                     $wincount  = $dwindow;
                     $state     = $IN_DIFF;
+                } else { # term ok
+                    $result[1] = $index;
                 }
             } elsif ($state == $IN_DIFF) {
                 $result[3] .= "," . &shorten($terms[$index]);
@@ -113,46 +128,45 @@ sub test1 {
                 }
             } elsif ($state == $IN_SKIP) {
             }
+        } elsif ($line eq "$EOS") { # end of sequence
+            &log(@result);
+            last;
         } else { # some message
             if ($debug >= 1) {
                 print "gpmsg[$index]: $line\n";
             }
             if (0) {
+            } elsif ($line =~ m{warning}) { 
+                # ignore
             } elsif ($line =~ m{error\(\"alarm\D+(\d+[\,\.]\d+)}) {
                 # error("alarm interrupt after 1,141 ms.")
                 my $ms = $1;
                 $ms =~ s{[\.\,]}{};
-                $result[1] = $index;
+                $result[1] = $index - 1;
                 $result[2] = "FATO";
                 $result[3] = $ms;
                 $result[4] = "ms";
-                $state     = $IN_SKIP;
-                print join("\t", @result) . "\n";
-                last;
-            } elsif ($line =~ m{warning}) { 
-                # ignore
             } else {
-                $result[1] = $index;
+                $result[1] = $index - 1;
                 $result[2] = "FATAL";
                 $result[3] = "";
                 $result[4] = "$line";
-                $state     = $IN_SKIP;
-                print join("\t", @result) . "\n";
+                &log(@result);
                 last;
             }
         }  # some message
-        if ($index >= $bfimax) {
-            if ($state == $IN_READ) {
-                $result[1] = $index;
-                $result[2] = "pass";
-                $result[3] = "";
-                $result[4] = "";
-                print join("\t", @result) . "\n";
-            }
-            last;
-        } # >= bfimax
     } # while POUT
 } # test1
+
+sub log {
+    my @result = @_;
+    if ($result[2] eq "pass") {
+        $result[3] = sprintf("%d", tv_interval($start_time, [gettimeofday]) * 1000);
+    }
+    my $logline = join("\t", @result) . "\n";
+    print        $logline;
+    print STDERR $logline;
+} # log
 
 sub read_bfile { # parameter aseqno; writes to $offset, $bfimax, @terms
     my ($aseqno) = @_;
@@ -165,6 +179,7 @@ sub read_bfile { # parameter aseqno; writes to $offset, $bfimax, @terms
     my $bfimin = 0;
     my $bfimax = 0;
     my @lines  = split(/\n/, $inbuffer);
+    @terms = (); # start a fresh list
     foreach my $line(@lines) {
         $line =~ s{\s+\Z}{}; # chompr
         $line =~ s{\A\s+}{}; # remove leading whitespace

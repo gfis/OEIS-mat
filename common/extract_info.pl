@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2022-06-16: -p, prog
 # 2022-05-21: xref ranges
 # 2021-10-30: keywords tara,tard
 # 2021-08-07: F -> program field
@@ -20,6 +21,7 @@
 #:#           a   for sequence JSON
 #:#           j   for sequence JSON
 #:#           n   only extract names from JSON
+#:#           p   only extract programs from JSON
 #:#           s   only extract data  from JSON
 #:#           x   only extract xrefs from JSON
 #:#           b   for bfile
@@ -55,6 +57,10 @@ my $tail_width =  8; # length of last digits in last term
 my $terms_width= 64;
 my $tabname    = "";
 my %xhash;           # for &extract_aseqnos
+my $in_prog;         # whether in "program|maple|mathematica" property
+my $do_prog = 0;     # whether in action -ap
+my $prog_buffer;     # append program lines here
+my $prog_sep = "~~"; # separator for program lines
 my $in_xref;         # whether in "xref" property
 my $do_xref = 0;     # whether in action -ax
 my $read_len_max = 100000000; # 100 MB
@@ -90,6 +96,9 @@ if (length($tabname) > 0) {
 if (0) {
 } elsif ($action =~ m{n}) {
     $tabname = "asname";
+} elsif ($action =~ m{p}) {
+    $tabname = "asprog";
+    $do_prog = 1;
 } elsif ($action =~ m{s}) {
     $tabname = "asdata";
 } elsif ($action =~ m{x}) {
@@ -114,17 +123,21 @@ if (0) {
         die "invalid action \"$action\"\n";
     }
 #--------------------------
-} elsif ($action =~ m{[ajnsx]}) {
+} elsif ($action =~ m{[ajnpsx]}) {
     if (0) {
     } elsif ($action =~ m{r}) {
         foreach my $file (glob("$inputdir/*")) {
             &extract_from_json($file);
         } # foreach $file
     } elsif ($action =~ m{c}) { # create SQL
-        if ($action =~ m{x}) {
+        if (0) {
+        } elsif ($action =~ m{p}) {
+            $tabname = "asprog";
+            &print_create_asprog();
+        } elsif ($action =~ m{x}) {
             $tabname = "asxref";
             &print_create_asxref();
-        } else {
+        } else { # default
             &print_create_asinfo();
         }
     } else {
@@ -151,7 +164,7 @@ sub read_file { # returns in global $access, $buffer, $filesize
     close(FIL);
 } # read_file
 #-------------------------------------------------
-sub extract_from_json { # read JSON of 1  sequence
+sub extract_from_json { # read JSON of 1 sequence
     my $result = "";
     my ($filename) = @_;
     &read_file($filename, $read_len_max); # sets $access, $buffer
@@ -185,7 +198,11 @@ sub extract_from_json { # read JSON of 1  sequence
     my $seqno = 0;
     %xhash = (); # bits 1: in xrefs, bit 0: elsewhere
     foreach my $line (split(/\n/, $buffer)) {
-        if ($line !~ m{\A\s*\"}) { # ignore closing brackets
+        if ($line !~ m{\A\s*\"}) { # ignore closing brackets ], ] }
+            if ($in_prog && $do_prog) { # accumulate records for asprog
+                print STDERR "$aseqno $prog_buffer\n";
+            }
+            $in_prog = 0; # but terminate prog mode
             $in_xref = 0; # but terminate xref mode
         # now the JSON properties
         } elsif ($line =~   m{\A\s*\"number\"\:\s*(\d+)}) {
@@ -216,12 +233,18 @@ sub extract_from_json { # read JSON of 1  sequence
             $keyword = $1;
         } elsif ($line =~   m{\A\s*\"formula\"}) {
             $program .= "F";
-        } elsif ($line =~   m{\A\s*\"maple\"}) {
+        } elsif ($line =~   m{\A\s*\"maple\"\:}) {
+        	$in_prog  = 2;
             $program .= "p";
-        } elsif ($line =~   m{\A\s*\"mathematica\"}) {
+            $prog_buffer = "$prog_sep${prog_sep}Maple";
+        } elsif ($line =~   m{\A\s*\"mathematica\"\:}) {
+        	$in_prog  = 3;
             $program .= "t";
-        } elsif ($line =~   m{\A\s*\"program\"}) {
+            $prog_buffer = "$prog_sep${prog_sep}Mathematica";
+        } elsif ($line =~   m{\A\s*\"program\"\:}) {
+        	$in_prog  = 1;
             $program .= "o";
+            $prog_buffer = $prog_sep;
         } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
             $value = $1;
             ($offset1, $offset2) = split(/\,/, $value);
@@ -246,6 +269,11 @@ sub extract_from_json { # read JSON of 1  sequence
             if ($line =~    m{\/$aseqno\/b$seqno\.txt}) { # link to b-file
                 $synth = ""; # not synthesized
             }
+            if ($do_prog == 1 && $in_prog > 0) {
+                $line =~ s{\A\s*\"}{}; # remove surrounding quotes
+                $line =~ s{\s*\"\,?\Z}{};
+                $prog_buffer .= $prog_sep . &unquote($line);
+            }
             if ($do_xref == 1) {
                 &extract_aseqnos($aseqno, $line);
             }
@@ -261,6 +289,8 @@ sub extract_from_json { # read JSON of 1  sequence
     } elsif ($action =~ m{n}) {
         print join("\t", ($aseqno
             , $name         )) . "\n";
+    } elsif ($action =~ m{p}) {
+        print &accumulate_programs($aseqno, $prog_buffer);
     } elsif ($action =~ m{s}) {
         print join("\t", ($aseqno
             , $termno
@@ -286,7 +316,7 @@ sub extract_from_json { # read JSON of 1  sequence
     }
 } # extract_from_json
 #-----------------------
-sub extract_aseqnos {
+sub extract_aseqnos { # for xref
     my ($aseqno, $line) = @_;
     if (1) {
         foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
@@ -314,7 +344,48 @@ sub extract_aseqnos {
         } # if limit
       } # foreach
     } # in_xref
-} # extract_aseqnos;
+} # extract_aseqnos
+#-----------------------
+sub unquote { # reverse unicode shielding of characters, e.g. \u0026 = "&", \u003e = "<"
+    my ($text) = @_;
+    $text =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;
+    return $text;
+} # unquote
+#----
+sub accumulate_programs {
+    my ($aseqno, $prog_buffer) = @_;
+    my $buffer = "";
+    my @blocks = split(/($prog_sep\([A-Z]*[^\)]*\) *)/, $prog_buffer); # yields the separators: (~~(lang)) block (~~(lang)) block ...
+    #                            1                  1
+    my $iblk = 1;
+    my %curnos = (); # store the curno for some language
+    my $lang;
+    my $curno = 1;
+    for (my $iblk = 1; $iblk < scalar(@blocks); $iblk ++) {
+        my $block = $blocks[$iblk];
+        if (0) {
+        } elsif ($block eq "(Maple)") {
+            $block =~ s{[\(\)]}{}g;
+            $lang = $block;
+        } elsif ($block eq "(Mathematica)") {
+            $block =~ s{[\(\)]}{}g;
+            $lang = $block;
+        } elsif ($block =~ s{$prog_sep\(([A-Za-z]+)[^\)]*\)}{$prog_sep}) { # other language
+            #                           1         1
+            $lang = $1;
+        } else { # rest of the block, containing "~~" 
+            $curno = 1;
+            if (! defined($curnos{$lang})) {
+                $curnos{$lang} = $curno;
+            } else {
+                $curnos{$lang} ++;
+                $curno = $curnos{$lang};
+            }
+            $buffer .= join("\t", $aseqno, $lang, $curno, "$prog_sep$prog_sep$block") . "\n";
+        } # rest pf block
+    } # for $iblk
+    return $buffer;
+} # accumulate_programs
 #-----------------------
 sub print_create_asinfo {
     print <<"GFis";
@@ -337,6 +408,27 @@ CREATE  TABLE            $tabname
     , created   TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- creation     time in UTC
     , access    TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- modification time in UTC
     , PRIMARY KEY(aseqno)
+    );
+COMMIT;
+GFis
+} # print_create_asinfo
+#-----------------------
+sub print_create_asprog {
+    print <<"GFis";
+--  Table for OEIS - programs in sequences with their metadata
+--  @(#) \$Id\$
+--  $utc_stamp: Georg Fischer - generated by extract_info.pl $action, do not edit here!
+--
+DROP    TABLE  IF EXISTS $tabname;
+CREATE  TABLE            $tabname
+    ( aseqno    VARCHAR(10)   -- A322469
+    , lang      VARCHAR(16)   -- Mathematica, Maple, PARI etc.
+    , curno     INT           -- current number of program for this language
+    , revision  INT           -- sequential version number
+    , program   VARCHAR(16384) -- lines initiated and separated by "~~"
+    , author    VARCHAR(64)   -- "hard,nice,more" etc.
+    , created   TIMESTAMP DEFAULT '1971-01-01 00:00:01'    -- creation     time in UTC
+    , PRIMARY KEY(aseqno, lang, curno)
     );
 COMMIT;
 GFis

@@ -229,6 +229,17 @@ asname_load: # Load table <em>asname</em>
 	$(DBAT) -4                  asname
 	$(DBAT) -n                  asname
 #--------
+asprog: # parameter: DIR
+	perl extract_info.pl -apr $(DIR)/ajson > $@.txt
+	wc -l $@.txt
+asprog_load: # Load table <em>asprog</em>
+	$(DBAT) -f                  asprog.create.sql
+	perl uncode.pl asname.txt \
+	| grep -E "^A" \
+	| $(DBAT) -m csv -s "\t" -r asprog
+	$(DBAT) -4                  asprog
+	$(DBAT) -n                  asprog
+#--------
 asinfo: # parameter DIR: table for basic sequence data from JSONs
 	make asinfo_extract DIR=.
 asinfo_extract:
@@ -237,7 +248,7 @@ asinfo_extract:
 	wc -l asinfo.txt
 asinfo_load:
 	perl extract_info.pl -jc | tee asinfo.create.sql
-	$(DBAT) -f asinfo.create.sql
+	$(DBAT)                  -f asinfo.create.sql
 	cut -b1-256 asinfo.txt \
 	| grep -E "^A" \
 	| $(DBAT) -m csv -s "\t" -r asinfo
@@ -714,3 +725,23 @@ oeis_created:
 	tail -n4 $@.txt
 	wc -l    $@.txt
 	scp      $@.txt gfis@teherba.org:/var/www/html/teherba.org/OEIS-mat/$@.txt
+#--------
+progstat: progstat1 progstat2 progstat3
+progstat1:
+	$(DBAT) -x "SELECT program, COUNT(program) FROM asinfo GROUP BY program" \
+	| tee    $@.tmp
+progstat2:
+	$(DBAT) -x "(SELECT 'Mathematica ', COUNT(program) FROM asinfo WHERE program LIKE '%t%') UNION \
+	            (SELECT 'Maple       ', COUNT(program) FROM asinfo WHERE program LIKE '%p%') UNION \
+	            (SELECT 'PARI + other', COUNT(program) FROM asinfo WHERE program LIKE '%o%') UNION \
+	            (SELECT 'Formula     ', COUNT(program) FROM asinfo WHERE program LIKE '%F%')       \
+	            ORDER BY 1" \
+	| tee    $@.tmp
+progstat3:
+	grep -P          "\A.o +A\d+ +(\([^\)]+\))" jcat25.txt \
+	| perl -ne 'if (m{\A.o +A\d+ +\(((tcl|bash|awk|gawk|bc|[A-Z][A-Za-z0-9\/\-]+)( [Vv\.0-9\/\-]+)?)}) { print "$$1\n"; }'\
+	| grep -vP "^A\d\d\d+" \
+	| sort | uniq -c \
+	| tee    $@.tmp
+	sort -rn  $@.tmp | grep -vP "^ *\d " > $@.sort.tmp
+#---------
