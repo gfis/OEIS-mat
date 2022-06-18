@@ -1,28 +1,19 @@
 #!make
 
-# OEIS-mat/bridge - bridges to other Computer Algebra Systems
+# OEIS-mat/cas - programs for various Computer Algebra Systems
 # @(#) $Id$
 # 2022-06-10, Georg Fischer: copied from ../holrec
 #---------------------------------
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
-JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
-HOLT=$(RAMATH)   irvine.test.HolonomicRecurrenceTest
-BVA=$(RAMATH)    org.teherba.ramath.linear.BigVectorArray
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
-HERE=../../../OEIS-mat/holrec
-MAXT=32
+HERE=../../../OEIS-mat/cas
 COMMON=../common
 D=0
-AINIT=0
-RTLEN=256
-SERVER=gfis@atair
-REMDIR=~/work/gits/OEIS-mat/holrec
-REMOTE=$(SERVER):$(REMDIR)
+MANY=999999
 
 all:
 	echo select specific target 
@@ -112,7 +103,7 @@ pari_prep:
 	| perl pari_prep.pl
 #----
 paritest:
-	cat $(FISCHER)/$@.gen \
+	head -n$(MANY) pari_an.tmp \
 	| perl paritest.pl -d $(D) \
 	>        $@.all.log
 	grep  -P "\tpass\t" $@.all.log > $@.pass.log

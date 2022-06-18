@@ -36,7 +36,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $dwindow   = shift(@ARGV);
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{to}) {  # 
+    } elsif ($opt  =~ m{to}) {  #
         $timeout   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
@@ -46,10 +46,12 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 # start gp process
 # my $pid = open3(\*PIN, \*POUT, \*PERR, 'gp -fq') or die "open3() failed $!";
 my $pid = open2(\*POUT, \*PIN, 'gp -fq 2>&1') or die "open2() failed $!";
-print PIN <<'GFis';
+my $openlude = <<'GFis';
 default(realprecision, 2000); default(parisize,1024000000);
 GFis
-print STDERR "Process gp created, pid = $pid\n";
+print "# start batch; process gp created, pid = $pid\n";
+print "# gp <- $openlude";
+print PIN $openlude;
 #----
 my $READY   = "ready";
 # states of the automaton in &test1
@@ -66,51 +68,68 @@ my $ok; # if record is to be repeated
 while (<>) { # read seq4 format
     $ok = 1; # assume success
     s/\s+\Z//; # chompr
+    my $line = $_;
     if (m{\AA\d{4}\d+\s}) { # starts with A.number
-        ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author) = split(/\t/);
+        ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author) = split(/\t/, $line);
         $start_time = [gettimeofday]; # $elapsed = tv_interval($start_time, [gettimeofday]);
         &read_bfile($aseqno); # -> @terms
-        &test1();
-        if ($ok) {
-            print        join("\t", $aseqno, $type,    $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
-        } else {
-            print STDERR join("\t", $aseqno, "$type?", $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
+        if ($debug >= 1) {
+            print "#--------------------------------\n# start test $line\n";
         }
+        &test1();
     } # starts with A-number
 } # while seq4
-
+#--------
 sub test1 {
     # Run the test for one A-number until:
     # (1) the timeout stops the computation
     # (2) there is a difference, and a windows of following terms will be shown
     # (3) the number of required terms (bfimax - bfimin + 1) is reached
-    
-    # write the program's code lines
-    my $sep = substr($code, 0, 2);
-    foreach my $gpline(split(/$code/, substr($code, 4))) { # behind 2nd separator
-        if (length($gpline) > 0) {
-            print PIN "$gpline\n";
-        }
-    } # foreach gpline
-    
-    # write the specific harness
+    $index = $offset - 1;
+    my $state = $IN_READ;
+
+    # write the specific prelude
     if (0) {
-    } elsif ($type eq "an") {
-        my $harness = <<"GFis";
-iferr({alarm($timeout, for(n=$offset,$bfimax,print(a(n)))); print(\"ready,pass\")}, E, print(\"ready,\",errname(E)))
+    } elsif ($type =~ m{\A(pari_an|an)}) {
+        my $prelude = <<"GFis";
+default(realprecision, 2000); default(parisize,1024000000);
 GFis
-         # alarm is also caught by iferr: "e_ALARM"
-        if ($debug >= 1) {
-            print "# harness=$harness\n";
+        if ($debug >= 2) {
+            print "# prelude=$prelude\n";
         }
-        print PIN "$harness\n";
+        print PIN "$prelude\n";
     } else {
         print "unknown type \"$type\" for $aseqno\n";
     }
-    
+
+    # write the program's code lines
+    my $sep = substr($code, 0, 2);
+    foreach my $gpline(split(/\~\~/, substr($code, 4), -1)) { # behind 2nd separator
+        if (length($gpline) > 0) {
+            # $gpline =~ s{\A($sep)+}{}; # why?
+            if ($debug >= 1) {
+                print "# $aseqno $state gp <-[$index]: $gpline\n";
+            }
+            print PIN "$gpline\n";
+        }
+    } # foreach gpline
+
+    # write the specific postlude
+    if (0) {
+    } elsif ($type =~ m{\A(pari_an|an)}) {
+        my $postlude = <<"GFis";
+iferr(alarm(4, for(n=0,$bfimax,print(a(n))); print("ready,pass")); print("ready,FATO"), E, print("ready,",errname(E)))
+GFis
+        # ??? alarm is also caught by iferr: "e_ALARM" ?
+        if ($debug >= 2) {
+            print "# postlude=$postlude\n";
+        }
+        print PIN "$postlude\n";
+    } else {
+        print "unknown type \"$type\" for $aseqno\n";
+    }
+
     # read until "ready"
-    my $state = $IN_READ;
-    $index = $offset - 1;
     my $busy  = 1;
     @result = ($aseqno, 0, "pass", 0, "ms");
     my $wincount = $dwindow;
@@ -118,7 +137,7 @@ GFis
         s/\s+\Z//; # chompr
         my $line = $_;
         if ($debug >= 1) {
-            print "" . ($debug >= 2 ? "$aseqno $state ": "") . "gpout[$index]: $line\n";
+            print "# $aseqno $state gpout[$index]: $line\n";
         }
         if (0) {
         } elsif ($line =~ m{\A([\-]?\d+)}) { # next term
@@ -146,24 +165,34 @@ GFis
             } elsif ($state == $IN_SKIP) {
                 # ignore further terms
             }
-        } elsif ($line =~ m{\A$READY\,(.*)}) { # harness signals end of test
-        	my $info = $1;
-            if ($debug >= 1) {
-                print "ready[$index]: $line\n";
+        } elsif ($line =~ m{\A$READY\,(.*)}) { # postlude signaled end of test
+            my $info = $1;
+            if ($debug >= 2) {
+                print "# $aseqno $state ready[$index]: $line\n";
             }
             if (0) {
             } elsif ($info eq "pass") {
-            	$result[2] = $info;
+                $result[2] = $info;
+            } elsif ($info eq "FATO") {
+                $result[2] = $info;
             } elsif ($info eq "e_ALARM") {
-            	$result[2] = "FATO";
+                $result[2] = "FATO";
                 $result[4] = "ms";
+            } elsif ($info =~ m{\Ae_}) {
+                $result[2] = "FATAL";
+                $result[3] = "$info";
+                $result[4] = "";
+            } else {
+                $result[2] = "FAUNK";
+                $result[3] = "$info";
+                $result[4] = "";
             }
             $result[1] = $index - 1;
             &log();
             last;
         } else { # some message
             if ($debug >= 1) {
-                print "gpmsg[$index]: $line\n";
+                print "# $aseqno $state gpmsg[$index]: $line\n";
             }
         }  # some message
     } # while POUT
@@ -172,13 +201,14 @@ GFis
 sub log {
     if ($result[2] =~ m{pass|FATO}) {
         $result[3] = sprintf("%d", tv_interval($start_time, [gettimeofday]) * 1000);
+        $result[4] = "ms";
     }
     my $logline = join("\t", @result) . "\n";
     print        $logline;
     print STDERR $logline;
 } # log
 
-sub read_bfile { # parameter aseqno; writes to $offset, $bfimax, @terms
+sub read_bfile { # parameter aseqno; writes to @terms
     my ($aseqno) = @_;
     my $filename = "$bfiledir/b" .substr($aseqno, 1) . ".txt";
     my $inbuffer  = "";
@@ -218,6 +248,13 @@ sub shorten {
     return $term;
 } # shorten
 __DATA__
-while (<PERR>) {
-    print "err: $_";
-} # while <>
+A007117	pari_an	0	~~~~~~a(n) = if(n<2, 0, my(lim=2^(2^n-(n+2))); for(k=1, lim, my(p=k*2^(n+2)+1); if(Mod(2,p)^(2^n)==-1, return(k))))	1	19	34	2021-03-02	_Jianing Song_			a(0) = a(1) = 0; for n >= 2, a(n)*2^(n+2) + 1 is the smallest prime factor of the n-th Fermat number F(n) = 2^(2^n) + 1.
+A007324	pari_an	1	~~~~~~a(n) = my(b, p=factorback(primes(n-1))); forcomposite(k=9, oo, if(gcd(k, p)==1, b=2; while(Mod(b, k)^(k\2) == kronecker(b, k), b++); if(b>=prime(n), return(k))));	1	12	17	2022-06-04	_Jinyuan Wang_			Least number for which Solovay-Strassen primality test on bases < prime(n) fails.
+A023199	pari_an	1	~~~~~~a(n) = my(k=1); while (sigma(k)/k < n, k++); k;	1	9	35	2019-10-07	_Michel Marcus_			a(n) is the least k with sigma(k) >= n*k.
+A031508	pari_an	0	~~~~~~{a(n) = my(k=1); while(ellanalyticrank(ellinit([0, 0, 0, 0, -k]))[1]<>n, k++); k}	1	6	40	2019-08-24	_Seiichi Manyama_			Smallest k>0 such that the elliptic curve y^2 = x^3 - k has rank n, if k exists.
+A046024	pari_an	0	~~~~~~a(n)=my(t); forprime(p=2,, t+=1./p; if(t>n, return(p)))	1	4	34	2015-04-29	_Charles R Greathouse IV_			a(n) = smallest k such that Sum_{ i = 1..k } 1/prime(i) exceeds n.
+A057623	pari_an	1	~~~~~~{a(n) = my(t=''t); n!*polcoef(polcoef(prod(k=1, n, (1-x^k+x*O(x^n))^(-1-t)), n), 1)}	1	400	36	2020-11-07	_Seiichi Manyama_			a(n) = n! * (sum of reciprocals of all parts in unrestricted partitions of n).
+A057625	pari_an	1	~~~~~~a(n)=n! * sumdiv(n, d, 1/d! );	1	449	37	2012-10-07	_Joerg Arndt_			a(n) = n! * sum 1/k! where the sum is over all positive integers k that divide n.
+A057627	pari_an	1	~~~~~~a(n)=my(s); forprime(p=2,sqrtint(n), s+=n\p^2); s	1	10000	47	2015-05-18	_Charles R Greathouse IV_			Number of nonsquarefree numbers not exceeding n.
+A057635	pari_an	1	~~~~~~a(n) = if(n%2, 2*(n==1), forstep(k=floor(exp(Euler)*n*log(log(n^2))+2.5*n/log(log(n^2))), n, -1, if(eulerphi(k)==n, return(k)); if(k==n, return(0))))	1	10000	35	2019-02-15	_Jianing Song_			a(n) is the largest m such that phi(m) = n, where phi is Euler's totient function = A000010, or a(n) = 0 if no such m exists.
+A057643	pari_an	1	~~~~~~a(n)=lcm(apply(d->d+1,divisors(n)))	1	10000	26	2013-02-14	_Charles R Greathouse IV_			Least common multiple of all (k+1)'s, where the k's are the positive divisors of n.
