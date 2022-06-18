@@ -25,7 +25,7 @@ if (0 and scalar(@ARGV) == 0) {
 
 my $bfiledir = "../common/bfile";
 my $debug    = 0; # 0 (none), 1 (some), 2 (more)
-my $timeout  = 4; # in seconds
+my $timeout  = 8; # in seconds
 my $dwindow  = 4; # window of differing terms to be shown
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
