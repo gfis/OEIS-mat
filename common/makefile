@@ -2,6 +2,7 @@
 
 # OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
+# 2022-06-16: asprog
 # 2022-03-01: bfimer
 # 2021-11-05: extract Maple lines
 # 2021-02-04: REMOTE
@@ -187,16 +188,14 @@ infos:
 	make ainfos DIR=.
 	make binfos DIR=.
 #----
-ainfos: asdata asinfo asname asxref
-# binfos: bfdata bfinfo 
-binfos: bfdata bfimer
+ainfos: asdata asinfo asname asprog asxref
+binfos: bfdata bfinfo 
 #----
 # process after data extraction on Linux
 herlin: herscp aloads bloads checks
 herscp: 
 	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
-aloads: asdata_load asinfo_load asname_load asxref_load 
-# bloads: bfdata_load bfinfo_load bfdir_load 
+aloads: asdata_load asinfo_load asname_load asprog_load asxref_load 
 bloads: bfdata_load bfimer_load bfdir_load 
 #--------
 asdata: # parameter: DIR
@@ -204,7 +203,7 @@ asdata: # parameter: DIR
 	wc -l $@.txt
 asdata_load: # Load table <em>asdata</em>
 	$(DBAT) -f                  asdata.create.sql
-	cat asdata.txt \
+	cat                         asdata.txt \
 	| $(DBAT) -m csv -s "\t" -r asdata
 	$(DBAT) -4                  asdata
 	$(DBAT) -n                  asdata
@@ -223,7 +222,7 @@ asname: # parameter: DIR
 	wc -l $@.txt
 asname_load: # Load table <em>asname</em>
 	$(DBAT) -f                  asname.create.sql
-	perl uncode.pl asname.txt \
+	perl uncode.pl              asname.txt \
 	| grep -E "^A" \
 	| $(DBAT) -m csv -s "\t" -r asname
 	$(DBAT) -4                  asname
@@ -234,8 +233,9 @@ asprog: # parameter: DIR
 	wc -l $@.txt
 asprog_load: # Load table <em>asprog</em>
 	$(DBAT) -f                  asprog.create.sql
-	perl uncode.pl asname.txt \
-	| grep -E "^A" \
+	grep -E "^A"                asprog.txt \
+	| perl asprog_clean.pl \
+	| perl uncode.pl \
 	| $(DBAT) -m csv -s "\t" -r asprog
 	$(DBAT) -4                  asprog
 	$(DBAT) -n                  asprog
@@ -249,7 +249,7 @@ asinfo_extract:
 asinfo_load:
 	perl extract_info.pl -jc | tee asinfo.create.sql
 	$(DBAT)                  -f asinfo.create.sql
-	cut -b1-256 asinfo.txt \
+	cut -b1-256                 asinfo.txt \
 	| grep -E "^A" \
 	| $(DBAT) -m csv -s "\t" -r asinfo
 	$(DBAT) -4                  asinfo

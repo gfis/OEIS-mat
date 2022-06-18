@@ -36,38 +36,47 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $dwindow   = shift(@ARGV);
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{to}) {  # 91+4u6IPSH
+    } elsif ($opt  =~ m{to}) {  # 
         $timeout   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
-
+#----
+# start gp process
 # my $pid = open3(\*PIN, \*POUT, \*PERR, 'gp -fq') or die "open3() failed $!";
 my $pid = open2(\*POUT, \*PIN, 'gp -fq 2>&1') or die "open2() failed $!";
 print PIN <<'GFis';
 default(realprecision, 2000); default(parisize,1024000000);
 GFis
 print STDERR "Process gp created, pid = $pid\n";
-my $EOS = "nnnn";
+#----
+my $READY   = "ready";
 # states of the automaton in &test1
 my $IN_READ = 1;
 my $IN_DIFF = 2;
 my $IN_SKIP = 3;
-# globals, overwritten by &read_bfile, used in &test1
-my $offset;
-my $bfimin;
-my $bfimax;
 my @terms;
 my $start_time;
+my $index; # current index
+my @result;
 
+my ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author);
+my $ok; # if record is to be repeated
 while (<>) { # read seq4 format
+    $ok = 1; # assume success
     s/\s+\Z//; # chompr
-    if (m{\AA\d\d\d+\s}) { # starts with A.number
-        my ($aseqno, $type, $offset, $imax, @gplines) = split(/\t/);
-        my $revision = pop(@gplines);
-        &test1($aseqno, $type, $offset, $imax, @gplines);
-    }
+    if (m{\AA\d{4}\d+\s}) { # starts with A.number
+        ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author) = split(/\t/);
+        $start_time = [gettimeofday]; # $elapsed = tv_interval($start_time, [gettimeofday]);
+        &read_bfile($aseqno); # -> @terms
+        &test1();
+        if ($ok) {
+            print        join("\t", $aseqno, $type,    $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
+        } else {
+            print STDERR join("\t", $aseqno, "$type?", $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
+        }
+    } # starts with A-number
 } # while seq4
 
 sub test1 {
@@ -75,27 +84,35 @@ sub test1 {
     # (1) the timeout stops the computation
     # (2) there is a difference, and a windows of following terms will be shown
     # (3) the number of required terms (bfimax - bfimin + 1) is reached
-    my ($aseqno, $type, $offset, $bfimax, @gplines) = @_;
-    &read_bfile($aseqno);
-    foreach my $gpline(@gplines) {
+    
+    # write the program's code lines
+    my $sep = substr($code, 0, 2);
+    foreach my $gpline(split(/$code/, substr($code, 4))) { # behind 2nd separator
         if (length($gpline) > 0) {
             print PIN "$gpline\n";
-        } else {
-            last;
         }
     } # foreach gpline
-    $start_time = [gettimeofday];
-    # $elapsed = tv_interval ($start_time, [gettimeofday]);
+    
+    # write the specific harness
     if (0) {
     } elsif ($type eq "an") {
-        print PIN "alarm($timeout,for(n=$offset,$bfimax,print(a(n)))); print(\"$EOS\")\n";
+        my $harness = <<"GFis";
+iferr({alarm($timeout, for(n=$offset,$bfimax,print(a(n)))); print(\"ready,pass\")}, E, print(\"ready,\",errname(E)))
+GFis
+         # alarm is also caught by iferr: "e_ALARM"
+        if ($debug >= 1) {
+            print "# harness=$harness\n";
+        }
+        print PIN "$harness\n";
     } else {
         print "unknown type \"$type\" for $aseqno\n";
     }
+    
+    # read until "ready"
     my $state = $IN_READ;
-    my $index = $offset - 1;
-    my $busy = 1;
-    my @result = ($aseqno, 0, "pass", 0, "ms");
+    $index = $offset - 1;
+    my $busy  = 1;
+    @result = ($aseqno, 0, "pass", 0, "ms");
     my $wincount = $dwindow;
     while (<POUT>) {
         s/\s+\Z//; # chompr
@@ -127,40 +144,33 @@ sub test1 {
                     $state = $IN_SKIP;
                 }
             } elsif ($state == $IN_SKIP) {
+                # ignore further terms
             }
-        } elsif ($line eq "$EOS") { # end of sequence
-            &log(@result);
+        } elsif ($line =~ m{\A$READY\,(.*)}) { # harness signals end of test
+        	my $info = $1;
+            if ($debug >= 1) {
+                print "ready[$index]: $line\n";
+            }
+            if (0) {
+            } elsif ($info eq "pass") {
+            	$result[2] = $info;
+            } elsif ($info eq "e_ALARM") {
+            	$result[2] = "FATO";
+                $result[4] = "ms";
+            }
+            $result[1] = $index - 1;
+            &log();
             last;
         } else { # some message
             if ($debug >= 1) {
                 print "gpmsg[$index]: $line\n";
-            }
-            if (0) {
-            } elsif ($line =~ m{warning}) { 
-                # ignore
-            } elsif ($line =~ m{error\(\"alarm\D+(\d+[\,\.]\d+)}) {
-                # error("alarm interrupt after 1,141 ms.")
-                my $ms = $1;
-                $ms =~ s{[\.\,]}{};
-                $result[1] = $index - 1;
-                $result[2] = "FATO";
-                $result[3] = $ms;
-                $result[4] = "ms";
-            } else {
-                $result[1] = $index - 1;
-                $result[2] = "FATAL";
-                $result[3] = "";
-                $result[4] = "$line";
-                &log(@result);
-                last;
             }
         }  # some message
     } # while POUT
 } # test1
 
 sub log {
-    my @result = @_;
-    if ($result[2] eq "pass") {
+    if ($result[2] =~ m{pass|FATO}) {
         $result[3] = sprintf("%d", tv_interval($start_time, [gettimeofday]) * 1000);
     }
     my $logline = join("\t", @result) . "\n";
