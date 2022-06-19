@@ -3,10 +3,10 @@
 # Run a batch of PARI snippets and compare the results with the b-files
 # 2022-06-15, Georg Fischer
 #:# Usage:
-#:#   perl paritest.pl input.seq4
+#:#   perl paritest.pl [-bf bfiledir] [-d debugmode] [-t timeout] [-dw errorwindow] input.seq4
 #:#
 #:# input.seq4 has tab-separated:
-#:#   aseqno type offset bfimax gpline1 gpline2 ...
+#:#   aseqno type offset gplines curno bfimax revision created author
 #--------------------------------
 use strict;
 # do not use integer; because of hires timing
@@ -34,9 +34,9 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $bfiledir  = shift(@ARGV);
     } elsif ($opt  =~ m{dw}) {
         $dwindow   = shift(@ARGV);
-    } elsif ($opt  =~ m{d}) {
+    } elsif ($opt  =~ m{d})  {
         $debug     = shift(@ARGV);
-    } elsif ($opt  =~ m{to}) {  #
+    } elsif ($opt  =~ m{t})  {
         $timeout   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
@@ -118,7 +118,7 @@ GFis
     if (0) {
     } elsif ($type =~ m{\A(pari_an|an)}) {
         my $postlude = <<"GFis";
-iferr(alarm(4, for(n=0,$bfimax,print(a(n))); print("ready,pass")); print("ready,FATO"), E, print("ready,",errname(E)))
+iferr(alarm($timeout, for(n=0,$bfimax,print(a(n))); print("ready,pass")); print("ready,FATO"), E, print("ready,",errname(E)))
 GFis
         # ??? alarm is also caught by iferr: "e_ALARM" ?
         if ($debug >= 2) {
@@ -131,7 +131,7 @@ GFis
 
     # read until "ready"
     my $busy  = 1;
-    @result = ($aseqno, 0, "pass", 0, "ms");
+    @result = ($aseqno, 0, "", 0, "ms");
     my $wincount = $dwindow;
     while (<POUT>) {
         s/\s+\Z//; # chompr
@@ -171,11 +171,11 @@ GFis
                 print "# $aseqno $state ready[$index]: $line\n";
             }
             if (0) {
-            } elsif ($info eq "pass") {
+            } elsif ($info eq "pass"    && $result[2] ne "FAIL") {
                 $result[2] = $info;
-            } elsif ($info eq "FATO") {
+            } elsif ($info eq "FATO"    && $result[2] ne "FAIL") {
                 $result[2] = $info;
-            } elsif ($info eq "e_ALARM") {
+            } elsif ($info eq "e_ALARM" && $result[2] ne "FAIL") {
                 $result[2] = "FATO";
                 $result[4] = "ms";
             } elsif ($info =~ m{\Ae_}) {
