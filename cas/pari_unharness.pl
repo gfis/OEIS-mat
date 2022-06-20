@@ -32,15 +32,16 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author);
 my $ok; # if record is to be repeated
 while (<>) { # read seq4 format
-    $ok = 1; # assume success
+    $nok = 0; # assume success
     s/\s+\Z//; # chompr
     if (m{\AA\d{4}\d+\s}) { # starts with A.number
         ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author) = split(/\t/);
         &polish1();
-        if ($ok) {
-            print        join("\t", $aseqno, $type,    $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
-        } else {
-            print STDERR join("\t", $aseqno, "$type?", $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
+        if ($nok eq "0") {
+            #                       aseqno  callcode offset   parm1  parm2   parm3    parm4      parm5     parm6
+            print        join("\t", $aseqno, $type,  $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
+        } else {#                                                                                timeout
+            print STDERR join("\t", $aseqno, "$nok", $offset, $code, $curno, $bfimax, $revision, $created, $author) . "\n";
         }
     } # starts with A-number
 } # while seq4
@@ -65,11 +66,11 @@ sub polish1 { # global $type, $code, $created, $author
     }
     $last =~ s{\A *for *\(n *\= *\d+\, *\d+\, *print1?\( *a\(n\)(\, *\"\, *\")?\)\) *\Z}{};
     if ($last =~ m{\A\s*\Z}) {
-        splice(@lines, $len - 1, 1);
-    } elsif ($last =~ m{print}) {
-        $lines[$len - 1] = $last;
-        # print STDERR "# $aseqno #$last#\n";
-        $ok = 0; # sort it out
+        splice(@lines, $len - 1, 1); # remove empty last line
+    } elsif ($code =~ m{print|alarm|iferr}) {
+        $nok = "priferr"; # sort it out
+    } elsif ($code =~ m{(A\d{6}}) {
+        $nok = "Annnnnn"; # sort it out
     } else {
         $lines[$len - 1] = $last;
     }

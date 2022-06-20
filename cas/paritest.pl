@@ -3,7 +3,12 @@
 # Run a batch of PARI snippets and compare the results with the b-files
 # 2022-06-15, Georg Fischer
 #:# Usage:
-#:#   perl paritest.pl [-bf bfiledir] [-d debugmode] [-t timeout] [-dw errorwindow] input.seq4
+#:#   perl paritest.pl [-bf bfiledir] [-d debugmode] [-s startno] [-t timeout] [-w errorwindow] input.seq4
+#:#       -bf directory for b-file comparision (default ../common/bfile)
+#:#       -d  mode 0=none, 1=some, 2=more (default 0)
+#:#       -s  skip all <<= this aseqno (default A000000)
+#:#       -t  timeout in seconds (4)
+#:#       -w  window for number of terms following a difference (default 4)
 #:#
 #:# input.seq4 has tab-separated:
 #:#   aseqno type offset gplines curno bfimax revision created author
@@ -25,19 +30,22 @@ if (0 and scalar(@ARGV) == 0) {
 
 my $bfiledir = "../common/bfile";
 my $debug    = 0; # 0 (none), 1 (some), 2 (more)
-my $timeout  = 8; # in seconds
+my $startno  = "A000000"; # start behind this aseqno
+my $timeout  = 4; # in seconds
 my $dwindow  = 4; # window of differing terms to be shown
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{bf}) {
         $bfiledir  = shift(@ARGV);
-    } elsif ($opt  =~ m{dw}) {
-        $dwindow   = shift(@ARGV);
     } elsif ($opt  =~ m{d})  {
         $debug     = shift(@ARGV);
+    } elsif ($opt  =~ m{s})  {
+        $startno   = shift(@ARGV);
     } elsif ($opt  =~ m{t})  {
         $timeout   = shift(@ARGV);
+    } elsif ($opt  =~ m{w}) {
+        $dwindow   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -47,30 +55,33 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 # my $pid = open3(\*PIN, \*POUT, \*PERR, 'gp -fq') or die "open3() failed $!";
 my $pid = open2(\*POUT, \*PIN, 'gp -fq 2>&1') or die "open2() failed $!";
 my $openlude = <<'GFis';
-default(realprecision, 2000); default(parisize,1024000000);
+default(realprecision, 2000); default(parisize,1024000000); default(primelimit,10^7); 
 GFis
 print "# start batch; process gp created, pid = $pid\n";
 print "# gp <- $openlude";
 print PIN $openlude;
 #----
-my $READY   = "ready";
+my $READY   = "READY";
 # states of the automaton in &test1
 my $IN_READ = 1;
 my $IN_DIFF = 2;
 my $IN_SKIP = 3;
+my $WPROMPT = 4;
 my @terms;
 my $start_time;
 my $index; # current index
-my @result;
-
 my ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author);
+my ($result, $idiff, $expected, $computed, $elapsed, $logline);
 my $ok; # if record is to be repeated
+my $prompt_is_requested = 0;
+
 while (<>) { # read seq4 format
     $ok = 1; # assume success
     s/\s+\Z//; # chompr
     my $line = $_;
-    if (m{\AA\d{4}\d+\s}) { # starts with A.number
+    if (m{\AA\d{4}\d+\s}) { # starts with A.number; not commented out
         ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author) = split(/\t/, $line);
+        next if $aseqno le $startno;
         $start_time = [gettimeofday]; # $elapsed = tv_interval($start_time, [gettimeofday]);
         &read_bfile($aseqno); # -> @terms
         if ($debug >= 1) {
@@ -85,79 +96,82 @@ sub test1 {
     # (1) the timeout stops the computation
     # (2) there is a difference, and a windows of following terms will be shown
     # (3) the number of required terms (bfimax - bfimin + 1) is reached
-    $index = $offset - 1;
+    $index = $offset;
     my $state = $IN_READ;
+    $prompt_is_requested = 0;
 
-    # write the specific prelude
+    my $gpline;
+    # write the specific prolog
     if (0) {
     } elsif ($type =~ m{\A(pari_an|an)}) {
-        my $prelude = <<"GFis";
-default(realprecision, 2000); default(parisize,1024000000);
+        $gpline = <<"GFis";
+default(realprecision, 2000); default(parisize,1024000000); default(primelimit,10^7); 
 GFis
         if ($debug >= 2) {
-            print "# prelude=$prelude\n";
+    #       print "# $aseqno $index,prolog gp <- $gpline\n";
         }
-        print PIN "$prelude\n";
+    #   print PIN "$gpline\n";
     } else {
         print "unknown type \"$type\" for $aseqno\n";
     }
 
     # write the program's code lines
-    my $sep = substr($code, 0, 2);
+    # my $sep = substr($code, 0, 2); # should quote it
     foreach my $gpline(split(/\~\~/, substr($code, 4), -1)) { # behind 2nd separator
         if (length($gpline) > 0) {
-            # $gpline =~ s{\A($sep)+}{}; # why?
-            if ($debug >= 1) {
-                print "# $aseqno $state gp <-[$index]: $gpline\n";
-            }
-            print PIN "$gpline\n";
+        if ($debug >= 2) {
+            print "# $aseqno $index,gpcode gp <- $gpline\n";
+        }
+        print PIN "$gpline\n";
         }
     } # foreach gpline
 
-    # write the specific postlude
+    # write the specific epilog
     if (0) {
     } elsif ($type =~ m{\A(pari_an|an)}) {
-        my $postlude = <<"GFis";
-iferr(alarm($timeout, for(n=0,$bfimax,print(a(n))); print("ready,pass")); print("ready,FATO"), E, print("ready,",errname(E)))
+        # iferr(alarm(4, for(n=0,40,print(a(n))); print("READY,pass")); print("READY,FATO"), E, print("READY,",errname(E)))
+        $gpline = <<"GFis";
+iferr(alarm($timeout, for(n=$offset,$bfimax,print(a(n))); print(\"$READY,pass\")); print(\"$READY,FATO\"), E, print(\"$READY,\",errname(E)))
 GFis
         # ??? alarm is also caught by iferr: "e_ALARM" ?
         if ($debug >= 2) {
-            print "# postlude=$postlude\n";
+            print "# $aseqno $index,epilog gp <- $gpline\n";
         }
-        print PIN "$postlude\n";
+        print PIN "$gpline\n";
     } else {
         print "unknown type \"$type\" for $aseqno\n";
     }
 
-    # read until "ready"
-    my $busy  = 1;
-    @result = ($aseqno, 0, "", 0, "ms");
+    # read until "READY"
+    $result = ""; # unknown so far
+    $expected = "";
+    $computed = "";
+    my $bfi   = 0; # b-file terms alsways start with [0]
     my $wincount = $dwindow;
-    while (<POUT>) {
+    while (<POUT>) { # read output of gp
         s/\s+\Z//; # chompr
         my $line = $_;
-        if ($debug >= 1) {
-            print "# $aseqno $state gpout[$index]: $line\n";
+        if ($debug >= 2) {
+            print "# $aseqno $index,state$state gp -> $line\n";
         }
         if (0) {
         } elsif ($line =~ m{\A([\-]?\d+)}) { # next term
             my $term = $1;
-            $index ++;
             if (0) {
             } elsif ($state == $IN_READ) {
-                if ($term ne $terms[$index]) { # first difference, start the window
-                    $result[1] = $index;
-                    $result[2] = "FAIL";
-                    $result[3] = &shorten($terms[$index]);
-                    $result[4] = &shorten($term);
-                    $wincount  = $dwindow;
-                    $state     = $IN_DIFF;
+                if ($term ne $terms[$bfi]) { # first difference, start the window
+                    $idiff    = $index;
+                    $result   = "FAIL";
+                    $expected = &shorten($terms[$index]);
+                    $computed = &shorten($term);
+                    $wincount = $dwindow;
+                    $state    = $IN_DIFF;
                 } else { # term ok
-                    $result[1] = $index;
+                    # continue
                 }
             } elsif ($state == $IN_DIFF) {
-                $result[3] .= "," . &shorten($terms[$index]);
-                $result[4] .= "," . &shorten($term);
+                $expected .= "," . &shorten($terms[$index]);
+                $computed .= "," . &shorten($term);
                 $wincount  --;
                 if ($wincount <= 0) {
                     $state = $IN_SKIP;
@@ -165,48 +179,75 @@ GFis
             } elsif ($state == $IN_SKIP) {
                 # ignore further terms
             }
-        } elsif ($line =~ m{\A$READY\,(.*)}) { # postlude signaled end of test
+            $index ++;
+            $bfi ++;
+        } elsif ($line =~ m{\A$READY\,(.*)}) { # epilog has signaled end of test
             my $info = $1;
-            if ($debug >= 2) {
-                print "# $aseqno $state ready[$index]: $line\n";
+            $elapsed = sprintf("%d ms", tv_interval($start_time, [gettimeofday]) * 1000);
+            if ($debug >= 1) {
+                print "# $aseqno $index,state$state ready $line\n";
             }
             if (0) {
-            } elsif ($info eq "pass"    && $result[2] ne "FAIL") {
-                $result[2] = $info;
-            } elsif ($info eq "FATO"    && $result[2] ne "FAIL") {
-                $result[2] = $info;
-            } elsif ($info eq "e_ALARM" && $result[2] ne "FAIL") {
-                $result[2] = "FATO";
-                $result[4] = "ms";
-            } elsif ($info =~ m{\Ae_}) {
-                $result[2] = "FATAL";
-                $result[3] = "$info";
-                $result[4] = "";
+            } elsif ($info eq "prompt") { # from epilog
+                if ($debug >= 2) {
+                    print "# $aseqno $index,state$state prompt reached\n";
+                }
+                last; # stop reading from POUT
+            } elsif ($info eq "pass") { # from epilog
+                if ($result ne "FAIL") {
+                    $index --; # was already 1 too far
+                    $result = $info;
+                }
+                &request_prompt();
+            } elsif ($info eq "FATO") { # from 'alarm()' epilog
+                if ($result ne "FAIL") {
+                    $result = $info;
+                }
+                &request_prompt();
+            } elsif ($info eq "e_ALARM") { # from 'iferr()', should not happen
+                if ($result ne "FAIL") {
+                    $result = $info;
+                }
+                &request_prompt();
+            } elsif ($info =~ m{\Ae_}) { # other error from 'iferr()'
+                if ($result ne "FAIL") {
+                    $result = $info;
+                }
+                &request_prompt();
             } else {
-                $result[2] = "FAUNK";
-                $result[3] = "$info";
-                $result[4] = "";
+                if ($result ne "FAIL") {
+                    $result = "FAUNK";
+                }
+                &request_prompt();
             }
-            $result[1] = $index - 1;
-            &log();
-            last;
-        } else { # some message
-            if ($debug >= 1) {
-                print "# $aseqno $state gpmsg[$index]: $line\n";
+            # READY message
+        } else { # some other message - skip it
+            if ($debug >= 2) {
+                print "# $aseqno $index,$state gp !> $line\n";
             }
-        }  # some message
-    } # while POUT
+            # some other message
+        }
+    } # while <POUT>
 } # test1
 
-sub log {
-    if ($result[2] =~ m{pass|FATO}) {
-        $result[3] = sprintf("%d", tv_interval($start_time, [gettimeofday]) * 1000);
-        $result[4] = "ms";
-    }
-    my $logline = join("\t", @result) . "\n";
-    print        $logline;
-    print STDERR $logline;
-} # log
+sub request_prompt { # and write logfile
+    if ($prompt_is_requested == 0) { # was not yet requested
+        $prompt_is_requested = 1;
+        my $logline = join("\t", $aseqno, (($result eq "FAIL") 
+            ? ($idiff, $result, $expected, "", $computed)
+            : ($index, $result, $elapsed,  "", $bfimax  )
+            )) . "\n";
+        print        $logline;
+        print STDERR $logline;
+        my  $gpline = <<"GFis";
+print(\"$READY,prompt\")
+GFis
+        if ($debug >= 2) {
+            print "# $aseqno $index,prompt gp <- $gpline\n";
+        }
+        print PIN "$gpline\n";
+    } # was not yet requested
+} # request_prompt
 
 sub read_bfile { # parameter aseqno; writes to @terms
     my ($aseqno) = @_;

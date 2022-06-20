@@ -13,6 +13,8 @@ COMMON=$(GITS)/OEIS-mat/common
 HERE=../../../OEIS-mat/cas
 COMMON=../common
 D=0
+TO=4
+A=A000000
 MANY=999999
 
 all:
@@ -104,7 +106,7 @@ pari_prep:
 #----
 paritest:
 	head -n$(MANY) pari_an.tmp \
-	| perl paritest.pl -d $(D) \
+	| perl paritest.pl -d $(D) -t $(TO) -s $(A) \
 	>        $@.all.log
 	grep  -P "\tpass\t" $@.all.log > $@.pass.log
 	grep -vP "\tpass\t" $@.all.log > $@.fail.log
@@ -137,3 +139,8 @@ pari_an0: # extract from db table asprog
 	>        $@.tmp
 	wc -l    $@.tmp
 #----
+deploy:
+	scp paritest.pl pari_an.tmp makefile gfis@atair:~/work/gits/OEIS-mat/cas
+get:
+	echo $(FISCHER)/paritest.4s.`date +%Y-%m-%d.%H.%M`.log
+	scp gfis@atair:~/work/gits/OEIS-mat/cas/paritest.log $(FISCHER)/paritest.4s.`date +%Y-%m-%d.%H.%M`.log
