@@ -2,6 +2,8 @@
 
 # OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
+# [^\w\s\.\,\;\:\(\)\[\]\{\}\<\>\!\"\$\%\&\/\+\^\-\*\=\'\#\\\?\|\~\`öńáőωŁéü°øå≀è\@…\´ä\’∈î]
+# 2022-06-21: old poeis -> noeis, new poeis for OEIS-prog
 # 2022-06-16: asprog
 # 2022-03-01: bfimer
 # 2021-11-05: extract Maple lines
@@ -12,7 +14,7 @@
 # 2019-02-19: HTMLIZE
 # 2019-01-22: old_unpacking from ../dumps
 # 2019-01-17: Georg Fischer
-# [^\w\s\.\,\;\:\(\)\[\]\{\}\<\>\!\"\$\%\&\/\+\^\-\*\=\'\#\\\?\|\~\`öńáőωŁéü°øå≀è\@…\´ä\’∈î]
+# C:\Program Files\Java\jdk1.8.0_172\bin
 #---------------------------------
 GITS=../..
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
@@ -367,7 +369,7 @@ joeis_pullloc: # refresh local önly
 	cd    $(JOEIS) ; git pull ; make joeis_list
 	cp -v $(JOEIS)/joeis_list.txt .
 	make joeis_reload
-joeis_reload: joeis_load joeis_ofter joeis_ofdec poeis_delete \
+joeis_reload: joeis_load joeis_ofter joeis_ofdec \
 	joeis_stamp joeis_ccanloc joeis_update joeis_eval joeis_count joeis_rest
 joeis_rest: joeis_names jcat25 joeis_analog joeis_progress 
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
@@ -420,8 +422,6 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
 	# currently not; cd $(FISCHER); make analog
-poeis_delete: # delete * from poeis
-	$(DBAT) "DELETE FROM poeis;"
 ALAST=A058000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \

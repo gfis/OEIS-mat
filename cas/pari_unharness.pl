@@ -17,6 +17,10 @@ if (0 and scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }
+#????????????????
+print "obsolete, now in OEIS-prog/maint/pari\n";
+exit;
+#????????????????
 my %months = qw(Jan 01 Feb 02 Mar 03 Apr 04 May 05 Jun 06 Jul 07 Aug 08 Sep 09 Oct 10 Nov 11 Dec 12);
 my $debug    = 0; # 0 (none), 1 (some), 2 (more)
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
@@ -30,7 +34,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 my ($aseqno, $type, $offset, $code, $curno, $bfimax, $revision, $created, $author);
-my $ok; # if record is to be repeated
+my $nok; # if record is not to be repeated
 while (<>) { # read seq4 format
     $nok = 0; # assume success
     s/\s+\Z//; # chompr
@@ -48,33 +52,34 @@ while (<>) { # read seq4 format
 
 sub polish1 { # global $type, $code, $created, $author
     my $sep   = substr($code, 0, 2);
+    $code =~ s{ *\(Wasserman\) *}{};
     my @lines = map { s/\'\'/\'/g; $_ } split(/$sep/, $code, 4); # double '' -> single '
     my $len   = scalar(@lines);
     my $last  = $lines[$len - 1];
     # for(n=1,30,print1(a(n),", "))
     # for(n=1, 30, print1(a(n), ", "))
     # \\ _Lear Young_, Mar 01 2014
-    if ($last =~ s{\\\\ *(_[^_]+_)\, *(\w\w\w) (\d\d) (\d\d\d\d)\s*}{}) {
+    if ( ($last =~ s{\\\\ *(_[^_]+_)\, *(\w\w\w) (\d\d) (\d\d\d\d)\s*}        {}) ||
+         ($last =~ s{\/\* *(_[^_]+_)\, *(\w\w\w) (\d\d) (\d\d\d\d)\s*\*\/\s*} {})
+       ) { # remove author and created date
         my ($auth, $mon3, $day, $year) = ($1, $2, $3, $4);
         $author = $auth;
         $created = "$year-" . $months{$mon3} . "-$day";
     }
-    if ($last =~ s{\/\* *(_[^_]+_)\, *(\w\w\w) (\d\d) (\d\d\d\d)\s*\*\/\s*}{}) {
-        my ($auth, $mon3, $day, $year) = ($1, $2, $3, $4);
-        $author = $auth;
-        $created = "$year-" . $months{$mon3} . "-$day";
-    }
-    $last =~ s{\A *for *\(n *\= *\d+\, *\d+\, *print1?\( *a\(n\)(\, *\"\, *\")?\)\) *\Z}{};
-    if ($last =~ m{\A\s*\Z}) {
+    $last =~ s{\A *for *\(n *\= *\d+\, *\d+\, *print1?\( *a\(n\)(\, *\"\, *\")?\)\) *\Z}{}; # remove any trailing print(1)? loop
+    if ($last =~ m{\A\s*\Z}) { # (became) empty
         splice(@lines, $len - 1, 1); # remove empty last line
-    } elsif ($code =~ m{print|alarm|iferr}) {
+    } elsif ($code =~ m{print|alarm|iferr}) { # skip if there are still print, alarm, iferr commands
         $nok = "priferr"; # sort it out
-    } elsif ($code =~ m{(A\d{6}}) {
-        $nok = "Annnnnn"; # sort it out
+    } elsif ($code =~ m{(A\d{6})}) {
+        $nok = "Annnnnn"; # skip if with A-number
     } else {
         $lines[$len - 1] = $last;
     }
-    $code = "$sep" . join($sep, @lines);
+    $code = join($sep, @lines);
+    if ($code !~ m{\; *\Z}) {
+        $code .= ";";
+    }
 } # polish1
 __DATA__
 A057641	pari_an	1	~~~~a(n)={my(H=sum(k=1,n,1/k)); floor(exp(H)*log(H)+H) - sigma(n)}~~list_A057641(Nmax,H=0,S=1)=for(n=S,Nmax, H+=1/n; print1(floor(exp(H)*log(H)+H) - sigma(n),","))  \\ _M. F. Hasler_, Sep 09 2011	1	20000	59	2003-05-15 23:00:00.000	_N. J. A. Sloane_, Oct 12 2000			a(n) = floor(H(n) + exp(H(n))*log(H(n))) - sigma(n), where H(n) = Sum_{k=1..n} 1/k and sigma(n) (A000203) is the sum of the divisors of n.

@@ -58,4 +58,21 @@ reftabl:
 		GROUP BY x.rseqno, n.name, i.author, SUBSTR(created, 1, 10), i.keyword \
 		ORDER BY 2 DESC" \
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
+#----------------
+LIST=../../joeis-lite/internal/fischer/partial_sum_stage2.out.ut
+noxref: # LIST= ; Sean 2022-06-23
+	$(DBAT) -f $(COMMON)/seq2.create.sql
+	sed -e "s/ /\t/" $(LIST) \
+	| $(DBAT) -r seq2
+	$(DBAT) "(SELECT s.aseqno, '', '->', '', s.info   FROM asxref x, seq2 s \
+	           WHERE s.aseqno = x.aseqno AND s.info = x.rseqno) \
+	UNION    (SELECT s.aseqno, '', '<-', '', s.info   FROM asxref x, seq2 s \
+	           WHERE s.aseqno = x.rseqno AND s.info = x.aseqno) \
+	UNION    (SELECT s.aseqno, '', '??', '', s.info   FROM seq2 s \
+	           WHERE s.info   NOT IN (SELECT x.rseqno FROM asxref x WHERE x.aseqno = s.aseqno) \
+	             AND s.aseqno NOT IN (SELECT x.rseqno FROM asxref x WHERE x.aseqno = s.info  ) ) \
+	ORDER BY 1" \
+	| tee $@.tmp
+	cut -f3 $@.tmp | sort | uniq -c
+#----
 
