@@ -41,6 +41,12 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
+seq2: # parameter: $(LIST)
+	$(DBAT) -f $(COMMON)/$@.create.sql
+	cut -f1-2 $(LIST) | grep -E "^A" | sort | uniq -w7 > $@.tmp
+	$(DBAT) -m csv -r $@ < $@.tmp
+	$(DBAT) -4 $@
+	$(DBAT) -n $@
 seq3: # parameter: $(LIST)
 	$(DBAT) -f $@.create.sql
 	cut -f1-3 $(LIST) | grep -E "^A" | sort | uniq > $@.tmp
@@ -329,23 +335,25 @@ holom:
 #----------------
 hyper: hyper1 hyper2
 hyper1:
-	# grep -E "^\%[SOFNopt]" 
-	cat $(COMMON)/jcat25.txt \
+	grep -E "^.[FNopt]" $(COMMON)/jcat25.txt \
 	| perl extract_hypergeom.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 hyper2:
-	make seq LIST=hyper1.tmp
-	$(DBAT) -x "SELECT n.aseqno, n.name \
-	  FROM asname n, seq s \
-	  WHERE n.aseqno = s.aseqno \
-	    AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	make seq2 LIST=hyper1.tmp
+	$(DBAT) -x "SELECT h.aseqno, h.matrix, h.keyword, s.info \
+	  FROM holref h, seq2 s \
+	  WHERE h.aseqno = s.aseqno \
 	  ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-#
+hyper3:
+	grep -P "\t%" hyper1.tmp | grep -P "\bx\b" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------------------------------------------------
 sqrtext: sqrtext1 sqrtext2 # extract rat.gf.s with sqrt()
 	make holminit LIST=sqrtext2.tmp

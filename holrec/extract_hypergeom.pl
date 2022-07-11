@@ -41,31 +41,13 @@ my $conj;
 my @dens;
 while (<>) {
     $line = $_;
-    $line =~ s/\s+\Z//; # chompr
-    $line =~ m{^\%(\w) (A\d+)\s+(.*)};
-    $code    = $1 || "";
-    $aseqno  = $2 || "";
-    $content = $3 || "";
-    if (0) {
-    } elsif ($code eq "S") { # DATA
-        $comt = "";
-    } elsif ($code eq "O") { # OFFSET
-        $content =~ m{(\-?\d+)(\,\d*)?};
-        $offset1 = $1 || "0";
-        my $form2 = $form;
-        if (length($comt) > 0) {
-            print join("\t", $aseqno, $comt, $offset1, $form) . "\n";
-        }
-        $oseqno = $aseqno;
-        $form = "";
-    } elsif ($code =~ m{[FNpto]}) { # FORMULA, NAME, Maple, Mathematica, PROG
-        if ($content =~ m{[Hh]yper[Gg]eom|\dF\d[\(\[\{]}) {
-            $form = $content;
-            # $form =~ s{\s}{}g;
-            # $form =~ s{\*\*}{\^}g; # exponentiation
-            # $form =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
-            $comt = "hyper";
-        }    
+    if ($line =~ m{[Hh]yper[Gg]eom|\dF\d[\(\[\{]}) {
+        $line =~ s/\s+\Z//; # chompr
+        $line =~ m{^(.\w) (A\d+)\s+(.*)}; # may be "%" or "#"
+        $code    = $1 || "";
+        $aseqno  = $2 || "";
+        $content = $3 || "";
+        print join("\t", $aseqno, "$code $content") . "\n";
     } else {
         # ignore
     }
@@ -106,3 +88,36 @@ _Wolfdieter Lang_, Jan 13 2012
 Functions</a>, arXiv:1402.2361 [math.CO], 2014.
 %H A000110 Feng Qi, <a href="https://www.researchgate.net/profile/Feng_Qi/publication/279750659">On sum of the Lah numbers and zeros of
  confluent hypergeometric function</a>, 2015.
+ 
+ while (<>) {
+    $line = $_;
+    $line =~ s/\s+\Z//; # chompr
+    $line =~ m{^.(\w) (A\d+)\s+(.*)}; # may be "%" or "#"
+    $code    = $1 || "";
+    $aseqno  = $2 || "";
+    $content = $3 || "";
+    if (0) {
+    } elsif ($code eq "S") { # DATA
+        $comt = "";
+    } elsif ($code eq "O") { # OFFSET
+        $content =~ m{(\-?\d+)(\,\d*)?};
+        $offset1 = $1 || "0";
+        my $form2 = $form;
+        if (length($comt) > 0) {
+            print join("\t", $aseqno, $comt, $offset1, $form) . "\n";
+        }
+        $oseqno = $aseqno;
+        $form = "";
+    } elsif ($code =~ m{[FNpto]}) { # FORMULA, NAME, Maple, Mathematica, PROG
+        if ($content =~ m{[Hh]yper[Gg]eom|\dF\d[\(\[\{]}) {
+            $form = $content;
+            # $form =~ s{\s}{}g;
+            # $form =~ s{\*\*}{\^}g; # exponentiation
+            # $form =~ tr{\[\]\{\}}{\(\)\(\)}; # square or curly brackets -> round brackets
+            $comt = "hyper";
+        }    
+    } else {
+        # ignore
+    }
+} # while <>
+#--------------------------------------------

@@ -200,7 +200,7 @@ sub extract_from_json { # read JSON of 1 sequence
     %xhash = (); # bits 1: in xrefs, bit 0: elsewhere
     foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\A\s*\"}) { # ignore closing brackets ], ] }
-            if ($in_prog && $do_prog) { # accumulate records for asprog
+            if ($in_prog > 0 && $do_prog) { # accumulate records for asprog
                 # print STDERR "$aseqno $prog_buffer\n";
             }
             $in_prog = 0; # but terminate prog mode
@@ -367,11 +367,12 @@ sub accumulate_programs {
     my $curno = 1;
     for (my $iblk = 1; $iblk < scalar(@blocks); $iblk ++) {
         my $block = $blocks[$iblk];
+        print "# $aseqno block: $block\n";
         if (0) {
-        } elsif ($block eq "(Maple)") {
+        } elsif ($block =~ m{\(Maple\)}) {
             $block =~ s{[\(\)]}{}g;
             $lang = lc($block);
-        } elsif ($block eq "(Mathematica)") {
+        } elsif ($block =~ m{\(Mathematica\)}) {
             $block =~ s{[\(\)]}{}g;
             $lang = "mma";
         } elsif ($block =~ s{$prog_sep\(([A-Za-z]+)[^\)]*\)}{$prog_sep}) { # other language

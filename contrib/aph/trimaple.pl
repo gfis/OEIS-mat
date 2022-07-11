@@ -64,7 +64,7 @@ import irvine.oeis.triangle.Triangle;
 public class A075196 extends Triangle {
 
   /** Construct the sequence. */
-  public A075196 () {
+  public A075196() {
     super(1, 1, -1);
     hasRAM(true);
   }

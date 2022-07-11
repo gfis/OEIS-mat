@@ -3,6 +3,7 @@
 # OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
 # [^\w\s\.\,\;\:\(\)\[\]\{\}\<\>\!\"\$\%\&\/\+\^\-\*\=\'\#\\\?\|\~\`öńáőωŁéü°øå≀è\@…\´ä\’∈î]
+# 2022-07-05: asinfo_{loda|pari}
 # 2022-06-21: old poeis -> noeis, new poeis for OEIS-prog
 # 2022-06-16: asprog
 # 2022-03-01: bfimer
@@ -60,20 +61,9 @@ delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #==============================
 bulk_lists:
-	cat allocb_check.txt \
-		asdata_check.txt \
+	cat asdata_check.txt \
 		asdir_check.txt  \
 		asname_check.txt \
-		bad_check.txt    \
-		bfdata_check.txt \
-		bfdir_check.txt  \
-		bfsize_check.txt \
-		offset_check.txt \
-		syntha_check.txt \
-		synthb_check.txt \
-		synthc_check.txt \
-		synthd_check.txt \
-		synthe_check.txt \
 		terms_check.txt  \
 		fetch_list.man   \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
@@ -81,19 +71,9 @@ bulk_lists:
 	wc -l bulka.txt
 	rm -vf fetch_list.man
 	touch  fetch_list.man
-	cat allocb_check.txt \
-		asdata_check.txt \
-		asname_check.txt \
-		bad_check.txt    \
-		bfdata_check.txt \
+	cat bfdata_check.txt \
 		bfdir_check.txt  \
 		bfsize_check.txt \
-		offset_check.txt \
-		syntha_check.txt \
-		synthb_check.txt \
-		synthc_check.txt \
-		synthd_check.txt \
-		terms_check.txt  \
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulkb.txt
 	wc -l bulk?.txt
@@ -197,7 +177,7 @@ binfos: bfdata bfinfo
 herlin: herscp aloads bloads checks
 herscp: 
 	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
-aloads: asdata_load asinfo_load asname_load asprog_load asxref_load 
+aloads: asdata_load asinfo_load asname_load asprog_load asxref_load asinfo_loda asinfo_pari
 bloads: bfdata_load bfimer_load bfdir_load 
 #--------
 asdata: # parameter: DIR
@@ -271,6 +251,15 @@ asinhp: # special extract: aseqno, offset1, keyword(cons|table)  for H.P.
 	wc -l    $@.txt
 	# set REMOTE= !
 	scp      $@.txt gfis@$(REMOTE):/var/www/html/teherba.org/OEIS-mat/common/asinhp.txt
+#----
+asinfo_loda:
+	$(DBAT) "UPDATE asinfo i SET program = program || 'L' \
+	  WHERE i.aseqno IN (SELECT aseqno FROM loda) \
+	    AND i.program NOT LIKE '%L%';"
+asinfo_pari:
+	$(DBAT) "UPDATE asinfo i SET program = program || 'G' \
+	  WHERE i.aseqno IN (SELECT aseqno FROM poeis WHERE lang = 'pari') \
+	    AND i.program NOT LIKE '%G%';"
 #--------
 asxref: # parameter DIR: table for crossreferences
 	make asxref_extract DIR=.
@@ -354,14 +343,17 @@ bfdata_uniq:
 	>        $@.tmp
 	head -n4 $@*.tmp
 	wc -l    $@*.tmp
+bfwidth:
+	find bfile -iname "b*.txt" | xargs -l wc -L > $@.txt
+	cut -f1 $@.txt | sort -nr | head -n2000     > $@.sortr.tmp
 #--------
 list: joeis_list
 joeis_list: joeis_local joeis_pull joeis_jar joeis_reload
 joeis_local:
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt
-	# cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; cmd /c pause ; ant jar
+	# cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; cmd /c pause ; ant compile-internal jar
 joeis_pull:   # refresh remote and local
-	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant jar'
+	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant compile-internal jar'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 joeis_jar:
 	scp gfis@$(REMOTE):work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/
@@ -395,6 +387,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
+	cp -v    $@.txt $@.tmp
 joeis_ofter: # A-numbers in jOEIS with offset and first ~7 reliable terms
 	$(DBAT) -x "SELECT i.aseqno, i.offset1, i.terms \
 	FROM  asinfo i INNER JOIN joeis j ON i.aseqno = j.aseqno \

@@ -1,6 +1,7 @@
 #!make
 
-# makefile for OEIS-mat/contrib/hardin - base k circular numbers ... difference at most d
+# makefile for OEIS-mat/contrib/rh (R. Hardin)
+# base k circular numbers ... difference at most d
 # @(#) $Id$
 # 2021-04-08, Georg Fischer
 
@@ -101,7 +102,8 @@ rhlist: # select Hardin's sequences
 	wc   -l  $@.tmp
 stat:
 	wc -l rhlist.tmp
-	grep -vP "\tnull\t" rhlist.tmp | wc -l
+	grep -vP "\tnull" rhlist.tmp | wc -l
+	grep  -P "\tnull" rhlist.tmp | wc -l
 #----------------
 parts: parts1 parts2 # A159355 Number of n X n arrays of squares of integers summing to 4.
 	mv -v parts2.tmp $@.tmp
@@ -120,3 +122,13 @@ parts2:
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc   -l  $@.tmp
+#--------------------------------
+# A151633	Sequence	0	1..200	Number of permutations of 3 indistinguishable copies of 1..n with exactly 3 adjacent element pairs in decreasing order.
+A151633:
+	grep -P "permutations of \d+ indist" rhlist.tmp | grep decreasing | grep -vP "circle|Holon" \
+	| perl -ne 'use strict; my $$line = $$_; my $$aseqno = substr($$line, 0, 7); '\
+	' if (m{(\d+) indistinguishable copies of 1\.\.n with exactly (\d+)}) {'\
+	' my ($$copies, $$pairs) = ($$1, $$2); print join("\t", $$aseqno, "parmof3", 0, "A151633", $$copies, $$pairs) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
+#--------------------------------

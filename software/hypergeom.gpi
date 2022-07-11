@@ -1,0 +1,91 @@
+/* -*- gp-script -*- */
+\\% Hypergeometric functions
+\\% Usage: hypergeom_sym([a1,a2,a3,...],[b1,b2,b3,...],x,n)
+\\%  to compute the sum of the first n terms.
+\\ Author: Joerg Arndt
+\\ License: GPL version 3 or later
+\\ online at http://www.jjj.de/pari/
+\\ version: 2021-November-30 (11:27)
+
+
+poch(a,n)=prod(j=0,n-1,a+j);
+
+hyper_num(pv, z, N)=
+{ \\ numerator of ratio between N-th and (N-1)-st term
+    my(r);
+    if ( 0>=N, return( 1 ) );
+    r = prod(j=1,length(pv),(pv[j]+N-1)) * z;
+    return( r );
+} /* ----- */
+
+hyper_den(qv, N)=
+{ \\ denominator of ratio between N-th and (N-1)-st term
+    my(r);
+    if ( 0>=N, return( 1 ) );
+    r = prod(j=1,length(qv),(qv[j]+N-1)) * N;
+    return( r );
+} /* ----- */
+
+
+hyper_rat(pv,qv, z, N)=
+{ \\ ratio between N-th and (N-1)-st term
+    my(r);
+    if ( 0>=N, return( 1 ) );
+    r = prod(j=1,length(pv),(pv[j]+N-1)) * z;
+    if ( 0==r, return(0) );
+    r /= prod(j=1,length(qv),(qv[j]+N-1)) * N;
+    return( r );
+} /* ----- */
+
+
+hyper_term(pv,qv, N, z)=
+{ \\ N-th term
+    my(p);  p = 1;
+    for (k=1, N, p *= hyper_rat(pv,qv, z, k); );
+    return( p );
+} /* ----- */
+
+
+hypergeom_sym(pv,qv,z, N=33)=
+{ \\ symbolic evaluation
+    my(p, s, r);
+    p = 1;  s = 1;
+    for (k=1, N,
+        r = hyper_rat(pv,qv, z, k);
+        if ( 0==r, return(s) );
+        p *= r;
+        s += p;
+    );
+    return( s );
+} /* ----- */
+
+
+hypergeom_fp(pv,qv,z, eps=0.1^25)=
+{ \\ float evaluation
+    my(p, s);
+    p = 1;  s = 1;
+    for (k=1, 3333,
+        p *= hyper_rat(pv,qv, z, k);
+        s += p;
+        if ( abs(p)<eps, break() );
+    );
+    return( s );
+} /* ----- */
+
+
+printhyper(pv,qv,z, N)=
+{ \\ TeX printing
+    my(den, num);
+    for (k=1, N,
+        num = hyper_num(pv,z,k);
+        print1(" +\\left[1+\\frac{", num ,"}");
+        den = hyper_den(qv,k);
+        print1("{", den,"}");
+\\        print1(" % ", factor(num));
+        print();
+    );
+    return( );
+} /* ----- */
+
+
+\\ ==== end of file ====

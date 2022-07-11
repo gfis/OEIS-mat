@@ -27,37 +27,37 @@ help:
 # general targets
 
 checks: \
-	allocb_check \
 	asdata_check \
-	asdir_check  \
 	asname_check \
 	bad_check    \
 	bfdata_check \
 	bfdir_check  \
 	bfsize_check \
-	cojec_check  \
 	cons_check   \
-	denom_check  \
-	guide_check  \
 	lead0_check  \
 	listasc_check\
 	nxinc_check  \
-	nydone_check \
-	nydsdb_check \
 	offset_check \
-	off_a0_check \
-	order_check  \
-	radata_check \
-	rbdata_check \
 	sign_check   \
 	synth_check  \
 	terms_check  \
-	uncat_check  \
 	eval_checks  \
 	html_checks
 #
+#	allocb_check \
+#	asdir_check  \
 #	bfdata_check \
 #	brol_check   \
+#	cojec_check  \
+#	denom_check  \
+#	guide_check  \
+#	nydone_check \
+#	nydsdb_check \
+#	off_a0_check \
+#	order_check  \
+#	radata_check \
+#	rbdata_check \
+#	uncat_check  \
 #
 clean_checks:
 	rm -f *_check.txt *_check.htm*
