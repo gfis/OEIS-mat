@@ -26,7 +26,7 @@ REMDIR=~/work/gits/OEIS-mat/holrec
 REMOTE=$(SERVER):$(REMDIR)
 
 all:
-	echo select specific target 
+	echo select specific target
 # rectab recuf
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
 #===============================================
@@ -96,7 +96,7 @@ bincoef2:
 	| perl -ne 's/\[\]/\[0\]/g; print; '\
 	>        $@.gen
 	tail -n4 $@.gen
-	wc -l    $@.gen	
+	wc -l    $@.gen
 #----
 holtabs:
 	$(DBAT) -f holrec.create.sql
@@ -116,11 +116,11 @@ holjoeis1:
 		FROM joeis \
 		WHERE superclass IN $(GENSEQ) \
 		GROUP BY superclass \
-		ORDER BY 1" 
+		ORDER BY 1"
 	$(DBAT) -x "SELECT COUNT(superclass), 'generated total' \
 		FROM joeis \
 		WHERE superclass IN $(GENSEQ) \
-		ORDER BY 1" 
+		ORDER BY 1"
 #----
 jlist:
 	cut -b1-7 holjoeis.tmp | xargs -l -i{} cmd /c jo {}
@@ -192,9 +192,9 @@ greprec3: # convert the formulae into P-finite recurrences
 	| perl -ne 's/\[\]/\[0\]/g; print; '\
 	>        $@.gen
 	head -n4 $@.gen
-	wc -l    $@.gen	
+	wc -l    $@.gen
 #--------------------------------
-aphrec: aphrec1 aphrec2 aphrec3 
+aphrec: aphrec1 aphrec2 aphrec3
 aphrec1: # grep recurrences from APH's Maple programs
 	grep -E "^%p" $(COMMON)/jcat25.txt \
 	| grep -P -A16 "a *\:\= *proc\(n\) *(option *remember[\;\:])?" \
@@ -231,7 +231,7 @@ aphrec5: # process the manual converted ones
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
-recman: recman1 recman2 
+recman: recman1 recman2
 recman1:
 	perl recman.pl recman.man \
 	>        $@.tmp
@@ -270,7 +270,7 @@ holminit: # LIST=,ADD=... ; replace initial terms for a holonomic matrix; MATRIX
 	| perl holminit.pl -a $(ADD) \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp	
+	wc -l    $@.tmp
 #----------------
 holfsig:
 	grep -iE "^%H" $(COMMON)/jcat25.txt | grep "Index entries for linear recurrences with constant coefficients" \
@@ -312,11 +312,11 @@ holdfin1:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
-holdfin2: 
+holdfin2:
 	make holdfing LIST=holdfin1.tmp
 #--
 holdfing: # generally useable
-	make seq4 
+	make seq4
 	$(DBAT) -x "SELECT s.aseqno, s.callcode, i.offset1, s.parm1, s.parm2, s.parm3, s.parm4, s.parm5 \
 	  FROM seq4 s, asinfo i \
 	  WHERE s.aseqno = i.aseqno \
@@ -358,7 +358,7 @@ hyper3:
 sqrtext: sqrtext1 sqrtext2 # extract rat.gf.s with sqrt()
 	make holminit LIST=sqrtext2.tmp
 	cp -v holminit.tmp $@.gen
-sqrtext1: # 2nd grep has bracketting problems 
+sqrtext1: # 2nd grep has bracketting problems
 	grep -E "^\%[NF]" $(COMMON)/jcat25.txt | grep -Pi "sqrt|\^\(\-?\d\/\d\)" \
 	| grep -vE "A098474|A097610|A101275|A102625|A109979|A110319|A126179|A126186|A278297" \
 	| grep -vE "A132885" \
@@ -374,7 +374,7 @@ sqrtext2:
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
 #--------
-gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4 
+gfsqrt: gfsqrt1 gfsqrt2 gfsqrt3 gfsqrt4
 gfsqrt1: # extract all polynomials from m/sqrt(poly)
 	grep -E "^[\%]" $(COMMON)/jcat25.txt | grep -i sqrt \
 	| perl gfsqrt_grep.pl \
@@ -393,7 +393,7 @@ gfsqrt2: # convert polynomials to vectors
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-gfsqrt3: # generate matrix and initerms 	
+gfsqrt3: # generate matrix and initerms
 	perl gfsqrt_holrec.pl gfsqrt2.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -536,7 +536,7 @@ homegf1:
 	>        $@.hr.tmp \
 	2>       $@.lr.tmp
 	head -n4 $@.hr.tmp
-	wc -l    $@*.tmp 
+	wc -l    $@*.tmp
 homegf2:
 	cat homegf1.hr.tmp \
 	| grep -vE "A094036|A049214|A055887|A089277|A114584|A132885|A133886|A134424|A174193|A181331|A182015|A187260|A202081|A271940|A273347|A323988" \
@@ -567,7 +567,7 @@ homexx:
 	| grep -vE "A071213|A094036|A097591|A117437|A123125|A144186|A145880|A162508|A174846|A176118|A186363|A193542|A202081|A200560|A242240|A240559|A253282|A275385|A307419" \
 	| grep -vE "A097592|A124498|A145881|A242817|A247075|A295794|A302200|A302201" \
 	| sort | uniq -w7 \
-	# 
+	#
 homegf3:
 	cat homegf2.tmp \
 	| perl -ne 'use strict; my @parms = split(/\t/); if ($$parms[3] !~ m{[^ak0-9\(\)\+\-\*]}) { '\
@@ -579,7 +579,7 @@ homegf3:
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
 #--------
-hiter: hiter1 hiter2 hiter3 
+hiter: hiter1 hiter2 hiter3
 hiter1:
 	perl hiterate.pl -n 8 \
 	| $(HOLT) -n 8 -f - \
@@ -603,10 +603,10 @@ hiter3:
 hiter4:
 	perl hiteval.pl hiter1.tmp \
 	| grep -v "#" \
-	| tee    $@.tmp 
+	| tee    $@.tmp
 	wc -l    $@.tmp
 #--------
-hiteval1: 
+hiteval1:
 	sort -V hiteval.*.txt  | uniq     > $@.sort.tmp
 	cut -b1-7  $@.sort.tmp | uniq -c  > $@.uniqc.tmp
 	cat        $@.sort.tmp | uniq -w7 > $@.uniq.tmp
@@ -625,7 +625,7 @@ unsure4:
 hiter2slow:
 	$(DBAT) -f $(FISCHER)/seq4.create.sql
 	cat      hiter1.tmp \
-	| $(DBAT) -m csv -r seq4 
+	| $(DBAT) -m csv -r seq4
 	$(DBAT) -4 seq4
 	$(DBAT) -n seq4
 hiter3slow:
@@ -651,7 +651,7 @@ maplass0:
 	  ORDER BY 1;" \
 	| tee    $@.1.tmp
 maplass1:
-	cd $(FISCHER) ; make anaload 
+	cd $(FISCHER) ; make anaload
 	$(DBAT) -x "SELECT a.callcode, 'maplas', 0, n.name FROM seq4 a, asname n \
 	  WHERE a.callcode = n.aseqno \
 	  AND   a.aseqno IN (SELECT a2.aseqno FROm seq4 a2, seq s WHERE s.aseqno = a2.callcode) ORDER BY 1;" \
@@ -726,8 +726,24 @@ sq5:
 	wc -l    $@.tmp
 #	perl -ne "print if m{\A\%F\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \
 #----
+rectoproc0:
+	grep -E "^%p " $(COMMON)/jcat25.txt \
+	| grep rectoproc \
+	| uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+rectoproc:
+	grep -E "^A[0-9]" rectoproc.man \
+	| head -n99999 \
+	| perl rectoproc.pl \
+	| uniq -w 7 \
+	| tee    $@.tmp
+	# head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
 rectab: recma recurr rectab2 rectab3 rectab4
-rectab2: recma5     recur5 
+rectab2: recma5     recur5
 	sort recma5.tmp recur5.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -737,7 +753,7 @@ rectab3:
 	| grep -vE "\-256" \
 	| grep -vE ",," \
 	| grep -vE "=" \
-	>        $@.tmp
+	>        $@.tmp || :
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 rectab4:
@@ -766,7 +782,7 @@ recma3:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-recma4: 
+recma4:
 recma5:
 	perl rectab.pl -d $(D) recma3.tmp \
 	>        $@.tmp
@@ -775,7 +791,7 @@ recma5:
 #--
 recurr: recur1 recur2 recur3 recur4 recur5
 recur1:
-	grep -E "^%F A[0-9]* Recurrence\:" $(COMMON)/cat25.txt \
+	grep -E "^%F A[0-9]* Recurrence\:" $(COMMON)/jcat25.txt \
 	| perl -pe "\
 	s/^...//; \
 	s/ /\t/; \
@@ -854,7 +870,7 @@ matfin2:
 	grep -vE "^#" matfin.man > $@.tmp || :
 	cut -b1-7 $@.tmp \
 	| grep -vE "^ *$$" > grep.tmp || :
-	echo A000000 > grep.tmp 
+	echo A000000 > grep.tmp
 	echo > $@.tmp
 	  # Caution, 2 lines before invalidate matfin.man
 	grep -vf grep.tmp recuf7.tmp \
@@ -862,7 +878,7 @@ matfin2:
 	cat $@.tmp >> $(FISCHER)/holos.gen
 	wc -l         $(FISCHER)/holos.gen
 #--------
-# from http://www.mpia.de/~mathar/public/fischer20200119.pdf
+# from http://www.mpia.de/~mathar/public/fischer20200119.pdf resp. https://arxiv.org/abs/2109.02112
 matpap: matpap1 recuf_rest
 matpap1:
 	EX=ex
@@ -928,7 +944,13 @@ recuf7:
 	wc -l    $@.tmp
 #--------
 njoeis: # LIST
-	make -f $(COMMON)/makefile seq 
+	make -f $(COMMON)/makefile seq
 	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq \
 	WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
 #======================================================
+hyperext:
+	grep -E "holon" $(FISCHER)/holref.txt \
+	| perl   hyperext.pl \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp

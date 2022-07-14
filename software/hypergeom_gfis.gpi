@@ -88,26 +88,20 @@ printhyper(pv,qv,z, N)=
     return( );
 } /* ----- */
 
-hyperholo(pv, qv, z)=
-{ \\ hyperholo([1/3, 1/2, 1/2], [1, 1], 144*x)
+hyperhol(aseqno, pv, qv, z)=
+{ \\ hyperhol(A268549, [1/3, 1/2, 1/2], [1, 1], 144*x)
   my(gcd2, num, den, c, vn, vd);
   c = polcoeff(z,1,x);
   num = prod(j=1,length(pv),(pv[j]+N-1)) * c;
   den = prod(j=1,length(qv),(qv[j]+N-1)) * (-N);
-  /*
   lcm2 = lcm(denominator(pv), denominator(qv));
-  print("lcm2=", lcm2);
-  num = num * lcm2;
-  den = den * lcm2;
-  print("num=", num);
-  print("den=", den);
-  */
   vn = vector(poldegree(num)+1, i, polcoeff(num * lcm2, i-1, N));
   vd = vector(poldegree(den)+1, i, polcoeff(den * lcm2, i-1, N));
   gcd2 = gcd(gcd(vn), gcd(vd));
   vn = vn / gcd2;
   vd = vd / gcd2;
-  print("make runholo MATRIX=\"[[0],", vn, ",", vd, "]\" INIT=\"1\"");
-} /* ---- */
+  print(aseqno, "\tholos\t0\t[[0],", vn, ",", vd, "]\t\1\t0\t0");
+  print("make runholo A=", aseqno, " MATRIX=\"[[0],", vn, ",", vd, "]\" INIT=\"1\"");
+}
 
 \\ ==== end of file ====

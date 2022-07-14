@@ -24,6 +24,7 @@ holrec:=proc(ope); local aseqno, offset, re, matrix, instr, dist, gftype, inits,
   printf("%a\tholos\t%a\t%s\t%s\t%a\t%a\t%s\n", aseqno              , offset, matrix, instr, dist, gftype, remark);
   printf("# make runholo OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", offset, matrix, instr, dist);
   end:
-# holrec(A120594,0,-89*(n-2)*(n-1)*n+588*(n-1)*(n-2)*(2*n-3)*A+28*(n-2)*(48*n^2-192*n+187)*A^2+16*(4*n-7)*(2*n-5)*(4*n-13)*A^3,[1,2,6],"a(n)");
+# a(n) -> A^0; a(n-1) -> A; a(n-2) -> A^2 ...
+# holrec(-89*(n-2)*(n-1)*n+588*(n-1)*(n-2)*(2*n-3)*A+28*(n-2)*(48*n^2-192*n+187)*A^2+16*(4*n-7)*(2*n-5)*(4*n-13)*A^3);
 
 timelimit($(TIMEOUT), holdfin($(PARM0), $(PARM2), $(PARM3), [$(PARM4)], "$(PARM7)"));

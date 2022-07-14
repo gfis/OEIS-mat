@@ -18,7 +18,7 @@
 # C:\Program Files\Java\jdk1.8.0_172\bin
 #---------------------------------
 GITS=../..
-DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
+DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 SLEEP=16
 DUMPS=../dumps
 HEAD=8
@@ -77,31 +77,33 @@ bulk_lists:
 	| grep -Ev "^#" | cut -b1-7 | sort | uniq \
 	>     bulkb.txt
 	wc -l bulk?.txt
+	uedit64 bulkb.txt
+	cmd /c pause
 	#### now copy bulk?.txt to the Linux machine
 #---------
 history: # Fetch new or recently changed JSONs
 	make    history1
-	make    history2  DIR=bulk KEYWORD=new       MAX=$(NMAX) 
-	make    history2  DIR=bulk KEYWORD=changed   MAX=$(CMAX) 
-	make    history2  DIR=bulk KEYWORD=recycled  MAX=$(NMAX) 
-	make    history2  DIR=bulk KEYWORD=allocated MAX=$(CMAX) 
+	make    history2  DIR=bulk KEYWORD=new       MAX=$(NMAX)
+	make    history2  DIR=bulk KEYWORD=changed   MAX=$(CMAX)
+	make    history2  DIR=bulk KEYWORD=recycled  MAX=$(NMAX)
+	make    history2  DIR=bulk KEYWORD=allocated MAX=$(CMAX)
 	make    history3  DIR=bulk
 	make    bulk_type DIR=bulk TYPE=bfile LIST=bulkb.txt
 	make    history4  DIR=bulk
 	make    history5  DIR=bulk
 #--
 hinlin0: # estimate NMAX; CMAX
-	ping -c2 $(REMOTE) 
+	ping -c2 $(REMOTE)
 	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
-	| grep -E "\"time\"" | sort 
+	| grep -E "\"time\"" | sort
 	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \
-	| grep -E "\"time\"" | sort 
+	| grep -E "\"time\"" | sort
 	ls -la ??????.txt
 history0: # get new and changed JSONs, expand blocks, and get b-files
 	wget -q -O - "https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=$(NMAX)"      \
-	| grep -E "\"time\"" | sort 
+	| grep -E "\"time\"" | sort
 	wget -q -O - "https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=$(CMAX)" \
-	| grep -E "\"time\"" | sort 
+	| grep -E "\"time\"" | sort
 history1: # prepare directories
 	rm -rf  bulk
 	mkdir   bulk
@@ -140,7 +142,7 @@ bulk_type:
 	perl   aseq_wget.pl -t $(TYPE) -n 8 -o $(DIR)/$(TYPE) $(LIST) > wget.$(TYPE).tmp
 	cat    wget.$(TYPE).tmp | xargs -l -i{} make bulk_$(TYPE)1 PARM={}
 bulk_ajson1:
-	wget   -O $@.tmp      "$(PARM)" 
+	wget   -O $@.tmp      "$(PARM)"
 	perl   split_json.pl -d $(D) -o $(DIR) $@.tmp
 	sleep  $(SLEEP)
 bulk_bfile1:
@@ -151,7 +153,7 @@ bulk_bfile1:
 hinlin: hinlin1 hinlin2 hinlin3
 hinlin1:
 	cd ../pull ; make
-hinlin2: 
+hinlin2:
 	make bulk_lists # prepare synthesized b-files and fetch lists for the Linux machine
 	rm -rf  bfsynth
 	cat     synthg_check.txt >> synthe_check.txt
@@ -166,19 +168,19 @@ hinlin3:
 daily:
 	time make unpack_bfsynth history infos
 #--
-infos:  
+infos:
 	make ainfos DIR=.
 	make binfos DIR=.
 #----
 ainfos: asdata asinfo asname asprog asxref
-binfos: bfdata bfinfo 
+binfos: bfdata bfinfo
 #----
 # process after data extraction on Linux
 herlin: herscp aloads bloads checks
-herscp: 
+herscp:
 	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
 aloads: asdata_load asinfo_load asname_load asprog_load asxref_load asinfo_loda asinfo_pari
-bloads: bfdata_load bfimer_load bfdir_load 
+bloads: bfdata_load bfinfo_load bfdir_load
 #--------
 asdata: # parameter: DIR
 	perl extract_info.pl -asr $(DIR)/ajson > $@.txt
@@ -238,7 +240,7 @@ asinfo_load:
 	$(DBAT) -n                  asinfo
 asinfo_update:
 	wc -l       $(LIST)
-	make delseq $(LIST)     TAB=asinfo 
+	make delseq $(LIST)     TAB=asinfo
 	$(DBAT) -m csv -s "\t" -r   asinfo < $(LIST)
 	$(DBAT) -4                  asinfo
 	$(DBAT) -n                  asinfo
@@ -304,7 +306,7 @@ bfinfo_load:
 	$(DBAT) -n bfinfo
 bfinfo_update:
 	wc -l       $(LIST)
-	make delseq $(LIST)   TAB=bfinfo 
+	make delseq $(LIST)   TAB=bfinfo
 	$(DBAT) -m csv -s "\t" -r bfinfo < $(LIST)
 	$(DBAT) -4                bfinfo
 	$(DBAT) -n                bfinfo
@@ -363,7 +365,7 @@ joeis_pullloc: # refresh local önly
 	make joeis_reload
 joeis_reload: joeis_load joeis_ofter joeis_ofdec \
 	joeis_stamp joeis_ccanloc joeis_update joeis_eval joeis_count joeis_rest
-joeis_rest: joeis_names jcat25 joeis_analog joeis_progress 
+joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -388,7 +390,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	head -n4 $@.txt
 	wc -l    $@.txt
 	cp -v    $@.txt $@.tmp
-joeis_ofter: # A-numbers in jOEIS with offset and first ~7 reliable terms
+joeis_ofter: # A-numbers in jOEIS with offset1 and first ~7 reliable terms
 	$(DBAT) -x "SELECT i.aseqno, i.offset1, i.terms \
 	FROM  asinfo i INNER JOIN joeis j ON i.aseqno = j.aseqno \
 	ORDER BY 1" \
@@ -423,7 +425,7 @@ joeis_progress:
 	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 \
 	    );" \
 	>>        $@.txt
-	tail -n16 $@.txt 
+	tail -n16 $@.txt
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,7) \
@@ -488,7 +490,7 @@ joeis_eval:
 jcat25:
 	perl jcat25.pl cat25.txt > $@.txt
 	wc -l cat25.txt $@.txt
-	cut -b1 $@.txt | sort | uniq -c 
+	cut -b1 $@.txt | sort | uniq -c
 #----------------
 corenice: core nice
 core:
@@ -525,7 +527,7 @@ joeis_block2:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-joeis_block3: 
+joeis_block3:
 	sed -e "s/\t/\#/g" joeis_block2.tmp \
 	| sort -t"#" -k3 -k2 -k5 -k4r -k1 \
 	| sed -e "s/\#/\t/g" \
@@ -638,7 +640,7 @@ uncat_prep:
 	grep -E "^A" uncat_diff.tmp | cut -f1 | sort \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp	
+	wc -l    $@.tmp
 uncat_down:
 	make bulk_type DIR=bulk TYPE=ajson LIST=uncat_prep.tmp
 	make history5
@@ -672,7 +674,7 @@ nydone: # populate the table from joeis/notdone.dat
 	| $(DBAT) -m csv -s "\t" -r nydone
 	$(DBAT) -4   nydone
 	$(DBAT) -n   nydone
-	
+
 #----
 nydone_sdb: # determine which are in sequencedb and in nydone
 	$(DBAT) "SELECT n.aseqno, s.si, s.mt, s.ix, n.info \

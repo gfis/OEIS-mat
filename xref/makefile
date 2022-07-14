@@ -59,7 +59,8 @@ reftabl:
 		ORDER BY 2 DESC" \
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
 #----------------
-LIST=../../joeis-lite/internal/fischer/partial_sum_stage2.out.ut
+# LIST=../../joeis-lite/internal/fischer/partial_sum_stage2.out.ut
+LIST=partial_sum_stage2.out
 noxref: # LIST= ; Sean 2022-06-23
 	$(DBAT) -f $(COMMON)/seq2.create.sql
 	sed -e "s/ /\t/" $(LIST) \
