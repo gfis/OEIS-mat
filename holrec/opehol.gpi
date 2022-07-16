@@ -13,6 +13,6 @@ opehol(A107786,0,-A^0-A^1+6*A^3,"[0,1,1]")
     if(ndeg==-oo,matrix[i+2]=[0],matrix[i+2]=vector(ndeg+1);for(j=0,ndeg,matrix[i+2][j+1]=polcoef(acoef,j,n)));
   );
   \\ print(matrix);
-  print(aseqno, "\tholos\t"offset1"\t\""matrix"\"\t\""init"\"\t0\t0");
-  print("make runholo A="aseqno" OFF="offset1" MATRIX=\""matrix"\" INIT=\""init"\"");
+  print(aseqno, "\tholos\t"offset1"\t"matrix"\t"init"\t0\t0");
+  print("make\trunholo\tA="aseqno"\tOFF="offset1"\tMATRIX=\""matrix"\"\tINIT=\""init"\"");
 }

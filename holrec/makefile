@@ -736,7 +736,7 @@ rectoproc0:
 rectoproc:
 	grep -E "^A[0-9]" rectoproc.man \
 	| head -n99999 \
-	| perl rectoproc.pl \
+	| perl rectoproc.pl 2>&1 \
 	| uniq -w 7 \
 	| tee    $@.tmp
 	# head -n4 $@.tmp
@@ -758,6 +758,14 @@ rectab3:
 	wc -l    $@.tmp
 rectab4:
 	$(JPREP) -d $(D) -f rectab3.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------
+cordrectab:
+	grep -E "^%[Ot]" $(COMMON)/jcat25.txt \
+	| perl cordrectab.pl \
+	| uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

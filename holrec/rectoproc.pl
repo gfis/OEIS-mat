@@ -11,19 +11,11 @@
 use strict;
 use integer;
 use warnings;
-my $version = "V1.1";
-my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
-        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
 my $debug  = 0;
-my $num    = 16; # generate from -num to +num
-my $seqno = 500000;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
-    } elsif ($opt  =~ m{n}) {
-        $num    = shift(@ARGV);
     } elsif ($opt  =~ m{d}) {
         $debug  = shift(@ARGV);
     } else {
@@ -43,8 +35,7 @@ while (<>) {
     $rec =~ s{\}}{};
     if ($rec =~ s{\,seq\(a\(\w\)\=\[([^\]]+)\]\[\w\]\,\w\=\d\.\.\d+\)}{}) {
         $init = $1;
-    }
-    {
+    } else {
         my @inits = ();
         # print "# \"$rec\"\n";
         #                     1   1    2      2
@@ -83,7 +74,9 @@ opehol($aseqno, $offset1, $matrix, "[$init]");
 quit;
 GFis
     close(GP);
-    print `gp -fq $tempname`;
+    my $result = `gp -fq $tempname`;
+    $result =~ s{\, }{\,}g; # not s{\s}{}g !
+    print $result;
 } # while <>
 __DATA__
 A221569	rectoproc	0	({a(n)=5*a(n-1)-3*a(n-2)+a(n-3)+15*a(n-4)+3*a(n-5),seq(a(i)=[0,17,59,289,1293,5913][i],i=1..6)},a(n), remember):
