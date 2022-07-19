@@ -16,9 +16,9 @@ use strict;
 use integer;
 use warnings;
 
-my $letters = "abcdefghijklmnopqrstuvwxyz"
-            . "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-my $order = 4;
+my $letters = "abcdefghjklmnopqrstuvwxyz"  # no "i" for Maple
+            . "ABCDEFGHJKLMNOPQRSTUVWXYZ";
+my $order = 2;
 my $debug = 0;
 my $cas = "pari";
 my $startn = 3;
@@ -44,23 +44,62 @@ my @a; # terms
 my $varno = 2*$order + 2;
 my $n;
 my ($aseqno, $callcode, $offset, $termlist);
-while (<DATA>) {
+my $tempfile = "hygsolve.tmp";
+while (<>) {
     s/\s+\Z//; # chompr
     next if ! m{\AA\d+};
     ($aseqno, $callcode, $offset, $termlist) = split(/\t/);
     @a = split(/\, */, $termlist);
-    my $prog;
-    if (0) {
-    } elsif ($cas eq "maple") {
-        $prog = &gen_maple();
-        print $prog;
-    } elsif ($cas eq "mma") {
-        $prog = &gen_mma();
-        print $prog;
-    } elsif ($cas eq "pari") {
-        $prog = &gen_pari();
-        print $prog;
-    }
+    pop(@a); # last was perhaps truncated
+    for (my $i = 0; $i < $offset; $i ++) {
+        unshift(@a, 0); # for offset > 0 prefix with zero(es)
+    } # for prefix
+    my $increasing = 1;
+    my $ia = 1; 
+    while ($increasing && $ia < scalar(@a)) {
+        if ($a[$ia - 1] >= $a[$ia]) {
+            $increasing = 0;
+        }
+        $ia ++;
+    } # while
+    if (0 or $increasing) {
+        my $prog;
+        if (0) {
+        } elsif ($cas eq "maple") {
+            $prog = &gen_maple();
+            print $prog;
+        } elsif ($cas eq "mma") {
+            $prog = &gen_mma();
+            print $prog;
+        } elsif ($cas eq "pari") {
+            $prog = &gen_pari();
+            open(PRO, ">", "$tempfile") || die "cannot write $tempfile";
+            print PRO $prog;
+            close(PRO);
+            # print $prog;
+            my $result = `gp -fq $tempfile`;
+            if ($result =~ s{\[\[[0\,\s]+\]\~\, *\[}{}) {
+                $result =~ s{\]\]\s+\Z}{}; #chompr
+                my $tlist = join(",", splice(@a, 0, $startn + 1));
+                if ($debug >= 1 && $result ne ";") {
+                    print "# $aseqno $result $tlist\n";
+                    # # A322288 4449, 0, 0; -710, 4449, 0; 0, -710, 4449; 0, 0, -710; -5159, 0, 0; 710, -5159, 0; 0, 710, -5159; 0, 0, 710]] 0,6,12,56,100,144,188,521,1231
+                }
+                $result =~ s{\-?\d+\, }{}g; # keep only the last solution column
+                $result =~ s{\; *}{\,}g;
+                my @rterms = split(/\,/, $result);
+                my @lterms = splice(@rterms, 0, $order + 1);
+                my $rlist = join(",", @rterms);
+                my $llist = join(",", @lterms);
+                if  (   $result ne "," 
+                    && ($result !~ m{\, })
+                    && ($rlist ne $llist)
+                    ) {
+                    print "make runholo OFF=$offset A=$aseqno MATRIX=\"[[0],[$llist],[$rlist]]\" INIT=\"$tlist\"\n";
+                }
+            }
+        }
+    } # if increasing
 } # while <>
 # end main
 #----
@@ -106,12 +145,13 @@ sub gen_pari() {
         my $eq = &gen_equation(",");
         $eq =~ s{[a-zA-Z]\*}{}g;
         my @elems = split(/\,/, $eq);
-        push(@vecs, pop(@elems));
+        push(@vecs, 0); # pop(@elems));
         $result .= "$sep " . join(",", @elems);
         $sep = ";"
     }
     $result .= "];\nVEC = [" . join(",", @vecs) . "]~;\n";
-    $result .= "print ($aseqno\"\\tsol\\t$offset\\t\", matsolve(MAT,VEC))\n";
+    $result .= "iferr(RES=matsolvemod(MAT,0,VEC,flag=1),E,RES=[]);\n";
+    $result .= "print(RES); quit()\n";
     return $result;
 } # gen_pari
 #--

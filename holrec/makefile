@@ -6,7 +6,7 @@
 # 2019-12-09, Georg Fischer: copied from ../linrec
 #---------------------------------
 GITS=../..
-DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
+DBAT=java   -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
 JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
 HOLT=$(RAMATH)   irvine.test.HolonomicRecurrenceTest
@@ -962,3 +962,31 @@ hyperext:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+hygsolve: hygsolve1 hygsolve2
+hygsolve1:
+	$(DBAT) -x "SELECT i.aseqno, 'hygsolve', i.offset1, SUBSTR(d.data,1,512) \
+	  FROM asinfo i, bfdata d, bfinfo b \
+	  WHERE i.aseqno = d.aseqno \
+	    AND d.aseqno = b.aseqno \
+	    AND i.offset1 >= 0 \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND b.bfimax >= 48 \
+	    AND d.termno >= 24 \
+	    AND NOT i.keyword LIKE '%dead%' \
+	    AND NOT i.keyword LIKE '%tab%' \
+	    AND NOT i.keyword LIKE '%cons%' \
+	  ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	#    AND b.decindex >= 32 \
+	#    AND SUBSTR(d.data, 1, 2) = '1,' \
+	#
+N=3
+hygsolve2:
+	perl hygsolve.pl -c pari -n $(N) -d $(D) -s 8 hygsolve1.tmp \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#----
+
