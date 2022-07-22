@@ -6,7 +6,7 @@
 #
 #:# Usage:
 #:#   perl hygsolve.pl -c {maple|mma|pari} [-n order] inout.seq4 > output.seq4
-#:#       -c CAS to be used (defualt: pari)
+#:#       -c CAS to be used (default: pari)
 #:#       -n order of n (default: 4)
 #:#       -s start number of first term (default: 3, counted from 1)
 #:#       input:  parm1 = data terms
@@ -80,17 +80,23 @@ while (<>) {
             my $result = `gp -fq $tempfile`;
             if ($result =~ s{\[\[[0\,\s]+\]\~\, *\[}{}) {
                 $result =~ s{\]\]\s+\Z}{}; #chompr
-                my $tlist = join(",", splice(@a, 0, $startn + 1));
+                my $tlist = join(",", splice(@a, $offset, $startn + 1));
                 if ($debug >= 1 && $result ne ";") {
                     print "# $aseqno $result $tlist\n";
-                    # # A322288 4449, 0, 0; -710, 4449, 0; 0, -710, 4449; 0, 0, -710; -5159, 0, 0; 710, -5159, 0; 0, 710, -5159; 0, 0, 710]] 0,6,12,56,100,144,188,521,1231
+                    # A322288 4449, 0, 0; -710, 4449, 0; 0, -710, 4449; 0, 0, -710; -5159, 0, 0; 710, -5159, 0; 0, 710, -5159; 0, 0, 710]] 0,6,12,56,100,144,188,521,1231
                 }
-                $result =~ s{\-?\d+\, }{}g; # keep only the last solution column
-                $result =~ s{\; *}{\,}g;
+                if (1) {
+                    $result = &select_column($result);
+                } else {
+                    $result =~ s{\-?\d+\, }{}g; # keep only the last solution column
+                    $result =~ s{\; *}{\,}g;
+                }
                 my @rterms = split(/\,/, $result);
                 my @lterms = splice(@rterms, 0, $order + 1);
                 my $rlist = join(",", @rterms);
                 my $llist = join(",", @lterms);
+                $rlist =~ s{(\, *0)+\Z}{};
+                $llist =~ s{(\, *0)+\Z}{};
                 if  (   $result ne "," 
                     && ($result !~ m{\, })
                     && ($rlist ne $llist)
@@ -102,6 +108,31 @@ while (<>) {
     } # if increasing
 } # while <>
 # end main
+#----
+sub select_column {
+    my ($list) = @_;
+    print 
+    my @vector = ();
+    my @rows = split(/\; */, $list);
+    my $nrow = scalar(@rows);
+    if ($nrow > 0) {
+        my $ncol = scalar(split(/\, */, $rows[0])) || 0;
+        for (my $icol = $ncol - 1; $icol >= 0; $icol --) {
+            @vector = ();
+            for (my $irow = 0; $irow < $nrow; $irow ++) {
+                my @row = split(/\, */, $rows[$irow]);
+                push(@vector, $row[$icol]);
+            } # for irow
+            if ($debug >= 2) {
+                print "vector[$icol]=[" . join(",", @vector) . "] ";
+            }
+        } # for icol
+        if ($debug >= 2) {
+            print "\n";
+        }
+    }
+    return join(",", @vector);
+} # select_column
 #----
 sub gen_maple() {
     my $result = "sys :=";

@@ -364,7 +364,7 @@ joeis_pullloc: # refresh local önly
 	cp -v $(JOEIS)/joeis_list.txt .
 	make joeis_reload
 joeis_reload: joeis_load joeis_ofter joeis_ofdec \
-	joeis_stamp joeis_ccanloc joeis_update joeis_eval joeis_count joeis_rest
+	joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
 joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
@@ -536,7 +536,7 @@ joeis_block3:
 	wc -l    $@.txt
 #--------
 cojec:
-	grep -Ei "Conjecture|Empirical"  cat25.txt | grep -E "Colin Barker" \
+	grep -Ei "Conjecture|Empirical"  cat25.txt \
 	| cut -b4-10 | uniq \
 	>        $@.tmp
 	$(DBAT) -f cojec.create.sql

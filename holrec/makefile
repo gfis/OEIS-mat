@@ -965,17 +965,19 @@ hyperext:
 #----
 hygsolve: hygsolve1 hygsolve2
 hygsolve1:
-	$(DBAT) -x "SELECT i.aseqno, 'hygsolve', i.offset1, SUBSTR(d.data,1,512) \
+	$(DBAT) -x "SELECT i.aseqno, 'hygsolve', i.offset1, d.data \
 	  FROM asinfo i, bfdata d, bfinfo b \
 	  WHERE i.aseqno = d.aseqno \
 	    AND d.aseqno = b.aseqno \
 	    AND i.offset1 >= 0 \
-	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
-	    AND b.bfimax >= 48 \
-	    AND d.termno >= 24 \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM holref) \
+	    AND b.bfimax >= 64 \
+	    AND b.maxlen >=  3 \
+	    AND d.termno >= 32 \
 	    AND NOT i.keyword LIKE '%dead%' \
 	    AND NOT i.keyword LIKE '%tab%' \
 	    AND NOT i.keyword LIKE '%cons%' \
+	    AND NOT i.keyword LIKE '%word%' \
 	  ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
