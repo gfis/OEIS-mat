@@ -80,29 +80,25 @@ while (<>) {
             my $result = `gp -fq $tempfile`;
             if ($result =~ s{\[\[[0\,\s]+\]\~\, *\[}{}) {
                 $result =~ s{\]\]\s+\Z}{}; #chompr
-                my $tlist = join(",", splice(@a, $offset, $startn + 1));
-                if ($debug >= 1 && $result ne ";") {
-                    print "# $aseqno $result $tlist\n";
+                if ($debug >= 3 && $result ne ";") {
+                    print "# $aseqno $result\n";
                     # A322288 4449, 0, 0; -710, 4449, 0; 0, -710, 4449; 0, 0, -710; -5159, 0, 0; 710, -5159, 0; 0, 710, -5159; 0, 0, 710]] 0,6,12,56,100,144,188,521,1231
                 }
-                if (1) {
-                    $result = &select_column($result);
-                } else {
-                    $result =~ s{\-?\d+\, }{}g; # keep only the last solution column
-                    $result =~ s{\; *}{\,}g;
-                }
-                my @rterms = split(/\,/, $result);
-                my @lterms = splice(@rterms, 0, $order + 1);
-                my $rlist = join(",", @rterms);
-                my $llist = join(",", @lterms);
-                $rlist =~ s{(\, *0)+\Z}{};
-                $llist =~ s{(\, *0)+\Z}{};
-                if  (   $result ne "," 
-                    && ($result !~ m{\, })
-                    && ($rlist ne $llist)
-                    ) {
-                    print "make runholo OFF=$offset A=$aseqno MATRIX=\"[[0],[$llist],[$rlist]]\" INIT=\"$tlist\"\n";
-                }
+                my @pair = &select_column($result);
+                if (scalar(@pair) == 2) {
+                    my $rlist = $pair[0];
+                    my $llist = $pair[1];
+                    $rlist =~ s{(\, *0)+\Z}{};
+                    $llist =~ s{(\, *0)+\Z}{};
+                    if  ($result ne ",") {
+                        my $tlist = join(",", splice(@a, $offset, $startn + 2));
+                        if ($debug >= 3 && $result ne ";") {
+                            print "# $aseqno $result $tlist\n";
+                            # A322288 4449, 0, 0; -710, 4449, 0; 0, -710, 4449; 0, 0, -710; -5159, 0, 0; 710, -5159, 0; 0, 710, -5159; 0, 0, 710]] 0,6,12,56,100,144,188,521,1231
+                        }
+                        print "make runholo OFF=$offset A=$aseqno MATRIX=\"[[0],[$llist],[$rlist]]\" INIT=\"$tlist\"\n";
+                    } # plausible result
+                } # scalar(pair) == 2
             }
         }
     } # if increasing
@@ -113,25 +109,34 @@ sub select_column {
     my ($list) = @_;
     print 
     my @vector = ();
+    my @pair = (); # pair of coefficients for a[n-1] and a[n-0]
     my @rows = split(/\; */, $list);
     my $nrow = scalar(@rows);
-    if ($nrow > 0) {
+    if ($nrow > 0) { # at least 1 row
+        if ($debug >= 2) {
+            print "#= " . join("\t", $aseqno, 'vect', $nrow, "");
+        }
         my $ncol = scalar(split(/\, */, $rows[0])) || 0;
-        for (my $icol = $ncol - 1; $icol >= 0; $icol --) {
+        for (my $icol = $ncol - 1; $icol >= 0; $icol --) { # keep first vector
             @vector = ();
             for (my $irow = 0; $irow < $nrow; $irow ++) {
                 my @row = split(/\, */, $rows[$irow]);
                 push(@vector, $row[$icol]);
             } # for irow
+            $pair[1] = join(",", splice(@vector, 0, $order + 1));
+            $pair[0] = join(",", splice(@vector, 0, $order + 1));
             if ($debug >= 2) {
-                print "vector[$icol]=[" . join(",", @vector) . "] ";
+                print "$icol:$pair[1]/$pair[0]; ";
             }
         } # for icol
         if ($debug >= 2) {
             print "\n";
         }
-    }
-    return join(",", @vector);
+        if ($pair[0] eq $pair[1]) {
+            @pair = ();
+        }
+    } # at least 1 row
+    return @pair;
 } # select_column
 #----
 sub gen_maple() {

@@ -19,6 +19,7 @@ HERE=../../../OEIS-mat/holrec
 MAXT=32
 COMMON=../common
 D=0
+OFF=0
 AINIT=0
 RTLEN=256
 SERVER=gfis@atair
@@ -31,7 +32,7 @@ all:
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
 #===============================================
 runholo:
-	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFFSET) -d $(D) -dist $(DIST)
+	$(HOLT) -n $(MAXT) -p "$(MATRIX)" -i "$(INIT)" -o $(OFF) -d $(D) -dist $(DIST)
 runbva:
 	$(BVA) -recur "$(REC)"
 #----------------
@@ -986,8 +987,9 @@ hygsolve1:
 	#    AND SUBSTR(d.data, 1, 2) = '1,' \
 	#
 N=3
+S=8
 hygsolve2:
-	perl hygsolve.pl -c pari -n $(N) -d $(D) -s 8 hygsolve1.tmp \
+	perl hygsolve.pl -c pari -n $(N) -d $(D) -s $(S) hygsolve1.tmp \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----

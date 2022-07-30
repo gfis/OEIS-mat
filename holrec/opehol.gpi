@@ -1,4 +1,5 @@
 \\ PARI opehol.gpi - convert an operator(A,n) into holon. recurrence parameters
+\\ 2022-07-29, Georg Fischer
 opehol(aseqno, offset1, ope, init)=
 { /*
 opehol(A289684, 0, n*A^0+2*(-4*n+3)*A^1+12*(n-2)*A^2+8*(2*n-3)*A^3, [1,2,9,42])
@@ -14,5 +15,5 @@ opehol(A107786,0,-A^0-A^1+6*A^3,"[0,1,1]")
   );
   \\ print(matrix);
   print(aseqno, "\tholos\t"offset1"\t"matrix"\t"init"\t0\t0");
-  print("make\trunholo\tA="aseqno"\tOFF="offset1"\tMATRIX=\""matrix"\"\tINIT=\""init"\"");
+  print("make runholo A="aseqno" OFF="offset1" MATRIX=\""matrix"\" INIT=\""init"\"");
 }

@@ -195,4 +195,34 @@ test1:
 	| tee    $@.tmp
 	grep -vE " 17" test1.tmp
 #================
+multest: multest0 multest1
+multest0:
+	$(DBAT) -x "SELECT d.aseqno, i.offset1, d.termno, b.bfimax, d.data \
+	    FROM asinfo i, bfdata d, bfinfo b \
+	    WHERE i.aseqno = d.aseqno \
+	      AND d.aseqno = b.aseqno \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+multest1:
+	perl multest.pl multest0.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	cut -f5  $@.tmp | sort -r | uniq -c
+multest2:
+	grep "mult30" multest1.tmp > $@.tmp
+	cd $(COMMON) ; make seq2 LIST=../eta/$@.tmp
+multest3:
+	$(DBAT) -x "SELECT i.aseqno, i.terms, i.author FROM asinfo i, seq2 s, bfinfo b \
+	WHERE i.aseqno = s.aseqno \
+	  AND s.aseqno = b.aseqno \
+	  AND i.keyword NOT LIKE '%mult%' \
+	  AND i.keyword NOT LIKE '%tab%' \
+	  AND b.maxlen >= 3 \
+	ORDER BY 1" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#----	
 

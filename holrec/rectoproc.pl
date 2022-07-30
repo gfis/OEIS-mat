@@ -39,11 +39,11 @@ while (<>) {
         my @inits = ();
         # print "# \"$rec\"\n";
         #                     1   1    2      2
-        while ($rec =~ s{\Aa\((\d+)\)\=(\-?\d+)\,}{}) {
+        while ($rec =~ s{\Aa\((\d+)\)\=(\-?\d+)\,}{}) { # remove leading init assignments
             $inits[$1] = $2;
         }
         #                     1   1    2      2
-        while ($rec =~ s{\,a\((\d+)\)\=(\-?\d+)}{}) {
+        while ($rec =~ s{\,a\((\d+)\)\=(\-?\d+)}{})   { # remove trailing init assignments
             $inits[$1] = $2;
         }
         if (! defined($inits[0])) {
