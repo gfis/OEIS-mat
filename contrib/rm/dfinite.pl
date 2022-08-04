@@ -49,3 +49,6 @@ ajson/A047665.json:             "D-finite with recurrence: n*(2*n-3)*a(n) = (2*n
 ajson/A047749.json:             "Conjecture D-finite with recurrence: 8*n*(n+1)*a(n) + 36*n*(n-2)*a(n-1) - 6*(9n^2-18n+14)*a(n-2) - 27*(3n-7)*(3n-8)*a(n-3) = 0. - _R. J. Mathar_, Dec 19 2011",
 ajson/A047781.json:             "D-finite with recurrence n*(2*n-3)*a(n) - (12*n^2-24*n+8)*a(n-1) + (2*n-1)*(n-2)*a(n-2) = 0. - _Vladeta Jovovic_, Aug 29 2004",
 ajson/A047891.json:             "D-finite with recurrence: (n+2)*(n+3)*a(n+3) - 6*(n+2)^2*a(n+2) - 12*(n)^2*a(n+1) + 8*n*(n-1)*a(n) = 0. (End)",
+
+
+make runholo A=A347855 OFF=0 MATRIX="[[0],[385,-2208,3040,-1536,256],[-216],[0],[0,-6,13,-9,2]]" INIT="1, 9, 189" ??

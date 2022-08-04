@@ -334,14 +334,14 @@ holom:
 	make holdfing LIST=$@.tmp
 	cp -v holdfing.tmp $@.gen
 #----------------
-hyper: hyper1 hyper2
+hyper: hyper1 hyper2 hyper3 hyper4
 hyper1:
 	grep -E "^.[FNopt]" $(COMMON)/jcat25.txt \
 	| perl extract_hypergeom.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-hyper2:
+hyper2: # attach matrix if in jOEIS
 	make seq2 LIST=hyper1.tmp
 	$(DBAT) -x "SELECT h.aseqno, h.matrix, h.keyword, s.info \
 	  FROM holref h, seq2 s \
@@ -350,11 +350,22 @@ hyper2:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-hyper3:
+hyper3: # those with "x"
 	grep -P "\t%" hyper1.tmp | grep -P "\bx\b" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+hyper4: # those without "x"
+	grep -P "\t%" hyper1.tmp | grep -vP "\bx\b" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+hygeo:
+	perl prep_hypergeom.pl hyper4.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
 #--------------------------------------------------
 sqrtext: sqrtext1 sqrtext2 # extract rat.gf.s with sqrt()
 	make holminit LIST=sqrtext2.tmp

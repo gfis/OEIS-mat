@@ -1,6 +1,6 @@
 #!perl
 
-# Extract hypergeometric paramters from holref.txt
+# Extract hypergeometric parameters from holref.txt
 # @(#) $Id$
 # 2022-07-14, Georg Fischer; CKZ=70
 #

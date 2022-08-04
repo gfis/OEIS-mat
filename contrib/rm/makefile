@@ -17,14 +17,17 @@ RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
 all:
 	grep -E "^[a-z]" makefile
 #================
-df: dfinite df_load df_sel df_prep
+df: dfinite df_load df_patch df_sel df_prep
+#----
+recur.grep:
+	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; find ajson -iname "*.json" | sort | xargs -l grep -HE "Recurrence"' | tee $@.txt
 #----
 dfinite.grep:
-	ssh gfis@atair 'find ajson -iname "*.json" | sort | xargs -l grep -iHE "[DPC]\-finite"' | tee $@.txt
+	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; find ajson -iname "*.json" | sort | xargs -l grep -iHE "[DPC]\-finite"' | tee $@.txt
 dfinite:
 	perl dfinite.pl dfinite.grep.txt \
 	| sort | uniq -w7 \
-	| grep -vE "A071359|A098442|A227292|A346224|A351930|A352681" \
+	| grep -vE "A071359|A098442|A106191|A144580|A145889|A152886|A227292|A346224|A351930|A352681" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -41,21 +44,18 @@ df_eval:
 	wc -l    $@.tmp
 	grep -P "\tholope\tnyi" $@.tmp | wc -l
 #----
-df1_load:
-	cd ../../common ; make seq  LIST=../contrib/rm/dfinite1.txt
-df1_eval:
-	$(DBAT) -x "SELECT s.aseqno FROM seq s \
-	  WHERE s.aseqno NOT IN (SELECT aseqno FROM seq4) \
-	  ORDER BY 1"\
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-#----
+df_patch:
+	$(DBAT) "UPDATE seq4 SET parm1='(n+2)*a(n)+5*(-n-1)*a(n-1)+2*(4*n+1)*a(n-2)+4*n*a(n-3)+2*(-2*n+11)*a(n-5)+2*(4*n-23)*a(n-6)+4*(-n+6)*a(n-7)=0.' WHERE aseqno = 'A098051';"
+	$(DBAT) "UPDATE seq4 SET parm1='-n*(n-1)*(n-2)*(2*n-3)*a(n) + 216*(4*n-11)*(4*n-1)*(4*n-5)*(4*n-7)*a(n-3)' WHERE aseqno='A347855';"
 df_sel:
 	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset1, s.parm1, s.parm2, s.parm3 \
 	  FROM seq4 s \
 	  WHERE s.callcode = 'holope' \
-	    AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND (  s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	        OR (COALESCE((SELECT j.superclass FROM joeis j WHERE s.aseqno = j.aseqno), 'nyi') <> 'HolonomicRecurrence' \
+	           AND s.aseqno >= 'A059000' \
+	           ) \
+	        ) \
 	  ORDER BY 1"\
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -63,6 +63,16 @@ df_sel:
 #----
 df_prep:
 	perl df_prep.pl df_sel.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+df1_load:
+	cd ../../common ; make seq  LIST=../contrib/rm/dfinite1.txt
+df1_eval:
+	$(DBAT) -x "SELECT s.aseqno FROM seq s \
+	  WHERE s.aseqno NOT IN (SELECT aseqno FROM seq4) \
+	  ORDER BY 1"\
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
