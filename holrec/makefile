@@ -74,6 +74,35 @@ setofs: # LIST= ; update $(OFFSET)
 	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno) \
 	  , callcode = 'holos';"
 #----
+apery0:
+	cd $(COMMON) ; make seq LIST=../holrec/apery.man
+	$(DBAT) "SELECT s.aseqno, 'holos', 0, '[[0],[-2],[1]]', 1, 0, 0, h.matrix, h.init, h.dist, h.gftype \
+	  FROM seq s LEFT JOIN holref h ON s.aseqno = h.aseqno \
+	  ORDER BY 1" \
+	| tee apery1.tmp
+	$(DBAT) "SELECT s.aseqno, 'joeis',  j.superclass, n.name \
+	  FROM seq s, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE s.aseqno = n.aseqno \
+	  ORDER BY 1" \
+	| tee apery2.tmp
+apery:
+	grep rectoproc apery.man | grep -E "^A[0-9]" \
+	| perl rectoproc.pl \
+	2>&1 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+	grep -EB1 '\*\*\*' $@.tmp || :
+#----
+aperz:
+	perl aperz.pl -rec    > $@.1.tmp
+	perl rectoproc.pl -p $@.1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+aperz_grep:
+	perl aperz.pl -grep | tee $@.tmp
+#----
 bincoef: bincoef1 bincoef2
 	mv -v bincoef2.gen $@.gen
 bincoef1:
@@ -361,11 +390,21 @@ hyper4: # those without "x"
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 hygeo:
-	perl prep_hypergeom.pl hyper4.tmp \
+	cat hyper4.tmp \
+	| perl prep_hypergeom.pl \
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
+hygeom:
+	cat hyper4.tmp \
+	| perl prep_hypergeom.pl -m \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+	# | grep A331656 \
+#
 #--------------------------------------------------
 sqrtext: sqrtext1 sqrtext2 # extract rat.gf.s with sqrt()
 	make holminit LIST=sqrtext2.tmp

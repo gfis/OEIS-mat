@@ -6,7 +6,8 @@
 #
 #:# Usage:
 #:#   perl extract_hypergeom.pl jcat25.txt \
-#:#   | perl prep_hypergeom.pl [-d debug] > outfile.seq4
+#:#   | perl prep_hypergeom.pl [-d debug] [-m] > outfile.seq4
+#:#       -m generate with multiplier (for hygeom.jpat)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -14,11 +15,14 @@ use warnings;
 use English;
 
 my $debug = 0;
+my $m = "";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
+    } elsif ($opt  =~ m{m}) {
+        $m         = "m";
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -44,10 +48,10 @@ while (<>) {
     next if $name =~ m{n_?\, *k_?}; # skip triangles, arrays
     next if $name =~ m{Bessel|GAMMA|exp|RealDigits|CoefficientList}i;
     if (0) {
-    #                                 1           1 2           2  3      3
-    } elsif ($name =~ m{Hypergeometric(Regularized)?(\d+F\d+|PFQ)\[([^\]]+)\]}i ) { # MMA
-        $code = $2;
-        $content = $3;
+    #                                 1           1  2      2
+    } elsif ($name =~ m{Hyper[a-zA_Z]*(\d+F\d+|PFQ)\[([^\]]+)\]}i ) { # MMA
+        $code = $1;
+        $content = $2;
         $expr = $PREMATCH;
     #                                 1           1  2      2
     } elsif ($name =~ m{Hypergeometric(\d+F\d+|PFQ)\(([^\]]+)\)}i ) { # round brackets
@@ -67,9 +71,9 @@ while (<>) {
         $nok = "no n,k";
     }
     if ($nok eq "") {
-        print        join("\t", $aseqno, $callcode, $offset1, "$p, $q", "\"$content\"", $expr, substr($name, 0,1024)) . "\n";
+        print        join("\t", $aseqno, "$callcode$m", $offset1, "$p, $q", "\"$content\"", $expr) . "\n";
     } else {
-        print STDERR join("\t", $aseqno, $nok,      $offset1, "$p, $q", "\"$content\"", $expr, substr($name, 0,1024)) . "\n";
+        print STDERR join("\t", $aseqno, $nok,          $offset1, "$p, $q", "\"$content\"", $expr, substr($name, 0,1024)) . "\n";
     }
 } # while <>
 #----
@@ -77,7 +81,7 @@ sub analyze {
     my @parts;
     ($p, $q) = (1, 0);
     $content =~ s{ }{}g;
-    print join("\t", "# $aseqno", $content) . "\n";
+    # print join("\t", "# $aseqno", $content) . "\n";
     if (0) {
     } elsif ($code =~ m{(\d+)F(\d+)}) {
         ($p, $q) = ($1, $2);
@@ -96,16 +100,30 @@ sub analyze {
         $q = (length($parts[1]) > 0) ? scalar(split(/\,/, $parts[1])) : 0;
         $content = join(",", @parts);
     }
-    $content =~ s{[^n\-\+\,\d\/\*]}{}g; # remove all brackets
-    $content =~ s{\,}{\]\,\[}g;
-    $content = "[[$content]]";
-    $content =~ s{\[(\-|)n\]}{\[0,${1}1\]}g;
-    $content =~ s{\[\-(\d+(\/\d+)?)\*?n\]}{\[0,-$1\]}g;
-    $content =~ s{\[n([\+\-])(\d+(\/\d+)?)\]}{\[$1$2,1\]}g;
-    $content =~ s{\[(\-?\d+(\/\d+)?)\+n\]}{\[$1,1\]}g;
-    $content =~ s{\[(\-?\d+(\/\d+)?)\*n\]}{\[0,$1\]}g;
-    $content =~ s{\[(\d+(\/\d+)?)([\-\+])n\]}{\[$1,${3}1\]}g;
-    $content =~ s{(\[|\,)\+}{$1}g;
+    if (1) { # modern
+        @parts = split(/\,/, $content);
+        my $exp = scalar(@parts);
+        my $ope = join("+", map {
+            "($_)*A^" . (-- $exp)
+            } @parts);
+        # print "# ope = $ope, content=$content\n";
+        print "\n# $name\n";
+        $content = &ope2matrix($ope);
+        $content =~ s{\s}{}g; # chompr...
+        # print "# ope2matrix -> \"$content\"\n";
+        $content =~ s{\A\[\[0\]\,}{\[}; # remove leading "[0]" for hypergeometric fractions
+    } else { # old-fashioned
+        $content =~ s{[^n\-\+\,\d\/\*]}{}g; # remove all brackets
+        $content =~ s{\,}{\]\,\[}g;
+        $content = "[[$content]]";
+        $content =~ s{\[(\-|)n\]}{\[0,${1}1\]}g;
+        $content =~ s{\[\-(\d+(\/\d+)?)\*?n\]}{\[0,-$1\]}g;
+        $content =~ s{\[n([\+\-])(\d+(\/\d+)?)\]}{\[$1$2,1\]}g;
+        $content =~ s{\[(\-?\d+(\/\d+)?)\+n\]}{\[$1,1\]}g;
+        $content =~ s{\[(\-?\d+(\/\d+)?)\*n\]}{\[0,$1\]}g;
+        $content =~ s{\[(\d+(\/\d+)?)([\-\+])n\]}{\[$1,${3}1\]}g;
+        $content =~ s{(\[|\,)\+}{$1}g;
+    }
     $expr    =~ s{ }{}g;
     $expr    =~ s{\A\w_?+\:?\=}{};
     $expr    =~ s{\A\w\(\w\):?\=}{};
@@ -113,7 +131,23 @@ sub analyze {
     $expr    =~ s{\*}{\)\.multiply\(}g;
     $expr    =~ s{\^}{\)\.pow\(}g;
     $expr    =~ s{\An}{Z\.valueOf\(n};
+    $expr    =~ s{\bn\b}{mN}g;
 } # sub analyze
+#----
+sub ope2matrix {
+    my ($ope) = @_; # operator, e.g. "1/2*A^4+( n+3/2)*A^3+ 3/2*A^2 +1/3*A+A^0"
+    my $tempname = "ope2matrix.tmp";
+    open(GP, ">", $tempname) || die "cannot write \"$tempname\"\n";
+    print GP <<"GFis";
+read("ope2matrix.gpi");
+iferr(ope2matrix($ope), E, quit());
+quit;
+GFis
+    close(GP);
+    my $result = `gp -fq $tempname`;
+    $result =~ s{\, }{\,}g; # not s{\s}{}g !
+    return $result;
+} # ope2matrix
 #--------------------------------------------
 __DATA__
 A051103	%t a[n_] := Numerator[2^n*3/((n + 1)^2*(2*n + 1)*(4*n + 3)) * HypergeometricPFQ[{-n, 1, 1}, {n + 2, 1/2 - n}, 1/4]]; Array[a, 20] (* _Amiram Eldar_, Jul 05 2021 *)

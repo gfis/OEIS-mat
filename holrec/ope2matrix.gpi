@@ -1,0 +1,17 @@
+\\ PARI ope2matrix.gpi - convert an operator(A,n) into holon. recurrence parameters
+\\ 2022-08-04, Georg Fischer
+ope2matrix(ope)=
+{ /*
+ope2matrix(n*A^0+2*(-4*n+3)*A^1+12*(n-2)*A^2+8*(2*n-3)*A^3) 
+[[0], [-24, 16], [-24, 12], [6, -8], [0, 1]]
+  */
+  my(adeg,matrix,acoef,ndeg);
+  adeg = poldegree(ope, A);
+  matrix=vector(adeg+2);
+  matrix[1] = [0];
+  for(i=0,adeg,acoef=polcoef(ope,adeg-i,A);
+    ndeg=poldegree(acoef,n);
+    if(ndeg==-oo,matrix[i+2]=[0],matrix[i+2]=vector(ndeg+1);for(j=0,ndeg,matrix[i+2][j+1]=polcoef(acoef,j,n)));
+  );
+  print(matrix);
+}

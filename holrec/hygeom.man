@@ -1,0 +1,1719 @@
+
+# a[n_] := Numerator[2^n*3/((n + 1)^2*(2*n + 1)*(4*n + 3)) * HypergeometricPFQ[{-n, 1, 1}, {n + 2, 1/2 - n}, 1/4]]; Array[a, 20] (* _Amiram Eldar_, Jul 05 2021 *)
+A051103	hygeom	0	3, 2	"[[0,-1],[1],[1],[2,1],[1/2,-1],[1/4]]"	Numerator[2).pow(n).multiply(3/((n+1)).pow(2).multiply((2).multiply(n+1)).multiply((4).multiply(n+3))).multiply(
+
+# a[n_] := Denominator[2^n*3/((n + 1)^2*(2*n + 1)*(4*n + 3)) * HypergeometricPFQ[{-n, 1, 1}, {n + 2, 1/2 - n}, 1/4]]; Array[a, 20] (* _Amiram Eldar_, Jul 05 2021 *)
+A051104	hygeom	0	3, 2	"[[0,-1],[1],[1],[2,1],[1/2,-1],[1/4]]"	Denominator[2).pow(n).multiply(3/((n+1)).pow(2).multiply((2).multiply(n+1)).multiply((4).multiply(n+3))).multiply(
+
+# b[n_] := If[n < 0, 0, 3^n Hypergeometric2F1[1/2, -n, 1, 4/3]];  Table[b[n + 1] + Fibonacci[n - 1]*(1 + Fibonacci[n - 1]), {n, 0,50}] (* _G. C. Greubel_, Feb 27 2017 *)
+A059728	hygeom	0	2, 1	"[[1/2],[0,-1],[1],[4/3]]"	If[n<0,0,3).pow(n
+
+# a[n_] = If[n==0, 0, (n*n!/2)*(HypergeometricPFQ[{1, 1, 1-n}, {2}, -1]-1)]; Table[a[n], {n, 0, 20}] (* _Jean-François Alcover_, Feb 19 2017 *)
+A059760	hygeom	0	3, 1	"[[1],[1],[1,-1],[2],[-1]]"	If[n==0,0,(n).multiply(n!/2)).multiply((
+
+# d[n_] := (-1)^n HypergeometricPFQ[{1/2, -n}, {}, 2];
+A064280	hygeom	0	2, 0	""	(-1)).pow(n
+
+# return hypergeometric([1-n, n], [-n], -k) if n>0 else 1
+A064334	hygeom	0	2, 1	"[[1,-1],[0,1],[0,-1],[-k]]"	return
+
+# a(n) = 1 + Sum_{0<=k<=n-1} hypergeom([1-n+k,n-k],[-n+k],-k). - _Robert Israel_, Jan 03 2019
+A064338	hygeom	0	2, 1	"[[k+1,-1],[-k,1],[k,-1],[-k]]"	1+Sum_{0<=k<=n-1}
+
+# f:= proc(n) local k; 1 + add(simplify(hypergeom([1-n+k,n-k],[-n+k],-k)),k=0..n-1) end proc:
+A064338	hygeom	0	2, 1	"[[k+1,-1],[-k,1],[k,-1],[-k]]"	proc(n)localk;1+add(simplify(
+
+# Order of twisted group 2F4(2^(2*n + 1)).
+A064586	hygeom	0	1, 1	""	proc(n)localk;1+add(simplify(
+
+# a(n) = 48*binomial(n, 3)*(1/2)_{n}*(2)^(n - 3)* hypergeometric1f1(3 - n, -2*n, 2), where (a)_{n} is the Pochhammer symbol. - _G. C. Greubel_, Aug 15 2017
+A065950	hygeom	0	0, 0	""	48).multiply(binomial(n,3)).multiply((1/2)_{n}).multiply((2)).pow((n-3)).multiply(
+
+# Join[{0, 0, 0}, Table[48*Binomial[n, 3]*Pochhammer[1/2, n]*(2)^(n - 3)* Hypergeometric1F1[3 - n, -2*n, 2], {n, 3,50}]] (* _G. C. Greubel_, Aug 15 2017 *)
+A065950	hygeom	0	1, 1	"[[3,-1],[0,-2],[2]]"	Join[{0,0,0},Table[48).multiply(Binomial[n,3]).multiply(Pochhammer[1/2,n]).multiply((2)).pow((n-3)).multiply(
+
+# a[n_] := 8^n - (2*n)/(n+1)*Binomial[3*n, n]*Hypergeometric2F1[1, -2*n+1, n+2, -1]; Table[a[n], {n, 0, 20}] (* _Jean-François Alcover_, Dec 02 2013 *)
+A066380	hygeom	0	2, 1	"[[1],[1,-2],[2,1],[-1]]"	8).pow(n-(2).multiply(n)/(n+1)).multiply(Binomial[3).multiply(n,n]).multiply(
+
+# a(n) are special values of the hypergeometric function 2F1, in Maple notation: a(n)=16^n-binomial(4*n,n+1)*hypergeom([1,-3*n+1],[n+2],-1), n=0,1,... . - _Karol A. Penson_, Jun 03 2015
+A066381	hygeom	0	2, 1	"[[1],[1,-3],[2,1],[-1]]"	a(n)arespecialvaluesofthehypergeometricfunction2F1,inMaplenotation:a(n)=16).pow(n-binomial(4).multiply(n,n+1)).multiply(
+
+# a(n) = 2^(n^2) - binomial(n^2, n+1)*hypergeom([1, -n^2+n+1], [2+n], -1). - _Vladeta Jovovic_, Jul 08 2003
+A066382	hygeom	0	2, 1	"[[1],[1,1,-1],[2,1],[-1]]"	2).pow((n).pow(2)-binomial(n).pow(2,n+1)).multiply(
+
+# For n>=2, a(n) = (-2)^(n-1)*(2n-3)!!*hypergeom([1-n], [2-2n], n), where n!! denotes the double factorial A006882. - _Vladimir Reshetnikov_, Oct 16 2015
+A066399	hygeom	0	1, 1	""	Forn>=2,a(n)=(-2)).pow((n-1)).multiply((2n-3)!!).multiply(
+
+# a := n -> `if`(n<2,n,(-2)^(n-1)*doublefactorial(2*n-3)*hypergeom([1-n],[2-2*n],n)): seq(simplify(a(n)),n=0..18); # _Peter Luschny_, Oct 16 2015
+A066399	hygeom	0	1, 1	"[[1,-1],[2,-2],[0,1]]"	Z.valueOf(n->`if`(n<2,n,(-2)).pow((n-1)).multiply(doublefactorial(2).multiply(n-3)).multiply(
+
+# A066399[0] = 0; A066399[1] = 1; A066399[n_] := (-2)^(n - 1) (2 n - 3)!! Hypergeometric1F1[1 - n, 2 - 2 n, n]; Table[A066399[n], {n, 0, 10}] (* _Vladimir Reshetnikov_, Oct 16 2015 *)
+A066399	hygeom	0	1, 1	""	A066399[0]=0;A066399[1]=1;A066399[n_]:=(-2)).pow((n-1)(2n-3)!!
+
+# a(n) = ((-3)^(1/2)/9)*(-2*(n+7)^(-1)*(n+4)*(-1)^n*hypergeom([3/2, n+6],[2],4/3)-(n+6)^(-1)*(-1)^n*(5*n+18)*hypergeom([3/2, n+5],[2],4/3)). - _Mark van Hoeij_, Oct 31 2011
+A066822	hygeom	0	2, 1	"[[3/2],[6,1],[2],[4/3]]"	((-3)).pow((1/2)/9)).multiply((-2).multiply((n+7)).pow((-1)).multiply((n+4)).multiply((-1)).pow(n).multiply(
+
+# r[n_] := If[n == 0, 1, Hypergeometric1F1[1 - n, 2, -1]]; Table[Denominator@  r[n], {n, 0, 22}] (* _Peter Luschny_, Feb 02 2019 *)
+A067653	hygeom	0	1, 1	"[[1,-1],[2],[-1]]"	If[n==0,1,
+
+# a(n) = numerator(hypergeom([1 - n], [2], -1)) for n > 0. - _Peter Luschny_, Feb 02 2019
+A067764	hygeom	0	1, 1	"[[1,-1],[2],[-1]]"	Z.valueOf(numerator(
+
+# r[n_] := If[n == 0, 1, Hypergeometric1F1[1 - n, 2, -1]]; Table[Numerator@ r[n], {n, 0, 21}] (* _Peter Luschny_, Feb 02 2019 *)
+A067764	hygeom	0	1, 1	"[[1,-1],[2],[-1]]"	If[n==0,1,
+
+# a[n_]:=Log[2]-Hypergeometric2F1[1+n,1+n,2+n,-1]/(1+n);
+A068566	hygeom	0	2, 1	"[[1,1],[1,1],[2,1],[-1]]"	Log[2]-
+
+# a := n -> hypergeom([seq(-n, i=1..6)],[seq(1, i=1..5)],1):
+A069865	hygeom	0	0, 0	""	Z.valueOf(n->
+
+# a[n_] := n*(2n-1)!*Hypergeometric1F1[2-2n, 3, -1]; Array[a, 30] (* _Jean-François Alcover_, Sep 01 2016 *)
+A072678	hygeom	0	1, 1	""	Z.valueOf(n).multiply((2n-1)!).multiply(
+
+# Table[(3*(n-1)+3)! * (3*(n-1)+6)! * HypergeometricPFQ[{3*n+1,3*n+4},{4,7},1] /( 3! *6! *E), {n,1,20}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A072679	hygeom	0	2, 2	"[[1,3],[4,3],[4],[7],[1]]"	Table[(3).multiply((n-1)+3)!).multiply((3).multiply((n-1)+6)!).multiply(
+
+# Table[(5*n)!*HypergeometricPFQ[{5*n + 1}, {6}, 1]/(5!*E), {n, 1, 10}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A072693	hygeom	0	1, 1	"[[1,5],[6],[1]]"	Table[(5).multiply(n)!).multiply(
+
+# Special values of the hypergeometric function 5F4, in Maple notation : a(n)= hypergeom([n+1, n+1, -n, -n, -n], [1, 1, 2, 2], -1), n=0, 1...
+A074649	hygeom	0	5, 4	"[[1,1],[1,1],[0,-1],[0,-1],[0,-1],[1],[1],[2],[2],[-1]]"	Specialvaluesofthehypergeometricfunction5F4,inMaplenotation:a(n)=
+
+# a(n) = n*n!*hypergeom([1-2*n,1-n],[3,-2*n],4*n). - _Robert Israel_, Jan 08 2018
+A074768	hygeom	0	2, 2	"[[1,-2],[1,-1],[3],[0,-2],[0,4]]"	Z.valueOf(n).multiply(n!).multiply(
+
+# f := n -> simplify(n!*n*hypergeom([-2*n+1, 1-n], [3, -2*n], 4*n)):
+A074768	hygeom	0	2, 2	"[[1,-2],[1,-1],[3],[0,-2],[0,4]]"	Z.valueOf(n->simplify(n!).multiply(n).multiply(
+
+# Array[#*#!*HypergeometricPFQ[{1 - 2 #, 1 - #}, {3, -2 #}, 4 #] &, 15] (* _Michael De Vlieger_, Jan 09 2018 *)
+A074768	hygeom	0	2, 2	""	Array[#).multiply(#!).multiply(
+
+# h := (n, m) -> hypergeom([1+m, m-n], [m+n+2], -3):
+A076035	hygeom	0	2, 1	"[[m+1],[m,-1],[m+2,1],[-3]]"	(n,m)->
+
+# a(n) = H(n - 2, n mod 2, 1/2) for n >= 5 where H(n, a, b) -> hypergeom([a - n/2, b - n/2], [1 - n], -8). - _Peter Luschny_, Sep 03 2019
+A076737	hygeom	0	2, 1	"[[a,-1/2],[b,-1/2],[1,-1],[-8]]"	H(n-2,nmod2,1/2)forn>=5whereH(n,a,b)->
+
+# H := (n, a, b) -> hypergeom([a - n/2, b - n/2], [1 - n], -8):
+A076737	hygeom	0	2, 1	"[[a,-1/2],[b,-1/2],[1,-1],[-8]]"	(n,a,b)->
+
+# a[n_] := Hypergeometric2F1[-n, 1/2, 3/2, -1]
+A077595	hygeom	0	2, 1	"[[0,-1],[1/2],[3/2],[-1]]"	
+
+# a[n_] := (n+1)*n!^2*Sum[(-1)^k*HypergeometricPFQ[{2-k, n+1, n+2}, {2, 3}, 1]/(2*(k-2)!), {k, 2, 2n}]; Array[a, 13] (* _Jean-François Alcover_, Sep 01 2015 *)
+A078738	hygeom	0	3, 2	"[[-k+2],[1,1],[2,1],[2],[3],[1]]"	(n+1)).multiply(n!).pow(2).multiply(Sum[(-1)).pow(k).multiply(
+
+# Table[Hypergeometric2F1[-k, k-n, 1, 7], {n,0,10}, {k,0,n}]//Flatten (* _Jean-François Alcover_, May 24 2013 *)
+A081581	hygeom	0	2, 1	"[[-k],[k,-1],[1],[7]]"	Table[
+
+# (Sage) flatten([[hypergeometric([-k, k-n], [1], 7).simplify() for k in (0..n)] for n in (0..12)]) # _G. C. Greubel_, May 26 2021
+A081581	hygeom	0	2, 1	"[[-k],[k,-1],[1],[7]]"	(Sage)flatten([[
+
+# Select[Range[200], EvenQ@Hypergeometric2F1[3/2, -#, 3, 4]&] (* _Vladimir Reshetnikov_, Nov 02 2015 *)
+A081706	hygeom	0	2, 1	""	Select[Range[200],EvenQ@
+
+# Let h(n) = -((C(2*n,n)*hypergeom([1,1/2+n],[2+n],4))/(1+n)+I*sqrt(3)/2+1/2). Assuming Adamchuk's conjecture a(n) = h(2^n) and A014138(n) = h(n+1). - _Peter Luschny_, Mar 09 2015
+A083942	hygeom	0	2, 1	"[[1],[1/2,1],[2,1],[4]]"	Leth(n)=-((C(2).multiply(n,n)).multiply(
+
+# A003148 := proc(m::integer,n::integer) RETURN( doublefactorial(2*n+2*m+1)/(2*m+1)*simplify(hypergeom([ -n,m+1/2],[m+3/2],2))) ; end:
+A084543	hygeom	0	2, 1	"[[0,-1],[m+1/2],[m+3/2],[2]]"	A003148:=proc(m::integer,n::integer)RETURN(doublefactorial(2).multiply(n+2).multiply(m+1)/(2).multiply(m+1)).multiply(simplify(
+
+# a(n) = 2^C(n,2)*Hypergeometric2F1((1-n)/2,-n/2;1;1).
+A086229	hygeom	0	2, 1	""	2).pow(C(n,2)).multiply(
+
+# f[n_] := 2^(n (n - 1)/2) Hypergeometric2F1[(1 - n)/2, -n/2, 1, 1]; Array[f, 15, 0]  (* _Robert G. Wilson v_ *)
+A086229	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[1]]"	2).pow((n(n-1)/2)
+
+# Flatten[{2, 1, Table[Floor[HypergeometricPFQ[ConstantArray[2, n-2], ConstantArray[1, n-1], 1]], {n,2,20}]}] (* _Vaclav Kotesovec_, May 23 2015 *)
+A086880	hygeom	0	0, 0	""	Flatten[{2,1,Table[Floor[
+
+# a[i_,p_]:=(-1)^i HypergeometricPFQ[ConstantArray[3,p]~Join~{2-i},ConstantArray[1,p],1];Table[a[i,p],{p,0,10},{i,2,2 p+2}]//Flatten (* _Jonathan Burns_, Mar 20 2018 *)
+A087127	hygeom	0	0, 0	""	a[i_,p_]:=(-1)).pow(i
+
+# Special values of a sum of two hypergeometric functions of type 2F3.
+A088466	hygeom	0	0, 0	""	a[i_,p_]:=(-1)).pow(i
+
+# A(i,j) = (-1)^-i HypergeometricU(-i, 1 - i + j, -1). - _Eric W. Weisstein_, May 10 2017
+A088699	hygeom	0	0, 0	""	a[i_,p_]:=(-1)).pow(i
+
+# BellMatrix(n -> simplify(hypergeom([-n,-n-1],[],1)), 9); # _Peter Luschny_, Jan 26 2016
+A088814	hygeom	0	2, 0	""	BellMatrix(n->simplify(
+
+# a[1] = 1; a[n_] := n!*(n-2)!*HypergeometricPFQ[{1-n/2, 3/2-n/2}, {2, 2-n, 2-n}, 4]; Table[a[n], {n, 1, 17}] (* _Jean-François Alcover_, Oct 30 2013, after symbolic sum *)
+A089039	hygeom	0	2, 3	"[[1,-1/2],[3/2,-1/2],[2],[2,-1],[2,-1],[4]]"	1;a[n_]:=n!).multiply((n-2)!).multiply(
+
+# P := n -> simplify(hypergeom([-n,-n+1],[],1/t));
+A089231	hygeom	0	2, 0	""	Z.valueOf(n->simplify(
+
+# Numerator[Table[Sqrt[2/3] * Hypergeometric2F1[1/2, n+3/2, 3/2, 1/3], {n, 0, 20}]] (* _Vaclav Kotesovec_, Apr 08 2015 *)
+A089342	hygeom	0	2, 1	"[[1/2],[3/2,1],[3/2],[1/3]]"	Numerator[Table[Sqrt[2/3]).multiply(
+
+# a[n_] := Hypergeometric2F1[-n, 1/2, 3/2, -1/2]
+A089342	hygeom	0	2, 1	"[[0,-1],[1/2],[3/2],[-1/2]]"	
+
+# a(n) = (2*n+2)!*hypergeom([-2*n],[3],1)/2, assuming offset 0. - _Peter Luschny_, Apr 08 2015
+A090439	hygeom	0	1, 1	"[[0,-2],[3],[1]]"	(2).multiply(n+2)!).multiply(
+
+# Table[(-1)^m*m!*HypergeometricPFQ[{2 - m, n + 1, n + 2}, {2, 3}, 1]/(2 (m - 2)!), {n, 8}, {m, 2, 2 n}] // Flatten (* _Michael De Vlieger_, Nov 21 2019, after _Jean-François Alcover_ at A078740. *)
+A090452	hygeom	0	3, 2	"[[-m+2],[1,1],[2,1],[2],[3],[1]]"	Table[(-1)).pow(m).multiply(m!).multiply(
+
+# seq(seq(simplify(n!*(1+k)/((n-2*k)!*(1+k)!^2)*hypergeom([k,2*k-n],[k+2],-1)),k=0.. floor(n/2)),n=0..15); # _Peter Luschny_, Oct 16 2015
+A091156	hygeom	0	2, 1	"[[k],[2*k,-1],[k+2],[-1]]"	seq(seq(simplify(n!).multiply((1+k)/((n-2).multiply(k)!).multiply((1+k)!).pow(2)).multiply(
+
+# c := N -> hypergeom([1-N, N+2], [2], -1);
+A091370	hygeom	0	2, 1	"[[-N+1],[N+2],[2],[-1]]"	N->
+
+# f:= n -> simplify(hypergeom([1/2, -n], [3/2], -1/4)*(2*n+2)!*2^(n-1)/(n+1)!):
+A092145	hygeom	0	2, 1	"[[1/2],[0,-1],[3/2],[-1/4]]"	Z.valueOf(n->simplify(
+
+# a(n) = (-1)^n*binomial(2*n,n)*hypergeom([-n,n/2,(n+1)/2],[n,n+1],4). - _Peter Luschny_, Nov 02 2016
+A092765	hygeom	0	0, 3	""	(-1)).pow(n).multiply(binomial(2).multiply(n,n)).multiply(
+
+# a[n_] := Binomial[4n, 2n]*Hypergeometric2F1[-2n, -n, 1/2 - 2n, 3/4]; Table[a[n], {n, 0, 24}] (* _Jean-François Alcover_, Nov 22 2012 *)
+A092765	hygeom	0	2, 1	""	Binomial[4n,2n]).multiply(
+
+# Also equals ellipticK(1/sqrt(2)) = Pi/2*hypergeom([1/2,1/2],[1],1/2),
+A093341	hygeom	0	2, 1	"[[1/2],[1/2],[1],[1/2]]"	AlsoequalsellipticK(1/sqrt(2))=Pi/2).multiply(
+
+# B := (z,a,b) -> z^a/a*hypergeom([a,1-b],[a+1],z);
+A093530	hygeom	0	2, 1	"[[a],[-b+1],[a+1],[z]]"	(z,a,b)->z).pow(a/a).multiply(
+
+# B[z_, a_, b_] := z^a/a*HypergeometricPFQ[{a, 1 - b}, {a + 1}, z]; a[n_] := Integrate[ n*s^n*B[1 - s^2/4, (n + 1)/2, 1/2]/B[1, (n + 1)/2, 1/2], {s, 0, 2}]; Table[a[n], {n, 1, 21, 2}] // Numerator (* _Jean-François Alcover_, Oct 31 2012, translated from Maple *)
+A093530	hygeom	0	2, 1	"[[a],[-b+1],[a+1],[z]]"	B[z_,a_,b_]:=z).pow(a/a).multiply(
+
+# B[z_, a_, b_] := z^a/a*HypergeometricPFQ[{a, 1 - b}, {a + 1}, z]; a[n_] := Integrate[ n*s^n*B[1 - s^2/4, (n + 1)/2, 1/2]/B[1, (n + 1)/2, 1/2], {s, 0, 2}]; Table[a[n], {n, 1, 21, 2}] // Denominator (* _Jean-François Alcover_, Oct 31 2012, after Maple program in A093530 *)
+A093531	hygeom	0	2, 1	"[[a],[-b+1],[a+1],[z]]"	B[z_,a_,b_]:=z).pow(a/a).multiply(
+
+# -Catalan + (Pi*arcsinh(1))/2 + HypergeometricPFQ[{1/2, 1, 1}, {3/2, 3/2}, 1/9]/6.
+A093754	hygeom	0	3, 2	"[[1/2],[1],[1],[3/2],[3/2],[1/9]]"	-Catalan+(Pi).multiply(arcsinh(1))/2+
+
+# r(n) = ((n+1)/n)*hypergeom([-n], [-n-1], 1)). - _Peter Luschny_, Oct 09 2019
+A095822	hygeom	0	1, 1	"[[0,-1],[-1,-1],[1]]"	((n+1)/n)).multiply(
+
+# r[n_] := ((n + 1)/n) HypergeometricPFQ[{-n}, {-n - 1}, 1];
+A095822	hygeom	0	1, 1	"[[0,-1],[-1,-1],[1]]"	((n+1)/n)
+
+# a[n_] := -n*HypergeometricPFQ[{3/2, 1/2 - n/2, 1 - n/2}, {3, 3}, 16] + HypergeometricPFQ[{3/2, 1/2 - n/2, -n/2}, {2, 3}, 16]; Table[a[n], {n, 0, 28}] (* _Jean-François Alcover_, Oct 03 2016 *)
+A095922	hygeom	0	3, 2	"[[3/2],[1/2,-1/2],[1,-1/2],[3],[3],[16]]"	-n).multiply(
+
+# Table[HypergeometricPFQ[{1, 1, -n}, {2, 2}, -1] // Numerator, {n, 0, 24}] (* _Jean-François Alcover_, Oct 14 2013 *)
+A097344	hygeom	0	3, 2	"[[1],[1],[0,-1],[2],[2],[-1]]"	Table[
+
+# a(n) = Hypergeometric2F1([1-n,-n], [2], -1+n).
+A099169	hygeom	0	0, 0	""	Table[
+
+# Table[Hypergeometric2F1[1-n,-n,2,-1+n],{n,1,20}] (* _Vaclav Kotesovec_, Apr 18 2014 *)
+A099169	hygeom	0	2, 1	"[[1,-1],[0,-1],[2],[-1,1]]"	Table[
+
+# Sum[k^n/((2k)!/k!/(k+1)!), {k, \[Infinity]}]==Sum[Hypergeometric2F1[m+1, m+2, m+1/2, 1/4]StirlingS2[n, m]/(2m-1)!!/2^m(m+1)!m!, {m, 1, n}]; see Formula. Hypergeometric2F1[m, m+1, m-1/2, 1/4] equal to h[a_]:=h[a]=Apart[(4*(-3+2*a)*((-5+2*a)*h[ -2+a]-(-4+a)*h[ -1+a]))/(3*(-1+a)*a)]; h[1]:=2+(4*Pi)/(9*Sqrt[3]); h[0]:=1;
+A100666	hygeom	0	2, 1	"[[m+1],[m+2],[m+1/2],[1/4]]"	Sum[k).pow(n/((2k)!/k!/(k+1)!),{k,\[Infinity]}]==Sum[
+
+# Hypergeometric2F1[a, a+1, a-1/2, 1/4] equals h[a_]:=h[a]=Apart[(4*(-3+2*a)*((-5+2*a)*h[ -2+a]-(-4+a)*h[ -1+a]))/(3*(-1+a)*a)]; h[1]:=2+(4*Pi)/(9*Sqrt[3]); h[0]:=1; Table[Round[Sum[h[m+1] StirlingS2[n, m]/(2m-1)!!/2^m (m+1)!m!, {m, 0, n}]], {n, 14}]
+A100666	hygeom	0	2, 1	"[[a],[a+1],[a-1/2],[1/4]]"	
+
+# a[n_] := (3^n/4^(2n-1)) Binomial[2n-1, n] Hypergeometric2F1[1, 1-n, 1+n, -1/3] // Numerator; Array[a, 20] (* _Jean-François Alcover_, Mar 22 2019 *)
+A102556	hygeom	0	2, 1	"[[1],[1,-1],[1,1],[-1/3]]"	(3).pow(n/4).pow((2n-1))Binomial[2n-1,n]
+
+# a[n_] := (3^n/4^(2n-1)) Binomial[2n-1, n] Hypergeometric2F1[1, 1-n, 1+n, -1/3] // Denominator; Array[a, 20] (* _Jean-François Alcover_, Mar 22 2019 *)
+A102557	hygeom	0	2, 1	"[[1],[1,-1],[1,1],[-1/3]]"	(3).pow(n/4).pow((2n-1))Binomial[2n-1,n]
+
+# Table[HypergeometricPFQ[{-n, n+1}, {2}, -n+1], {n, 0, 20}] (* _Vaclav Kotesovec_, Sep 24 2017 *)
+A103212	hygeom	0	2, 1	"[[0,-1],[1,1],[2],[1,-1]]"	Table[
+
+# c := N -> hypergeom([1-N, N+2], [2], -1);
+A104219	hygeom	0	2, 1	"[[-N+1],[N+2],[2],[-1]]"	N->
+
+# The solution to the ode is hypergeom([-1/4,3/4],[1/2],sin(t+Pi/2)). - _Robert Israel_, Jun 05 2019
+A104997	hygeom	0	2, 1	""	Thesolutiontotheodeis
+
+# a(n) = (binomial(2*n, n) - binomial(n, n/2)*cos(Pi*n/2))/2 = n^2 * hypergeom([1/2-n/2, 1/2-n/2, 1-n/2, 1-n/2], [1, 3/2, 3/2], 1). - _Vladimir Reshetnikov_, Oct 04 2016
+A110145	hygeom	0	4, 3	"[[1/2,-1/2],[1/2,-1/2],[1,-1/2],[1,-1/2],[1],[3/2],[3/2],[1]]"	(binomial(2).multiply(n,n)-binomial(n,n/2)).multiply(cos(Pi).multiply(n/2))/2=n).pow(2).multiply(
+
+# a(n) = binomial(3*n, 2*n)*hypergeometric([1/2-n/2, -2*n, -n/2], [n+1/2, n+1], -1). - _Peter Luschny_, Jun 09 2020
+A115750	hygeom	0	3, 2	"[[1/2,-1/2],[0,-2],[0,-1/2],[1/2,1],[1,1],[-1]]"	binomial(3).multiply(n,2).multiply(n)).multiply(
+
+# a(n) = hypergeom([-1/2-n/2, 1/2-n/2, 1-n/2, -n/2], [1/2, 1/2, 1], 1] - 0^n. - _Vladimir Reshetnikov_, Oct 04 2016
+A119359	hygeom	0	1, 1	""	binomial(3).multiply(n,2).multiply(n)).multiply(
+
+# Table[HypergeometricPFQ[{-1/2 - n/2, 1/2 - n/2, 1 - n/2, -n/2}, {1/2, 1/2, 1}, 1] - KroneckerDelta[n], {n, 0, 20}] (* _Vladimir Reshetnikov_, Oct 04 2016 *)
+A119359	hygeom	0	4, 3	"[[-1/2,-1/2],[1/2,-1/2],[1,-1/2],[0,-1/2],[1/2],[1/2],[1],[1]]"	Table[
+
+# a(n) = -hypergeometric([1-n, n], [-n], -2) if n>0. - _Peter Luschny_, Nov 30 2014
+A122441	hygeom	0	2, 1	"[[1,-1],[0,1],[0,-1],[-2]]"	-
+
+# return -hypergeometric([1-n, n], [-n], -2).simplify()
+A122441	hygeom	0	2, 1	"[[1,-1],[0,1],[0,-1],[-2]]"	return-
+
+# Table[HypergeometricU[ -(n/2), 1/2, -(1/2)]/(-(1/2))^(-(-n/2)) - 2^(n - 1), {n, 26}] (* _Robert G. Wilson v_, Sep 27 2006 *)  (* or *)
+A122932	hygeom	0	1, 1	""	return-
+
+# a(n) = (1/4) * (3/2)^n * (n-1)! * binomial(2*n, n) * Hypergeometric2F1([1/2, n], [n+1], 3/4).
+A123130	hygeom	0	1, 1	""	return-
+
+# a[n_]:= Round[(3/2)^n*((n-1)!/4)*Binomial[2*n, n]*Hypergeometric2F1[1/2, n, n+1, 3/4]]; Table[a[n], {n, 40}] (* _G. C. Greubel_, Aug 04 2021 *)
+A123130	hygeom	0	2, 1	"[[1/2],[0,1],[1,1],[3/4]]"	Round[(3/2)).pow(n).multiply(((n-1)!/4)).multiply(Binomial[2).multiply(n,n]).multiply(
+
+# a681[n_] := n!*HypergeometricPFQ[{1/2, -n}, {}, -2]/2^n;
+A123543	hygeom	0	2, 0	""	a681[n_]:=n!).multiply(
+
+# r(n) = 1/sqrt(2) - binomial(-1/2, 1 + n)*hypergeom([1, 3/2 + n], [2 + n], -1). - _Peter Luschny_, Sep 26 2019
+A123746	hygeom	0	2, 1	"[[1],[3/2,1],[2,1],[-1]]"	1/sqrt(2)-binomial(-1/2,1+n)).multiply(
+
+# Using pseudo-Mathematica-style notation, f(a(1),a(2),...,a(k)) is 2^(-1 - a(1)) (a(1)!)^(k-1)/(a(2)! a(3)! ... a(k)!) * HypergeometricPFQRegularized[{1, 1 + a(1), 1 + a(1),..., 1 + a(1)}, {1, 1 + a(1) - a(2), 1 + a(1) - a(3),..., 1 + a(1) - a(k)}, 1/2]
+A126086	hygeom	0	1, 1	""	1/sqrt(2)-binomial(-1/2,1+n)).multiply(
+
+# For information about HypergeometricPFQRegularized, see http://functions.wolfram.com/HypergeometricFunctions/HypergeometricPFQRegularized/ . (End)
+A126086	hygeom	0	1, 1	""	1/sqrt(2)-binomial(-1/2,1+n)).multiply(
+
+# seq(simplify(hypergeom([1, 1-n/2, 3/2-n/2], [], 2))*(n-1)*n/2,n=1..22);  # _Mark van Hoeij_, May 12 2013
+A126725	hygeom	0	3, 0	""	seq(simplify(
+
+# Table[3^n*(n!)^2* HypergeometricPFQ[{n+1, n+1}, {1, 1}, 3]*E^(-3), {n, 0, 15}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A127455	hygeom	0	2, 2	"[[1,1],[1,1],[1],[1],[3]]"	Table[3).pow(n).multiply((n!)).pow(2).multiply(
+
+# Table[3^n*(n!)^3*HypergeometricPFQ[{n+1, n+1, n+1},{1, 1, 1}, 3]*E^(-3), {n,0,15}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A127456	hygeom	0	3, 3	"[[1,1],[1,1],[1,1],[1],[1],[1],[3]]"	Table[3).pow(n).multiply((n!)).pow(3).multiply(
+
+# Table[2^n*(n!)^3* HypergeometricPFQ[{n+1, n+1, n+1},{1, 1, 1}, 2]*E^(-2), {n,0,15}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A127457	hygeom	0	3, 3	"[[1,1],[1,1],[1,1],[1],[1],[1],[2]]"	Table[2).pow(n).multiply((n!)).pow(3).multiply(
+
+# a[n_] := (-1)^n (n+1)! Hypergeometric2F1[-n, 1/2, 2, 4]; Array[a, 17] (* _Jean-François Alcover_, Feb 17 2019 *)
+A128614	hygeom	0	2, 1	"[[0,-1],[1/2],[2],[4]]"	(-1)).pow(n(n+1)!
+
+# a(n) = (n+1)*Hypergeometric3F1([-n, -n, 1], [2], 1). (End)
+A129833	hygeom	0	2, 1	""	(-1)).pow(n(n+1)!
+
+# a(n) = Sum_{k=0..n} Hypergeometric2F1([1-n+k, k-n], [2], k).
+A132745	hygeom	0	2, 1	""	(-1)).pow(n(n+1)!
+
+# a(n) = Sum_{k=0..n} Hypergeometric2F1([1-k, -k], [2], n-k).
+A132745	hygeom	0	2, 1	""	(-1)).pow(n(n+1)!
+
+# Table[Sum[Hypergeometric2F1[1-k, -k, 2, n-k], {k,0,n}], {n,0,30}] (* _G. C. Greubel_, Feb 16 2021 *)
+A132745	hygeom	0	2, 1	"[[-k+1],[-k],[2],[-k,1]]"	Table[Sum[
+
+# Table[5^(n + 1) * CatalanNumber[n] * Hypergeometric2F1[1, n + 1/2, n + 2, -5/4]/4, {n, 0, 18}]  (* _Vaclav Kotesovec_, Jun 05 2021 *)
+A132864	hygeom	0	2, 1	"[[1],[1/2,1],[2,1],[-5/4]]"	Table[5).pow((n+1)).multiply(CatalanNumber[n]).multiply(
+
+# Reap[ For[n = 1, n < 10^5, n++, If[ !Divisible[ Denominator[ HypergeometricPFQ[{1, 1, -n}, {2, 2}, -1]], n+1], Print[n]; Sow[n] ] ] ][[2, 1]] (* _Jean-François Alcover_, Oct 15 2013 *)
+A134652	hygeom	0	3, 2	"[[1],[1],[0,-1],[2],[2],[-1]]"	Reap[For[n=1,n<10).pow(5,n++,If[!Divisible[Denominator[
+
+# Select[Table[(-1)^n Hypergeometric2F1[3/2, -n, 3, 4], {n, 0, 40}], OddQ] (* _Vladimir Reshetnikov_, Nov 02 2015 *)
+A134717	hygeom	0	2, 1	"[[3/2],[0,-1],[3],[4]]"	Select[Table[(-1)).pow(n
+
+# Select[Table[(-1)^n Hypergeometric2F1[3/2, -n, 3, 4], {n, 0, 60}], EvenQ] (* _Vladimir Reshetnikov_, Nov 02 2015 *)
+A134718	hygeom	0	2, 1	"[[3/2],[0,-1],[3],[4]]"	Select[Table[(-1)).pow(n
+
+# a(n) = 3F2( {-n, n+1, n+1}; {1/2, 1})( -(1/4) ). - _Olivier Gérard_, Apr 23 2009
+A137644	hygeom	0	2, 1	""	Select[Table[(-1)).pow(n
+
+# Table[ HypergeometricPFQ[{-n, 1 + n, 1 + n}, {1/2, 1}, -(1/4)], {n,0,20}] (* _Olivier Gérard_, Apr 23 2009 *)
+A137644	hygeom	0	3, 2	"[[0,-1],[1,1],[1,1],[1/2],[1],[-1/4]]"	Table[
+
+# (5^(5*n)*(6*n)!*Hypergeometric2F1Regularized[1, -5*n, 1 + n, -1/5])/(6^(6*n)*(5*n)!)
+A143162	hygeom	0	0, 0	""	Table[
+
+# (5^(5*n)*(6*n)!*Hypergeometric2F1Regularized[1, -5*n, 1 + n, -1/5])/(6^(6*n)*(5*n)!)
+A143163	hygeom	0	0, 0	""	Table[
+
+# a(n) = ((2*n)!/(n-1)!)*hypergeom([-n-1], [-2*n], -1) for n >= 2. - _Peter Luschny_, Nov 14 2018
+A143413	hygeom	0	1, 1	"[[-1,-1],[0,-2],[-1]]"	((2).multiply(n)!/(n-1)!)).multiply(
+
+# a := n -> `if`(n<2, 2*n-1, (2*n)!/(n-1)!*hypergeom([-n-1], [-2*n], -1)):
+A143413	hygeom	0	1, 1	"[[-1,-1],[0,-2],[-1]]"	Z.valueOf(n->`if`(n<2,2).multiply(n-1,(2).multiply(n)!/(n-1)!).multiply(
+
+# a(n) = ((2*n)!/(n-1)!)*hypergeom([1-n], [-2*n], 1)) for n > 0. - _Peter Luschny_, May 14 2020
+A143414	hygeom	0	1, 1	"[[1,-1],[0,-2],[1]]"	((2).multiply(n)!/(n-1)!)).multiply(
+
+# A143414 := n -> `if`(n=0, 0, ((2*n)!/(n-1)!)*hypergeom([1-n], [-2*n], 1)):
+A143414	hygeom	0	1, 1	"[[1,-1],[0,-2],[1]]"	A143414:=n->`if`(n=0,0,((2).multiply(n)!/(n-1)!)).multiply(
+
+# a(n) = ((2*n)!/(n+1)!)*hypergeom([1-n], [-2*n], 1)) for n > 0. - _Peter Luschny_, May 14 2020
+A143415	hygeom	0	1, 1	"[[1,-1],[0,-2],[1]]"	((2).multiply(n)!/(n+1)!)).multiply(
+
+# A143415 := n -> `if`(n=0, 0, ((2*n)!/(n+1)!)*hypergeom([1-n], [-2*n], 1)):
+A143415	hygeom	0	1, 1	"[[1,-1],[0,-2],[1]]"	A143415:=n->`if`(n=0,0,((2).multiply(n)!/(n+1)!)).multiply(
+
+# a(n) = hypergeom([1/2,1/2,n+1],[1,n+3/2],1)*2^(5*n+1)*n!/((2*n+1)!!*Pi) - _G. A. Edgar_, Dec 10 2016
+A143583	hygeom	0	3, 2	"[[1/2],[1/2],[1,1],[1],[3/2,1],[1]]"	
+
+# a(n) = binomial(4*n,2*n)*hypergeom([1/4,3/4,-n,-n], [1,1/4-n,3/4-n], 1). - _Peter Luschny_, May 14 2020
+A143583	hygeom	0	4, 3	"[[1/4],[3/4],[0,-1],[0,-1],[1],[1/4,-1],[3/4,-1],[1]]"	binomial(4).multiply(n,2).multiply(n)).multiply(
+
+# A143583 := n -> binomial(4*n, 2*n)*hypergeom([1/4,3/4,-n,-n], [1,1/4-n,3/4-n], 1): seq(simplify(A143583(n)), n = 0..18); # _Peter Luschny_, May 14 2020
+A143583	hygeom	0	4, 3	"[[1/4],[3/4],[0,-1],[0,-1],[1],[1/4,-1],[3/4,-1],[1]]"	A143583:=n->binomial(4).multiply(n,2).multiply(n)).multiply(
+
+# r is the root of the equation 2*r^2*Hypergeometric0F1[1/3,-1/(9*r^3)] = Hypergeometric0F1[5/3,-1/(9*r^3)]. - _Vaclav Kotesovec_, Feb 23 2014
+A144012	hygeom	0	0, 1	"[[1/3],[-1/(9*r^3)]]"	ristherootoftheequation2).multiply(r).pow(2).multiply(
+
+# T[n_, 0]  := Hypergeometric2F1[3/2, 1-n, 3, 4] // Abs;
+A144218	hygeom	0	2, 1	"[[3/2],[1,-1],[3],[4]]"	T[n_,0]:=
+
+# T[n_, n_] := Hypergeometric2F1[(1-n)/2, -n/2, 2, 4];
+A144218	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	T[n_,n_]:=
+
+# Table[(5 + 3*n - 3*Binomial[2*n+2, n+1] + Sum[(1 + k + 2*n)! * HypergeometricPFQ[{1, -1 - k - n, -n}, {-1 - k - 2*n, -k - n}, 1] / ((1 + k + n)*k!*n!^2), {k, 0, n}]) / 6, {n, 0, 20}] (* _Vaclav Kotesovec_, Apr 04 2019 *)
+A144511	hygeom	0	3, 2	"[[1],[-k-1,-1],[0,-1],[-k-1,-2],[-k,-1],[1]]"	Table[(5+3).multiply(n-3).multiply(Binomial[2).multiply(n+2,n+1]+Sum[(1+k+2).multiply(n)!).multiply(
+
+# Table[Sum[(1 + k + l + 2*n)! * HypergeometricPFQ[{1, -1 - k - l - n, -n}, {-1 - k - l - 2*n, -k - l - n}, 1] / ((1 + k + l + n)*k!*l!*n!), {k, 0, n}, {l, 0, n}]/n!, {n, 0, 20}] (* _Vaclav Kotesovec_, Apr 03 2019 *)
+A144661	hygeom	0	3, 2	"[[1],[-k+(-l-1),-1],[0,-1],[-k+(-l-1),-2],[-k-l,-1],[1]]"	Table[Sum[(1+k+l+2).multiply(n)!).multiply(
+
+# Table[(Binomial[2*n + 2, n + 1] - 2*(1 + n) + Sum[(1 + k + l + 2*n)! HypergeometricPFQ[{1, -1 - k - l - n, -n}, {-1 - k - l - 2*n, -k - l - n}, 1]/((1 + k + l + n) k! l! (n!)^2) - (2*(1 + k + l + n)!)/((1 + k + l) k! l! n!), {k, 1, n}, {l, 1, n}])/24, {n, 0, 15}] (* _Vaclav Kotesovec_, Apr 04 2019 *)
+A144662	hygeom	0	3, 2	"[[1],[-k+(-l-1),-1],[0,-1],[-k+(-l-1),-2],[-k-l,-1],[1]]"	Table[(Binomial[2).multiply(n+2,n+1]-2).multiply((1+n)+Sum[(1+k+l+2).multiply(n)!
+
+# Comment from _Alois P. Heinz_, Feb 08 2009: Maple's answer to this is: a:= sum(1/(n^3*binomial(2*n,n)), n=1..infinity); a:= 1/2 hypergeom([1, 1, 1, 1], [2, 2, 3/2], 1/4); evalf (a, 140); .522946192133335108491185183527303540163044591743977841465941014...
+A145438	hygeom	0	4, 3	"[[1],[1],[1],[1],[2],[2],[3/2],[1/4]]"	Commentfrom_AloisP.Heinz_,Feb082009:Maple'sanswertothisis:a:=sum(1/(n).pow(3).multiply(binomial(2).multiply(n,n)),n=1..infinity);a:=1/2
+
+# Table[(-1)^n * HypergeometricU[-n, n, -1], {n, 0, 20}] (* _Vaclav Kotesovec_, Oct 02 2017 *)
+A152059	hygeom	0	1, 1	""	Commentfrom_AloisP.Heinz_,Feb082009:Maple'sanswertothisis:a:=sum(1/(n).pow(3).multiply(binomial(2).multiply(n,n)),n=1..infinity);a:=1/2
+
+# Special values of the hypergeometric function of the type 5F0.
+A153029	hygeom	0	1, 1	""	Commentfrom_AloisP.Heinz_,Feb082009:Maple'sanswertothisis:a:=sum(1/(n).pow(3).multiply(binomial(2).multiply(n,n)),n=1..infinity);a:=1/2
+
+# In Maple notation, a(n)=hypergeom([ -n/2,1/2-n/2,1-n/2,3/2-n/2,2-n/2],[],-4), n=0,1... .
+A153029	hygeom	0	5, 0	""	InMaplenotation,a(n)=
+
+# Table[Ceiling[HypergeometricPFQ[{-n/2, 1/2 - n/2, 1 - n/2, 3/2 - n/2, 2 - n/2}, {}, -4]], {n, 0, 20}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A153029	hygeom	0	5, 0	""	Table[Ceiling[
+
+# a(n) = C(2*n,n)^2 * hypergeom([-n, -n, 2*n], [n+1, n+1], 1).
+A156554	hygeom	0	3, 2	"[[0,-1],[0,-1],[0,2],[1,1],[1,1],[1]]"	C(2).multiply(n,n)).pow(2).multiply(
+
+# Table[ Binomial[-1 + 3 n, -1 + 2 n] HypergeometricPFQ[{-2 n, -2 n, -n}, {1, 1 - 3 n}, 1], {n, 0, 10}]  (* _Eric W. Weisstein_, Feb 10 2009 *)
+A156554	hygeom	0	3, 2	""	Table[Binomial[-1+3n,-1+2n]
+
+# a(n) = Hyper2F1([-n, 2*n], [1], -1). - _Peter Luschny_, Aug 02 2014
+A156894	hygeom	0	0, 0	""	Table[Binomial[-1+3n,-1+2n]
+
+# a := n -> hypergeom([-n, 2*n], [1], -1);
+A156894	hygeom	0	2, 1	"[[0,-1],[0,2],[1],[-1]]"	Z.valueOf(n->
+
+# Sequence defined through the following hypergeometric-type generating function, in Maple notation:
+A157280	hygeom	0	1, 1	""	Z.valueOf(n->
+
+# which is itself an infinite sum of hypergeometric functions.
+A157280	hygeom	0	1, 1	""	Z.valueOf(n->
+
+# *hypergeom([n+1/3, n+1/3, n+1/3, n+1/3], [1/3, 1/3, 1/3, 1/3, 2/3, 4/3],
+A157643	hygeom	0	1, 1	""	Z.valueOf(n->
+
+# a(n) = C(3*n+1,n)*Hyper2F1([1,-n],[2*n+2],-1). - _Peter Luschny_, May 19 2015
+A160906	hygeom	0	1, 1	""	Z.valueOf(n->
+
+# a = lambda n: binomial(3*n+1,n)*hypergeometric([1,-n],[2*n+2],-1)
+A160906	hygeom	0	2, 1	"[[1],[0,-1],[2,2],[-1]]"	lambdan:binomial(3).multiply(n+1,n)).multiply(
+
+# a(n) = (-1)^n*(1-n*hypergeom([1,1-n],[],2)).
+A161936	hygeom	0	2, 0	""	(-1)).pow(n).multiply((1-n).multiply(
+
+# a[n_] := (-1)^n*(1 - n*HypergeometricPFQ[{1, 1 - n}, {}, 2]);
+A161936	hygeom	0	2, 0	""	(-1)).pow(n).multiply((1-n).multiply(
+
+# Triangle of polynomial coefficients related to 3F2([1,n+1,n+1],[n+2,n+2],z).
+A162990	hygeom	0	0, 0	""	(-1)).pow(n).multiply((1-n).multiply(
+
+# F[x_] = (Hypergeometric2F1[-1/2, -1/2, 1, 16x] - 1)/(4x);
+A168344	hygeom	0	2, 1	""	(
+
+# a[n_] := Binomial[2*n+3, n+3]*Hypergeometric2F1[1, -n, -3-2*n, -1]; Table[a[n], {n, 0, 23}] (* _Jean-François Alcover_, Dec 17 2013 *)
+A172025	hygeom	0	2, 1	"[[1],[0,-1],[-3,-2],[-1]]"	Binomial[2).multiply(n+3,n+3]).multiply(
+
+# a(n) = sqrt(5/7) * 10^n * (6*hypergeom([1/2, n+1],[1],2/7)-7*hypergeom([1/2, n],[1],2/7)) / (n+1) for n > 0. [From _Mark van Hoeij_, Jul 02 2010]
+A174227	hygeom	0	2, 1	"[[1/2],[1,1],[1],[2/7]]"	sqrt(5/7)).multiply(10).pow(n).multiply((6).multiply(
+
+# a(n) = -(-3)^(n-3/2)*hypergeom([3/2, n-1],[2],4) for n > 2 (guessed formula) [From _Mark van Hoeij_, Jul 02 2010]
+A174297	hygeom	0	2, 1	"[[3/2],[-1,1],[2],[4]]"	-(-3)).pow((n-3/2)).multiply(
+
+# evalf(Pi*hypergeom([1/2,1/2],[3/2,3/2,3/2],-Pi^2/4)) ;
+A175293	hygeom	0	2, 3	"[[1/2],[1/2],[3/2],[3/2],[3/2],[-2.4674011002723396547086227499690377838]]"	evalf(Pi).multiply(
+
+# 1+ A102753*( A053510 -1 + A001620 - 3F4(1/2,1/2,1; 3/2,3/2,3/2,2 ; -A091476) ) .
+A175295	hygeom	0	1, 1	""	evalf(Pi).multiply(
+
+# Sum_{i=1..n} C(2n-i-1,i-1)/i = (2F1(1/2-n,-n;1-2 n;-4) -1)/(2n), where 2F1 is the Gaussian Hypergeometric Function.
+A175385	hygeom	0	1, 1	""	evalf(Pi).multiply(
+
+# (Hypergeometric2F1[1/2-n,-n,1-2 n,-4]-1)/(2 n).
+A175386	hygeom	0	2, 1	""	(
+
+# Table[Binomial[n+k, n]*HypergeometricPFQ[{-n, -k}, {}, 1], {n, 0, 10}, {k, 0, n}]//Flatten (* _G. C. Greubel_, Nov 27 2019 *)
+A176080	hygeom	0	2, 0	""	Table[Binomial[n+k,n]).multiply(
+
+# Table[Binomial[n+k, k]*HypergeometricPFQ[{-n, -k}, {}, -1], {n, 0, 10}, {k, 0, n}]//Flatten (* _G. C. Greubel_, Nov 27 2019 *)
+A176092	hygeom	0	2, 0	""	Table[Binomial[n+k,k]).multiply(
+
+# f[n_, z_] := (1/(2 Sqrt[4 + z^2])) (-HypergeometricPFQ[{}, {}, n ((-I) Pi - \ Log[(1/2) (z + Sqrt[4 + z^2])])] - HypergeometricPFQ[{}, {}, n (I Pi - Log[( 1/2) (z + Sqrt[4 + z^2])])] + 2 HypergeometricPFQ[{}, {}, n Log[(1/ 2) (z + Sqrt[4 + z^2])]]);
+A177717	hygeom	0	0, 0	""	f[n_,z_]:=(1/(2Sqrt[4+z).pow(2]))(-
+
+# a(n) = (2*n)!*hypergeom([],[1/2-n],1/4)+(-1)^n*(1-hypergeom([1],[1/2,n+1],1/4)). - _Peter Luschny_, Mar 15 2015
+A177840	hygeom	0	0, 1	""	(2).multiply(n)!).multiply(
+
+# a[n_] := (n+1)!*HypergeometricPFQ[ {-n, n+2}, {1, 3/2}, -(n+1)/4]; Table[a[n], {n, 0, 14}]  (* _Jean-François Alcover_, Mar 01 2013 *)
+A178920	hygeom	0	2, 2	"[[0,-1],[2,1],[1],[3/2],[-1/4,-1/4]]"	(n+1)!).multiply(
+
+# a(1) = 1, and a(n) = (6*(2*(-2 + n))!/((-2 + n)!*n!))*2F1(-5*n, 2 - n, 2*(2 - n); -1) for n >= 2, where 2F1(a, b, c; z) is the hypergeometric function. - _Franck Maminirina Ramaharo_, Jan 27 2019
+A179300	hygeom	0	0, 0	""	(n+1)!).multiply(
+
+# Join[{1}, Table[(6*(2*(-2 + n))!/((-2 + n)!*n!))*Hypergeometric2F1[-5*n, 2 - n, 2*(2 - n), -1], {n, 2, 50}]] (* _Franck Maminirina Ramaharo_, Jan 27 2019 *)
+A179300	hygeom	0	2, 1	"[[0,-5],[2,-1],[4,-2],[-1]]"	Join[{1},Table[(6).multiply((2).multiply((-2+n))!/((-2+n)!).multiply(n!))).multiply(
+
+# a(n) = 2^(2*n + ((n-1)*n)/2)*Hyper2F1([(1-n)/2, -n/2], [-n], 1/2) for n > 0. - _Peter Luschny_, Aug 02 2014
+A180966	hygeom	0	2, 1	""	Join[{1},Table[(6).multiply((2).multiply((-2+n))!/((-2+n)!).multiply(n!))).multiply(
+
+# A181936_list := proc(n) local H,F,i; H := (r,s) -> hypergeom(r,s/5,-(t/5)^5);
+A181936	hygeom	0	0, 3	""	A181936_list:=proc(n)localH,F,i;H:=(r,s)->
+
+# u = 1.`64; a[n_] := n!^3*HypergeometricPFQ[{n+u, n+u, n+u}, {u, u, u}, u]/E // Round; Table[a[n], {n, 0, 11}] (* _Jean-François Alcover_, Nov 22 2012, after Maple *)
+A182925	hygeom	0	3, 3	"[[u,1],[u,1],[u,1],[u],[u],[u],[u]]"	1.`64;a[n_]:=n!).pow(3).multiply(
+
+# and F_n the generalized hypergeometric function of type n_F_n, then
+A182932	hygeom	0	0, 0	""	1.`64;a[n_]:=n!).pow(3).multiply(
+
+# a[n_] := 3!^n*HypergeometricPFQ[ Table[4, {n}], Append[ Table[1, {n-1}], 2], 1.`40.]/E; Table[Round[a[n]], {n, 0, 12}] (* _Jean-François Alcover_, Jul 29 2013 *)
+A182932	hygeom	0	0, 0	""	3!).pow(n).multiply(
+
+# a[n_] := n!^2*HypergeometricPFQ[{n+1, n+1}, {1, 2}, 1.`40.]/E; Table[a[n] // Round, {n, 0, 14}] (* _Jean-François Alcover_, Jul 29 2013 *)
+A182934	hygeom	0	2, 2	""	Z.valueOf(n!).pow(2).multiply(
+
+# a(n) = (-1)^n*binomial(3n+1,n)* 4F3({-n,n+1,n+1,n+1};{1,1,2(n+1)}; 1). - _M. Lawrence Glasser_, May 15 2016
+A183204	hygeom	0	0, 0	""	Z.valueOf(n!).pow(2).multiply(
+
+# binomial(r,M)*hypergeom([-M, -1/2*n, 1/2-1/2*n],[1/2, r-M+1],-1)
+A184948	hygeom	0	3, 2	"[[-M],[0,-1/2],[1/2,-1/2],[1/2],[-M+(r+1)],[-1]]"	binomial(r,M)).multiply(
+
+# n*binomial(r,M)*hypergeom([-M, 1-1/2*n, 1/2-1/2*n],[3/2, r-M+1],-1)
+A184948	hygeom	0	3, 2	"[[-M],[1,-1/2],[1/2,-1/2],[3/2],[-M+(r+1)],[-1]]"	Z.valueOf(n).multiply(binomial(r,M)).multiply(
+
+# binomial(10,3)*hypergeom([-3,-5/2,-2],[1/2,8],-1) = 620
+A184948	hygeom	0	3, 2	"[[-3],[-5/2],[-2],[1/2],[8],[-1]]"	binomial(10,3)).multiply(
+
+# 5*binomial(10,3)*hypergeom([-3, -3/2, -2],[3/2, 8],-1) = 1060. (End)
+A184948	hygeom	0	3, 2	"[[-3],[-3/2],[-2],[3/2],[8],[-1]]"	5).multiply(binomial(10,3)).multiply(
+
+# b[n_] := If[n < 0, 0, 3^n Hypergeometric2F1[1/2, -n, 1, 4/3]];
+A186037	hygeom	0	2, 1	"[[1/2],[0,-1],[1],[4/3]]"	If[n<0,0,3).pow(n
+
+# b[n_] := If[n < 0, 0, 3^n Hypergeometric2F1[1/2, -n, 1, 4/3]];
+A186038	hygeom	0	2, 1	"[[1/2],[0,-1],[1],[4/3]]"	If[n<0,0,3).pow(n
+
+# Flatten[{1,Table[n^n * Hypergeometric2F1[1/2-n/2,-n/2,1,4*(1+n)/n^2],{n,1,20}]}] (* _Vaclav Kotesovec_, Apr 18 2014 *)
+A187019	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[]]"	Flatten[{1,Table[n).pow(n).multiply(
+
+# a(n) = hypergeom([-n, -n], [1], n). - _Peter Luschny_, Dec 22 2020
+A187021	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[0,1]]"	
+
+# a := n -> hypergeom([-n, -n], [1], n):
+A187021	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[0,1]]"	Z.valueOf(n->
+
+# a(n) = 2^n*hypergeom([-n/2, (1 - n)/2, (1 - n)/2, 1 - n/2], [2, -n, -n + 1], 4). - _Peter Luschny_, Jan 25 2020
+A187256	hygeom	0	0, 0	""	2).pow(n).multiply(
+
+# a[n_] := 2^n HypergeometricPFQ[{-n/2, (1 - n)/2, (1 - n)/2, 1 - n/2}, {2, -n, -n + 1}, 4]; Array[a, 28, 0] (* _Peter Luschny_, Jan 25 2020 *)
+A187256	hygeom	0	4, 3	"[[0,-1/2],[1/2,-1/2],[1/2,-1/2],[1,-1/2],[2],[0,-1],[1,-1],[4]]"	2).pow(n
+
+# a(n) = (-1)^n*2^(-(1+n))*(1 - 2^(1+n) + (-2)^n*binomial(2+2*n, 1+n) * hypergeometric2F1(1, 2+2*n; 2+n; -1).
+A188289	hygeom	0	2, 1	""	(-1)).pow(n).multiply(2).pow((-(1+n))).multiply((1-2).pow((1+n)+(-2)).pow(n).multiply(binomial(2+2).multiply(n,1+n)).multiply(
+
+# a[ n_] := SeriesCoefficient[ Hypergeometric2F1[ -1/2, 1/2, 1, ModularLambda[ Log[q] / (Pi I)]], {q, 0, n}] (* _Michael Somos_, Jan 24 2012 *)
+A194094	hygeom	0	2, 1	""	SeriesCoefficient[
+
+# a(n) = hypergeom([1-n/2,-n,3/2-n/2],[1,2-n],4) for n>=3. - _Peter Luschny_, Mar 07 2017
+A194589	hygeom	0	3, 2	"[[1,-1/2],[0,-1],[3/2,-1/2],[1],[2,-1],[4]]"	
+
+# a := n -> `if`(n<3,iquo(n,2),hypergeom([1-n/2,-n,3/2-n/2],[1,2-n],4)): seq(simplify(a(n)), n=0..30); # _Peter Luschny_, Mar 07 2017
+A194589	hygeom	0	3, 2	"[[1,-1/2],[0,-1],[3/2,-1/2],[1],[2,-1],[4]]"	Z.valueOf(n->`if`(n<3,iquo(n,2),
+
+# Table[If[n < 3, Quotient[n, 2], HypergeometricPFQ[{1 - n/2, -n, 3/2 - n/2}, {1, 2-n}, 4]], {n,0,30}] (* _Peter Luschny_, Mar 07 2017 *)
+A194589	hygeom	0	3, 2	"[[1,-1/2],[0,-1],[3/2,-1/2],[1],[2,-1],[4]]"	Table[If[n<3,Quotient[n,2],
+
+# alias(HG = hypergeom); DIG := 32; R := n -> HG([-n, -n, -n], [2, 2], -1)*(1 + n + n^2) + HG([1 - n, 1 - n, 1 - n], [3, 3], -1)*(n^3 - n^4)/4 + HG([2, 1 - n, 1 - n, 1 - n], [1, 3, 3], -1)*n^3/4; seq(round(evalf(R(n),DIG)),n=0..21); # _Peter Luschny_, Oct 21 2011
+A197657	hygeom	0	0, 0	""	Table[If[n<3,Quotient[n,2],
+
+# a(n) = 4*hypergeom([3-n, 2-n], [2], -1)) for n>0. - _Peter Luschny_, May 22 2017
+A198786	hygeom	0	2, 1	"[[3,-1],[2,-1],[2],[-1]]"	4).multiply(
+
+# a := n -> `if`(n=0, 1, 4*hypergeom([3-n, 2-n], [2], -1)):
+A198786	hygeom	0	2, 1	"[[3,-1],[2,-1],[2],[-1]]"	Z.valueOf(n->`if`(n=0,1,4).multiply(
+
+# a(n) = 3F2([1/2, 1/2 - n/2, -n/2], [1, 1], 16).
+A201805	hygeom	0	1, 1	""	Z.valueOf(n->`if`(n=0,1,4).multiply(
+
+# a[n_]=HypergeometricPFQ[{1/2, 1/2 - n/2, -(n/2)}, {1, 1}, 16]; (* or *)
+A201805	hygeom	0	3, 2	"[[1/2],[1/2,-1/2],[0,-1/2],[1],[1],[16]]"	
+
+# T(n,m) = (m/n)*2^(n-m)*binomial(2*n-m-1,n-m)*hypergeometric([1/2+m/2,m/2,m-n],[m,1+m-2*n],2) for n>1, m>1. - _Peter Luschny_, Jan 04 2012
+A202039	hygeom	0	3, 2	"[[1/2*m+1/2],[1/2*m],[m,-1],[m],[m+1,-2],[2]]"	T(n,m)=(m/n)).multiply(2).pow((n-m)).multiply(binomial(2).multiply(n-m-1,n-m)).multiply(
+
+# For n>0 let H=floor(n/2), A=floor(H/2), R=H-1, B=A-R/2+1, C=A+1, D=A-R, J=n mod 2 and Z = if(H mod 2 = 1,(H+1)/2,H^2*(H+2)/16) if J = 0 else Z = if(H mod 2 = 1,1, H*(H+2)/4). Then a(n) = Z*Hypergeometric([1,C,C+1,D,D-J],[B,B,B-1/2,B+1/2-J],1/16).
+A202411	hygeom	0	5, 4	"[[1],[C],[C+1],[D],[D-J],[B],[B],[B-1/2],[-J+(B+1/2)],[1/16]]"	Forn>0letH=floor(n/2),A=floor(H/2),R=H-1,B=A-R/2+1,C=A+1,D=A-R,J=nmod2andZ=if(Hmod2=1,(H+1)/2,H).pow(2).multiply((H+2)/16)ifJ=0elseZ=if(Hmod2=1,1,H).multiply((H+2)/4).Thena(n)=Z).multiply(
+
+# H:=iquo(n,2); A:=iquo(H,2); R:=H-1; B:=A-R/2+1; C:=A+1; D:=A-R; J:=n mod 2; if J = 0 then Z:=`if`(H mod 2 = 1,(H+1)/2,H^2*(H+2)/16) else Z:=`if`(H mod 2 = 1,1, H*(H+2)/4) fi; Z*hypergeom([1,C,C+1,D,D-J],[B,B,B-1/2,B+1/2-J],1/16) end:
+A202411	hygeom	0	5, 4	"[[1],[C],[C+1],[D],[D-J],[B],[B],[B-1/2],[-J+(B+1/2)],[1/16]]"	iquo(n,2);A:=iquo(H,2);R:=H-1;B:=A-R/2+1;C:=A+1;D:=A-R;J:=nmod2;ifJ=0thenZ:=`if`(Hmod2=1,(H+1)/2,H).pow(2).multiply((H+2)/16)elseZ:=`if`(Hmod2=1,1,H).multiply((H+2)/4)fi;Z).multiply(
+
+# a[0] = 1; a[n_] := Module[{A, R, B, C, D, Z, H, J}, H = Quotient[n, 2]; A = Quotient[H, 2]; R = H-1; B = A-R/2+1; C = A+1; D = A-R; J = Mod[n, 2]; If[J == 0, Z = If[Mod[H, 2] == 1, (H+1)/2, H^2*(H+2)/16], Z = If[Mod[H, 2] == 1, 1, H*(H+2)/4]]; Z*HypergeometricPFQ[{1, C, C+1, D, D-J}, {B, B, B-1/2, B+1/2-J}, 1/16]]; Table[a[n], {n, 0, 42}] (* _Jean-François Alcover_, Jan 27 2014, translated from Maple *)
+A202411	hygeom	0	5, 4	"[[1],[C],[C+1],[D],[D-J],[B],[B],[B-1/2],[-J+(B+1/2)],[1/16]]"	1;a[n_]:=Module[{A,R,B,C,D,Z,H,J},H=Quotient[n,2];A=Quotient[H,2];R=H-1;B=A-R/2+1;C=A+1;D=A-R;J=Mod[n,2];If[J==0,Z=If[Mod[H,2]==1,(H+1)/2,H).pow(2).multiply((H+2)/16],Z=If[Mod[H,2]==1,1,H).multiply((H+2)/4]];Z).multiply(
+
+# Table[Hypergeometric2F1[1-k, -k, 2, n-k], {n,12}, {k,n}]//Flatten (* _G. C. Greubel_, Feb 16 2021 *)
+A204057	hygeom	0	2, 1	"[[-k+1],[-k],[2],[-k,1]]"	Table[
+
+# Sums of coefficients of polynomials from 5n-th moments of X ~ Hypergeometric(4m, 5m, m).
+A205795	hygeom	0	0, 0	""	Sumsofcoefficientsofpolynomialsfrom5n-thmomentsofX~
+
+# Table[3^n * HypergeometricPFQ[{1/2 - n/2, -n/2, 1 + n}, {1, 1}, 4/9], {n, 0, 25}] (* _Vaclav Kotesovec_, Oct 07 2020 *)
+A208426	hygeom	0	3, 2	"[[1/2,-1/2],[0,-1/2],[1,1],[1],[1],[4/9]]"	Table[3).pow(n).multiply(
+
+# a := n -> (-1)^n*binomial(2*n-1,n-1)*hypergeom([-n,n/2,(n+1)/2], [n,n+1], 4):
+A211867	hygeom	0	0, 3	""	Z.valueOf(n->(-1)).pow(n).multiply(binomial(2).multiply(n-1,n-1)).multiply(
+
+# a[n_] := ((-1)^(3*n)*(2*n)!*HypergeometricPFQ[{(n+1)/2, -n, n/2}, {n, n+1}, 4])/(2*n!^2); a[0]=1; Table[a[n], {n, 0, 23}] (* _Jean-François Alcover_, Feb 13 2013, from A097609 *)
+A211867	hygeom	0	3, 2	"[[1/2,1/2],[0,-1],[0,1/2],[0,1],[1,1],[4]]"	((-1)).pow((3).multiply(n)).multiply((2).multiply(n)!).multiply(
+
+# Representation in terms of special values of generalized hypergeometric function of type 12F11: a(n) = hypergeom([1/7, 2/7, 3/7, 4/7, 5/7, 6/7, -(1/6)*n, -(1/6)*n+5/6, -(1/6)*n+2/3, -(1/6)*n+1/2, -(1/6)*n+1/3, 1/6-(1/6)*n], [1/6, 1/3, 1/3, 1/2, 1/2, 2/3, 2/3, 5/6, 5/6, 1, 7/6], 7^7/6^6), n>=0. - _Karol A. Penson_, Jun 21 2013
+A212385	hygeom	0	0, 0	""	Representationintermsofspecialvaluesofgeneralizedhypergeometricfunctionoftype12F11:a(n)=
+
+# a(n) ~ c * n!^3 / r^n, where r = 1.16151549806386358435938834554462085598002... is the root of the equation HypergeometricPFQ[{}, {1, 1}, -r] = 0 and c = 1.182760720067731330743886867947078139186402925891650811631774628... - _Vaclav Kotesovec_, Sep 16 2020
+A212856	hygeom	0	0, 2	""	a(n)~c).multiply(n!).pow(3/r).pow(n,wherer=1.16151549806386358435938834554462085598002...istherootoftheequation
+
+# Equals 2/3*4F3(1/2,1,1,2; 5/4,3/2,7/4; 3/4), where 4F3 is the generalized hypergeometric function. - _Jean-François Alcover_, Dec 16 2014, after _R. J. Mathar_.
+A214552	hygeom	0	0, 0	""	a(n)~c).multiply(n!).pow(3/r).pow(n,wherer=1.16151549806386358435938834554462085598002...istherootoftheequation
+
+# a(n) = (-2)^n*hypergeom([1/2, -n, n + 1], [1, 1], 2). - _Peter Luschny_, Mar 14 2018
+A214623	hygeom	0	3, 2	"[[1/2],[0,-1],[1,1],[1],[1],[2]]"	(-2)).pow(n).multiply(
+
+# a[n_] := (-2)^n HypergeometricPFQ[{1/2, -n, n + 1}, {1, 1}, 2];
+A214623	hygeom	0	3, 2	"[[1/2],[0,-1],[1,1],[1],[1],[2]]"	(-2)).pow(n
+
+# a(n) = Sum_{k=0..n} k^n * binomial(n,n-k) * 2F1(1, k-n; k+1)(-1);
+A215077	hygeom	0	0, 0	""	(-2)).pow(n
+
+# and the equivalent formulas obtained by symmetries of the binomial and the hypergeometric function as well as treating the zeroth term separately.
+A215077	hygeom	0	0, 0	""	(-2)).pow(n
+
+# a(0)=1, a(n) = Sum_{d|n} (2*hypergeom([-d+2, d+1], [2], -1))^(n/d) = Sum_{d|n} A006318(d-1)^(n/d) for n >=1.
+A216174	hygeom	0	2, 1	"[[-d+2],[d+1],[2],[-1]]"	1,a(n)=Sum_{d|n}(2).multiply(
+
+# Table[If[n == 0, 1, Sum[(2*Hypergeometric2F1[-d + 2, d + 1, 2, -1])^(n/d), {d, Divisors[n]}]], {n, 0, 26}]
+A216174	hygeom	0	2, 1	"[[-d+2],[d+1],[2],[-1]]"	Table[If[n==0,1,Sum[(2).multiply(
+
+# a(n) = hypergeom([-n,-n,-n],[1,1], -6). - _Peter Luschny_, Sep 23 2014
+A216698	hygeom	0	3, 2	"[[0,-1],[0,-1],[0,-1],[1],[1],[-6]]"	
+
+# A216698 = lambda n: hypergeometric([-n,-n,-n], [1,1], -6)
+A216698	hygeom	0	3, 2	"[[0,-1],[0,-1],[0,-1],[1],[1],[-6]]"	A216698=lambdan:
+
+# Table[(-1)^n HypergeometricPFQ[{-2 - 2 n, -2 n, -2 n - 1}, {2, 3}, 1], {n, 0, 20}] (* _Michael De Vlieger_, Aug 22 2016 *)
+A217800	hygeom	0	3, 2	""	Table[(-1)).pow(n
+
+# Numerators of the fraction (30*n+7) * binomial(2*n,n)^2 * 2F1([1/2 - n/2, -n/2], [1], 64)/(-256)^n, where 2F1 is the hypergeometric function.
+A220852	hygeom	0	0, 0	""	Table[(-1)).pow(n
+
+# More directly, Sum_{k>=0} (30*k+7) * binomial(2k,k)^2 * (Hypergeometric2F1[1/2 - k/2, -k/2, 1,64])/(-256)^k = 24/Pi.
+A220852	hygeom	0	2, 1	"[[-1/2*k+1/2],[-1/2*k],[1],[64]]"	Moredirectly,Sum_{k>=0}(30).multiply(k+7)).multiply(binomial(2k,k)).pow(2).multiply((
+
+# hypergeom([1/2-n/2,-n/2],[1],64) ;
+A220852	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[64]]"	
+
+# Numerator[Table[(30*n + 7)*Binomial[2*n, n]^2* Hypergeometric2F1[(1 - n)/2, -n/2, 1, 64]/(-256)^n, {n, 0, 50}]] (* _G. C. Greubel_, Feb 20 2017 *)
+A220852	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[64]]"	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Triangle read by rows: coefficients of second-order hypergeometric-harmonic polynomials.
+A222061	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# a(n) = n-th second-order hypergeometric-harmonic number.
+A222062	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Triangle read by rows: coefficients of third-order hypergeometric-harmonic polynomials.
+A222063	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# a(n) = n-th third-order hypergeometric-harmonic number.
+A222064	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Denominators of hypergeometric Cauchy numbers c_(2,n).
+A224085	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Denominators of hypergeometric Cauchy numbers c_(3,n).
+A224086	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Denominators of hypergeometric Cauchy numbers c_(4,n).
+A224088	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Denominators of hypergeometric Cauchy numbers c_(5,n).
+A224089	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Numerators of hypergeometric Cauchy numbers c_(2,n).
+A224090	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Numerators of hypergeometric Cauchy numbers c_(3,n).
+A224091	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Numerators of hypergeometric Cauchy numbers c_(4,n).
+A224092	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# Numerators of hypergeometric Cauchy numbers c_(5,n).
+A224093	hygeom	0	2, 1	""	Numerator[Table[(30).multiply(n+7)).multiply(Binomial[2).multiply(n,n]).pow(2).multiply(
+
+# a[n_] := If[n < 0, 0, 3^n Hypergeometric2F1[1/2, -n, 1, 4/3]]; Table[a[n]^n, {n, 0, 50}] (* _G. C. Greubel_, Feb 27 2017 *)
+A225328	hygeom	0	2, 1	"[[1/2],[0,-1],[1],[4/3]]"	If[n<0,0,3).pow(n
+
+# Numerator/2 of hypergeom([n+1/2,1],[n+3],-3).
+A227473	hygeom	0	2, 1	"[[1/2,1],[1],[3,1],[-3]]"	Numerator/2of
+
+# seq(numer(simplify(hypergeom([n+1/2,1],[n+3],-3)))/2,n=0..15)
+A227473	hygeom	0	2, 1	"[[1/2,1],[1],[3,1],[-3]]"	seq(numer(simplify(
+
+# Denominator/27 of hypergeom([n+1/2,1],[n+3],-3).
+A227474	hygeom	0	2, 1	"[[1/2,1],[1],[3,1],[-3]]"	Denominator/27of
+
+# seq(denom(simplify(hypergeom([n+1/2,1],[n+3],-3)))/27,n=0..16)
+A227474	hygeom	0	2, 1	"[[1/2,1],[1],[3,1],[-3]]"	seq(denom(simplify(
+
+# E.g.f. of r: 4*hypergeom([4/3,5/3],[1/2],27*z/8).
+A227528	hygeom	0	2, 1	"[[4/3],[5/3],[1/2],[27/8*z]]"	E.g.f.ofr:4).multiply(
+
+# E.g.f. of r(n):  2*hypergeom([3/4, 5/4, 3/2], [1/3, 2/3], (128/27)*z).
+A227624	hygeom	0	3, 2	""	E.g.f.ofr(n):2).multiply(
+
+# Table[HypergeometricPFQ[{-n, -n, -n, -n}, {1, 1, 1}, -1],{n,0,20}] (* _Vaclav Kotesovec_, Feb 01 2014 *)
+A228304	hygeom	0	4, 3	"[[0,-1],[0,-1],[0,-1],[0,-1],[1],[1],[1],[-1]]"	Table[
+
+# a(n) = hypergeom([1/3-n/3, 2/3-n/3, -n, -n/3], [1/3, 2/3, 1], 1). - _Vladimir Reshetnikov_, Oct 04 2016
+A228960	hygeom	0	4, 3	"[[1/3,-1/3],[2/3,-1/3],[0,-1],[0,-1/3],[1/3],[2/3],[1],[1]]"	
+
+# Table[HypergeometricPFQ[{1/3 - n/3, 2/3 - n/3, -n, -n/3}, {1/3, 2/3, 1}, 1], {n, 20}] (* _Vladimir Reshetnikov_, Oct 04 2016 *)
+A228960	hygeom	0	4, 3	"[[1/3,-1/3],[2/3,-1/3],[0,-1],[0,-1/3],[1/3],[2/3],[1],[1]]"	Table[
+
+# a(n) = (-1)^n*2*hypergeom([n, -n], [], 1/2). - _Peter Luschny_, Nov 10 2016
+A231622	hygeom	0	2, 0	""	(-1)).pow(n).multiply(2).multiply(
+
+# A231622 := n -> (-1)^n*2*hypergeom([n, -n], [], 1/2):
+A231622	hygeom	0	2, 0	""	A231622:=n->(-1)).pow(n).multiply(2).multiply(
+
+# a[ n_] := With[{m = Abs@n}, Boole[m == 0] + (2*m - 1)!! Hypergeometric1F1[ -m, 1 - 2*m, -2]]
+A231622	hygeom	0	1, 1	"[[-m],[-2*m+1],[-2]]"	With[{m=Abs@n},Boole[m==0]+(2).multiply(m-1)!!
+
+# Theorem: a(n) = Sum_{j=1..floor((n-2)/3)} 2* Hypergeometric2F1([2+3*j-n,-(2j+1)], [1], 1). - _Richard Turk_, Oct 22 2019
+A232582	hygeom	0	2, 1	""	Theorem:a(n)=Sum_{j=1..floor((n-2)/3)}2).multiply(
+
+# Table[n!^2 (n - 1)! 2^n HypergeometricPFQ[{n, (1 - n)/2, -n/2}, {1, 1}, 1], {n, 10}] (* _Eric W. Weisstein_, Apr 26, 2017 *)
+A234365	hygeom	0	3, 2	"[[0,1],[1/2,-1/2],[0,-1/2],[1],[1],[1]]"	Table[n!).pow(2(n-1)!2).pow(n
+
+# Table[2 n!^3 (Binomial[2 n + 1, n + 1] HypergeometricPFQ[{1 - n, 1 - n, 1/2 - n/2, -(n/2)}, {1, -(1/2) - n, -n}, 1] + (n - 1) Binomial[2 n, n + 1] HypergeometricPFQ[{1 - n, 2 - n, 1/2 - n/2, 1 - n/2}, {2, 1/2 - n, -n}, 1]), {n, 10}]) (* _Eric W. Weisstein_, May 26 2017 *)
+A234633	hygeom	0	4, 3	"[[1,-1],[1,-1],[1/2,-1/2],[0,-1/2],[1],[-1/2,-1],[0,-1],[1]]"	Table[2n!).pow(3(Binomial[2n+1,n+1]
+
+# a(n) = hypergeom([-n, -n, -n, -n], [1, 1, 1], n). - _Peter Luschny_, Dec 22 2020
+A234971	hygeom	0	4, 3	"[[0,-1],[0,-1],[0,-1],[0,-1],[1],[1],[1],[0,1]]"	
+
+# a := n -> hypergeom([-n, -n, -n, -n], [1, 1, 1], n):
+A234971	hygeom	0	4, 3	"[[0,-1],[0,-1],[0,-1],[0,-1],[1],[1],[1],[0,1]]"	Z.valueOf(n->
+
+# 4/3 * 2F1(3/4, 1, 7/4, -1), where 2F1 is the hypergeometric function,
+A237841	hygeom	0	1, 1	""	Z.valueOf(n->
+
+# a(n) = (n+2)!^2*(n+1)!/4*hypergeom([-n],[2,3,3],-1).
+A238740	hygeom	0	1, 3	"[[0,-1],[2],[3],[3],[-1]]"	(n+2)!).pow(2).multiply((n+1)!/4).multiply(
+
+# a:= n-> round(evalf((n+2)!^2*(n+1)!/4*hypergeom([-n], [2, 3, 3], -1))):
+A238740	hygeom	0	1, 3	"[[0,-1],[2],[3],[3],[-1]]"	Z.valueOf(n->round(evalf((n+2)!).pow(2).multiply((n+1)!/4).multiply(
+
+# Table[(n+2)!^2*(n+1)!/4*HypergeometricPFQ[{-n},{2,3,3},-1],{n,0,10}] (* _Vaclav Kotesovec_, Mar 04 2014 *)
+A238740	hygeom	0	1, 3	"[[0,-1],[2],[3],[3],[-1]]"	Table[(n+2)!).pow(2).multiply((n+1)!/4).multiply(
+
+# a(n) = hypergeom([-n,-n-2], [2], 2). - _Peter Luschny_, Sep 23 2014
+A239204	hygeom	0	2, 1	"[[0,-1],[-2,-1],[2],[2]]"	
+
+# A239204 = lambda n: hypergeometric([-n,-n-2],[2],2)
+A239204	hygeom	0	2, 1	"[[0,-1],[-2,-1],[2],[2]]"	A239204=lambdan:
+
+# a(n) = sum(k=1..n, (-1)^(k+n)*C(2*n-k-1,n-1)*hypergeom([k-n, n/2+1/2, n/2], [n, n+1], 4)). - _Peter Luschny_, May 22 2014
+A239230	hygeom	0	3, 2	"[[k,-1],[1/2,1/2],[0,1/2],[0,1],[1,1],[4]]"	sum(k=1..n,(-1)).pow((k+n)).multiply(C(2).multiply(n-k-1,n-1)).multiply(
+
+# a:= n-> add((-1)^(k+n)*binomial(2*n-k-1, n-1)*hypergeom([k-n, (n+1)/2, n/2], [n, n+1], 4), k=1..n);
+A239230	hygeom	0	0, 0	""	Z.valueOf(n->add((-1)).pow((k+n)).multiply(binomial(2).multiply(n-k-1,n-1)).multiply(
+
+# a(n) = 2*Hyper2F1([-n, n], [1], -1) for n>0. - _Peter Luschny_, Aug 02 2014
+A241023	hygeom	0	1, 1	""	Z.valueOf(n->add((-1)).pow((k+n)).multiply(binomial(2).multiply(n-k-1,n-1)).multiply(
+
+# a[0] = 1; a[n_] := 4 Hypergeometric2F1[1 - n, n + 1, 1, -1];
+A241023	hygeom	0	2, 1	"[[1,-1],[1,1],[1],[-1]]"	1;a[n_]:=4
+
+# 4F3(1/4, 1/4, 1/2, 1/2; 5/4, 5/4, 1; 1)*4/Beta(1/4, 1/2)^2.
+A241026	hygeom	0	2, 1	""	1;a[n_]:=4
+
+# Table[HypergeometricPFQ[{-n,-n,-n},{1,1},-n],{n,1,20}]
+A241247	hygeom	0	3, 2	"[[0,-1],[0,-1],[0,-1],[1],[1],[0,-1]]"	Table[
+
+# a(n) ~ c * (n!)^6, where c = 1.1269621849236767... = 1 + Sum_{n>=1} 1/(Product_{k=1..n} (2*k)^3) = HypergeometricPFQ[{}, {1, 1}, 1/8].
+A242283	hygeom	0	0, 2	""	a(n)~c).multiply((n!)).pow(6,wherec=1.1269621849236767...=1+Sum_{n>=1}1/(Product_{k=1..n}(2).multiply(k)).pow(3)=
+
+# a(n) = 2F1([1-n, -n], [2], n), 2F1 the hypergeometric function.
+A242369	hygeom	0	0, 0	""	a(n)~c).multiply((n!)).pow(6,wherec=1.1269621849236767...=1+Sum_{n>=1}1/(Product_{k=1..n}(2).multiply(k)).pow(3)=
+
+# Also equals (4*Pi/sqrt(3))*2F1(1/2, 1/2; 1; -1/3), where 2F1 is the hypergeometric function.
+A242670	hygeom	0	0, 0	""	a(n)~c).multiply((n!)).pow(6,wherec=1.1269621849236767...=1+Sum_{n>=1}1/(Product_{k=1..n}(2).multiply(k)).pow(3)=
+
+# a(n) = binomial(2*n, n)*hypergeom([1/2, -n], [n + 1], -4]. - _Peter Luschny_, Aug 04 2019
+A243585	hygeom	0	0, 0	""	a(n)~c).multiply((n!)).pow(6,wherec=1.1269621849236767...=1+Sum_{n>=1}1/(Product_{k=1..n}(2).multiply(k)).pow(3)=
+
+# A243585[n_] := Binomial[2 n, n] Hypergeometric2F1[1/2, -n, n + 1, -4];
+A243585	hygeom	0	2, 1	"[[1/2],[0,-1],[1,1],[-4]]"	A243585[n_]:=Binomial[2n,n]
+
+# 4*2F1(1, 1/4; 5/4; -1/4) + 2*arctan(1/2) - log(5) = Pi.
+A244844	hygeom	0	2, 1	""	A243585[n_]:=Binomial[2n,n]
+
+# a(n)^2 = C(4*n,2*n)*hyper4F3([-2*n,-2*n,-2*n,-2*n+1/2],[1,-4*n,-4*n],4). - _Peter Luschny_, Aug 17 2014
+A245926	hygeom	0	2, 1	""	A243585[n_]:=Binomial[2n,n]
+
+# a(n) = (-1)^n*hypergeom([-n, n + 1/2], [1], 4). - _Peter Luschny_, Mar 16 2018
+A245926	hygeom	0	2, 1	"[[0,-1],[1/2,1],[1],[4]]"	(-1)).pow(n).multiply(
+
+# a[n_] := (-1)^n Hypergeometric2F1[-n, n + 1/2, 1, 4];
+A245926	hygeom	0	2, 1	"[[0,-1],[1/2,1],[1],[4]]"	(-1)).pow(n
+
+# Triangular array read by rows. Row n lists the coefficients of the closed form of hypergeometric([1/2, -n/2, (1-n)/2], [], 4*z).
+A246256	hygeom	0	0, 0	""	Triangulararrayreadbyrows.Rownliststhecoefficientsoftheclosedformof
+
+# from sage.functions.hypergeometric import closed_form
+A246256	hygeom	0	1, 1	""	Triangulararrayreadbyrows.Rownliststhecoefficientsoftheclosedformof
+
+# h = hypergeometric([1/2,-n/2,(1-n)/2], [], 4*z)
+A246256	hygeom	0	1, 3	""	
+
+# from sage.functions.hypergeometric import closed_form
+A246257	hygeom	0	1, 1	""	
+
+# h = hypergeometric([-n/2,(1-n)/2], [], 2*z)
+A246257	hygeom	0	1, 2	""	
+
+# g = hypergeometric([1/2,-n/2,(1-n)/2], [], 4*z)
+A246257	hygeom	0	1, 3	""	
+
+# a(n) = (2*n - 1)!*hypergeom([1 - n], [1 - 2*n], -1). - _Peter Luschny_, Nov 04 2018
+A246606	hygeom	0	1, 1	"[[1,-1],[1,-2],[-1]]"	(2).multiply(n-1)!).multiply(
+
+# a := n -> (2*n - 1)!*hypergeom([1 - n], [1 - 2*n], -1):
+A246606	hygeom	0	1, 1	"[[1,-1],[1,-2],[-1]]"	Z.valueOf(n->(2).multiply(n-1)!).multiply(
+
+# T(n+k,k) = hypergeom([(1-n)/2, 1-n/2], [1-n, 1+k, 1-n-k], 4)* pochhammer(k+1, n-1).
+A246654	hygeom	0	0, 1	""	T(n+k,k)=
+
+# return hypergeometric([(1-n)/2, 1-n/2], [1-n, 1+k, 1-n-k], 4) *rising_factorial(k+1,n-1)
+A246654	hygeom	0	1, 1	""	return
+
+# a(n) = 3F2([1, 3/2, 1 - n], [2, 2], -4).
+A246657	hygeom	0	1, 1	""	return
+
+# A246657 = lambda n: hypergeometric([1, 3/2, 1-n], [2, 2], -4)
+A246657	hygeom	0	3, 2	"[[1],[3/2],[1,-1],[2],[2],[-4]]"	A246657=lambdan:
+
+# a(n) = binomial(n-h,h)*hypergeometric([h-n/2,h-(n-1)/2],[1],4), h = floor(n/4).
+A246659	hygeom	0	1, 2	""	binomial(n-h,h)).multiply(
+
+# a := proc(n) local h; h := iquo(n,4); binomial(n-h,h)*hypergeom([h-n/2, h-n/2+1/2],[1],4) end: seq(round(evalf(a(n),99)),n=0..30);
+A246659	hygeom	0	2, 1	"[[h,-1/2],[h+1/2,-1/2],[1],[4]]"	proc(n)localh;h:=iquo(n,4);binomial(n-h,h)).multiply(
+
+# a(n) = 4F3(1-n,1-n,1+n,1+n;1,1,3;1)/n. - _Benedict W. J. Irwin_, Apr 04 2017
+A246875	hygeom	0	1, 1	""	proc(n)localh;h:=iquo(n,4);binomial(n-h,h)).multiply(
+
+# Table[HypergeometricPFQ[{1-n,1-n,1+n,1+n},{1,1,3},1]/n,{n,1,10}] (* _Benedict W. J. Irwin_, Apr 04 2017 *)
+A246875	hygeom	0	4, 3	"[[1,-1],[1,-1],[1,1],[1,1],[1],[1],[3],[1]]"	Table[
+
+# Square array read by antidiagonals: A(k, n) = hypergeometric(P, Q, -k^k/(k-1)^(k-1)) rounded to the nearest integer, P = [(j-n)/k, j=0..k-1] and Q = [(j-n)/(k-1), j=0..k-2], k>=1, n>=0.
+A247489	hygeom	0	0, 0	""	Squarearrayreadbyantidiagonals:A(k,n)=
+
+# hypergeom([%%], [%], -k^k/(k-1)^(k-1));
+A247489	hygeom	0	1, 1	""	
+
+# H = hypergeometric(P, Q, -k^k/(k-1)^(k-1))
+A247489	hygeom	0	0, 0	""	
+
+# Square array read by antidiagonals: A(k, n) = (-1)^(n+1)* hypergeom([k, -n+1], [], 1) for n>0 and A(k,0) = 0 (n>=0, k>=1).
+A247490	hygeom	0	2, 0	""	Squarearrayreadbyantidiagonals:A(k,n)=(-1)).pow((n+1)).multiply(
+
+# A := (k,n) -> `if`(n<2,n,hypergeom([k,-n+1],[],1)*(-1)^(n+1));
+A247490	hygeom	0	2, 0	""	(k,n)->`if`(n<2,n,
+
+# return n^k*hypergeometric([(1-k)/2,-k/2],[2],4/n^2).simplify()
+A247495	hygeom	0	1, 1	""	returnn).pow(k).multiply(
+
+# Flatten[{1,Table[n^n*HypergeometricPFQ[{1/2-n/2, -n/2}, {2}, 4/n^2],{n,1,20}]}] (* _Vaclav Kotesovec_, Dec 12 2014 *)
+A247496	hygeom	0	2, 1	""	Flatten[{1,Table[n).pow(n).multiply(
+
+# a = lambda n: 1 if n==0 else n^n*hypergeometric([1/2-n/2, -n/2], [2], 4/n^2).simplify()
+A247496	hygeom	0	2, 1	""	lambdan:1ifn==0elsen).pow(n).multiply(
+
+# a(n)=((-1)^n*2F0(1,-n;;1) - n!y(n+1))/2.
+A248087	hygeom	0	1, 1	""	lambdan:1ifn==0elsen).pow(n).multiply(
+
+# a(n) = hypergeometric(1/2,1/2,-n;1,1;-16).
+A248586	hygeom	0	1, 4	""	
+
+# N[HypergeometricPFQ[{1}, {4/3, 5/3}, 1/27]/6,120] (* _Vaclav Kotesovec_, Oct 15 2014 *)
+A248759	hygeom	0	1, 2	"[[1],[4/3],[5/3],[1/27]]"	N[
+
+# N[HypergeometricPFQ[{1, 3/2}, {4/3, 5/3}, 4/27]/3, 120] (* _Vaclav Kotesovec_, Nov 15 2020 *)
+A248760	hygeom	0	2, 2	"[[1],[3/2],[4/3],[5/3],[4/27]]"	N[
+
+# E(T_{a,0}) = (1/2)*(Pi*erfi(a/sqrt(2)) + a^2 * 2F2(1,1; 3/2,2; a^2/2)), where erfi is the imaginary error function, and 2F2 the hypergeometric function.
+A249417	hygeom	0	0, 0	""	N[
+
+# E(T_{0,c}) = (1/2)*(Pi*erfi(c/sqrt(2)) - c^2 * 2F2(1,1; 3/2,2; c^2/2)), where erfi is the imaginary error function, and 2F2 the hypergeometric function.
+A249418	hygeom	0	0, 0	""	N[
+
+# a(n) = 5^((n+1)/2) if n is odd else a(n) = (4^n*binomial(n/2+1/2, n)* hypergeometric([1, -n], [-n/2+3/2], -1/4)). # _Peter Luschny_, Oct 31 2014
+A249513	hygeom	0	2, 1	"[[1],[0,-1],[3/2,-1/2],[-1/4]]"	5).pow(((n+1)/2)ifnisoddelsea(n)=(4).pow(n).multiply(binomial(n/2+1/2,n)).multiply(
+
+# return (4^n*binomial(n/2+1/2, n)*hypergeometric([1, -n], [-n/2 +3/2], -1/4)).simplify_hypergeometric()
+A249513	hygeom	0	2, 1	"[[1],[0,-1],[3/2,-1/2],[-1/4]]"	return(4).pow(n).multiply(binomial(n/2+1/2,n)).multiply(
+
+# a(n) = hypergeom([-n, -n, n + 1, n + 1], [1/2, 1, 1], -1/4). - _Peter Luschny_, Mar 14 2018
+A249891	hygeom	0	4, 3	"[[0,-1],[0,-1],[1,1],[1,1],[1/2],[1],[1],[-1/4]]"	
+
+# a[n_] := HypergeometricPFQ[{-n, -n, n + 1, n + 1}, {1/2, 1, 1}, -1/4];Table[a[n], {n, 0, 22}] (* _Peter Luschny_, Mar 14 2018 *)
+A249891	hygeom	0	4, 3	"[[0,-1],[0,-1],[1,1],[1,1],[1/2],[1],[1],[-1/4]]"	
+
+# E(T_{a,0}) = (1/2)*(Pi*erfi(a/sqrt(2)) + a^2 * 2F2(1,1; 3/2,2; a^2/2)), where erfi is the imaginary error function, and 2F2 the hypergeometric function.
+A250718	hygeom	0	0, 0	""	
+
+# E(T_{0,c}) = (1/2)*(Pi*erfi(c/sqrt(2)) - c^2 * 2F2(1,1; 3/2,2; c^2/2)), where erfi is the imaginary error function, and 2F2 the hypergeometric function.
+A250719	hygeom	0	0, 0	""	
+
+# a(n) = ((2*n)!/(n+1)!)*hypergeometric([1-n],[n+2],-1), a(0)=1. - _Vladimir Kruchinin_, May 03 2017
+A251568	hygeom	0	1, 1	"[[1,-1],[2,1],[-1]]"	((2).multiply(n)!/(n+1)!)).multiply(
+
+# a := n -> `if`(n=0, 1, n!*CatalanNumber(n)*hypergeom([1-n], [2+n], -1)):
+A251568	hygeom	0	1, 1	"[[1,-1],[2,1],[-1]]"	Z.valueOf(n->`if`(n=0,1,n!).multiply(CatalanNumber(n)).multiply(
+
+# a[0] = 1; a[n_] := (2n)!/(n+1)! Hypergeometric1F1[1-n, n+2, -1];
+A251568	hygeom	0	1, 1	"[[1,-1],[2,1],[-1]]"	1;a[n_]:=(2n)!/(n+1)!
+
+# a(n) = Sum_{k=0..n-1} k*(n-k)!*hypergeom([k-n+1],[2],-k).
+A256325	hygeom	0	1, 1	"[[k+1,-1],[2],[-k]]"	Sum_{k=0..n-1}k).multiply((n-k)!).multiply(
+
+# a := n -> add(k*(n-k)!*hypergeom([k-n+1],[2],-k),k=0..n-1):
+A256325	hygeom	0	1, 1	"[[k+1,-1],[2],[-k]]"	Z.valueOf(n->add(k).multiply((n-k)!).multiply(
+
+# Denominator[Table[Sqrt[2/3] * Hypergeometric2F1[1/2, n+3/2, 3/2, 1/3], {n, 0, 20}]] (* _Vaclav Kotesovec_, Apr 08 2015 *)
+A256442	hygeom	0	2, 1	"[[1/2],[3/2,1],[3/2],[1/3]]"	Denominator[Table[Sqrt[2/3]).multiply(
+
+# A000262 = lambda n: simplify(hypergeometric([-n+1, -n], [], 1))
+A256548	hygeom	0	2, 0	""	A000262=lambdan:simplify(
+
+# A000262 = lambda n: simplify(hypergeometric([-n+1, -n], [], 1))
+A256549	hygeom	0	2, 0	""	A000262=lambdan:simplify(
+
+# BellMatrix(n -> simplify(hypergeom([-n, -n-1], [], 1)), 9); # _Peter Luschny_, Jan 29 2016
+A256892	hygeom	0	2, 0	""	BellMatrix(n->simplify(
+
+# B = BellMatrix[Function[n, HypergeometricPFQ[{-n, -n-1}, {}, 1]], rows = 12];
+A256892	hygeom	0	2, 0	""	BellMatrix[Function[n,
+
+# G(s) = (Pi/4) * 3F2(1/2, 1/2-s, s+1/2; 1, 3/2; 1), with 2F1 the hypergeometric function.
+A257435	hygeom	0	0, 0	""	BellMatrix[Function[n,
+
+# N[Pi*HypergeometricPFQ[{1/3, 1/2, 2/3}, {1, 3/2}, 1]/4, 105] (* _Vaclav Kotesovec_, Apr 24 2015 *)
+A257435	hygeom	0	3, 2	"[[1/3],[1/2],[2/3],[1],[3/2],[1]]"	N[Pi).multiply(
+
+# G(s) = (Pi/4) * 3F2(1/2, 1/2-s, s+1/2; 1, 3/2; 1), with 2F1 the hypergeometric function.
+A257436	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# N[Pi*HypergeometricPFQ[{1/6, 1/2, 5/6}, {1, 3/2}, 1]/4, 105] (* _Vaclav Kotesovec_, Apr 24 2015 *)
+A257436	hygeom	0	3, 2	"[[1/6],[1/2],[5/6],[1],[3/2],[1]]"	N[Pi).multiply(
+
+# G(s) = (Pi/4) * 3F2(1/2, 1/2-s, s+1/2; 1, 3/2; 1), with 2F1 the hypergeometric function.
+A257437	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# N[Pi*HypergeometricPFQ[{5/12, 1/2, 7/12}, {1, 3/2}, 1]/4, 106] (* _Vaclav Kotesovec_, Apr 24 2015 *)
+A257437	hygeom	0	3, 2	"[[5/12],[1/2],[7/12],[1],[3/2],[1]]"	N[Pi).multiply(
+
+# G(s) = (Pi/4) * 3F2(1/2, 1/2-s, s+1/2; 1, 3/2; 1), with 2F1 the hypergeometric function.
+A257438	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# N[Pi*HypergeometricPFQ[{3/10, 1/2, 7/10}, {1, 3/2}, 1]/4, 105] (* _Vaclav Kotesovec_, Apr 24 2015 *)
+A257438	hygeom	0	3, 2	"[[3/10],[1/2],[7/10],[1],[3/2],[1]]"	N[Pi).multiply(
+
+# Also equals 6 * 5F4(1/2,1/2,1/2,1/2,1/2; 3/2,3/2,3/2,3/2; 1/4) (with 5F4 the hypergeometric function).
+A258760	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# Also equals -24 * 6F5(1/2,1/2,1/2,1/2,1/2,1/2; 3/2,3/2,3/2,3/2,3/2; 1/4) (with 6F5 the hypergeometric function).
+A258761	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# Also equals 120 * 7F6(1/2,1/2,...; 3/2,3/2,...; 1/4) (with 7F6 the hypergeometric function).
+A258762	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# Also equals -720 * 7F6(1/2,1/2,...; 3/2,3/2,...; 1/4) (with 7F6 the hypergeometric function).
+A258763	hygeom	0	0, 0	""	N[Pi).multiply(
+
+# Join[{0}, Table[-(-1)^n (n - 1)! HypergeometricPFQ[{1, 1 - n, n}, {1/2}, 1/4], {n, 2, 20}]] (* _Eric W. Weisstein_, Mar 27 2018 *)
+A259212	hygeom	0	3, 1	"[[1],[1,-1],[0,1],[1/2],[1/4]]"	Join[{0},Table[-(-1)).pow(n(n-1)!
+
+# Sum_{n>=0} CatalanNumber(n) * 3F2(1/2,-n-1,-n; 2,2; 4) / 6^(2n), where 3F2 is the hypergeometric function.
+A259833	hygeom	0	0, 0	""	Join[{0},Table[-(-1)).pow(n(n-1)!
+
+# evalf(Sum((2*n)!*hypergeom([1/2, -n-1, -n], [2, 2], 4)/(n!*(n+1)!*6^(2*n)), n=0..infinity), 120); # _Vaclav Kotesovec_, May 14 2016
+A259833	hygeom	0	3, 2	"[[1/2],[-1,-1],[0,-1],[2],[2],[4]]"	evalf(Sum((2).multiply(n)!).multiply(
+
+# S_2(2) = Sum_{n>=1} 2^n*n^2/binomial(2*n, n) = 3F2([2,2,2]; [1,3/2]; 1/2) = 11 + 7*Pi/2. [Corrected by _Petros Hadjicostas_, May 14 2020]
+A259852	hygeom	0	1, 1	""	evalf(Sum((2).multiply(n)!).multiply(
+
+# okQ[p_] := AllTrue[Range[3 maxPi (* coeff 3 is empirical *)], GCD[HypergeometricPFQ[{-#, -#, -#}, {1, 1}, -1], p] == 1&];
+A260793	hygeom	0	3, 2	""	okQ[p_]:=AllTrue[Range[3maxPi().multiply(coeff3isempirical).multiply()],GCD[
+
+# G.f. of Jtilde2(n): 2F1(1/2,1/2;1;z/(z-1))/(1-z).
+A260832	hygeom	0	0, 0	""	okQ[p_]:=AllTrue[Range[3maxPi().multiply(coeff3isempirical).multiply()],GCD[
+
+# Representation as a sum of infinite series of special values of hypergeometric functions of type 2F0, in Maple notation:
+A261833	hygeom	0	0, 0	""	okQ[p_]:=AllTrue[Range[3maxPi().multiply(coeff3isempirical).multiply()],GCD[
+
+# a(n) = sum(k^n*(k+1)!*(k+3)!*hypergeom([k+2,k+4],[],-1)/k!, k=1..infinity)/48, n=1,2,... .
+A261833	hygeom	0	2, 0	""	sum(k).pow(n).multiply((k+1)!).multiply((k+3)!).multiply(
+
+# Equals (1/2) 4F3(1,1,1,1; 3/2,2,2; 1/4).
+A261839	hygeom	0	1, 1	""	sum(k).pow(n).multiply((k+1)!).multiply((k+3)!).multiply(
+
+# Equals (1/2) 7F6(1,1,1,1,1,1,1; 3/2,2,2,2,2,2; 1/4).
+A261850	hygeom	0	1, 1	""	sum(k).pow(n).multiply((k+1)!).multiply((k+3)!).multiply(
+
+# Equals (1/2) 8F7(1,...,1; 3/2,2,...,2; 1/4).
+A261851	hygeom	0	1, 1	""	sum(k).pow(n).multiply((k+1)!).multiply((k+3)!).multiply(
+
+# Equals (1/2) 8F7(1,...,1; 3/2,2,...,2; 1/4).
+A261852	hygeom	0	1, 1	""	sum(k).pow(n).multiply((k+1)!).multiply((k+3)!).multiply(
+
+# Equals 2*zeta(5)/6F5(1,1,1,1,1,1; 3/2,2,2,2,2; -1/4).
+A262177	hygeom	0	1, 1	""	sum(k).pow(n).multiply((k+1)!).multiply((k+3)!).multiply(
+
+# a(n) is the sum of infinite series of the hypergeometric functions of type 2F0, in Maple notation: a(n)=sum(k*(n+k-1)!*hypergeom([k+1,k+1],[],-1),k=1..infinity),n=1,2,... .
+A262601	hygeom	0	2, 0	""	a(n)isthesumofinfiniteseriesofthehypergeometricfunctionsoftype2F0,inMaplenotation:a(n)=sum(k).multiply((n+k-1)!).multiply(
+
+# Representation as a sum of infinite series of special values of hypergeometric functions of type 2F0, in Maple notation: sum(k^n*(k+2)!*(k+3)!*hypergeom([k+3,k+4],[],-1)/k!, k=1..infinity)/144,  n=1,2... .
+A262960	hygeom	0	2, 0	""	Representationasasumofinfiniteseriesofspecialvaluesofhypergeometricfunctionsoftype2F0,inMaplenotation:sum(k).pow(n).multiply((k+2)!).multiply((k+3)!).multiply(
+
+# evalf(hypergeom([1/2,1/2,1/2],[3/2,3/2],1/2) );
+A263353	hygeom	0	3, 2	"[[1/2],[1/2],[1/2],[3/2],[3/2],[1/2]]"	evalf(
+
+# evalf(hypergeom([1/2,3/2,3/2],[5/2,5/2],1/2)) ;
+A263354	hygeom	0	3, 2	"[[1/2],[3/2],[3/2],[5/2],[5/2],[1/2]]"	evalf(
+
+# c := N -> hypergeom([1-N, seq((N+j)/m, j=m+1..2*m)],
+A263918	hygeom	0	0, 0	""	N->
+
+# Conjecture: a(n) = (2/Pi)*Integral_{t=0..1} sqrt((1 - t)/t)*(64*t^3 - 32*t^2)^n = Catalan(3*n)*2F1(-1-3*n,-n;1/2-3*n;1/2). - _Benedict W. J. Irwin_, Oct 05 2016
+A266736	hygeom	0	1, 1	""	N->
+
+# Also equals 2F1(1, 2; 1/2; 1/4), where 2F1 is the hypergeometric function 2F1.
+A268813	hygeom	0	1, 1	""	N->
+
+# a(n) = 2*hypergeometric([5/3, 7/3, 1-n],[5/2, 3], -27/4)) for n>0. - _Peter Luschny_, Mar 16 2016
+A270386	hygeom	0	3, 2	"[[5/3],[7/3],[1,-1],[5/2],[3],[-27/4]]"	2).multiply(
+
+# a = lambda n: simplify(2*hypergeometric([5/3, 7/3, 1-n],[5/2, 3],-27/4)) if n>0 else 1
+A270386	hygeom	0	3, 2	"[[5/3],[7/3],[1,-1],[5/2],[3],[-27/4]]"	lambdan:simplify(2).multiply(
+
+# a(n) = (-n)^n*Catalan(n)*Hypergeom([-n,-n], [-n+1/2], (1+1/n)/2).
+A272869	hygeom	0	2, 1	""	(-n)).pow(n).multiply(Catalan(n)).multiply(
+
+# a(n) = hypergeom([-2*n-1, 1/2], [2], 4) + (2*n+1)*hypergeom([-n+1/2, -n], [2], 4).
+A273019	hygeom	0	2, 1	"[[-1,-2],[1/2],[2],[4]]"	
+
+# a := n -> hypergeom([-2*n-1, 1/2], [2], 4) + (2*n+1)*hypergeom([-n+1/2, -n], [2], 4): seq(simplify(a(n)), n=0..22);
+A273019	hygeom	0	2, 1	"[[-1,-2],[1/2],[2],[4]]"	Z.valueOf(n->
+
+# Table[HypergeometricPFQ[{-2*n-1, 1/2}, {2}, 4] + (2*n+1)*HypergeometricPFQ[ {-n+1/2, -n}, {2}, 4], {n, 0, 20}] (* _Vaclav Kotesovec_, Jul 05 2018 *)
+A273019	hygeom	0	2, 1	"[[-1,-2],[1/2],[2],[4]]"	Table[
+
+# a(n) = hypergeom([-n,1/2], [2], 4) + n*hypergeom([-n/2+1,-n/2+1/2], [2], 4).
+A273020	hygeom	0	2, 1	"[[0,-1],[1/2],[2],[4]]"	
+
+# seq(simplify(hypergeom([-n,1/2],[2],4) + n*hypergeom([-n/2+1,-n/2+1/2],[2],4)), n=0..30);
+A273020	hygeom	0	2, 1	"[[0,-1],[1/2],[2],[4]]"	seq(simplify(
+
+# Equals (Pi^4/4) 4F3(1/2, 1/2, 1/2, 1/2; 1, 1, 1; 1), where 4F3 is the generalized hypergeometric function.
+A273839	hygeom	0	1, 1	""	seq(simplify(
+
+# c[4, 0] = (Pi^4/4)*HypergeometricPFQ[{1/2, 1/2, 1/2, 1/2}, {1, 1, 1}, 1];
+A273839	hygeom	0	4, 3	"[[1/2],[1/2],[1/2],[1/2],[1],[1],[1],[1]]"	c[4,0]=(Pi).pow(4/4)).multiply(
+
+# c(4,2) = (Pi^4/64)*(4 * 4F3(1/2, 1/2, 1/2, 1/2; 1, 1, 1; 1) - 3 * 4F3(1/2, 1/2, 1/2, 1/2; 2, 1, 1; 1)) - 3*Pi^2/16, where 4F3 is the generalized hypergeometric function.
+A273840	hygeom	0	0, 0	""	c[4,0]=(Pi).pow(4/4)).multiply(
+
+# c[4, 2] = (Pi^4/64)*(4*HypergeometricPFQ[{1/2, 1/2, 1/2, 1/2}, {1, 1, 1}, 1] - 3*HypergeometricPFQ[{1/2, 1/2, 1/2, 1/2}, {2, 1, 1}, 1]) - 3*Pi^2 / 16;
+A273840	hygeom	0	4, 3	"[[1/2],[1/2],[1/2],[1/2],[1],[1],[1],[1]]"	c[4,2]=(Pi).pow(4/64)).multiply((4).multiply(
+
+# a[n_]:= n! (2 n - 1)!! Hypergeometric1F1[-n, 1 - 2 n, - 2]; a[1] = 0; Table[a[n], {n, 1, 20}] (* _Vincenzo Librandi_, Aug 18 2016 *)
+A274634	hygeom	0	1, 1	""	Z.valueOf(n!(2n-1)!!
+
+# a(n) = numerator(r(n)), with the rationals (in lowest terms) r(n) = [z^n/n!]F_1(1/2,1/2;z), with the hypergeometric function F_1 given by Fricke. The recurrence of the coefficients r(n) = f(1/2,1/2;n) is obtained from the general one given above.
+A274653	hygeom	0	1, 1	""	Z.valueOf(n!(2n-1)!!
+
+# E.g.f. for r(n) is hypergeometric([1/2,1/2],[1];z).
+A274657	hygeom	0	1, 3	""	E.g.f.forr(n)is
+
+# a(n) = hypergeom([-n, 1/2 - n/2, -n/2], [1, 1], -4). - _Peter Luschny_, Mar 21 2018
+A275027	hygeom	0	3, 2	"[[0,-1],[1/2,-1/2],[0,-1/2],[1],[1],[-4]]"	
+
+# a[n_] := HypergeometricPFQ[{-n, 1/2 - n/2, -n/2}, {1, 1}, -4];
+A275027	hygeom	0	3, 2	"[[0,-1],[1/2,-1/2],[0,-1/2],[1],[1],[-4]]"	
+
+# (1/4) * integral_{0..Pi} (2- 2F1(1/2,1/2,2,cos(t)^2) cos(t))t dt, where 2F1 is the hypergeometric function.
+A275393	hygeom	0	0, 0	""	
+
+# Numerator of 3F2([3*n, -n, n+1],[2*n+1, n+1/2], 1).
+A277170	hygeom	0	0, 0	""	
+
+# (s(n) =) 3F2([3*n, -n, n+1],[2*n+1, n+1/2], 1) = a(n) / A277520(n).
+A277170	hygeom	0	0, 0	""	
+
+# a[n_] := HypergeometricPFQ[{3n, -n, n+1}, {2n+1, n+1/2}, 1] // Numerator; Table[a[n], {n, 0, 53}] (* _Jean-François Alcover_, Oct 22 2016 *)
+A277170	hygeom	0	3, 2	""	
+
+# a(n) = n^n*(hypergeom([-n, -n], [], 1/n) - 1) for n>=1.
+A277372	hygeom	0	2, 0	""	Z.valueOf(n).pow(n).multiply((
+
+# a(n) = n^n*hypergeom([-n, -n], [], 1/n) for n>=1.
+A277373	hygeom	0	2, 0	""	Z.valueOf(n).pow(n).multiply(
+
+# Table[n! * Hypergeometric1F1[-n, 1, n], {n, 0, 20}] (* _Vaclav Kotesovec_, Feb 20 2020 *)
+A277423	hygeom	0	1, 1	"[[0,-1],[1],[0,1]]"	Table[n!).multiply(
+
+# a := n -> simplify(hypergeom([1, -n], [], -n)):
+A277452	hygeom	0	2, 0	""	Z.valueOf(n->simplify(
+
+# Table[If[Abs@ # < 2, 0, # Total[#2/#1 & @@@ FactorInteger[Abs@ #]]] &@ Hypergeometric2F1[(1 - n)/2, -n/2, 2, 4], {n, 0, 31}] (* _Michael De Vlieger_, Oct 17 2016, after _Michael Somos_ at A003415 and _Peter Luschny_ at A001006 *)
+A277455	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	Table[If[Abs@#<2,0,#Total[#2/#1&@@@FactorInteger[Abs@#]]]&@
+
+# Denominator of 3F2([3*n, -n, n+1],[2*n+1, n+1/2], 1).
+A277520	hygeom	0	2, 1	""	Table[If[Abs@#<2,0,#Total[#2/#1&@@@FactorInteger[Abs@#]]]&@
+
+# (s(n) =) 3F2([3*n, -n, n+1],[2*n+1, n+1/2], 1) = A277170(n) / a(n).
+A277520	hygeom	0	2, 1	""	Table[If[Abs@#<2,0,#Total[#2/#1&@@@FactorInteger[Abs@#]]]&@
+
+# a[n_] := HypergeometricPFQ[{3n, -n, n+1}, {2n+1, n+1/2}, 1] // Denominator;
+A277520	hygeom	0	3, 2	""	
+
+# Flatten[{0, 0, Table[n!*Hypergeometric1F1[3-n, -n, -1], {n, 3, 20}]}] (* _Vaclav Kotesovec_, Oct 28 2016 *)
+A277609	hygeom	0	1, 1	"[[3,-1],[0,-1],[-1]]"	Flatten[{0,0,Table[n!).multiply(
+
+# a(n) = (2*n + 1)*3F2(1-n/2,3/2-n/2,-2*n; 2,2-n; 4) for n>1. - _Ilya Gutkovskiy_, Nov 24 2016
+A278618	hygeom	0	1, 1	""	Flatten[{0,0,Table[n!).multiply(
+
+# Table[HypergeometricU[-n, 1, n^2], {n, 1, 15}] (* _Jean-François Alcover_, Mar 29 2017 *)
+A284458	hygeom	0	1, 1	""	Flatten[{0,0,Table[n!).multiply(
+
+# Table[(n + 4) Sum[(-1)^j Binomial[n, j] * (n - j + 3)!, {j, 0, n}], {n,0, 20}] (* or *) Table[(4+n) (3+n)! Hypergeometric1F1[-n,-3-n,-1],{n, 0, 20}] (* _Indranil Ghosh_, Apr 07 2017 *)
+A284845	hygeom	0	1, 1	"[[0,-1],[-3,-1],[-1]]"	Table[(n+4)Sum[(-1)).pow(jBinomial[n,j]).multiply((n-j+3)!,{j,0,n}],{n,0,20}]().multiply(or).multiply()Table[(4+n)(3+n)!
+
+# Table[Binomial[2n,n]^2 Sum[(Binomial[n,j]^4/Binomial[2n,2j]) HypergeometricPFQ[{-j,-j,-j}, {1,1/2-j}, 1/4], {j,0,n}], {n,0,15}]
+A287317	hygeom	0	3, 2	"[[-j],[-j],[-j],[1],[-j+1/2],[1/4]]"	Table[Binomial[2n,n]).pow(2Sum[(Binomial[n,j]).pow(4/Binomial[2n,2j])
+
+# zng[n_] := If[OddQ[n], 0, (1+KroneckerDelta[m]) 2^(2m-1) Binomial[2m, m]^2 HypergeometricPFQ[{-m, -m, -m}, {1-2m,1/2-m}, 1] /. m->n/2];
+A288454	hygeom	0	3, 2	""	zng[n_]:=If[OddQ[n],0,(1+KroneckerDelta[m])2).pow((2m-1)Binomial[2m,m]).pow(2
+
+# Binomial[2m,m]^3 HypergeometricPFQ[{-m,-m,-m,-m}, {1-2m, 1/2-m, 1/2-m}, 1] /. m -> n/2];
+A288455	hygeom	0	4, 3	""	Binomial[2m,m]).pow(3
+
+# Table[(-2)^(n - 2) (HypergeometricU[1 - n/2, 3/2, -(1/2)]^2 + 4 HypergeometricU[-(n/2), 1/2, -(1/2)]^2), {n, 20}]
+A288841	hygeom	0	0, 0	""	Binomial[2m,m]).pow(3
+
+# G.f.: 3F2(1/6, 1/2, 5/6; 1, 1; 1728/j) where j is the elliptic modular invariant (A000521). - _Seiichi Manyama_, Jul 07 2017
+A289292	hygeom	0	0, 0	""	Binomial[2m,m]).pow(3
+
+# a[ n_] := SeriesCoefficient[ ComposeSeries[ Series[ Hypergeometric2F1[ 1/12, 5/12, 1, q], {q, 0, n}], q^2 / Series[q^2 KleinInvariantJ[ Log[q]/(2 Pi I)], {q, 0, n}]], {q, 0, n}]; (* _Michael Somos_, Jun 21 2018 *)
+A289307	hygeom	0	2, 1	"[[1/12],[5/12],[1],[q]]"	SeriesCoefficient[ComposeSeries[Series[
+
+# G.f.: 2F1(1/12, 7/12; 1; 1728/(1728-j)) where j is the elliptic modular invariant (A000521). - _Seiichi Manyama_, Jul 07 2017
+A289325	hygeom	0	2, 1	""	SeriesCoefficient[ComposeSeries[Series[
+
+# Table[Sum[k (2 HypergeometricPFQ[{1, 1, 1 - k}, {2}, -1] - k - 1)/4, {k, n}], {n, 20}]
+A289896	hygeom	0	3, 1	"[[1],[1],[-k+1],[2],[-1]]"	Table[Sum[k(2
+
+# FoldList[Times, Table[HypergeometricPFQ[{-k/2, (1 - k)/2}, {}, 2], {k, 20}]] (* _Eric W. Weisstein_, Jul 19 2017 *)
+A289897	hygeom	0	2, 0	""	FoldList[Times,Table[
+
+# Table[Product[HypergeometricPFQ[{-k/2, (1 - k)/2}, {}, 2], {k, n}], {n, 20}] (* _Eric W. Weisstein_, Jul 19 2017 *)
+A289897	hygeom	0	2, 0	""	Table[Product[
+
+# a001006[n_]:=Hypergeometric2F1[(1-n)/2, -n/2, 2, 4]; a005773[n_]:=If[n==0, 1, Sum[k*Sum[Binomial[n, j]*Binomial[j, 2*j-n-k], {j, 0, n}]/n, {k, 1, n}]]; Table[a001006[n] - a005773[1 + Floor[n/2]], {n, 0, 50}] (* _Indranil Ghosh_, Aug 04 2017 *)
+A290265	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	a001006[n_]:=
+
+# Table[2^(-1 + n) n HypergeometricPFQ[{1, 1, 1 - n}, {2, 2}, -1], {n, 0, 20}] // Numerator (* _Eric W. Weisstein_, Dec 11 2017 *)
+A290343	hygeom	0	3, 2	"[[1],[1],[1,-1],[2],[2],[-1]]"	Table[2).pow((-1+n)n
+
+# Table[2^(-1 + n) n HypergeometricPFQ[{1, 1, 1 - n}, {2, 2}, -1], {n, 0, 32}] // Denominator (* _Eric W. Weisstein_, Dec 11 2017 *)
+A290344	hygeom	0	3, 2	"[[1],[1],[1,-1],[2],[2],[-1]]"	Table[2).pow((-1+n)n
+
+# motzkin[n_]:=Hypergeometric2F1[(1-n)/2, -n/2, 2, 4]; Table[CatalanNumber[n] motzkin[n - 1], {n, 50}] (* _Indranil Ghosh_, Aug 04 2017 *)
+A290443	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	motzkin[n_]:=
+
+# motzkin[n_]:=Hypergeometric2F1[(1-n)/2, -n/2, 2, 4]; Table[BellB[n] motzkin[n], {n, 0, 50}] (* _Indranil Ghosh_, Aug 04 2017 *)
+A290444	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	motzkin[n_]:=
+
+# motzkin[n_]:=Hypergeometric2F1[(1-n)/2, -n/2, 2, 4]; Table[BellB[n - 1] motzkin[n], {n, 50}] (* _Indranil Ghosh_, Aug 04 2017 *)
+A290445	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	motzkin[n_]:=
+
+# motzkin[n_]:=Hypergeometric2F1[(1-n)/2, -n/2, 2, 4]; Table[BellB[n] motzkin[n - 1], {n, 50}] (* _Indranil Ghosh_, Aug 04 2017 *)
+A290446	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[4]]"	motzkin[n_]:=
+
+# okQ[p_] := AllTrue[Range[3 maxPi (* coeff 3 is empirical *)], GCD[HypergeometricPFQ[{# + 1, -#, -#}, {1, 1}, 1], p] == 1&];
+A291275	hygeom	0	3, 2	""	okQ[p_]:=AllTrue[Range[3maxPi().multiply(coeff3isempirical).multiply()],GCD[
+
+# a(n) = (3^(n-2) + (-4)^n*binomial(3/2, n)*((4/3)*n - 2 + hypergeom([1, -n], [5/2 - n], 3/4)))/2) for n >= 3.
+A291292	hygeom	0	2, 1	"[[1],[0,-1],[5/2,-1],[3/4]]"	(3).pow((n-2)+(-4)).pow(n).multiply(binomial(3/2,n)).multiply(((4/3)).multiply(n-2+
+
+# Table[Hypergeometric2F1[-n, n + 1, 2, -n], {n, 0, 17}]
+A292798	hygeom	0	2, 1	"[[0,-1],[1,1],[2],[0,-1]]"	Table[
+
+# Array read by ascending antidiagonals, A(m, n) = Sum_{k=1..m}(-1)^(k-n-m)* hypergeom([k, k-n-m], [], 1) for m>=1 and n>=0.
+A292898	hygeom	0	2, 0	""	Arrayreadbyascendingantidiagonals,A(m,n)=Sum_{k=1..m}(-1)).pow((k-n-m)).multiply(
+
+# A := (m, n) -> add((-1)^(k-n-m)*hypergeom([k, k-n-m], [], 1), k=1..m):
+A292898	hygeom	0	2, 0	""	(m,n)->add((-1)).pow((k-n-m)).multiply(
+
+# A[m_, n_] :=  Sum[(-1)^(k-n-m) HypergeometricPFQ[{k, k-n-m},{}, 1], {k, 1, m} ];
+A292898	hygeom	0	2, 0	""	A[m_,n_]:=Sum[(-1)).pow((k-n-m)
+
+# Table[Sum[(-1)^(i - n) Binomial[n, i]^2 Binomial[n, j] Binomial[-i + n, j] i! j! HypergeometricU[i - n, 1 + i - j, -1], {i, 0, n}, {j, 0, n - i}], {n, 20}]
+A293075	hygeom	0	0, 0	""	A[m_,n_]:=Sum[(-1)).pow((k-n-m)
+
+# Join[{1}, Table[n n! Hypergeometric1F1[1 - n, 2, -n], {n, 1, 18}]]
+A293145	hygeom	0	1, 1	"[[1,-1],[2],[0,-1]]"	Join[{1},Table[nn!
+
+# Join[{1}, Table[n^n (n - 1)! Hypergeometric1F1[1 - n, 2, -1/n], {n, 1, 16}]]
+A293146	hygeom	0	1, 1	"[[1,-1],[2],[]]"	Join[{1},Table[n).pow(n(n-1)!
+
+# Table[(n + 2)^n HypergeometricPFQ[{1/2 - n/2, -n/2}, {1}, 4/(2 + n)^2], {n, 0, 19}]
+A293491	hygeom	0	2, 1	""	Table[(n+2)).pow(n
+
+# Join[{1, 2}, Table[n^(2 n)/(n - 1)^n - Binomial[2 n, n + 1] Hypergeometric2F1[1, 2 n + 1, n + 2, 1/n]/n, {n, 2, 20}]]
+A293574	hygeom	0	2, 1	""	Join[{1,2},Table[n).pow((2n)/(n-1)).pow(n-Binomial[2n,n+1]
+
+# a(n) = 4^n*hypergeom([-n/4, (1-n)/4, (2-n)/4, (3-n)/4], [1, 1, 1], 1).
+A294036	hygeom	0	0, 0	""	4).pow(n).multiply(
+
+# Table[4^n * HypergeometricPFQ[{-n/4, (1-n)/4, (2-n)/4, (3-n)/4}, {1, 1, 1}, 1], {n, 0, 30}] (* _Vaclav Kotesovec_, Nov 02 2017 *)
+A294036	hygeom	0	4, 3	"[[0,-1/4],[1/4,-1/4],[1/2,-1/4],[3/4,-1/4],[1],[1],[1],[1]]"	Table[4).pow(n).multiply(
+
+# a(n) = 4^n*hypergeom([-n/4, (1-n)/4, (2-n)/4, (3-n)/4], [1, 1, 1], -1).
+A294037	hygeom	0	0, 0	""	4).pow(n).multiply(
+
+# Table[4^n * HypergeometricPFQ[{-n/4, (1-n)/4, (2-n)/4, (3-n)/4}, {1, 1, 1}, -1], {n, 0, 20}] (* _Vaclav Kotesovec_, Nov 02 2017 *)
+A294037	hygeom	0	4, 3	"[[0,-1/4],[1/4,-1/4],[1/2,-1/4],[3/4,-1/4],[1],[1],[1],[-1]]"	Table[4).pow(n).multiply(
+
+# Table[(n + 1)^n HypergeometricPFQ[{1/2 - n/2, -n/2}, {2}, 4/(n + 1)^2], {n, 0, 19}]
+A294573	hygeom	0	2, 1	""	Table[(n+1)).pow(n
+
+# a(n) = n^n*2F1(1/2-n/2,-n/2; 2; 8/n^2).
+A294642	hygeom	0	0, 0	""	Table[(n+1)).pow(n
+
+# Join[{1}, Table[n^n HypergeometricPFQ[{1/2 - n/2, -n/2}, {2}, 8/n^2], {n, 1, 19}]]
+A294642	hygeom	0	2, 1	""	Join[{1},Table[n).pow(n
+
+# simplify(hypergeom([-n/3, (1-n)/3, (-1-n)/3], [-n/2, (-1-n)/2], -27/4));
+A294688	hygeom	0	0, 0	""	simplify(
+
+# a(n) = -hypergeom([-1/2, 1/2 - n/2, -n/2], [1/2, 1], 4). - _Peter Luschny_, Nov 15 2017
+A295112	hygeom	0	3, 2	"[[-1/2],[1/2,-1/2],[0,-1/2],[1/2],[1],[4]]"	-
+
+# a := n -> -hypergeom([-1/2, 1/2 - n/2, -n/2], [1/2, 1], 4):
+A295112	hygeom	0	3, 2	"[[-1/2],[1/2,-1/2],[0,-1/2],[1/2],[1],[4]]"	Z.valueOf(n->-
+
+# h := k -> (4*k+2)*hypergeom([(1-k)/2,-k/2],[2],4)^2:
+A295132	hygeom	0	0, 1	""	k->(4).multiply(k+2)).multiply(
+
+# Table[Function[k, n! Hypergeometric1F1[-n, 1, k]][j - n], {j, 0, 10}, {n, 0, j}] // Flatten
+A295381	hygeom	0	1, 1	"[[0,-1],[1],[k]]"	Table[Function[k,n!
+
+# Table[(-1)^n HypergeometricU[-n, n + 1, n], {n, 0, 20}]
+A295384	hygeom	0	1, 1	""	Table[Function[k,n!
+
+# Table[(-1)^n HypergeometricU[-n, n + 1, -n], {n, 0, 17}]
+A295385	hygeom	0	1, 1	""	Table[Function[k,n!
+
+# a(n) = hypergeom([-n, -n], [1], 1) * n! / (floor(n/2)!)^2.
+A295864	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[1]]"	
+
+# a(n) = 4^(n+[n/2])*hypergeom2F1(-n,1/2,1,1]*hypergeom2F1(-[n/2],(-1)^n/2,1,1].
+A295864	hygeom	0	1, 1	""	
+
+# a(n) = numerator(hypergeom([-n, 1/2], [1], 1)*hypergeom([-floor(n/2), (-1)^n/2], [1], 1)).
+A295871	hygeom	0	2, 1	"[[0,-1],[1/2],[1],[1]]"	Z.valueOf(numerator(
+
+# a[n_] := Numerator[Hypergeometric2F1[-n, 1/2, 1, 1] Hypergeometric2F1[-Floor[n/2], (-1)^n/2, 1, 1]]; Table[a[n], {n, 0, 22}]
+A295871	hygeom	0	2, 1	"[[0,-1],[1/2],[1],[1]]"	Numerator[
+
+# Table[(-1)^(n + 1) (n HypergeometricPFQ[{1/2, 1 - n}, {}, 2] - HypergeometricPFQ[{1/2, -n}, {}, 2]), {n, 20}]
+A297474	hygeom	0	2, 0	""	Table[(-1)).pow((n+1)(n
+
+# Table[-I (-1)^n (n HypergeometricU[1/2, n + 1/2, -1/2] - HypergeometricU[1/2, n + 3/2, -1/2])/Sqrt[2], {n, 20}]
+A297474	hygeom	0	0, 0	""	Table[(-1)).pow((n+1)(n
+
+# Table[3 n! HypergeometricPFQ[{(1 - n)/2, -n, -n/2}, {1}, -4] - If[Mod[n, 2] == 0, 2 (n!/(n/2)!)^3, 0], {n, 20}]
+A297487	hygeom	0	3, 1	"[[1/2,-1/2],[0,-1],[0,-1/2],[1],[-4]]"	Table[3n!
+
+# a(n) = (n!)*2^(n-1)*mu_h(n) where mu_h is the hypergeometric Moebius function associated to the Dirichlet character modulo 4 h={1,0,-1,0,1,...} (see comment).
+A298510	hygeom	0	0, 0	""	Table[3n!
+
+# a := n -> `if`(n mod 2=0, 1, n/2)*binomial(2*n - floor(n/2), ceil(n/2))*hypergeom(
+A298700	hygeom	0	0, 0	""	Table[3n!
+
+# a := n -> 36^n*(3*n)!/n!^3*hypergeom([-2*n, n+1/2], [n+1], -2/3):
+A300058	hygeom	0	2, 1	"[[0,-2],[1/2,1],[1,1],[-2/3]]"	Z.valueOf(n->36).pow(n).multiply((3).multiply(n)!/n!).pow(3).multiply(
+
+# Arow[n_, len_] := Table[Hypergeometric2F1[-k, k + n/2 - 1, 1, -4], {k, 0, len}];
+A300945	hygeom	0	2, 1	"[[-k],[k-1,1/2],[1],[-4]]"	Arow[n_,len_]:=Table[
+
+# Arow[n_, len_] := Table[(-1)^k Hypergeometric2F1[-k, k + n/2 - 1/2, 1, 4], {k, 0, len}]; Table[Print[Arow[n, 7]], {n, 0, 6}];
+A300946	hygeom	0	2, 1	"[[-k],[k-1/2,1/2],[1],[4]]"	Arow[n_,len_]:=Table[(-1)).pow(k
+
+# a(n) = Product_{k=1..L} hypergeom([-n, -n], [1], k) with L = 4.
+A301393	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[k]]"	Product_{k=1..L}
+
+# a := n -> mul(hypergeom([-n, -n], [1], k), k=1..4):
+A301393	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[k]]"	Z.valueOf(n->mul(
+
+# a[n_] := Product[Hypergeometric2F1[-n, -n, 1, k], {k, 1, 4}];
+A301393	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[k]]"	Product[
+
+# Table[(n + 1) Hypergeometric2F1[1 - n, -n, 2, n + 1], {n, 0, 19}]
+A302286	hygeom	0	2, 1	"[[1,-1],[0,-1],[2],[1,1]]"	Table[(n+1)
+
+# Join[{0}, Table[n^2 (2 (n - 1))! HypergeometricPFQ[{1, 1, 1 - n}, {2, 2 - 2 n}, -1]/n!, {n, 19}]]
+A302582	hygeom	0	3, 2	""	Join[{0},Table[n).pow(2(2(n-1))!
+
+# Join[{0}, Table[n^n (HypergeometricPFQ[{1, 1, 1 - n}, {2}, -(I/n)] + HypergeometricPFQ[{1, 1, 1 - n}, {2}, I/n])/2, {n, 19}]]
+A302608	hygeom	0	3, 1	"[[1],[1],[1,-1],[2],[]]"	Join[{0},Table[n).pow(n(
+
+# The data in the range n = 6..210 is matched by h(n) = hypergeom([-n+1, -(1/2)*n, 1/4-(1/2)*n, -(1/2)*n+1/2, -(1/2)*n+3/4], [-n, -(2/3)*n+1, -(2/3)*n+2/3, -(2/3)*n+1/3], -256/27). - _Peter Luschny_, Aug 24 2018
+A302676	hygeom	0	0, 0	""	Thedataintherangen=6..210ismatchedbyh(n)=
+
+# Table[If[Mod[n, 2] == 0, (n - 1)!! (Hypergeometric1F1[1 - n/2, 1 - n, -2] + Hypergeometric1F1[-n/2, -n, -2]), (2^-Floor[n/2] n! Hypergeometric1F1[-Floor[n/2], -n, -2])/Floor[n/2]!], {n, 30}]
+A302749	hygeom	0	1, 1	"[[1,-1/2],[1,-1],[-2]]"	Table[If[Mod[n,2]==0,(n-1)!!(
+
+# a(n) = 2^-floor(n/2)*n!*hypergeometric1f1(-floor(n/2), -n, -2)/(floor(n/2))! for n > 2. - _Eric W. Weisstein_, Apr 16 2018
+A302750	hygeom	0	0, 0	""	2).pow(-floor(n/2)).multiply(n!).multiply(
+
+# Join[{1, 1}, Table[(2^-Floor[n/2] n! Hypergeometric1F1[-Floor[n/2], -n, -2])/Floor[n/2]!, {n, 3, 30}]]
+A302750	hygeom	0	1, 1	""	Join[{1,1},Table[(2).pow(-Floor[n/2]n!
+
+# Join[{0, 0, 0}, Table[12 Binomial[n, 5] HypergeometricPFQ[{1, 5/2, (5 - n)/2, 3 - n/2}, {7/2}, 4], {n, 5, 20}]] (* _Eric W. Weisstein_, Apr 29 2018 *)
+A303505	hygeom	0	4, 1	"[[1],[5/2],[5/2,-1/2],[3,-1/2],[7/2],[4]]"	Join[{0,0,0},Table[12Binomial[n,5]
+
+# Table[(-1)^n Hypergeometric2F1[-n, n + 1, 2, n + 1], {n, 0, 17}]
+A304936	hygeom	0	2, 1	"[[0,-1],[1,1],[2],[1,1]]"	Table[(-1)).pow(n
+
+# a[0] = 1; a[n_] := a[n] = Sum[HypergeometricPFQ[{k, 1 - k}, {}, -1/2] a[n - k], {k, 1, n}]; Table[a[n], {n, 0, 21}]
+A305536	hygeom	0	2, 0	""	1;a[n_]:=a[n]=Sum[
+
+# Table[HypergeometricPFQ[{1/2 - n/2, 1/2 - n/2, -n/2, -n/2}, {1/2, 1/2, 1}, -1], {n, 0, 30}] (* _Vaclav Kotesovec_, Mar 24 2019 *)
+A307091	hygeom	0	4, 3	"[[1/2,-1/2],[1/2,-1/2],[0,-1/2],[0,-1/2],[1/2],[1/2],[1],[-1]]"	Table[
+
+# Table[Sum[((-1)^(j + k + l) * 2^(-1 - j - k - l) * ((j + k + l)! * (1 + n)! + (-1)^n * 2^(1 + j + k + l) * (1 + j + k + l + n)! Hypergeometric2F1[1, 2 + j + k + l + n, 2 + n, -1]))/(j! k! l! (1 + n)!), {j, 0, n}, {k, 0, n}, {l, 0, n}], {n, 0, 20}] (* _Vaclav Kotesovec_, Apr 03 2019 *)
+A307324	hygeom	0	2, 1	"[[1],[j+(k+(l+2)),1],[2,1],[-1]]"	Table[Sum[((-1)).pow((j+k+l)).multiply(2).pow((-1-j-k-l)).multiply(((j+k+l)!).multiply((1+n)!+(-1)).pow(n).multiply(2).pow((1+j+k+l)).multiply((1+j+k+l+n)!
+
+# a(n) = Hypergeometric2F1(-n/2, (1-n)/2; 1; -4*n). - _G. C. Greubel_, May 31 2020
+A307862	hygeom	0	2, 1	""	
+
+# A307862:= n -> simplify(hypergeom([-n/2, (1-n)/2], [1], -4*n));
+A307862	hygeom	0	0, 0	""	A307862:=n->simplify(
+
+# (Sage) [ hypergeometric([-n/2, (1-n)/2], [1], -4*n).simplify_hypergeometric() for n in (0..30)] # _G. C. Greubel_, May 31 2020
+A307862	hygeom	0	0, 0	""	(Sage)[
+
+# a(n) = Hypergeometric2F1(-n, -n, 1, -n). - _Vaclav Kotesovec_, May 07 2019
+A307885	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[0,-1]]"	
+
+# A307885:= n -> simplify(hypergeom([-n,-n], [1], -n));
+A307885	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[0,-1]]"	A307885:=n->simplify(
+
+# Table[Hypergeometric2F1[-n, -n, 1, -n], {n, 0, 20}] (* _Vaclav Kotesovec_, May 07 2019 *)
+A307885	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[0,-1]]"	Table[
+
+# (Sage) [ hypergeometric([-n, -n], [1], -n).simplify_hypergeometric() for n in (0..30)] # _G. C. Greubel_, May 31 2020
+A307885	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[0,-1]]"	(Sage)[
+
+# Flatten[{1, Table[n^n * HypergeometricPFQ[{1/3 - n/3, 2/3 - n/3, -n/3}, {1/2, 1}, -27/(4*n^2)], {n, 1, 20}]}] (* _Vaclav Kotesovec_, May 05 2019 *)
+A307903	hygeom	0	3, 2	""	Flatten[{1,Table[n).pow(n).multiply(
+
+# Table[HypergeometricPFQ[{1/3 - n/3, 2/3 - n/3, -n/3}, {1/2, 1}, -27*n/4], {n, 0, 25}] (* _Vaclav Kotesovec_, May 05 2019 *)
+A307904	hygeom	0	3, 2	"[[1/3,-1/3],[2/3,-1/3],[0,-1/3],[1/2],[1],[0,-27/4]]"	Table[
+
+# a(n) ~ c * n^n, where c = Sum_{k>=0} 1/(k!*(2*k)!) = HypergeometricPFQ[{}, {1/2, 1}, 1/4] = 1.52106585051363080966025715155941607334728986626976774617... - _Vaclav Kotesovec_, May 05 2019
+A307905	hygeom	0	0, 2	""	a(n)~c).multiply(n).pow(n,wherec=Sum_{k>=0}1/(k!).multiply((2).multiply(k)!)=
+
+# Flatten[{1, Table[n^n * HypergeometricPFQ[{1/3 - n/3, 2/3 - n/3, -n/3}, {1/2, 1}, -27/(4*n^3)], {n, 1, 20}]}] (* _Vaclav Kotesovec_, May 05 2019 *)
+A307905	hygeom	0	3, 2	""	Flatten[{1,Table[n).pow(n).multiply(
+
+# Table[Hypergeometric2F1[1/2 - n/2, -n/2, 2, 4*n], {n, 0, 20}] (* _Vaclav Kotesovec_, May 05 2019 *)
+A307906	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[0,4]]"	Table[
+
+# For n>0, a(n) = (-n)^n * Hypergeometric2F1(1/2 - n/2, -n/2, 1, -4/n). - _Vaclav Kotesovec_, May 12 2021
+A307911	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[]]"	Forn>0,a(n)=(-n)).pow(n).multiply(
+
+# Join[{1}, Table[(-n)^n*Hypergeometric2F1[1/2 - n/2, -n/2, 1, -4/n], {n, 1, 20}]] (* _Vaclav Kotesovec_, May 12 2021 *)
+A307911	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[]]"	Join[{1},Table[(-n)).pow(n).multiply(
+
+# For n>0, a(n) = (-n)^n * Hypergeometric2F1(1/2 - n/2, -n/2, 2, -4/n). - _Vaclav Kotesovec_, May 12 2021
+A307946	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[]]"	Forn>0,a(n)=(-n)).pow(n).multiply(
+
+# Join[{1}, Table[(-n)^n * Hypergeometric2F1[1/2 - n/2, -n/2, 2, -4/n], {n, 1, 20}]] (* _Vaclav Kotesovec_, May 12 2021 *)
+A307946	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[]]"	Join[{1},Table[(-n)).pow(n).multiply(
+
+# a(n) = Hypergeometric2F1(1/2 - n/2, -n/2, 2, -4*n). - _Vaclav Kotesovec_, May 12 2021
+A307947	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[0,-4]]"	
+
+# Table[Hypergeometric2F1[1/2 - n/2, -n/2, 2, -4*n], {n, 0, 20}] (* _Vaclav Kotesovec_, May 12 2021 *)
+A307947	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[2],[0,-4]]"	Table[
+
+# aQ[n_] := CompositeQ[n] && Divisible[3^(n-1)*(Hypergeometric2F1[1/2, 1-n, 1, 4/3] - JacobiSymbol[n,3]) ,n]; Select[Range[1000], aQ] (* _Amiram Eldar_, Jul 10 2019 *)
+A308482	hygeom	0	2, 1	"[[1/2],[1,-1],[1],[4/3]]"	aQ[n_]:=CompositeQ[n]&&Divisible[3).pow((n-1)).multiply((
+
+# Join[{1}, Table[n! HypergeometricPFQ[{3/2, 1 - n}, {2, 3}, -4], {n, 21}]]
+A317276	hygeom	0	2, 2	"[[3/2],[1,-1],[2],[3],[-4]]"	Join[{1},Table[n!
+
+# a(n) = (-1)^(n+1) * n * n! * Hypergeometric1F1([1-n], [2], n) with a(0) = 1.
+A317279	hygeom	0	0, 0	""	Join[{1},Table[n!
+
+# Join[{1}, Table[(-1)^(n+1) n n! Hypergeometric1F1[1-n, 2, n], {n, 22}]]
+A317279	hygeom	0	1, 1	"[[1,-1],[2],[0,1]]"	Join[{1},Table[(-1)).pow((n+1)nn!
+
+# Omega := m -> hypergeom([], [seq(i/m, i=1..m-1)], (z/m)^m):
+A318146	hygeom	0	0, 0	""	Omega:=m->
+
+# h = lambda z: hypergeometric([], f, (z/m)^m)
+A318146	hygeom	0	0, 0	""	lambdaz:
+
+# Join[{1}, Table[(-1)^(n + 1) n^n (n - 1)! Hypergeometric1F1[1 - n, 2, 1/n], {n, 16}]]
+A318224	hygeom	0	1, 1	"[[1,-1],[2],[]]"	Join[{1},Table[(-1)).pow((n+1)n).pow(n(n-1)!
+
+# isA319040 := k -> simplify(2^(k-1)*hypergeom([1-k/2,(1-k)/2],[1-k],-1)) mod k = 1: A319040List := b -> select(isA319040, [$1..b]):
+A319040	hygeom	0	0, 2	""	isA319040:=k->simplify(2).pow((k-1)).multiply(
+
+# Table[(-1)^n HypergeometricPFQ[{1, -n}, {}, n], {n, 0, 16}]
+A319392	hygeom	0	2, 0	""	Table[(-1)).pow(n
+
+# Table[Function[k, HypergeometricPFQ[{1, -n}, {}, -k]][j - n], {j, 0, 10}, {n, 0, j}] // Flatten
+A320031	hygeom	0	2, 0	""	Table[Function[k,
+
+# Table[Function[k, (-1)^n HypergeometricPFQ[{1, -n}, {}, k]][j - n], {j, 0, 10}, {n, 0, j}] // Flatten
+A320032	hygeom	0	2, 0	""	Table[Function[k,(-1)).pow(n
+
+# a(n) = 2^(1 - n) * hypergeom([(1 - n)/2, -n/2], [1/2], 4*n^2 + 1).
+A320534	hygeom	0	0, 0	""	2).pow((1-n)).multiply(
+
+# Table[2^(1 - n) Hypergeometric2F1[(1 - n)/2, -n/2, 1/2, 4 n^2 + 1], {n, 0, 19}]
+A320534	hygeom	0	2, 1	""	Table[2).pow((1-n)
+
+# a(n) = binomial(3*n, n + 1)*hypergeom([1, 1 - 2*n], [2 + n], -1).
+A321957	hygeom	0	2, 1	"[[1],[1,-2],[2,1],[-1]]"	binomial(3).multiply(n,n+1)).multiply(
+
+# A321957 := n -> binomial(3*n, n+1)*hypergeom([1, 1 - 2*n], [2 + n], -1):
+A321957	hygeom	0	2, 1	"[[1],[1,-2],[2,1],[-1]]"	A321957:=n->binomial(3).multiply(n,n+1)).multiply(
+
+# a(n) = Sum_{k=0..n} hypergeometric([-k, k + 1], [-k - 1], n - k).
+A323207	hygeom	0	2, 1	"[[-k],[k+1],[-k-1],[-k,1]]"	Sum_{k=0..n}
+
+# a[n_] := Sum[Hypergeometric2F1[-k, k + 1, -k - 1, n - k], {k, 0, n}];
+A323207	hygeom	0	2, 1	"[[-k],[k+1],[-k-1],[-k,1]]"	Sum[
+
+# a(n) = hypergeometric([-n - 1, n + 2], [-n - 2], n).
+A323208	hygeom	0	2, 1	"[[-1,-1],[2,1],[-2,-1],[0,1]]"	
+
+# a[n_] := Hypergeometric2F1[-n - 1, n + 2, -n - 2, n];
+A323208	hygeom	0	2, 1	"[[-1,-1],[2,1],[-2,-1],[0,1]]"	
+
+# a(n) = hypergeometric([-n, n + 1], [-n - 1], n).
+A323209	hygeom	0	2, 1	"[[0,-1],[1,1],[-1,-1],[0,1]]"	
+
+# a[n_] := Hypergeometric2F1[-n, n + 1, -n - 1, n];
+A323209	hygeom	0	2, 1	"[[0,-1],[1,1],[-1,-1],[0,1]]"	
+
+# a(n) = hypergeometric([-n, n + 1], [-n - 1], n + 1).
+A323217	hygeom	0	2, 1	"[[0,-1],[1,1],[-1,-1],[1,1]]"	
+
+# a[n_] := Hypergeometric2F1[-n, n + 1, -n - 1, n + 1];
+A323217	hygeom	0	2, 1	"[[0,-1],[1,1],[-1,-1],[1,1]]"	
+
+# a[n_] := a[n] = Sum[3^k Hypergeometric2F1[1/2, -k, 1, 4/3] Binomial[n - 1, k - 1] a[n - k], {k, 1, n}]; a[0] = 1; Table[a[n], {n, 0, 22}]
+A323664	hygeom	0	2, 1	"[[1/2],[-k],[1],[4/3]]"	a[n]=Sum[3).pow(k
+
+# a[n_] := a[n] = Sum[Hypergeometric2F1[(1 - k)/2, -k/2, 2, 4] Binomial[n - 1, k - 1] a[n - k], {k, 1, n}]; a[0] = 1; Table[a[n], {n, 0, 23}]
+A323672	hygeom	0	2, 1	"[[-1/2*k+1/2],[-1/2*k],[2],[4]]"	a[n]=Sum[
+
+# H = hypergeometric([], F, (z/m)^m)
+A326477	hygeom	0	0, 0	""	
+
+# a(n) = binomial(2*n - 1, n - 1)*hypergeom([(2 - n)/2, (1 - n)/2], [n + 2], 4). (End)
+A327871	hygeom	0	0, 0	""	binomial(2).multiply(n-1,n-1)).multiply(
+
+# a[n_] := Binomial[2n - 1, n - 1] Hypergeometric2F1[(2 - n)/2, (1 - n)/2, n + 2, 4];
+A327871	hygeom	0	2, 1	"[[1,-1/2],[1/2,-1/2],[2,1],[4]]"	Binomial[2n-1,n-1]
+
+# a(n) = binomial(2 + 4*n, n)*2F1([1, -n], [-2 - 4*n], 1 + n)/(1 + n), where 2F1 is the hypergeometric function.
+A328978	hygeom	0	2, 1	""	Binomial[2n-1,n-1]
+
+# Table[(Binomial[2+4n,n]Hypergeometric2F1[1,-n, -2-4n, 1+n])/(1+n),{n,0,19}]
+A328978	hygeom	0	2, 1	""	Table[(Binomial[2+4n,n]
+
+# a(n) = (binomial(2*n, n)*2F1([1, -n], [-2*n], 1 + n)/(1 + n), where 2F1 is the hypergeometric function.
+A329096	hygeom	0	2, 1	""	Table[(Binomial[2+4n,n]
+
+# Table[(Binomial[2n,n]Hypergeometric2F1[1,-n,-2n,1+n])/(1+n),{n,0,20}]
+A329096	hygeom	0	2, 1	""	Table[(Binomial[2n,n]
+
+# a(n) = (binomial(1 + 3*n, n)*2F1([1, -n], [-1 - 3*n], 1 + n)/(1 + n), where 2F1 is the hypergeometric function.
+A329113	hygeom	0	2, 1	""	Table[(Binomial[2n,n]
+
+# Table[(Binomial[1+3n,n]Hypergeometric2F1[1,-n,-1-3n,1+n])/(1+n),{n,0,19}]
+A329113	hygeom	0	2, 1	""	Table[(Binomial[1+3n,n]
+
+# a(n) = (binomial(3 + 5*n, n)*2F1([1, -n], [-3 - 5*n], 1 + n)/(1 + n), where 2F1 is the hypergeometric function.
+A329123	hygeom	0	2, 1	""	Table[(Binomial[1+3n,n]
+
+# f:= n -> simplify(binomial(3 + 5*n, n)*hypergeom([1, -n], [-3 - 5*n], 1 + n)/(1 + n)):
+A329123	hygeom	0	2, 1	"[[1],[0,-1],[-3,-5],[1,1]]"	Z.valueOf(n->simplify(binomial(3+5).multiply(n,n)).multiply(
+
+# Table[(Binomial[3+5n, n]Hypergeometric2F1[1, -n, -3-5n, 1+n])/(1+n),{n,0,19}]
+A329123	hygeom	0	2, 1	""	Table[(Binomial[3+5n,n]
+
+# a(n) = binomial(5*n, n)*hypergeom([-4*n, -n], [-5*n], -1).
+A331329	hygeom	0	2, 1	"[[0,-4],[0,-1],[0,-5],[-1]]"	binomial(5).multiply(n,n)).multiply(
+
+# a[n_] := Binomial[5 n, n] Hypergeometric2F1[-4 n, -n, -5 n, -1];
+A331329	hygeom	0	2, 1	""	Binomial[5n,n]
+
+# Array[(-1)^#*HypergeometricPFQ[{1 - 2 #, -#}, {1, -2 #}, 4 #]*(2 #)! &, 7] (* _Michael De Vlieger_, Feb 07 2020, after _Vaclav Kotesovec_ at A302112 *)
+A331500	hygeom	0	2, 2	""	Array[(-1)).pow(#).multiply(
+
+# Table[Hypergeometric2F1[-n, n + 1, 1, -n], {n, 0, 16}]
+A331656	hygeom	0	2, 1	"[[0,-1],[1,1],[1],[0,-1]]"	Table[
+
+# a(n) = (-1)^n * 2F1(-n, n + 1; 1; n).
+A331657	hygeom	0	2, 1	""	Table[
+
+# Table[(-1)^n Hypergeometric2F1[-n, n + 1, 1, n], {n, 0, 16}]
+A331657	hygeom	0	2, 1	"[[0,-1],[1,1],[1],[0,1]]"	Table[(-1)).pow(n
+
+# a(n) = (n+1) * 2F1(-1 - n, -n; 2; n), where 2F1 is the hypergeometric function. - _Vaclav Kotesovec_, Jan 26 2020
+A331794	hygeom	0	2, 1	""	Table[(-1)).pow(n
+
+# Table[(n+1) * Hypergeometric2F1[-1 - n, -n, 2, n], {n, 0, 20}] (* _Vaclav Kotesovec_, Jan 26 2020 *)
+A331794	hygeom	0	2, 1	"[[-1,-1],[0,-1],[2],[0,1]]"	Table[(n+1)).multiply(
+
+# a(n) = (n+1) * 2F1(-1 - n, -n; 2; -n), where 2F1 is the hypergeometric function. - _Vaclav Kotesovec_, Jan 26 2020
+A331795	hygeom	0	2, 1	""	Table[(n+1)).multiply(
+
+# Table[(n+1) * Hypergeometric2F1[-1 - n, -n, 2, -n], {n, 0, 20}] (* _Vaclav Kotesovec_, Jan 26 2020 *)
+A331795	hygeom	0	2, 1	"[[-1,-1],[0,-1],[2],[0,-1]]"	Table[(n+1)).multiply(
+
+# Table[(-1)^n*n!*Hypergeometric1F1[-n, 1, 4*n], {n, 0, 20}]
+A332679	hygeom	0	1, 1	"[[0,-1],[1],[0,4]]"	Table[(-1)).pow(n).multiply(n!).multiply(
+
+# a(n) = -(-1)^n * n! * hypergeometric1F1(1 - n, 2, 4*n).
+A332680	hygeom	0	1, 1	"[[1,-1],[2],[0,4]]"	-(-1)).pow(n).multiply(n!).multiply(
+
+# Table[-(-1)^n * n! * Hypergeometric1F1[1 - n, 2, 4*n], {n, 0, 20}]
+A332680	hygeom	0	1, 1	"[[1,-1],[2],[0,4]]"	Table[-(-1)).pow(n).multiply(n!).multiply(
+
+# Table[n! * Hypergeometric1F1[-n, 1, 2*n], {n, 0, 25}]
+A332692	hygeom	0	1, 1	"[[0,-1],[1],[0,2]]"	Table[n!).multiply(
+
+# Table[n! * Hypergeometric1F1[-n, 1, 3*n], {n, 0, 25}]
+A332693	hygeom	0	1, 1	"[[0,-1],[1],[0,3]]"	Table[n!).multiply(
+
+# Table[(-1)^n * n! * Hypergeometric1F1[-n, 1, 5*n], {n, 0, 20}]
+A332694	hygeom	0	1, 1	"[[0,-1],[1],[0,5]]"	Table[(-1)).pow(n).multiply(n!).multiply(
+
+# Table[(-1)^n * n! * Hypergeometric1F1[-n, 1, 6*n], {n, 0, 20}]
+A332695	hygeom	0	1, 1	"[[0,-1],[1],[0,6]]"	Table[(-1)).pow(n).multiply(n!).multiply(
+
+# Table[(2*n)! * (Hypergeometric2F1[1/2 - n/2, -n/2, 1, 8] - 1) / (2^n * n!), {n, 2, 20}] (* _Vaclav Kotesovec_, Apr 17 2020 *)
+A332960	hygeom	0	2, 1	"[[1/2,-1/2],[0,-1/2],[1],[8]]"	Table[(2).multiply(n)!).multiply((
+
+# Join[{1}, Table[3*Binomial[5*n-1, n] * HypergeometricPFQ[{1, -4*n, -n}, {1/2 - 5*n/2, 1 - 5*n/2}, 1/4]/4, {n, 1, 20}]] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333095	hygeom	0	3, 2	"[[1],[0,-4],[0,-1],[1/2,-5/2],[1,-5/2],[1/4]]"	Join[{1},Table[3).multiply(Binomial[5).multiply(n-1,n]).multiply(
+
+# Join[{1}, Table[4*Binomial[6*n-1, n] * HypergeometricPFQ[{1, -5*n, -n}, {1/2 - 3*n, 1 - 3*n}, 1/4]/5, {n, 1, 20}]] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333096	hygeom	0	3, 2	"[[1],[0,-5],[0,-1],[1/2,-3],[1,-3],[1/4]]"	Join[{1},Table[4).multiply(Binomial[6).multiply(n-1,n]).multiply(
+
+# Join[{1}, Table[5*Binomial[7*n-1, n] * HypergeometricPFQ[{1, -6*n, -n}, {1/2 - 7*n/2, 1 - 7*n/2}, 1/4]/6, {n, 1, 20}]] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333097	hygeom	0	3, 2	"[[1],[0,-6],[0,-1],[1/2,-7/2],[1,-7/2],[1/4]]"	Join[{1},Table[5).multiply(Binomial[7).multiply(n-1,n]).multiply(
+
+# arclength = 2F1(-1/2;1/4;5/4;-9), where 2F1 is the hypergeometric function.
+A333203	hygeom	0	0, 0	""	Join[{1},Table[5).multiply(Binomial[7).multiply(n-1,n]).multiply(
+
+# arclength = 2F1(-1/2;1/6;7/6;-16), where 2F1 is the hypergeometric function.
+A333204	hygeom	0	0, 0	""	Join[{1},Table[5).multiply(Binomial[7).multiply(n-1,n]).multiply(
+
+# Join[{1}, Table[Binomial[5*n-1, 3*n-1] * Hypergeometric2F1[-3*n, -2*n, 1 - 5*n, -1]/3, {n,1,20}]] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333482	hygeom	0	2, 1	"[[0,-3],[0,-2],[1,-5],[-1]]"	Join[{1},Table[Binomial[5).multiply(n-1,3).multiply(n-1]).multiply(
+
+# Table[(-1)^n - 2^(2*n+1) * Binomial[3*n, 2*n+1] * Hypergeometric2F1[1, 3*n+1, 2*n+2, 2], {n, 0, 20}] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333561	hygeom	0	2, 1	"[[1],[1,3],[2,2],[2]]"	Table[(-1)).pow(n-2).pow((2).multiply(n+1)).multiply(Binomial[3).multiply(n,2).multiply(n+1]).multiply(
+
+# Table[(-1)^n - 2^(3*n+1) * Binomial[4*n, 3*n+1] * Hypergeometric2F1[1, 4*n+1, 3*n+2, 2], {n, 0, 15}] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333562	hygeom	0	2, 1	"[[1],[1,4],[2,3],[2]]"	Table[(-1)).pow(n-2).pow((3).multiply(n+1)).multiply(Binomial[4).multiply(n,3).multiply(n+1]).multiply(
+
+# Table[Binomial[2*n-1, n]^2 * HypergeometricPFQ[{1, -n, -n}, {1 - 2*n, 1 - 2*n}, 1], {n, 1, 20}] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333592	hygeom	0	3, 2	"[[1],[0,-1],[0,-1],[1,-2],[1,-2],[1]]"	Table[Binomial[2).multiply(n-1,n]).pow(2).multiply(
+
+# Table[Binomial[2*n-1, n]^2 * HypergeometricPFQ[{1, -n, -n}, {1 - 2 n, 1 - 2 n}, -1], {n, 0, 20}] (* _Vaclav Kotesovec_, Mar 28 2020 *)
+A333593	hygeom	0	3, 2	""	Table[Binomial[2).multiply(n-1,n]).pow(2).multiply(
+
+# Table[Binomial[3*n-1, n-1] * Hypergeometric2F1[-n, 3*n, 2*n+1, -1], {n, 0, 20}] (* _Vaclav Kotesovec_, Apr 04 2020 *)
+A333715	hygeom	0	2, 1	"[[0,-1],[0,3],[1,2],[-1]]"	Table[Binomial[3).multiply(n-1,n-1]).multiply(
+
+# a(n) = hypergeometric2F1(1/2 - n, -n, 1/2, n).
+A333990	hygeom	0	2, 1	"[[1/2,-1],[0,-1],[1/2],[0,1]]"	
+
+# Table[Hypergeometric2F1[1/2 - n, -n, 1/2, n], {n, 0, 20}] (* _Vaclav Kotesovec_, Sep 05 2020 *)
+A333990	hygeom	0	2, 1	"[[1/2,-1],[0,-1],[1/2],[0,1]]"	Table[
+
+# a(n) = hypergeometric2F1(1/2 - n, -n, 1/2, -n).
+A333991	hygeom	0	2, 1	"[[1/2,-1],[0,-1],[1/2],[0,-1]]"	
+
+# Table[Hypergeometric2F1[1/2 - n, -n, 1/2, -n], {n, 0, 20}] (* _Vaclav Kotesovec_, Sep 05 2020 *)
+A333991	hygeom	0	2, 1	"[[1/2,-1],[0,-1],[1/2],[0,-1]]"	Table[
+
+# Table[HypergeometricU[1 - n, 2, n], {n, 1, 21}]
+A334316	hygeom	0	2, 1	""	Table[
+
+# Table[Hypergeometric2F1[-n, -n, 1, 1 + n], {n, 0, 18}]
+A335309	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[1,1]]"	Table[
+
+# Table[Hypergeometric2F1[-n, -n, 1, 1 - n], {n, 0, 19}]
+A335310	hygeom	0	2, 1	"[[0,-1],[0,-1],[1],[1,-1]]"	Table[
+
+# simplify((n + k)!*hypergeom([-n], [-n - k], -1)) end:
+A335391	hygeom	0	1, 1	"[[0,-1],[-k,-1],[-1]]"	simplify((n+k)!).multiply(
+
+# a(n) = numerator(4^n * hypergeom([1, -n], [1/2 - n], 1/4)/((2 * n)! (2 * n - 1) (2 * n + 1)^2)).
+A336061	hygeom	0	2, 1	"[[1],[0,-1],[1/2,-1],[1/4]]"	Z.valueOf(numerator(4).pow(n).multiply(
+
+# Table[Numerator[4^k Hypergeometric2F1[1, -k, 1/2 - k, 1/4]/((2 k)! (2 k - 1) (2 k + 1)^2)], {k, 20}]
+A336061	hygeom	0	2, 1	"[[1],[-k],[-k+1/2],[1/4]]"	Table[Numerator[4).pow(k
+
+# a(n) = denominator(4^n * hypergeom([1, -n], [1/2 - n], 1/4)/((2 * n)! (2 * n - 1) (2 * n + 1)^2)).
+A336062	hygeom	0	2, 1	"[[1],[0,-1],[1/2,-1],[1/4]]"	denominator(4).pow(n).multiply(
+
+# Table[Denominator[4^k Hypergeometric2F1[1, -k, 1/2 - k, 1/4]/((2 k)! (2 k - 1) (2 k + 1)^2)], {k, 20}]
+A336062	hygeom	0	2, 1	"[[1],[-k],[-k+1/2],[1/4]]"	Table[Denominator[4).pow(k
+
+# a(n) = U(n,1+2*n,-1) for n >= 2, where U(a,b,c) is the confluent hypergeometric function of the second kind. - _Stefano Spezia_, Jul 22 2020
+A336114	hygeom	0	2, 1	""	Table[Denominator[4).pow(k
+
+# Join[{1,1},Table[2 HypergeometricU[n,1+2 n,-1],{n,2,16}]] (* _Stefano Spezia_, Jul 22 2020 *)
+A336114	hygeom	0	2, 1	""	Table[Denominator[4).pow(k
+
+# a(n) = hypergeom([-n, -n, -n], [1, 1], n). - _Peter Luschny_, Dec 22 2020
+A336180	hygeom	0	3, 2	"[[0,-1],[0,-1],[0,-1],[1],[1],[0,1]]"	
+
+# a := n -> hypergeom([-n, -n, -n], [1, 1], n):
+A336180	hygeom	0	3, 2	"[[0,-1],[0,-1],[0,-1],[1],[1],[0,1]]"	Z.valueOf(n->
+
+# Table[n! HypergeometricPFQ[{1/2, -n}, {1, 1}, -4], {n, 0, 19}]
+A336293	hygeom	0	2, 2	"[[1/2],[0,-1],[1],[1],[-4]]"	Table[n!
+
+# a(n) = (-1)^n*binomial(1 + n^2, n)*hypergeom[-n, 1 + n^2, 2 + (n - 1)*n, 2] / (1 + n^2). - _Peter Luschny_, Jul 26 2020
+A336495	hygeom	0	0, 0	""	Table[n!
+
+# a[n_] := ((-1)^n Binomial[1 + n^2, n] Hypergeometric2F1[-n, 1 + n^2, 2 + (n - 1) n, 2]) / (1 + n^2); Array[a, 19, 0] (* _Peter Luschny_, Jul 26 2020 *)
+A336495	hygeom	0	2, 1	""	((-1)).pow(nBinomial[1+n).pow(2,n]
+
+# a(n) = (-8)^n*binomial(2*n, n)*hypergeom([1/2, -n, -n, n + 1], [1, 1, 1/2 - n], 1/8). - _Peter Luschny_, Aug 24 2020
+A337332	hygeom	0	4, 3	"[[1/2],[0,-1],[0,-1],[1,1],[1],[1],[1/2,-1],[1/8]]"	(-8)).pow(n).multiply(binomial(2).multiply(n,n)).multiply(
+
+# a(n) = 2F1([-n, 1 + 2*n], [1], -2), where 2F1 is the hypergeometric function. - _Stefano Spezia_, Dec 17 2020
+A339710	hygeom	0	1, 1	""	(-8)).pow(n).multiply(binomial(2).multiply(n,n)).multiply(
+
+# Table[Hypergeometric2F1[-n,1+2 n,1,-2],{n,0,20}] (* _Stefano Spezia_, Dec 17 2020 *)
+A339710	hygeom	0	2, 1	""	Table[
+
+# a(n) = 2^ceiling(n/2)*hypergeom([-floor(n/2) + 1, ceiling(n/2)], [1], -1); see the comments for A100631. - _Petros Hadjicostas_, Feb 10 2021
+A341344	hygeom	0	0, 1	""	2).pow(ceiling(n/2)).multiply(
+
+# Lim_{n->infinity} (binomial(k*n, n) * hypergeom([(1-k)*n, -n], [-k*n], -1))^(1/n) = (A341476(k) + A341477(k)*sqrt((k-1)^2 + 1)) / (k-1)^(k-1), for k>1.
+A341476	hygeom	0	0, 1	""	Lim_{n->infinity}(binomial(k).multiply(n,n)).multiply(
+
+# Lim_{n->infinity} hypergeom([(1-k)*n, -n], [-k*n], -1)^(1/n) = (A341476(k) + A341477(k)*sqrt((k-1)^2 + 1)) / k^k.
+A341476	hygeom	0	0, 1	""	Lim_{n->infinity}
+
+# Lim_{n->infinity} (binomial(k*n, n) * hypergeom([(1-k)*n, -n], [-k*n], -1))^(1/n) = (A341476(k) + A341477(k)*sqrt((k-1)^2 + 1)) / (k-1)^(k-1), for k>1.
+A341477	hygeom	0	0, 1	""	Lim_{n->infinity}(binomial(k).multiply(n,n)).multiply(
+
+# Lim_{n->infinity} hypergeom([(1-k)*n, -n], [-k*n], -1)^(1/n) = (A341476(k) + A341477(k)*sqrt((k-1)^2 + 1)) / k^k.
+A341477	hygeom	0	0, 1	""	Lim_{n->infinity}
+
+# a(n) = binomial(6*n, n) * hypergeom([-5*n, -n], [-6*n], -1).
+A341491	hygeom	0	2, 1	"[[0,-5],[0,-1],[0,-6],[-1]]"	binomial(6).multiply(n,n)).multiply(
+
+# Table[Binomial[6*n, n] * Hypergeometric2F1[-5*n, -n, -6*n, -1], {n,0,20}]
+A341491	hygeom	0	2, 1	"[[0,-5],[0,-1],[0,-6],[-1]]"	Table[Binomial[6).multiply(n,n]).multiply(
+
+# a(n) = ((-1)^floor(n/2)*n!/floor(n/2)!)*hypergeom([n + 1, -floor(n/2)], [1], 1).
+A343580	hygeom	0	0, 0	""	((-1)).pow(floor(n/2)).multiply(n!/floor(n/2)!)).multiply(
+
+# a[n_] := Abs[Hypergeometric2F1[-Floor[n/2], n+1, 1, 1] n!/Floor[n/2]!];
+A343580	hygeom	0	2, 1	""	Abs[
+
+# Table[(-1)^n * HypergeometricU[-n, 2 + n, -1], {n, 0, 20}] (* _Vaclav Kotesovec_, May 02 2021 *)
+A343832	hygeom	0	2, 1	""	Abs[
+
+# T(n, m) = A001263(n, m)*hypergeom([1 - m, 2], [n - m + 2], -1). - _Peter Luschny_, May 06 2021
+A343960	hygeom	0	2, 1	"[[-m+1],[2],[-m+2,1],[-1]]"	T(n,m)=A001263(n,m)).multiply(
+
+# a[n_] := HypergeometricU[-2 n, 1, -n];
+A344049	hygeom	0	1, 1	""	T(n,m)=A001263(n,m)).multiply(
+
+# a(n) = (-1)^(n-1)*n*n!*hypergeom([1 - n, 1 - n], [2, 2], -1) for n >= 1.
+A344050	hygeom	0	2, 2	"[[1,-1],[1,-1],[2],[2],[-1]]"	(-1)).pow((n-1)).multiply(n).multiply(n!).multiply(
+
+# a[n_] := (-1)^(n-1) n n! HypergeometricPFQ[{1 - n, 1 - n}, {2, 2}, -1]; a[0] := 1;
+A344050	hygeom	0	2, 2	"[[1,-1],[1,-1],[2],[2],[-1]]"	(-1)).pow((n-1)nn!
+
+# a(n) = (2*n)! * hypergeom([3/2, 2, 1-n], [3, 2 - 2*n], 4) for n >= 1 and a(0) = 1.
+A344056	hygeom	0	3, 2	"[[3/2],[2],[1,-1],[3],[2,-2],[4]]"	(2).multiply(n)!).multiply(
+
+# a[n_] := (2 n)! HypergeometricPFQ[{3/2, 2, 1 - n}, {3, 2 - 2n}, 4]; a[0] := 1;
+A344056	hygeom	0	3, 2	""	(2n)!
+
+# a(n) = binomial(n, n/2 - 1/4 + (-1)^n/4)*hypergeom([-n/4 - 1/8 + (-1)^n/8, -n/4 + 3/8 + (-1)^n/8], [n/2 + 7/4 + (-1)^n/4], 4).
+A344394	hygeom	0	0, 0	""	binomial(n,n/2-1/4+(-1)).pow(n/4)).multiply(
+
+# a[n_] := Binomial[n, n/2 - 1/4 + (-1)^n/4] Hypergeometric2F1[-n/4 - 1/8 + (-1)^n/8, -n/4 + 3/8 + (-1)^n/8, n/2 + 7/4 + (-1)^n/4, 4];
+A344394	hygeom	0	2, 1	""	Binomial[n,n/2-1/4+(-1)).pow(n/4]
+
+# a(n) = binomial(4*n - 1, 2*n - 1)*hypergeom([-n, -n + 1/2], [2*n + 1], 4).
+A344395	hygeom	0	2, 1	"[[0,-1],[1/2,-1],[1,2],[4]]"	binomial(4).multiply(n-1,2).multiply(n-1)).multiply(
+
+# a[n_] := Binomial[4 n - 1, 2 n - 1] Hypergeometric2F1[-n, -n + 1/2, 2 n + 1, 4];
+A344395	hygeom	0	2, 1	""	Binomial[4n-1,2n-1]
+
+# a(n) = binomial(2*n + 1, n)*hypergeom([-(n + 1)/2, -n/2], [n + 2], 4).
+A344396	hygeom	0	0, 0	""	binomial(2).multiply(n+1,n)).multiply(
+
+# a[n_] := Binomial[2 n + 1, n] Hypergeometric2F1[-(n + 1)/2, -n/2, n + 2, 4];
+A344396	hygeom	0	2, 1	"[[-1/2,-1/2],[0,-1/2],[2,1],[4]]"	Binomial[2n+1,n]
+
+# a(n) = Sum_{j=0..n} (n - 1)^j*binomial(n, j)*hypergeom([(j - n)/2, (j - n + 1)/2], [j + 2], 4).
+A344556	hygeom	0	0, 0	""	Sum_{j=0..n}(n-1)).pow(j).multiply(binomial(n,j)).multiply(
+
+# a[n_] := Sum[(n-1)^j Binomial[n, j] Hypergeometric2F1[(j - n)/2, (j - n + 1)/2, j + 2, 4], {j, 0, n}]; Table[a[n], {n, 0, 19}]
+A344556	hygeom	0	2, 1	"[[1/2*j,-1/2],[1/2*j+1/2,-1/2],[j+2],[4]]"	Sum[(n-1)).pow(jBinomial[n,j]
+
+# a(n) = (1/6)*(hypergeom([-n/3, (1 - n)/3, (2 - n)/3], [1, 1], -27) - 1).
+A344559	hygeom	0	0, 0	""	(1/6)).multiply((
+
+# a[n_] := (1/6) (HypergeometricPFQ[{-n/3, (1 - n)/3, (2 - n)/3}, {1, 1}, -27] - 1);
+A344559	hygeom	0	3, 2	"[[0,-1/3],[1/3,-1/3],[2/3,-1/3],[1],[1],[-27]]"	(1/6)(
+
+# a(n) = 2^n*(hypergeom([-n/3, (1 - n)/3, (2 - n)/3], [1, 1], -27) - 1) / 6. - derived from Drake Thomas's formula by _Peter Luschny_, May 31 2021
+A344854	hygeom	0	0, 0	""	2).pow(n).multiply((
+
+# a := n -> 2^n*(hypergeom([-n/3, (1 - n)/3, (2 - n)/3], [1, 1], -27) - 1) / 6:
+A344854	hygeom	0	0, 0	""	Z.valueOf(n->2).pow(n).multiply((
+
+# Table[2^n HypergeometricPFQ[{1/3, 2/3, -n}, {1, 3/2}, -27/8], {n, 0, 22}]
+A346762	hygeom	0	3, 2	"[[1/3],[2/3],[0,-1],[1],[3/2],[-27/8]]"	Table[2).pow(n
+
+# Table[3^n HypergeometricPFQ[{1/3, 2/3, -n}, {1, 3/2}, -9/4], {n, 0, 22}]
+A346763	hygeom	0	3, 2	"[[1/3],[2/3],[0,-1],[1],[3/2],[-9/4]]"	Table[3).pow(n

@@ -6,76 +6,91 @@
 #
 #:# Usage:
 #:#   cat rectoproc.man \
-#:#   | perl rectoproc.pl > output.seq4
+#:#   | perl rectoproc.pl [-P] > output.seq4
+#:#       -p powers a(n-k) -> A^k are already substituted, and normalized
 #---------------------------------
 use strict;
 use integer;
 use warnings;
 
 my $debug  = 0;
+my $powers = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug  = shift(@ARGV);
+    } elsif ($opt  =~ m{p}i) {
+        $powers = 1;
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
-
-my $init;
+my ($max, $min);
 my $matrix;
 while (<>) {
     s/\s+\Z//;
     next if !m{\AA\d\d+\t};
-    my ($aseqno, $callcode, $offset1, $rec) = split(/\t/);
+    my ($aseqno, $callcode, $offset1, $rec, $init) = split(/\t/);
     $rec =~ s{ }{}g;
     $rec =~ s{\,a\(n\)\,remember\)?\:?}{};
     $rec =~ s{\A\(\{}{};
     $rec =~ s{\}}{};
-    if ($rec =~ s{\,seq\(a\(\w\)\=\[([^\]]+)\]\[\w\]\,\w\=\d\.\.\d+\)}{}) {
-        $init = $1;
-    } else {
-        my @inits = ();
-        # print "# \"$rec\"\n";
-        #                     1   1    2      2
-        while ($rec =~ s{\Aa\((\d+)\)\=(\-?\d+)\,}{}) { # remove leading init assignments
-            $inits[$1] = $2;
+    $rec =~ s{\.}{}g;
+    if ($powers == 0) {
+        if ($rec =~ s{\,seq\(a\(\w\)\=\[([^\]]+)\]\[\w\]\,\w\=\d\.\.\d+\)}{}) {
+            $init = $1;
+        } else {
+            my @inits = ();
+            # print "# \"$rec\"\n";
+            #                     1   1    2      2
+            while ($rec =~ s{\Aa\((\-?\d+)\)\=(\-?\d+)\,}{}) { # remove leading init assignments
+                $inits[$1] = $2;
+            }
+            #                     1   1    2      2
+            while ($rec =~ s{\,a\((\-?\d+)\)\=(\-?\d+)}{})   { # remove trailing init assignments
+                $inits[$1] = $2;
+            }
+            if (! defined($inits[0])) {
+                shift(@inits);
+                $offset1 = 1;
+            }
+            $init = join(",", @inits);
         }
-        #                     1   1    2      2
-        while ($rec =~ s{\,a\((\d+)\)\=(\-?\d+)}{})   { # remove trailing init assignments
-            $inits[$1] = $2;
+        $rec =~ s{\=0}{}g;
+        if ($rec =~ s{\=}{\)\+}) {  # aaa=bbb -> -(aaa)+bbb
+            $rec = "-($rec";
+        } # not "=0"
+        if ($rec =~ m{a\(n\+}) { # shift a(n+$max) down
+            $max = 0;
+            map {
+                if ($_ > $max) { $max = $_; }
+                } ($rec =~ m{a\(n\+(\d+)\)}g);
+            $rec =~ s{n}{\(n\-$max\)}g;
+            $rec =~ s{a\(\(n\-$max\)\)}{a\(n-$max\)}g;
+            #                       1      12   2
+            $rec =~ s{a\(\(n\-$max\)([\+\-])(\d+)\)}{"a\(n" . eval(-$max . "$1$2") . ")"}eg;
         }
-        if (! defined($inits[0])) {
-            shift(@inits);
-            $offset1 = 1;
-        }
-        $init = join(",", @inits);
-    }
-    if ($rec =~ m{a\(n\+}) {
-        my $max = 0;
-        map {
-            if ($_ > $max) { $max = $_; }
-            } ($rec =~ m{a\(n\+(\d+)\)}g);
-        $rec =~ s{n}{\(n\-$max\)}g;
-        $rec =~ s{a\(\(n\-$max\)\)}{a\(n-$max\)}g;
-        #                       1      12   2
-        $rec =~ s{a\(\(n\-$max\)([\+\-])(\d+)\)}{"a\(n" . eval(-$max . "$1$2") . ")"}eg;
-    }
-    $rec =~ s{a\(n0?\)}{A\^0}g;
-    $rec =~ s{a\(n\-(\d+)\)}{A\^$1}g;
+        $rec =~ s{a\(n[\+\-]?0?\)}{A\^0}g;
+        $rec =~ s{a\(n\-(\d+)\)}{A\^$1}g;
+    } # $powers = 0
     $matrix = $rec;
     print "# " . join("\t", $aseqno, "opehol", $offset1, $matrix, $init) . "\n";
     my $tempname = "opehol.tmp";
     open(GP, ">", $tempname) || die "cannot write \"$tempname\"\n";
+    my $order = 0;
+    map {
+        if ($_ > $order) { $order = $_; }
+        } ($rec =~ m{A\^(\d+)}g);
     print GP <<"GFis";
 read("opehol.gpi");
-opehol($aseqno, $offset1, $matrix, "[$init]");
+opehol($aseqno, $offset1, $matrix, $order);
 quit;
 GFis
     close(GP);
-    my $result = `gp -fq $tempname`;
+    my $result = `gp -fq $tempname 2>\&1`;
     $result =~ s{\, }{\,}g; # not s{\s}{}g !
+    $result =~ s{opehol}{holos};
     print $result;
 } # while <>
 __DATA__

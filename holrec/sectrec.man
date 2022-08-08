@@ -1,0 +1,10 @@
+A088371	sectrec	0	2	a(2*n)=n+a(n),a(2*n-1)=a(n)				a(2*n-1)=a(n), a(2*n)=n+a(n).
+A094547	sectrec	0	2	a(2*n)=4*a(2*n-1)-a(n),a(2*n+1)=4*a(2*n)				a(2n+1) = 4*a(2n); a(2n) = 4*a(2n-1)-a(n). - _David Wasserman_, May 22 2007
+A110316	sectrec	0	2	a(2*n)=2*a(n)*a(n-1),a(2*n+1)=a(n)*a(n)	a(0)=1;a(1)=1;			a(0) = a(1) = 1; a(2*n) = 2*a(n)*a(n-1); a(2*n+1) = a(n)*a(n).
+# A157962	sectrec	0	2	a(2*n)=a(2*n+1376)+400,a(2*n+1)=a(2*n+1377)				a(2n+1) = a(2n + 1377), a(2n) = a(2n + 1376) + 400. - _Charles R Greathouse IV_, May 17 2011
+# A174418	sectrec	0	2	a(2*n)=a(2*n-1)*a(2*n-2),a(2*n+1)=a(2*n)+a(2*n-1)				a(2n+1) = a(2n) + a(2n-1), a(2n) = a(2n-1) * a(2n-2).
+A336878	sectrec	0	2	a(2*n)=a(n),a(2*n+1)=3*a(n)-a(2*n-1)				a(2*n) = a(n), a(2*n-1) + a(2*n+1) = 3*a(n).
+A345006	sectrec	0	3	a(3*n)=a(n)+a(n-1),a(3*n+1)=-a(n),a(3*n+2)=-a(n)	a(0)=1;			a(0) = 1; a(3*n) = a(n) + a(n-1), a(3*n+1) = a(3*n+2) = -a(n).
+A345007	sectrec	0	3	a(3*n)=a(n)-a(n-1),a(3*n+1)=-a(n),a(3*n+2)=-a(n)	a(0)=1;			a(0) = 1; a(3*n) = a(n) - a(n-1), a(3*n+1) = a(3*n+2) = -a(n).
+A345008	sectrec	0	4	a(4*n)=a(n)-a(n-1),a(4*n+1)=a(n),a(4*n+2)=a(n),a(4*n+3)=a(n)	a(0)=1;			a(0) = 1; a(4*n) = a(n) - a(n-1), a(4*n+1) = a(4*n+2) = a(4*n+3) = a(n).
+A345009	sectrec	0	5	a(5*n)=a(n)-a(n-1),a(5*n+1)=a(n),a(5*n+2)=a(n),a(5*n+3)=a(n),a(5*n+4)=a(n)	a(0)=1;			a(0) = 1; a(5*n) = a(n) - a(n-1), a(5*n+1) = a(5*n+2) = a(5*n+3) = a(5*n+4) = a(n).
