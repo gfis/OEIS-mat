@@ -2,14 +2,16 @@
 
 # Generate a triangle program from Maple
 # @(#) $Id$
+# 2022-09-03: options
 # 2022-05-09, Georg Fischer
 #
 #:# Usage:
-#:#     perl trimaple.pl [-m {t|u}] [-a aseqno] [-d debug] [-i num] procb.tmp > aseqno.java 2> tricol.man
+#:#     perl trimaple.pl [-{t|u}] [-a aseqno] [-d debug] [-i num] procb.tmp > aseqno.java 2> tricol.man
 #:#         -a A-number to be generated
 #:#         -d mode: debugging, 0=none, 1=some, 2=more
 #:#         -i MemoryFunctionInt<i>
-#:#         -m mode: t=Triangle, U=UpperLeftTriangle
+#:#         -t BaseTriangle
+#:#         -u UpperLeftTriangle
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -55,13 +57,13 @@ import irvine.math.MemoryFunctionInt2;
 import irvine.math.factorial.MemoryFactorial;
 import irvine.math.z.Binomial;
 import irvine.math.z.Z;
-import irvine.oeis.triangle.Triangle;
+import irvine.oeis.triangle.BaseTriangle;
 
 /**
  * A075196 Table T(n,k) by antidiagonals: T(n,k) = number of partitions of n balls of k colors.
  * @author Georg Fischer
  */
-public class A075196 extends Triangle {
+public class A075196 extends BaseTriangle {
 
   /** Construct the sequence. */
   public A075196() {
@@ -85,7 +87,7 @@ public class A075196 extends Triangle {
   };
  
   @Override
-  protected Z compute(final int n, final int k) {
+  public Z triangleElement(final int n, final int k) {
     return mB.get(n, k);
   }
 }
@@ -93,7 +95,7 @@ GFis
 # end of pattern
 
 my $apack = lc(substr($aseqno, 0, 4));
-my $tarfile = "$litedir/park/$aseqno.java";
+my $tarfile = "$litedir/manual/$aseqno.java";
 open(TAR, ">", $tarfile) || die "cannot write \"$tarfile\"\n";
 my $manfile = "$litedir/$aseqno.man";
 open(MAN, ">", $manfile) || die "cannot write \"$manfile\"\n";
@@ -137,7 +139,7 @@ while (<>) {
             $xref =~ s{gives?}{};
             $xref =~ s{\s+\Z}{};
             foreach my $ano ($rest =~ m{(A\d+)}g) {
-                print MAN join("\t", "$comment$ano", ($mode eq "t" ? "trionk" : "arronk"), 0, $aseqno, 0, "mN", $icol ++, $xref) . "\n",
+                print MAN join("\t", "$comment$ano", ($mode eq "t" ? "treonk" : "arronk"), 0, $aseqno, 0, "mN", $icol ++, $xref) . "\n",
             }
         } # type
     } # proper 
@@ -152,8 +154,8 @@ if ($maple =~ m{\WA *\:\=}) {
     $mode = "u";
 }
 if ($mode eq "u") {
-    $pattern =~ s{Triangle}{UpperLeftTriangle}g;
-    $pattern =~ s{public matrixElement}{protected compute};
+    $pattern =~ s{BaseTriangle}{UpperLeftTriangle}g;
+    $pattern =~ s{triangleElement}{matrixElement};
 }
 $maple = "  /* Maple:\n$maple  \*\/\n";
 $pattern =~ s{  \/\* Maple\:\n}{$maple};

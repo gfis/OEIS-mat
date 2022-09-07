@@ -92,7 +92,7 @@ apery:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
-	grep -EB1 '\*\*\*' $@.tmp || :
+	grep -PB1 '\*\*\*' $@.tmp || :
 #----
 aperz:
 	perl aperz.pl -rec    > $@.1.tmp
@@ -787,11 +787,20 @@ rectoproc0:
 rectoproc:
 	grep -E "^A[0-9]" rectoproc.man \
 	| head -n99999 \
+	| perl rectopost.pl \
 	| perl rectoproc.pl 2>&1 \
 	| uniq -w 7 \
 	| tee    $@.tmp
 	# head -n4 $@.tmp
 	wc -l    $@.tmp
+	grep -PB1 '\*\*\*' $@.tmp || :
+#----
+rectopost: # generate for all valid sumrecursion results
+	perl rectopost.pl rectopost.man \
+	| uniq -w 7 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	grep -PB1 '\*\*\*' $@.tmp || :
 #----
 rectab: recma recurr rectab2 rectab3 rectab4
 rectab2: recma5     recur5
@@ -1043,4 +1052,22 @@ hygsolve2:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-
+sumbinom: # grep: a(n) = sum ... binom...
+	grep -E "^\%[NF]" ../common/jcat25.txt \
+	| grep -i Sum | grep -iP "binom(ial)?\(|C\(" \
+	| grep -P "a\(n\) *\=" \
+	| cut -b4- \
+	| grep -Pv ".A\d\d\d" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+A172062:
+	grep -P "^A\d+" $@.pl                > $@.tmp 
+	cd ../common; make seq2 LIST=../holrec/$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, s.info, g.parm1, g.parm2 \
+	  FROM seq2 s, seq4 g \
+	  WHERE s.aseqno = g.aseqno \
+	  ORDER BY 2" \
+	| tee    $@.tmp
+#----

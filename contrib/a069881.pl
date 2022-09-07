@@ -1,0 +1,1 @@
+$a = 1; while((@b = split("|", $a) and @c = split("|", 2*$a+1) and (join("", reverse(@b)) eq join("", @b) and join("", reverse(@c)) eq join("", @c) and eval("print \"\$a \"; return 0; "))) or ++$a) { }

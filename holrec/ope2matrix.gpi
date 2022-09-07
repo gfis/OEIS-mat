@@ -1,4 +1,4 @@
-\\ PARI ope2matrix.gpi - convert an operator(A,n) into holon. recurrence parameters
+\\ PARI ope2matrix.gpi - convert an operator(A,n) into holonomic recurrence parameters
 \\ 2022-08-04, Georg Fischer
 ope2matrix(ope)=
 { /*

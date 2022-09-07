@@ -214,9 +214,42 @@ subdir:
 authors: ajlist oglist phlist rzlist
 ajlist:
 	make subdir DIR=aj NAME=Jasinski
+grlist:
+	make subdir DIR=gr NAME=Resta
 oglist:
 	make subdir DIR=og NAME=Olivier
 phlist:
 	make subdir DIR=ph NAME=Hanna
 rzlist:
 	make subdir DIR=rz NAME=Zumkeller
+#--------
+khintchin: khin1 khin2 khin3 khin4 # Which continued fractions belong to the "Khintchin" set
+khin1: # select the continued fractions
+	$(DBAT) -x "SELECT i.aseqno, d.data \
+	FROM asinfo i, bfdata d, asname n \
+	WHERE i.aseqno = d.aseqno \
+	  AND d.aseqno = n.aseqno \
+	  AND i.aseqno NOT IN (SELECT aseqno FROM joeis WHERE superclass = 'ContinuedFractionOfSqrtSequence') \
+	  AND i.keyword LIKE '%cofr%' \
+	  AND n.name    LIKE 'Continued%' \
+	ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+khin2: # prepare the GP program with a calls
+	perl khintchin.pl khin1.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+khin3:
+	gp -qf khin2.tmp \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+khin4:
+	cd $(COMMON) ; make seq2 LIST=../contrib/khin3.tmp
+	$(DBAT) "SELECT s.aseqno, s.info, n.name FROM seq2 s, asname n \
+	  WHERE s.aseqno = n.aseqno ORDER BY 1 " \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#--------

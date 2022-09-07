@@ -78,7 +78,7 @@ bulk_lists:
 	>     bulkb.txt
 	wc -l bulk?.txt
 	uedit64 bulkb.txt
-	cmd /c pause
+	# cmd /c pause
 	#### now copy bulk?.txt to the Linux machine
 #---------
 history: # Fetch new or recently changed JSONs
@@ -381,6 +381,7 @@ joeis_dead:
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
+	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_close.js"
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
@@ -389,7 +390,11 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
-	cp -v    $@.txt $@.tmp
+	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_open.js"
+jon_test:
+	# perl -i.bak -e "s{^A}{B}" joeis_names.txt
+	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_open.js"
+	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_close.js"
 joeis_ofter: # A-numbers in jOEIS with offset1 and first ~7 reliable terms
 	$(DBAT) -x "SELECT i.aseqno, i.offset1, i.terms \
 	FROM  asinfo i INNER JOIN joeis j ON i.aseqno = j.aseqno \
@@ -417,7 +422,7 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
 	# currently not; cd $(FISCHER); make analog
-ALAST=A058000
+ALAST=A060000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \

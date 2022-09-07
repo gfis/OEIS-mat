@@ -1,28 +1,132 @@
-A071719	rectoproc	0	({-3*(n+4)*(3*n-1)*a(n)+5*(n+2)*(7*n+3)*a(n-1)+2*(2*n-3)*(n-7)*a(n-2),a(0)=1,a(1)=4},a(n),remember):
-A107786	rectoproc	0	({-a(n)-a(n-1)+6*a(n-3),a(0)=0,a(1)=1,a(2)=1},a(n),remember):
-#  with abs manually
-A181209	rectoproc	0	({-a(n)+12*a(n-1)-283*a(n-3)+516*a(n-4)+600*a(n-5)-1415*a(n-6)+600*a(n-8)-125*a(n-9),a(1)=32,a(2)=169,a(3)=2117,a(4)=17424,a(5)=177073,a(6)=1630729,a(7)=15786848,a(8)=149352841,a(9)=1429585373},a(n),remember):
-A185818	rectoproc	0	({-a(n)+7*a(n-1)+15*a(n-2)-32*a(n-4)-64*a(n-5),a(1)=1,a(2)=9,a(3)=76,a(4)=656,a(5)=5680},a(n),remember):
-A192351	rectoproc	0	({-a(n)+2*a(n-1)+12*a(n-2)-8*a(n-3)-16*a(n-4),a(0)=0,a(1)=1,a(2)=2,a(3)=20},a(n),remember):
-A197237	rectoproc	0	({-a(n)+2*a(n-1)+8*a(n-3)+11*a(n-4)+17*a(n-5)+11*a(n-6)+5*a(n-7)-6*a(n-8)-16*a(n-9)-15*a(n-10)-3*a(n-11)+a(n-13),seq(a(i)=[1,5,15,46,156,507,1637,5338,17401,56648,184384,600287,1954546][i],i=1..13)},a(n),remember):
-A202902	rectoproc	0	({-a(n)+16*a(n-1)-76*a(n-2)+272*a(n-3)-1060*a(n-4)+2704*a(n-5)-5184*a(n-6)+9920*a(n-7)-11904*a(n-8)+9472*a(n-9)-7168*a(n-10)+4096*a(n-11)-1024*a(n-12),seq(a(i)=[1,40,494,4892,51068,538672,5654616,59369072,623600944,6549786560,68792261728,722531010240][i],i=1..12)},a(n),remember):
-A221569	rectoproc	0	({-a(n)+5*a(n-1)-3*a(n-2)+a(n-3)+15*a(n-4)+3*a(n-5),seq(a(i)=[0,17,59,289,1293,5913][i],i=1..6)},a(n), remember):
-A261141	rectoproc	0	({-a(n)+a(n-1)+2*a(n-2),a(0)=0,a(1)=1},a(n),remember):
-A289684	rectoproc	0	({n*a(n)+2*(-4*n+3)*a(n-1)+12*(n-2)*a(n-2)+8*(2*n-3)*a(n-3),a(0)=1,a(1)=2,a(2)=9,a(3)=42},a(n),remember):
+# 2022-08-11, Georg Fischer
+#----
+#ai# A071719	rectoproc	0	({-3*(n+4)*(3*n-1)*a(n)+5*(n+2)*(7*n+3)*a(n-1)+2*(2*n-3)*(n-7)*a(n-2),a(0)=1,a(1)=4},a(n),remember):
+#ai# A107786	rectoproc	0	({-a(n)-a(n-1)+6*a(n-3),a(0)=0,a(1)=1,a(2)=1},a(n),remember):
+#ai# #  with abs manually
+#ai# A181209	rectoproc	0	({-a(n)+12*a(n-1)-283*a(n-3)+516*a(n-4)+600*a(n-5)-1415*a(n-6)+600*a(n-8)-125*a(n-9),a(1)=32,a(2)=169,a(3)=2117,a(4)=17424,a(5)=177073,a(6)=1630729,a(7)=15786848,a(8)=149352841,a(9)=1429585373},a(n),remember):
+#ai# A185818	rectoproc	0	({-a(n)+7*a(n-1)+15*a(n-2)-32*a(n-4)-64*a(n-5),a(1)=1,a(2)=9,a(3)=76,a(4)=656,a(5)=5680},a(n),remember):
+#ai# A192351	rectoproc	0	({-a(n)+2*a(n-1)+12*a(n-2)-8*a(n-3)-16*a(n-4),a(0)=0,a(1)=1,a(2)=2,a(3)=20},a(n),remember):
+#ai# A197237	rectoproc	0	({-a(n)+2*a(n-1)+8*a(n-3)+11*a(n-4)+17*a(n-5)+11*a(n-6)+5*a(n-7)-6*a(n-8)-16*a(n-9)-15*a(n-10)-3*a(n-11)+a(n-13),seq(a(i)=[1,5,15,46,156,507,1637,5338,17401,56648,184384,600287,1954546][i],i=1..13)},a(n),remember):
+#ai# A202902	rectoproc	0	({-a(n)+16*a(n-1)-76*a(n-2)+272*a(n-3)-1060*a(n-4)+2704*a(n-5)-5184*a(n-6)+9920*a(n-7)-11904*a(n-8)+9472*a(n-9)-7168*a(n-10)+4096*a(n-11)-1024*a(n-12),seq(a(i)=[1,40,494,4892,51068,538672,5654616,59369072,623600944,6549786560,68792261728,722531010240][i],i=1..12)},a(n),remember):
+#ai# A221569	rectoproc	0	({-a(n)+5*a(n-1)-3*a(n-2)+a(n-3)+15*a(n-4)+3*a(n-5),seq(a(i)=[0,17,59,289,1293,5913][i],i=1..6)},a(n), remember):
+#ai# A261141	rectoproc	0	({-a(n)+a(n-1)+2*a(n-2),a(0)=0,a(1)=1},a(n),remember):
+#ai# A289684	rectoproc	0	({n*a(n)+2*(-4*n+3)*a(n-1)+12*(n-2)*a(n-2)+8*(2*n-3)*a(n-3),a(0)=1,a(1)=2,a(2)=9,a(3)=42},a(n),remember):
+#ai# 
+#ai# A336182	rectoproc	0	({(24*n^3+176*n^2+416*n+320)*a(n+1)+(279*n^3+2325*n^2+6382*n+5776)*a(n+2)+(18*n^3+168*n^2+514*n+512)*a(n+3)+(3*n^3+31*n^2+104*n+112)*a(n+4),a(0)=1,a(1)=-2,a(2)=-14,a(3)=136},a(n),remember):
+#ai# A110908	rectoproc	0	({a(n+2)-2*a(n+1)-5*a(n),a(0)=1,a(1)=7},a(n),remember):
+#ai# A285850	rectoproc	0	({(12*n^3+84*n^2+192*n+144)*a(n+1)+(8*n^3+34*n^2-6*n-108)*a(n+2)+(-4*n^3-42*n^2-147*n-162)*a(n+3)+(n+3)*a(n+4),a(0)=0,a(1)=2,a(2)=8,a(3)=288},a(n),remember):
+#ai# A290576	rectoproc	0	({a(0)=1,a(1)=3,-(n+1)^3*a(n+1)+(2*n+1)*(9*n^2+9*n+3)*a(n)+27*n^3*a(n-1)},a(n),remember):
+#ai# A292220	rectoproc	0	({-(2+n)*a(n+1)-2*(1+2*n)*(1+n)*a(n),a(0)=1,a(1)=1},a(n),remember):
+#ai# A293933	rectoproc	0	({-12*a(n)-60*a(n+1)-168*a(n+2)-348*a(n+3)-588*a(n+4)-852*a(n+5)-1080*a(n+6)-1212*a(n+7)-1212*a(n+8)-1080*a(n+9)-852*a(n+10)-588*a(n+11)-348*a(n+12)-168*a(n+13)-60*a(n+14)-12*a(n+15),a(0)=1,a(1)=0,a(2)=1,a(3)=0,a(4)=4,a(5)=0,a(6)=10,a(7)=4,a(8)=18,a(9)=13,a(10)=35,a(11)=26,a(12)=62,a(13)=52,a(14)=97,a(15)=92,a(16)=153},a(n),remember):
+#ai# # +(11*n^4+418*n^3+6433*n^2+46778*n+136380) manually
+#ai# A300125	rectoproc	0	({(384*n^2+384*n)*a(n)+(-32*n^2-512*n-480)*a(n+1)+(-368*n^2-2192*n-2928)*a(n+2)+(-56*n^2-344*n-504)*a(n+3)+(-4*n^2+188*n+852)*a(n+4)+(110*n^2+1034*n+2328)*a(n+5)+(-21*n^2-201*n-390)*a(n+6)+(-21*n^2-327*n-1272)*a(n+7)+(9*n^2+153*n+648)*a(n+8)+(-n^2-19*n-90)*a(n+9),a(0)=0,a(1)=0,a(2)=1,a(3)=1,a(4)=2,a(5)=5,a(6)=11,a(7)=26,a(8)=65},a(n),remember):
+#ai# A302945	rectoproc	0	({(2*n+1)*a(n+1)-(14*n^3+45*n^2+44*n+12)*a(n)-4*n^3*(4*n^2+8*n+3)*a(n-1),a(0)=0,a(1)=12},a(n),remember):
+#ai# A299918	rectoproc	0	({(3+3*n)*a(n)+(5+2*n)*a(n+1)+(-4-n)*a(n+2),a(0)=1,a(1)=1},a(n),remember):
+#ai# #   with mod 8 manually
 
-A336182	rectoproc	0	({(24*n^3+176*n^2+416*n+320)*a(n+1)+(279*n^3+2325*n^2+6382*n+5776)*a(n+2)+(18*n^3+168*n^2+514*n+512)*a(n+3)+(3*n^3+31*n^2+104*n+112)*a(n+4),a(0)=1,a(1)=-2,a(2)=-14,a(3)=136},a(n),remember):
-A110908	rectoproc	0	({a(n+2)-2*a(n+1)-5*a(n),a(0)=1,a(1)=7},a(n),remember):
-A285850	rectoproc	0	({(12*n^3+84*n^2+192*n+144)*a(n+1)+(8*n^3+34*n^2-6*n-108)*a(n+2)+(-4*n^3-42*n^2-147*n-162)*a(n+3)+(n+3)*a(n+4),a(0)=0,a(1)=2,a(2)=8,a(3)=288},a(n),remember):
-A290576	rectoproc	0	({a(0)=1,a(1)=3,-(n+1)^3*a(n+1)+(2*n+1)*(9*n^2+9*n+3)*a(n)+27*n^3*a(n-1)},a(n),remember):
-A292220	rectoproc	0	({-(2+n)*a(n+1)-2*(1+2*n)*(1+n)*a(n),a(0)=1,a(1)=1},a(n),remember):
-A293933	rectoproc	0	({-12*a(n)-60*a(n+1)-168*a(n+2)-348*a(n+3)-588*a(n+4)-852*a(n+5)-1080*a(n+6)-1212*a(n+7)-1212*a(n+8)-1080*a(n+9)-852*a(n+10)-588*a(n+11)-348*a(n+12)-168*a(n+13)-60*a(n+14)-12*a(n+15),a(0)=1,a(1)=0,a(2)=1,a(3)=0,a(4)=4,a(5)=0,a(6)=10,a(7)=4,a(8)=18,a(9)=13,a(10)=35,a(11)=26,a(12)=62,a(13)=52,a(14)=97,a(15)=92,a(16)=153},a(n),remember):
-# +(11*n^4+418*n^3+6433*n^2+46778*n+136380) manually
-A300125	rectoproc	0	({(384*n^2+384*n)*a(n)+(-32*n^2-512*n-480)*a(n+1)+(-368*n^2-2192*n-2928)*a(n+2)+(-56*n^2-344*n-504)*a(n+3)+(-4*n^2+188*n+852)*a(n+4)+(110*n^2+1034*n+2328)*a(n+5)+(-21*n^2-201*n-390)*a(n+6)+(-21*n^2-327*n-1272)*a(n+7)+(9*n^2+153*n+648)*a(n+8)+(-n^2-19*n-90)*a(n+9),a(0)=0,a(1)=0,a(2)=1,a(3)=1,a(4)=2,a(5)=5,a(6)=11,a(7)=26,a(8)=65},a(n),remember):
-A302945	rectoproc	0	({(2*n+1)*a(n+1)-(14*n^3+45*n^2+44*n+12)*a(n)-4*n^3*(4*n^2+8*n+3)*a(n-1),a(0)=0,a(1)=12},a(n),remember):
-A299918	rectoproc	0	({(3+3*n)*a(n)+(5+2*n)*a(n+1)+(-4-n)*a(n+2),a(0)=1,a(1)=1},a(n),remember):
-#   with mod 8 manually
+A144578	rectoproc	0	64*a(n)+48*a(n+1)+(32*n^2+96*n+76)*a(n+2)+(24*n^2+120*n+145)*a(n+3)+(-12*n^2-66*n-72)*a(n+4)+(-4*n^2-36*n-80)*a(n+5)
+#??prime#A339935	rectoproc	0	a(n+4)-10*a(n+2)+a(n)-24
 
-# A096362	rectoproc	0	({-a(n)+a(n-1)+a(n-2),a(0)=2,a(1)=1},a(n),remember): # lucas?
-# A144578	rectoproc	0	({64*a(n)+48*a(n+1)+(32*n^2+96*n+76)*a(n+2)+(24*n^2+120*n+145)*a(n+3)+(-12*n^2-66*n-72)*a(n+4)+(-4*n^2-36*n-80)*a(n+5),a(0)=1,a(1)=1/2,a(2)=5/4,a(3)=55/48,a(4)=757/384},a(n),remember): # Q, denominators
-# A339935	rectoproc	0	({a(n+4)-10*a(n+2)+a(n)-24,a(0)=1,a(1)=1,a(2)=5,a(3)=29},a(n),remember):
-# A339935		Primes p such that p+(p^2-1)/6 is a square.
+A065919	rectoproc	0	a(n) = 4*(2*n-1)*a(n-1) + a(n-2)
+A081113	rectoproc	0	(n-1)*(2*n-7)*a(n) = (10*n^2-39*n+23)*a(n-1) - 3*(2*n^2-n-9)*a(n-2) - 9*(n-3)*(2*n-5)*a(n-3)
+A082425	rectoproc	0	a(n) = (n+2)*a(n-1) - (n-1)*a(n-2)
+
+A086853	rectoproc	0	(n-3)*(n-2)*(n-4)^3*a(n) = (n-3)*(n^4-9*n^3+23*n^2-4*n-29)*(n-4)*a(n-1) - (n-1)*(n^4-12*n^3+57*n^2-125*n+104)*(n-4)*a(n-2) - (n-2)*(n-1)*(n^4-15*n^3+83*n^2-198*n+169)*a(n-3) + (n-3)^3*(n-2)^2*(n-1)*a(n-4)
+
+%F???gf A089936 The above conjecture is correct since the order of the recurrence is A089935(5) = 9. - _Andrew Howroyd
+%F???gf A089937 The above conjecture is correct because the order of the recurrence is A089935(6) = 11. - _Andrew Howr
+A091484	rectoproc	0	a(n+8)-7*a(n+4)+a(n)=0
+
+%F A108242 The a(n) satisfy the recurrence: {a(0) = 1, a(1) = 1, ( - 20779902*n^7 - 134970693*n^6 - 1971620508*n^4 - 2248389*n^8 - 3*
+n^12 - 4459328640*n - 4242044664*n^3 - 5794678656*n^2 - 618210450*n^5 - 234*n^11 - 1437004800 - 8151*n^10 - 167310*n^9)*a(n) + ( - 72
+95434560*n - 4550515200 - 914850*n^7 - 5131406304*n^2 - 545289740*n^4 - 2088314700*n^3 - 11400627*n^6 - 95574465*n^5 - 1425*n^9 - 473
+10*n^8 - 19*n^10)*a(n + 2) + (711103032*n^4 + 8622028800 + 13032306*n^6 + 116250876*n^5 + 2944635984*n^3 + 12385923840*n + 7897844736
+*n^2 + 18*n^10 + 1404*n^9 + 48708*n^8 + 989496*n^7)*a(n + 3) + ( - 915980400*n - 898128000 - 3060*n^7 - 90090*n^6 - 1499400*n^5 - 154
+24605*n^4 - 100395540*n^3 - 403611660*n^2 - 45*n^8)*a(n + 4) + (2882376*n^5 + 890994600*n^2 + 2137510944*n + 30916662*n^4 + 210700728
+*n^3 + 166740*n^6 + 5472*n^7 + 78*n^8 + 2227357440)*a(n + 5) + ( - 1050477120 - 60979*n^6 - 1088733*n^5 - 12105088*n^4 - 27*n^8 - 858
+53091*n^3 - 379422466*n^2 - 955621272*n - 1944*n^7)*a(n + 6) + (57398400*n + 114*n^6 + 91238400 + 161430*n^4 + 2078100*n^3 + 14985456
+*n^2 + 6660*n^5)*a(n + 7) + ( - 1225827*n^3 - 58806000 - 63*n^6 - 9078336*n^2 - 92961*n^4 - 3753*n^5 - 35812260*n)*a(n + 8) + (571080
+*n + 1504800 + 5100*n^3 + 120*n^4 + 81060*n^2)*a(n + 9) + ( - 233178*n - 635976 - 32079*n^2 - 1962*n^3 - 45*n^4)*a(n + 10) + (1116*n
++ 48*n^2 + 6480)*a(n + 11) + ( - 225*n - 9*n^2 - 1410)*a(n + 12) + 6*a(n + 13) = 0,
+
+A108243	rectoproc	0	(4989600+5718768*n^7+1045440*n^8+123200*n^9+8448*n^10+256*n^11+30135960*n+75458988*n^2+105258076*n^3+91991460*n^4+53358140*n^5+21100464*n^6)*a(n)+(-19958400-1534368*n^7-182592*n^8-12608*n^9-384*n^10-75637440*n-125414712*n^2-119890252*n^3-73239888*n^4-29906772*n^5-8276184*n^6)*a(n+1)+(-4989600-5760*n^7-192*n^8-11840760*n-12084468*n^2-6932520*n^3-2446668*n^4-544320*n^5-74592*n^6)*a(n+2)+(1857240+144*n^7+3447358*n+2724762*n^2+1186966*n^3+307470*n^4+47332*n^5+4008*n^6)*a(n+3)+(5445+3289*n+660*n^2+44*n^3)*a(n+4)+(-3003-1635*n-297*n^2-18*n^3)*a(n+5)+3*a(n+6)
+
+%F A110040 Satisfies the linear recurrence: (-150917976*n^2 - 105258076*n^3 - 1925*n^9 - 13339535*n^5 - 45995730*n^4 - 357423*n^7 - 2
+637558*n^6 - 120543840*n - n^11 - 66*n^10 - 39916800 - 32670*n^8)*a(n) + (-11028590*n^4 - 65*n^9 - n^10 - 2310945*n^5 - 1860*n^8 - 30
+810*n^7 - 326613*n^6 - 80627040*n - 39916800 - 34967140*n^3 - 70290936*n^2)*a(n + 1) + (3*n^10 - 39916800 + 187*n^9 + 5076*n^8 + 7855
+8*n^7 + 761103*n^6 + 4757403*n^5 + 18949074*n^4 + 44946092*n^3 + 51046344*n^2 - 793440*n)*a(n + 2) + (-93139200 - 16175880*n^3 - 5639
+4184*n^2 - 110513760*n - 2854446*n^4 - 14*n^8 - 840*n^7 - 21756*n^6 - 317520*n^5)*a(n + 3) + (45780*n^6 + 1785*n^7 + 111580320*n^2 +
+660450*n^5 + 5856270*n^4 + 32645865*n^3 + 174636000 + 213450300*n + 30*n^8)*a(n + 4) + (-22952160 - 681*n^6 - 16419*n^5 - 217995*n^4
+- 8082204*n^2 - 20896956*n - 12*n^7 - 1721253*n^3)*a(n + 5) + (1804641*n^3 + 9*n^7 + 14442*n^5 + 208920*n^4 + 32266080 + 9307488*n^2
++ 26537388*n + 552*n^6)*a(n + 6) + (-158400 - 15160*n - 3994*n^3 - 31072*n^2 - 6*n^5 - 248*n^4)*a(n + 7) + (20123*n^3 + 706210*n + 27
+*n^5 + 170067*n^2 + 1148400 + 1173*n^4)*a(n + 8) + (7899*n^2 + 60684*n + 444*n^3 + 9*n^4 + 170940)*a(n + 9) + (-6894*n - 25740 - 18*n
+^3 - 612*n^2)*a(n + 10) + (-48*n - 528)*a(n + 11) + 24*a(n + 12).
+
+A110106	rectoproc	0	(40320 + 328752*n + 78732*n^7 + 6561*n^8 + 1816668*n^3 + 1818369*n^4 + 1102248*n^5 + 398034*n^6 + 1063116*n^2)*a(n) + (-161280 - 508608*n - 453600*n^3 - 173340*n^4 - 34992*n^5 - 2916*n^6 - 661104*n^2)*a(n+1) + (12432 + 20070*n + 12114*n^2 + 3240*n^3 + 324*n^4)*a(n+2) - 2*a(n+3)
+A116408	rectoproc	0	(n-2)*(n+4)*(3*n^2-5*n+36)*a(n) = n*(6*n^3-n^2+70*n-139)*a(n-1) + 3*(n-1)*n*(3*n^2+n+34)*a(n-2)
+
+#???wrong? A122523	rectoproc	0	-(2*n+2)*(2*n+3)*a(n+3) + (2*n+2)*(2*n+3)*(16*n^2+96*n+141) * a(n+2) + (2*n+7)*(16*n^2+64*n+61)*(2*n+3) * a(n+1) - (2*n+7)*(2*n+2)* a(n)
+#???wrong? A122533	rectoproc	0	-(2*n+2)*(2*n+3)*a(n+3) + (2*n+2)*(2*n+3)*(16*n^2+96*n+141) * a(n+2) + (2*n+7)*(16*n^2+64*n+61)*(2*n+3) * a(n+1) - (2*n+7)*(2*n+2)* a(n)
+
+A144045	rectoproc	0	(2*n^3-8*n^2+10*n-4)*a(n) + (-121*n^3+575*n^2-872*n+412)*a(n-1)+(-475*n^3+4887*n^2-16202*n+17448)*a(n-2)+(1746*n^3-19818*n^2+75060*n-94896)*a(n-3)+(-1152*n^3+16128*n^2-74880*n+115200)*a(n-4)
+
+A156887	rectoproc	0	8*(n-1)*(4*n-7)*(2*n-3)*(4*n-5)*(4633*n^3-5763*n^2+2168*n-240)*a(n-2)-(137604733*n^7-859190528*n^6+2179882848*n^5-2890753162*n^4+2144669963*n^3-880916550*n^2+182941416*n-14515200)*a(n-1)+64*n*(4*n-3)*(2*n-1)*(4*n-1)*(4633*n^3-19662*n^2+27593*n-12804)*a(n)
+
+A177840	rectoproc	0	a(n) = (4*n^2 - 2*n - 1)*a(n-1) + 2*(n - 1)*(4*n - 3)*a(n-2) + 4*(n - 1)*(n - 2)*a(n-3)
+
+A201202	rectoproc	0	a(n)+(2*n+1)*a(n-1)+n*(n+1)*a(n-2)=0
+
+A202856	rectoproc	0	(n+2)^2*a(n) +2*(-3*n^2-5*n-1)*a(n-1) -4*(n-1)*(n-5)*a(n-2) +24*(n-1)*(n-2)*a(n-3)=0
+
+A208425	rectoproc	0	-(3*n-2)*(n-2)^2*a(n-3)-(3*n-4)*(24*n^2-56*n+27)*a(n-2)-(9*n^3-24*n^2+17*n-4)*a(n-1)+a(n)*n^2*(3*n-5)
+
+A212852	rectoproc	0	a(n) = 246*a(n-1) -20545*a(n-2) +751800*a(n-3) -12911500*a(n-4) +100380000*a(n-5) -304200000*a(n-6) +216000000*a(n-7)
+%Fa(n)>=! A214872 The recurrence above is true since if the maximum of an SLP sequence of length n-1
+
+A217358	rectorproc	0	23*(n-2)*(n-1)*n*(9*n-25)*a(n) = -(n-2)*(n-1)*(54*n^2 - 231*n + 248)*a(n-1) + (n-2)*(1485*n^3 - 10065*n^2 + 22292*n - 16088)*a(n-2) + 8*(2*n-5)*(4*n-13)*(4*n-11)*(9*n-16)*a(n-3)
+A217596	rectoproc	0	5*n*(n - 1)*(4*n - 9)*a(n) = 2*(n - 1)*(44*n^2 -165*n + 150)*a(n-1) + 3*(4*n - 5)*(3*n - 7)*(3*n - 8)*a(n-2)
+
+%F A217632 Euler et al. give an explicit g.f. and recurrence, and so (presumably) prove this recurrence is correct. - _N. J. A. Sloane_, Nov 21 2013
+%F A219738 Zeilberger's Maple code (see links in A228285) would give a proof that this recurrence is correct. - _N. J. A. Sloane_, Au
++g 22 2013
+%F A219739 Zeilberger's Maple code (see links in A228285) would give a recurrence for this sequence. - _N. J. A. Sloane_, Aug 22 2013
+%F A219740 Zeilberger's Maple code (see links in A228285) would give a recurrence for this sequence. - N. J. A. Sloane, Aug 22 2013
+%F A219741 Zeilberger's Maple code (see links in A228285) would presumably give recurrences for the columns of this array. - _N. J. A
+
+A228230	rectoproc	0	2*a(n) = (n*(n+1) + 2)*a(n-1) - n*(n - 1)*a(n-2)
+).
+A228511	rectoproc	0	225*(12*n+43)*(n+1)^2*(n+2)^2*a(n)  - (n+2)^2*(3108*n^3+20869*n^2+42172*n+26271)*a(n+1)  + (n+3)*(420*n^4+4037*n^3+13835*n^2+19872*n+9840)*a(n+2) - (n+1)*(n+3)*(12*n+31)*(n+4)^2*a(n+3)
+A228514	rectoproc	0	(n-1)*(n+1)^2*a(n) = 2*n*(5*n^2-2)*a(n-1) - 9*(n-1)^2*(n+1)*a(n-2).
+%F A229043 D-finite with recurrence: Sequence satisfies a 9th-order linear recurrence with coefficients that are polynomials in n of
+degree 5: see link. - _Robert Israel_, May 14 2018
+%F sqrt(a(n))??? A230338 Defining recurrence equation:
+%F A230338 Other recurrence equations:
+%F Sum??? A236921 To see why this recurrence holds, enumerate all the a(n) permutations of {1,2,3,...,n}
+%F A241619 Column k satisfies a recurrence of order (k+1)*(k+2)/2, since a(n)=e^T T^n e where T is a (k+1)*(k+2)/2 matrix and e the vector of all 1's (see proofs at A241615 and A241618).
+%F Primes?? A241909 The first formula corresponds to this recurrence:
+%F A241909 And the latter formula with this recurrence:
+
+A245868	rectoproc	0	a(n) = 2*a(n-1) + 6*a(n-2) - a(n-3)
+A254129	rectoproc	0	3*n^2*(3*n-2)*(3*n-1)*(4*n-3)*(4*n-1)*(58625*n^6 - 574525*n^5 + 2317575*n^4 - 4929815*n^3 + 5836090*n^2 - 3647730*n + 940788)*a(n) = 4*(563444875*n^12 - 7212094400*n^11 + 40894216825*n^10 - 135653664390*n^9 + 292742658975*n^8 - 432166599360*n^7 + 446527351283*n^6 - 324481592710*n^5 + 164046706898*n^4 - 56035458036*n^3 + 12203976528*n^2 - 1507156200*n + 78246000)*a(n-1) - 64*(n-1)*(2*n-3)^2*(167726125*n^9 - 1643716025*n^8 + 6735239425*n^7 - 15048594215*n^6 + 20072439970*n^5 - 16473493280*n^4 + 8273936628*n^3 - 2437948332*n^2 + 377982648*n - 22556880)*a(n-2) + 165888*(n-2)*(n-1)*(2*n - 5)^2*(2*n - 3)^2*(58625*n^6 - 222775*n^5 + 324325*n^4 - 232265*n^3 + 86220*n^2 - 15570*n + 1008)*a(n-3)
+
+%F A260630 a(n) = numerator(d(n)), where d(n) satisfies recurrence: d(0) = -1, d(1) = 1/2, (n+1)^2*d(n) = 2*(4*n^2-2*n-1)*d(n-1) - 4*(2*n-3)^2*d(n-2).
+%F A260631 a(n) = denominator(d(n)), where d(n) satisfies recurrence: d(0) = -1, d(1) = 1/2, (n+1)^2*d(n) = 2*(4*n^2-2*n-1)*d(n-1) -4*(2*n-3)^2*d(n-2).
+%F A270124 A270121 is generated by a recurrence of second order: if A270121(n)=x(n) then x(n+1)*x(n-1)=x(n)^2*(1+n*x(n)) for n>=1 with x(1)=7,x(2)=112.
+
+A271432	rectoproc	0	(35*n^2-70*n+27)*n^4*a(n) +(n-1)*(105*n^5-315*n^4+151*n^3 +487*n^2 -540*n+144)*a(n-1) -8*(1750*n^6-10500*n^5+25150*n^4 -29745*n^3 +17065*n^2-3738*n+72)*a(n-2) -144*(n-2) *(1225*n^5-7350*n^4 +15435*n^3 -11430*n^2-352*n+1440)*a(n-3)-6912*(n-3)*(n-2)*(105*n^4 -525*n^3+676*n^2 +62*n-132)*a(n-4)-27648*(n-4)*(n-3)^2*(n-2)*(35*n^2-8) *a(n-5) = 0
+
+%F A271650 a(n) satisfies a seventh-order linear recurrence equation with polynomial coefficients of degree 12 (see link above).
+%F A271651 a(n) satisfies a twelfth-order linear recurrence equation with polynomial coefficients of degree 33 (see link above).
+
+A304979	rectoproc	0	(2120000*(5*n+1))*(5*n+2)*(5*n+3)*(5*n+4)*a(n) + (250*(160980199*n^4 + 1129209134*n^3 + 2872721885*n^2 + 3155706646*n + 1267579560))*a(n+1) - (50*(109722203*n^4 + 959367613*n^3 + 3144281425*n^2 + 4572924587*n + 2485585548))*a(n+2) + (60*(4290021*n^4 + 51502996*n^3 + 243316306*n^2 + 532456081*n + 451079946))*a(n+3) - (3*(2673299*n^4 + 44756419*n^3 + 283571239*n^2 + 805783469*n + 866093430))*a(n+4) + (4008*(n+5))*(4*n+17)*(2*n+9)*(4*n+19)*a(n+5) = 0.
+
+%F A324130 Let b(n) = A111004(n) = number of permutations avoiding a consecutive 132 pattern. Then a(n) = 2*a(n-1) - b(n-1) + Sum_{i = 1..n-1} binomial(n-1,i) * b(i) * a(n-1-i) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).]
+%F A324131 Let b(n) = A049774(n) = number of permutations avoiding a consecutive 123 pattern. Then a(n) = 2*a(n-1) - b(n-1) + Sum_{i = 1..n-1} binomial(n-1,i) * b(i) * a(n-1-i) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).]
+%F A324132 Let b(n) = A117158(n) = number of permutations avoiding a consecutive 1234 pattern. Then a(n) = 2*a(n-1) - b(n-1) + Sum_{i= 1..n-1} binomial(n-1,i) * b(i) * a(n-1-i) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).]
+%F A324133 a(n) = -2^(n-1) + 2*Sum_{i = 0..n-1} binomial(n-1,i) * a(i) with a(0) = 1. [It follows from Kitaev's recurrence for C_n onp. 220 of his paper.] - _Petros Hadjicostas_, Oct 30 2019
+%F A324134 Let b(n) = A111004(n) = number of permutations avoiding a consecutive 132 pattern. Then a(n) = Sum_{i = 0..n-1} binomial(n-1,i) * (a(n-1-i) + b(i) * a(n-1-i) - b(n-1-i)) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).] - _Petros Hadjicostas_, Oct 30 2019
+%F A324135 Let b(n) = A049774(n) = number of permutations avoiding a consecutive 123 pattern. Then a(n) = Sum_{i = 0..n-1} binomial(n-1,i) (a(n-1-i) + b(i) * a(n-1-i) - b(n-1-i)) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).] - _Petros Hadjicostas_, Oct 30 2019
+%F A324136 Let b(n) = A117158(n) = number of permutations avoiding a consecutive 1234 pattern. Then a(n) = Sum_{i = 0..n-1} binomial(n-1,i) (a(n-1-i) + b(i) * a(n-1-i) - b(n-1-i)) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).] - _Petros Hadjicostas_, Oct 30 2019
+%F A324137 Let b(n) = A049774(n) = number of permutations avoiding a consecutive 123 pattern. Then a(n) = Sum_{i = 0..n-1} binomial(n-1,i) (2*b(i)*a(n-1-i) - b(i)*b(n-1-i)) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).] - _Petros Hadjicostas_, Oct 30 2019
+%F A324138 Let b(n) = A049774(n) = number of permutations of [n] that avoid consecutive pattern s = 123 and c(n) = A111004(n) = number of permutations of [n] that avoid consecutive pattern t = 132. Then a(n) = Sum_{i = 0..n-1} binomial(n-1,i) * (b(i)*a(n-1-i) + c(i)*a(n-1-i) - b(i)*c(n-1-i)) for n >= 1 with a(0) = b(0) = c(0) = 1. [This follows from the recurrence for C_n on p. 220 in Kitaev (2005).] - _Petros Hadjicostas_, Nov 01 2019
+%F A324139 Let b(n) = A111004(n) = number of permutations avoiding a consecutive 132 pattern. Then a(n) = Sum_{i = 0..n-1} binomial(n-1,i) (2*b(i)*a(n-1-i) - b(i)*b(n-1-i)) for n >= 1 with a(0) = b(0) = 1. [See the recurrence for C_n on p. 220 of Kitaev (2005).] - _Petros Hadjicostas_, Oct 30 2019
