@@ -70,13 +70,13 @@ if (0) {
     my $ua;
     if (1) {
         $ua = LWP::UserAgent->new;
-        $ua->agent("Mozilla/8.0"); # pretend we are a capable browser
-        # $ua->agent("Chrome/70.0.3538.110");
+        # $ua->agent("Mozilla/8.0"); # pretend we are a capable browser
+        $ua->agent("Chrome/105.0.0.0");
     } else { # robot
         $ua = LWP::RobotUA->new('EiC-gfis/1.0', 'georg.fischer@t-online.de');
         $ua->delay($sleep/60);
     }
-    $ua->timeout(6); # give up if server does not respond in time
+    $ua->timeout(64); # give up if server does not respond in time
     # https://oeis.org/search?q=keyword:changed&sort=modified&fmt=json&start=600
     # https://oeis.org/search?q=keyword:new&sort=created&fmt=json&start=280
     my $url = "https://oeis.org/search?q="
@@ -90,7 +90,7 @@ if (0) {
         my $status = "000";
         print STDERR "read $url$start\n";
         my $response = $ua->request(GET "$url$start");
-        # print STDERR "status " . $response->code() . "\n";
+        print STDERR "status " . $response->code() . "\n";
         my $page  = $response->decoded_content(charset => 'UTF-8');
         $status   = $response->code();
         if ($status ne "200") {
@@ -111,6 +111,7 @@ if (0) {
             print STDERR "$modtime\n";
         } # foreach
         $start += $increment;
+        $start -= ($start % 10);
         if ($count == 0 or $count < $start) {
             $start = $maxnum; # break loop
         } else { # continue

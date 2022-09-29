@@ -18,7 +18,7 @@
 # upload lrindx.new.tmp to https://oeis.org/wiki/Index_to_OEIS:_Section_Rec
 #---------------------------------
 GITS=../..
-DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
+DBAT=java   -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 COMMON=../common
 D=0
 G=n
@@ -98,6 +98,8 @@ lrlord_check: # Compare orders in lin. rec. links
 	>       $@.txt
 	head -4 $@.txt	
 	wc -l   $@.txt
+	perl htmlize.pl $@.txt > $@.htm
+	cmd /c start $@.htm
 lrlord_patch:
 	$(DBAT) -v "UPDATE lrlink SET sigorder = lorder WHERE seqno = '322829';"
 	make seq LIST=lrlord_check.man
@@ -304,19 +306,24 @@ order_only:
 	wc -l    $@.tmp
 sig_only: # ???
 	echo "A-number	signature" > $@.tmp
-	perl -ne 'if ((m{ajson\/(A\d+)\.json\: [^#]+\#(order_\d+)[^\,]*\,\s*(order\s+(\d+))}) '\
+	perl -ne 'if (m{ajson\/(A\d+)\.json\: [^#]+\#(order_\d+)[^\,]*\,\s*(order\s+(\d+))}) '\
 	'{ my $$order = $$4; if ($$order < 100) { print "$$1\t$$2\t$$3\n"; }} ' lrlink1.tmp \
 	>>       $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----------------
 lrindx_nyi_check:
-	$(DBAT) "SELECT 'A' || i.seqno AS A_number, i.sigorder, a.termno, i.signature \
-	   FROM lrindx i, asinfo a \
+	$(DBAT) "SELECT a.aseqno, 'holsig', a.offset1, i.signature \
+	   , REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){' || CAST(i.sigorder AS CHAR) || '}') \
+	   , i.sigorder, 1, 0, a.termno, n.name \
+	   FROM lrindx i, asinfo a, asname n, bfdata d \
 	   WHERE 'A' || i.seqno = a.aseqno \
+	     AND a.aseqno = n.aseqno \
+	     AND n.aseqno = d.aseqno \
 	     AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	   ORDER by 1" \
-	>     $@.txt
-	wc -l $@.txt
+	>        $@.txt
+	wc -l    $@.txt
+	head -n4 $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 

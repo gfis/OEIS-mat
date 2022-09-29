@@ -28,6 +28,11 @@ refresh:
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
 	make wgeto
 	make distrio
+refresh_atair:
+	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
+	| xargs -l -innn make refresh2 S=nnn
+refresh2: # S=012345, read from atair
+	scp gfis@atair:~/work/gits/OEIS-mat/common/bfile/b$(S).txt ../common/bfile/ || :
 #--
 wgeto: # S=012345, read into ./oeis.org/
 	#--------------------------------
@@ -211,13 +216,17 @@ subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt > $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist oglist phlist rzlist
+authors: ajlist amlist grlist oglist oplist phlist rzlist
 ajlist:
 	make subdir DIR=aj NAME=Jasinski
+amlist:
+	make subdir DIR=am NAME=Murthy
 grlist:
 	make subdir DIR=gr NAME=Resta
 oglist:
 	make subdir DIR=og NAME=Olivier
+oplist:
+	make subdir DIR=op NAME=Omar
 phlist:
 	make subdir DIR=ph NAME=Hanna
 rzlist:

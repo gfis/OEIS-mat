@@ -353,12 +353,12 @@ list: joeis_list
 joeis_list: joeis_local joeis_pull joeis_jar joeis_reload
 joeis_local:
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt
-	# cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt ; cmd /c pause ; ant compile-internal jar
 joeis_pull:   # refresh remote and local
-	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; make joeis_list ; ant compile-internal jar'
-	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
+	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; ant compile-internal jar'
 joeis_jar:
 	scp gfis@$(REMOTE):work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/
+	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; make joeis_list'
+	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 joeis_pullloc: # refresh local önly
 	cd    $(JOEIS) ; git pull ; make joeis_list
 	cp -v $(JOEIS)/joeis_list.txt .
@@ -382,6 +382,7 @@ joeis_dead:
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
 	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_close.js"
+	cmd /c attrib -R $@.txt
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
