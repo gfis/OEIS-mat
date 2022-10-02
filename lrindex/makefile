@@ -314,13 +314,14 @@ sig_only: # ???
 #----------------
 lrindx_nyi_check:
 	$(DBAT) "SELECT a.aseqno, 'holsig', a.offset1, i.signature \
-	   , REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){' || CAST(i.sigorder AS CHAR) || '}') \
+	   , REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){' || CAST(i.sigorder + 1 AS CHAR) || '}') \
 	   , i.sigorder, 1, 0, a.termno, n.name \
 	   FROM lrindx i, asinfo a, asname n, bfdata d \
 	   WHERE 'A' || i.seqno = a.aseqno \
 	     AND a.aseqno = n.aseqno \
 	     AND n.aseqno = d.aseqno \
 	     AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	     AND i.sigorder <= 32 \
 	   ORDER by 1" \
 	>        $@.txt
 	wc -l    $@.txt
