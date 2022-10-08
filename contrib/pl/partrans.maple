@@ -1,4 +1,4 @@
-Alph := [a, b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]:
+Alph := [a, b,c,d,e,f,g,h,y,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]:
 Pmatrix := proc(dim, a:=NULL)
    local n, k, m, w, g, M, T, A;
    if n = 0 then return [1] fi;
@@ -14,7 +14,7 @@ Pmatrix := proc(dim, a:=NULL)
    od;  
 M end:
 
-dim:=9;
+dim:=11;
 M := Pmatrix(dim);
 for r from 2 to dim do
     seq(printf(",%a", op(convert(linalg:-row(M, r), list))[i]),i=2..r);

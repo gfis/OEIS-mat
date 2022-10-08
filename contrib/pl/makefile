@@ -13,6 +13,7 @@ JOEIS=$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 OFFSET=0
+HERE=../contrib/pl
 #----------------
 all:
 	grep -E "^[a-z]" makefile
@@ -20,15 +21,17 @@ all:
 #================
 pts: # partition transform search
 pts1: # get the original sequences (no base, word etc.)
-	$(DBAT) "SELECT b.aseqno, i.keyword, i.offset1, substr(b.data, 1, 256) \
-	  FROM bfdata b, asinfo i \
+	$(DBAT) "SELECT b.aseqno, i.keyword, i.offset1, substr(b.data, 1, 256), n.name \
+	  FROM bfdata b, asinfo i, asname n \
 	  WHERE b.aseqno = i.aseqno \
+	    AND i.aseqno = n.aseqno \
 	    AND b.termno >= 19 \
 	  ORDER BY 1" \
 	| perl -ne 'my($$aseqno, $$keyword, $$offset1, $$data, @rest) = split(/\t/);'\
-	' my @terms = split(/\,/, $$data); $$data = join(",", splice(@terms, 0, 7)); '\
-	' if (scalar(@terms) >= 6 && ($$keyword !~ m{base|word|tabf|tabl|const|cofr|bref|dead|dump|obsc})) {'\
-	' print join("\t", $$aseqno, "search", $$offset1, $$data) . "\n"; } '\
+	' my @terms = split(/\,/, $$data); $$data = join(",", splice(@terms, 0, 9)); '\
+	' if (scalar(@terms) >= 9 && ($$keyword !~ m{base|word|tabf|tabl|const|cofr|bref|dead|dump|obsc})) {'\
+	' print join("\t", $$aseqno, "search", $$offset1, $$data, @rest); } '\
+	| grep -vi "prime" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -49,4 +52,18 @@ ptsr: # search for results in ptstabl.tmp
 	cat pts1.tmp \
 	| perl ptsearch.pl \
 	| tee    $@.tmp
+ptsr_eval: # count the hits
+	grep -P "\t\.\.a" ptsr.tmp \
+	| cut -f1 | sort | uniq -c | sort -rn \
+	| perl -ne 's{\A *}{}; s{\s+\Z}{}; my ($$count, $$aseqno) = split(/ /); print "$$aseqno\t$$count\n";'\
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	cd $(COMMON); make seq2 LIST=$(HERE)/$@.tmp
+ptsr_join: # join original and finding(s)
+	perl ptsr_join.pl ptsr.tmp \
+	| sort | uniq -w 7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 #--------

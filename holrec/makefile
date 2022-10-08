@@ -1015,6 +1015,10 @@ njoeis: # LIST
 	make -f $(COMMON)/makefile seq
 	$(DBAT) -x "SELECT COUNT(aseqno) FROM seq \
 	WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
+#--------
+holrindx: # which are in lrindx and not in holref -> 14628
+	$(DBAT) -x "SELECT COUNT(seqno) FROM lrindx \
+	  WHERE 'A' || seqno NOT IN (SELECT aseqno FROM holref)"
 #======================================================
 hyperext:
 	grep -E "holon" $(FISCHER)/holref.txt \

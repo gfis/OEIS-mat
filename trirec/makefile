@@ -414,12 +414,12 @@ trimore4:
 #-------------------------------
 traits: traits1 traits2 traits_ff
 traits_ff: traits3 traits4 traits5 traits7
-traits1: # select those with keyword tabl
+traits1: # EX= select those with keyword tabl
 	$(DBAT) -x "SELECT a.aseqno \
 	  FROM asinfo a \
 	  WHERE a.keyword LIKE '%tabl%' \
 	    AND a.offset1 >= 0 \
-	    AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND a.aseqno NOT IN (SELECT '$(EX)' || aseqno FROM joeis) \
 	  ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -508,7 +508,7 @@ binomialx:
 	wc -l    $@.gen
 #----
 # Modified constant and Pascal triangles 
-border: traits1 border1 border2
+border: traits1 border1 border2 # EX=
 border1: # 528 = 32 rows
 	$(RAMATH).sequence.Triangle -border -b ../common/bfile -f traits1.tmp -m 528 \
 	>        $@.tmp
@@ -521,7 +521,7 @@ border2:
 	    AND b.aseqno = n.aseqno \
 	    AND i.keyword LIKE '%tabl%' \
 	    AND i.offset1 >= 0 \
-	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND i.aseqno NOT IN (SELECT '$(EX)' || aseqno FROM joeis) \
 	    ORDER BY i.aseqno;" \
 	>        $@.tmp
 	wc -l    $@.tmp
@@ -565,6 +565,16 @@ trait_match4:
 	wc -l trait_match.tmp
 #--
 modtri: modpa modip modco modic
+modlr:
+	perl traitsel2.pl -d $(D) -lr -s "ls,rs" border.tmp \
+	>         $@.tmp
+	head -n12 $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
+modrl:
+	perl traitsel2.pl -d $(D) -rl -s "ls,rs" border.tmp \
+	>         $@.tmp
+	head -n12 $@.tmp
+	grep -E "^\#" $@.tmp | wc -l
 modpa:
 	perl traitsel.pl -s "ls,rs,pa" border.tmp \
 	| sed -e "s/Pascal/modpas/" \
@@ -623,7 +633,7 @@ sortsides: # sort and count the LeftSide and RightSide traits
 	>         $@.tmp
 	head -n32 $@.tmp
 #---------
-triuple: 
+triuple: # Kimberling's triangles
 	perl tri_guides.pl -a C \
 	>         $@.1.tmp
 	grep $@   $@.1.tmp \
