@@ -224,7 +224,7 @@ trirecur:
 # Riordan arrays
 rio: rio0 rio1 rio2 rio3
 rio0:
-	grep -iE "Riordan *array" $(COMMON)/cat25.txt \
+	grep -iE "Riordan *array" $(COMMON)/jcat25.txt \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

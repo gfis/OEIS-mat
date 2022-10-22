@@ -326,6 +326,11 @@ maxllen_update:
 	$(DBAT) -n temp
 	$(DBAT) -v "UPDATE bflink b SET b.maxllen = \
 	    COALESCE((SELECT t.temp FROM temp t WHERE b.aseqno = t.aseqno), -1)"
+#----
+maxL: # determine maximum line lengths of b-files
+	find ../common/bfile -iname "*.txt" | xargs -innn wc -L nnn \
+	| perl -ne 'm{\A(\d+)[^e]+e\/b(\d+)}; if ($$1 > 1000) { print "A$$2\t$$1\n"; }'\
+	| tee $@.tmp
 #-------------------------------
 # %K A000001 nonn,core,nice,hard
 # %K A000002 nonn,core,easy,nice

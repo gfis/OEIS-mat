@@ -87,3 +87,20 @@ hg_eval:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+# on the server:
+# find ajson -iname "*.json" | xargs -l grep -iH Conjecture | grep Mathar | tee conjmath.tmp
+# ajson/A338727.json:				"Conjecture: D-finite with recurrence (n+2)^2*(n-1)^2*a(n) -4*n^2*(2*n-1)^2*a(n-1)=0. - _R. J. Mathar_, Dec 11 2020",
+conj_load: # load RM's conjectures into seq2
+	grep -v Ekhad conjmath.tmp \
+	| sed -e "s/^ajson\///" -e "s/\"//g" -e "s/\.json\:\t*/\t/" -e "s/Conjecture:? ?//" -e "s/\. *\- *_R\. J. Mathar_.*//" \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	cd ../../common ; make seq2 LIST=../contrib/rm/$@.tmp
+conj_eval: # check whether we have them
+	$(DBAT) -x "SELECT s.aseqno, COALESCE(j.superclass, 'nyi'), s.info \
+	  FROM seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
+	  ORDER BY 1"\
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp

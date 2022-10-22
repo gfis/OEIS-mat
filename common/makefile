@@ -355,8 +355,10 @@ joeis_local:
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt
 joeis_pull:   # refresh remote and local
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; git pull ; ant compile-internal jar'
-joeis_jar:
+joeis_jar: joeis_jar1 joeis_jar2
+joeis_jar1:
 	scp gfis@$(REMOTE):work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/
+joeis_jar2:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; make joeis_list'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 joeis_pullloc: # refresh local önly
@@ -392,6 +394,16 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	head -n4 $@.txt
 	wc -l    $@.txt
 	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_open.js"
+joeis_tabl: # 'tabl' A-numbers with their jOEIS superclass or null, 
+	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
+	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
+	WHERE a.aseqno = n.aseqno \
+	  and a.aseqno = b.aseqno \
+	  and a.keyword LIKE '%tabl%' \
+	ORDER BY 1" \
+	| perl -pe "s{\'\'}{\'}g" > $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
 jon_test:
 	# perl -i.bak -e "s{^A}{B}" joeis_names.txt
 	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_open.js"

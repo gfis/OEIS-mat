@@ -67,3 +67,11 @@ ptsr_join: # join original and finding(s)
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
+# https://cocalc.com/projects/f63cfcb5-46a2-4465-9491-c084ef52b42b/files/PartitionCheck.txt
+# EXPECTED:  A002467 generates triangle A357586 with offset 0
+check_extract: # get pairs from PL's file
+	grep "generates triangle" PartitionCheck.txt \
+	| perl -ne 'm{(A\d+) generates triangle (A\d+) with offset (\d)}; print join("\t", $$2, "partran", $$3, $$1) . "\n";'\
+	| sort | uniq -w7 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
