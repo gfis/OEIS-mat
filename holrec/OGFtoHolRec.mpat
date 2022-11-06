@@ -1,0 +1,29 @@
+restart;
+with(FormalPowerSeries): # requires Maple 2022
+with(LREtools): with(StringTools):
+toString:= proc(expr) DeleteSpace(convert(expr, string)) end:
+
+aseqno:= A174403;
+ogf:= (1-2*x-2*x^2-sqrt(1-4*x-4*x^2+8*x^3+4*x^4))/(2*x^2);
+inits:= [1, 2, 7, 22, 76, 268, 977, 3638];
+
+OGFtoHolRec:= proc(aseqno, ogf, x, inits) local req1, reqm, opea, ord1, orda, offset, dist, ins1, i, j, u, matstr, inistr, remark;
+  offset:= 0:
+  dist:= 0:
+  req1:= FindRE(ogf, x, u(n));
+  ord1:= nops(op(1, req1));
+  ins1:= seq(u(i-1)=inits[i], i=1..ord1);
+  reqm:= op(1, MinimalRecurrence(req1, u(n), {ins1})[1]);
+  i:= 0; do i:= i + 1 until not has(reqm, u(n+i+1)):
+  reqm:= subs(n=n-i, reqm);
+  if coeff(coeff(reqm, u(n)), n, degree(coeff(reqm, u(n)))) >= 0 then reqm:= -reqm fi:
+  _Env_LRE_tau:= A ;_Env_LRE_x:= n; opea:= RecurrenceToOperator(reqm, u(n));
+  orda:= degree(opea, A);
+  seq(coeff(opea, A, i), i=orda..0, -1);
+  matstr:= toString([[0], seq([seq(coeff(coeff(opea, A, i), n, j), j=0..degree(coeff(opea, A, i), n))], i=orda..0,-1)]);
+  inistr:= toString([seq(inits[i], i=1..orda)]);
+  remark:= cat("ogf = ", toString(ogf));
+  printf("%a\t%a\t%a\t%s\t%s\t%a\t%s\n", aseqno, holos, offset, matstr, inistr, dist, remark);
+  printf("make runholo A=%a OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", aseqno, offset, matstr, inistr, dist);
+end;
+OGFtoHolRec(A174403, (1-2*x-2*x^2-sqrt(1-4*x-4*x^2+8*x^3+4*x^4))/(2*x^2), x, [1, 2, 7, 22, 76, 268, 977, 3638]); # A174403

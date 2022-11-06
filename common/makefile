@@ -435,7 +435,7 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
 	# currently not; cd $(FISCHER); make analog
-ALAST=A060000
+ALAST=A061000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -648,11 +648,15 @@ combstruct:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----------------------------
-uncat_diff:
+uncat_diff: # extract the A-numbers of the JSONs that differ from cat25.txt
 	perl -w uncat25.pl -m comp -o ./ajson cat25.txt \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+uncat_check1: # extract only those with a diff value > 1
+	perl -ne 'print if !m{\AA\d+\s+diff\s+1\Z};' \
+	| tee    $@.tmp
 #----
 uncat_prep:
 	grep -E "^A" uncat_diff.tmp | cut -f1 | sort \

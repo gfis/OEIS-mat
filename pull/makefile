@@ -133,7 +133,6 @@ encat:
 subs:
 	rm -rf subset
 	mkdir subset
-	find $(COMMON)/ajson -iname "A$(PREFIX)*.json" | sort | xargs -l -i{} \
-	cp {} subset
+	find $(COMMON)/ajson -iname "A$(PREFIX)*.json" | sort | xargs -l -i{} cp {} subset
 	ls -1 subset | wc -l
 

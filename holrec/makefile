@@ -496,7 +496,7 @@ homgf1:
 	$(DBAT) -v "DELETE FROM seq4 \
 		WHERE callcode LIKE 'homgfe%' \
 		  AND aseqno IN (SELECT aseqno callcode FROM seq4 WHERE callcode LIKE 'homgfo%')"
-	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, s.parm2 \
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset1, s.parm1, s.parm2 \
 	    FROM seq4 s \
 	    ORDER BY 1" \
 	>        $@.tmp
