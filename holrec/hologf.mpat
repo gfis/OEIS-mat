@@ -1,0 +1,38 @@
+#!Maple
+# Convert an o.g.f. into a matrix for HolonomicRecurrence
+# 2022-11-06, Georg Fischer
+with(FormalPowerSeries): # requires Maple 2022
+with(LREtools): with(StringTools):
+toString:= proc(expr) DeleteSpace(convert(expr, string)) end:
+C:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end: # A000108 Catalan's g.f.
+Catlan:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end:
+hologf:= proc(aseqno, cc, x, ogf, inits) local req1, reqm, ope1, opea, ord1, ordm, orda, offset, dist, ins1, i, j, u, matstr, inistr;
+  try
+    offset:= 0:
+    dist:= 0:
+    req1:= FindRE(ogf, x, u(n));
+    ord1:= nops(op(1, req1));
+    ins1:= seq(u(i-1)=inits[i], i=1..ord1);
+    reqm:= MinimalRecurrence(req1, u(n), {ins1})[1];
+    i:= 0; do i:= i + 1 until not has(reqm, u(n+i+1)):
+    reqm:= subs(n=n-i, reqm);
+    if coeff(coeff(op(1, reqm), u(n)), n, degree(coeff(op(1, reqm), u(n)))) >= 0 then reqm:= -reqm fi:
+    _Env_LRE_tau:= A ;_Env_LRE_x:= n; ope1:= RecurrenceToOperator(reqm, u(n));
+    orda:= degree(ope1, A);
+    opea:= subs(n=n-orda, ope1);
+    seq(coeff(opea, A, i), i=orda..0, -1);
+    matstr:= toString([[0], seq([if coeff(opea, A, i) = 0 then 0 else seq(coeff(coeff(opea, A, i), n, j), j=0..degree(coeff(opea, A, i), n)) fi], i=0..orda)]);
+    j := 0; do j:= j + 1 until (j >= nops(inits)-1 or inits[j] <> 0):
+    inistr:= toString([seq(inits[i], i=1..orda + j)]);
+    printf("%a\t%a\t%a\t%s\t%s\t%a\t%a\t%a\n", aseqno, cc, offset, matstr, inistr, dist, reqm, ogf);
+    printf("make runholo A=%a OFF=%a MATRIX=\"%s\" INIT=\"%s\" DIST=%a\n", aseqno, offset, matstr, inistr, dist);
+  catch:
+    printf("# %a failed: %q\n", aseqno, lastexception):
+    error
+  end try
+end;
+# trace(hologf);
+# hologf(A174403, (1-2*x-2*x^2-sqrt(1-4*x-4*x^2+8*x^3+4*x^4))/(2*x^2), x, [1, 2, 7, 22, 76, 268, 977, 3638]); # A174403
+#                            aseqno    ogf       x          inits
+
+timelimit($(TIMEOUT), hologf($(PARM0), $(PARM1), $(PARM2), $(PARM3), [$(PARM4)]));

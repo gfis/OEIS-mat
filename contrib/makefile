@@ -24,16 +24,23 @@ all:
 #================
 refresh:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
-	| xargs -l -innn make refresh1 S=nnn
+	| xargs -innn make refresh1 S=nnn
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
-	make SLEEP=1 wgeto
+	make SLEEP=2 wgeto
 	make distrio
+#--
 refresh_atair:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
-	| xargs -l -innn make refresh2 S=nnn
+	| xargs -innn make refresh2 S=nnn
 refresh2: # S=012345, read from atair
-	scp gfis@atair:~/work/gits/OEIS-mat/common/bfile/b$(S).txt ../common/bfile/ || :
 #--
+refresh_oeis:
+	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
+	| xargs -innn make refresh3 S=nnn
+refresh3: # S=012345, read from atair
+	make SLEEP=4 wgeto
+	cp -v oeis.org/b$(S).txt                              $(COMMON)/bfile/
+#--------
 wgeto: # S=012345, read into ./oeis.org/
 	#--------------------------------
 	wget -r "https://oeis.org/b$(S).txt" # do not include /A012345 

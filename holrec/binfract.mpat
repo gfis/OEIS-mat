@@ -1,0 +1,21 @@
+#!Maple
+# Derive a matrix for HolonomicRecurrence from a formula simplify(-expr(n)/expr(n-1), GAMMA)
+# 2022-05-13, Georg Fischer
+C:=binomial:
+interface(prettyprint=0):
+with(StringTools):
+binfract:= proc(aseqno, offset, expr, expr2, inits); local fract, num, den, matrix, j, remark;
+  fract := simplify(simplify(-expr(n)*expr2(n)/expr(n-1),GAMMA));
+  printf("# %a\tholof\t%a\t\%a\t[%a]\t0\t%a\n", aseqno, offset, fract, 1, expr);
+  num   := seq(coeff(numer(fract),n,j),j=0..degree(numer(fract)));
+  den   := seq(coeff(denom(fract),n,j),j=0..degree(denom(fract)));
+  matrix:= cat("[[0],", DeleteSpace(convert([num],string)), ","
+                      , DeleteSpace(convert([den],string)), "]"):
+  # inits usually is a single number
+  remark:= DeleteSpace(Substitute(Substitute(convert(expr, string), "proc (n)", ""), "end proc", "")):
+  printf("%a\tholos\t%a\t\%s\t%a\t0\t0\t%s\n"          , aseqno, offset, matrix, inits, remark);
+  printf("make runholo A=%a MATRIX=\"%s\" INIT=\"%a\" OFF=%a\n", aseqno, matrix, inits, offset);
+end;
+e1 := proc (n) 3^n/n!^2 end proc;
+e2 := proc (k) (6*k-4)*(6*k-5) end proc;
+binfract(A184424, 0, e1, e2, [1]);

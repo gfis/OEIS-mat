@@ -490,9 +490,8 @@ homgf0: # extract from jcat25.txt
 homgf1:
 	make seq4 LIST=homgf0.tmp
 	# $(DBAT) -v "DELETE FROM seq4 \
-	# 	WHERE  aseqno IN (SELECT aseqno FROM joeis) \
-	# 	   OR  aseqno IN (SELECT aseqno FROM poeis)"
-	# 	   OR (aseqno IN (SELECT aseqno FROM cojec) AND parm2 = 'ogf'"
+	#   WHERE  aseqno IN (SELECT aseqno FROM joeis) \
+	#      OR (aseqno IN (SELECT aseqno FROM cojec) AND parm2 = 'ogf'"
 	$(DBAT) -v "DELETE FROM seq4 \
 		WHERE callcode LIKE 'homgfe%' \
 		  AND aseqno IN (SELECT aseqno callcode FROM seq4 WHERE callcode LIKE 'homgfo%')"
@@ -740,6 +739,46 @@ maplass5:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@.tmp
+#--------
+hologfm: # use hologf.mpat for manual subset of RM's conjectures
+	perl $(COMMON)/callmap22.pl -t 10 -n 16 -p hologf.mpat $@.man \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+	grep -E "^A[0-9]*" $@.tmp | wc -l
+#--------
+# new attempt (2022-11-09) with FindRE in hologf.maple
+hologf: hologf1 hologf234
+hologf234:      hologf2 hologf3 hologf4
+hologf1: # extract raw
+	perl hologf_extr.pl $(COMMON)/jcat25.txt \
+	| grep -vE "A352177" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+hologf2: # select simple functions only
+	perl hologf_func.pl hologf1.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@*.tmp
+hologf3: # attach the initial values
+	sort hologf2.tmp | uniq -w7 > $@.tmp
+	make seq4 LIST=$@.tmp
+	$(DBAT) "UPDATE seq4 s SET s.parm2 = (SELECT REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){4,32}') \
+	    FROM bfdata d WHERE d.aseqno = s.aseqno);"
+	$(DBAT) -x -44444 seq4 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@*.tmp
+hologf4: # apply Maple FPS/FindRE
+	grep -E "hologf" hologf3.tmp \
+	| sed -e "s/hologfo/hologf/" \
+	| perl $(COMMON)/callmap22.pl -t 8 -n 16 -p hologf.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@.tmp
+	grep -E "^A[0-9]*" $@.tmp | wc -l
 #--------
 satis:
 	grep -Ei "satis" $(COMMON)/jcat25.txt \
