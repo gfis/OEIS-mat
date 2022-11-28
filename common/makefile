@@ -762,3 +762,14 @@ progstat3:
 	| tee    $@.tmp
 	sort -rn  $@.tmp | grep -vP "^ *\d " > $@.sort.tmp
 #---------
+doubled: doubled1 doubled2 # with distinct pairs
+doubled1:
+	perl doubled_terms.pl stripped \
+	| tee $@.tmp
+	wc -l $@.tmp
+doubled2:
+	cat doubled1.tmp \
+	| perl -ne 'print if m{nyi[^A]+A};' \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----

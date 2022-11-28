@@ -740,19 +740,12 @@ maplass5:
 	head -n4 $@.tmp
 	wc       $@.tmp
 #--------
-hologfm: # use hologf.mpat for manual subset of RM's conjectures
-	perl $(COMMON)/callmap22.pl -t 10 -n 16 -p hologf.mpat $@.man \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc       $@.tmp
-	grep -E "^A[0-9]*" $@.tmp | wc -l
-#--------
 # new attempt (2022-11-09) with FindRE in hologf.maple
 hologf: hologf1 hologf234
 hologf234:      hologf2 hologf3 hologf4
 hologf1: # extract raw
 	perl hologf_extr.pl $(COMMON)/jcat25.txt \
-	| grep -vE "A352177" \
+	| grep -vE "A289451|A352177" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@.tmp
@@ -765,7 +758,7 @@ hologf2: # select simple functions only
 hologf3: # attach the initial values
 	sort hologf2.tmp | uniq -w7 > $@.tmp
 	make seq4 LIST=$@.tmp
-	$(DBAT) "UPDATE seq4 s SET s.parm2 = (SELECT REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){4,32}') \
+	$(DBAT) "UPDATE seq4 s SET s.parm2 = (SELECT REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){4,64}') \
 	    FROM bfdata d WHERE d.aseqno = s.aseqno);"
 	$(DBAT) -x -44444 seq4 \
 	>        $@.tmp
@@ -779,6 +772,10 @@ hologf4: # apply Maple FPS/FindRE
 	head -n4 $@.tmp
 	wc       $@.tmp
 	grep -E "^A[0-9]*" $@.tmp | wc -l
+#--
+hologfm: # use hologf.mpat for manual subset of RM's conjectures
+	grep -E "^A[0-9]" $@.man | grep hologf > hologf2.tmp
+	make hologf3 hologf4
 #--------
 satis:
 	grep -Ei "satis" $(COMMON)/jcat25.txt \

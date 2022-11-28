@@ -32,9 +32,17 @@ my $callcode = "homgf";
 my $offset = 0;
 
 my %words = qw(
-  Catalan func
+  Catlan  func
+  p       var
+  q       var
+  r       var
+  s       var
   t       var
+  u       var
+  v       var
+  w       var
   x       var
+  y       var
   z       var
   sqrt    func
   sin     func
@@ -70,7 +78,7 @@ while(<>) {
             if (! defined($words{$name})) {
                 $nok = $name;
             }
-            if ($words{$name} eq "var") {
+            if (defined($words{$name}) && ($words{$name} eq "var")) {
                 $varn = $name;
                 if (defined($varns{$name})) {
                     $varns{$name} ++;
@@ -101,7 +109,7 @@ sub polish {
     $gf =~ s{ }{}g;
     $gf =~ s{(\d|\))([A-Za-z])}{$1\*$2}g; # 17x -> 17*x, )x -> )*x
     $gf =~ s{(\d|\))\(}        {$1\*\(}g; # )( -> )*(, 4( -> 4*(
-    $gf =~ s{\b([txz])\(}      {$1\*\(}g; # x( -> x*(
+    $gf =~ s{\b([p-z])\(}      {$1\*\(}g; # x( -> x*(
     return $gf;
 }
 __DATA__

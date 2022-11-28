@@ -90,7 +90,8 @@ hg_eval:
 #----
 # on the server:
 # find ajson -iname "*.json" | xargs -l grep -iH Conjecture | grep Mathar | tee conjmath.tmp
-# ajson/A338727.json:				"Conjecture: D-finite with recurrence (n+2)^2*(n-1)^2*a(n) -4*n^2*(2*n-1)^2*a(n-1)=0. - _R. J. Mathar_, Dec 11 2020",
+# ajson/A338727.json: "Conjecture: D-finite with recurrence (n+2)^2*(n-1)^2*a(n) -4*n^2*(2*n-1)^2*a(n-1)=0. - _R. J. Mathar_, Dec 11 2020",
+conj: conj_load conj_eval
 conj_load: # load RM's conjectures into seq2
 	grep -v Ekhad conjmath.tmp \
 	| sed -e "s/^ajson\///" -e "s/\"//g" -e "s/\.json\:\t*/\t/" -e "s/Conjecture:? ?//" -e "s/\. *\- *_R\. J. Mathar_.*//" \

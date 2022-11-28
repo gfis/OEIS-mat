@@ -32,7 +32,8 @@ hologf:= proc(aseqno, cc, x, ogf, inits) local req1, reqm, ope1, opea, ord1, ord
   end try
 end;
 # trace(hologf);
-# hologf(A174403, (1-2*x-2*x^2-sqrt(1-4*x-4*x^2+8*x^3+4*x^4))/(2*x^2), x, [1, 2, 7, 22, 76, 268, 977, 3638]); # A174403
-#                            aseqno    ogf       x          inits
+# hologf(A174403, hologf, x, (1-2*x-2*x^2-sqrt(1-4*x-4*x^2+8*x^3+4*x^4))/(2*x^2), [1, 2, 7, 22, 76, 268, 977, 3638]); # A174403
+#        aseqno   callcode var gf inits
 
 timelimit($(TIMEOUT), hologf($(PARM0), $(PARM1), $(PARM2), $(PARM3), [$(PARM4)]));
+hologf(A186359, hologf, x, (1-sin(z))/(1-z), [1, 0, 0, 1, 4, 19, 114, 799, 6392, 57527, 575270, 6327971]);
