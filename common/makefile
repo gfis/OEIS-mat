@@ -32,6 +32,7 @@ G=n
 NMAX=90
 CMAX=180
 REMOTE=atair
+CC=man
 # set_env_var_REMOTE
 #-------------
 all:
@@ -554,7 +555,7 @@ joeis_block3:
 	wc -l    $@.txt
 #--------
 cojec:
-	grep -Ei "Conjecture|Empirical"  cat25.txt \
+	grep -Ei "Conjecture|Empirical|Apparently" jcat25.txt \
 	| cut -b4-10 | uniq \
 	>        $@.tmp
 	$(DBAT) -f cojec.create.sql
@@ -773,3 +774,17 @@ doubled2:
 	| tee $@.tmp
 	wc -l $@.tmp
 #----
+#---------
+zero_spaced: zero_spaced1 
+zero_spaced1:
+	perl zero_spaced.pl -v $(V) stripped \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----
+fiboluca:
+	grep -Pi "a\(n\) *\= *(Fibonacci|Lucas)" jcat25.txt | grep -E "^\%" \
+	| cut -b 4- | sed -e "s/ /\tfiboluca\t0\t/" \
+	| sort | uniq -w7 \
+	| tee $@.tmp
+	wc -l $@.tmp
+	

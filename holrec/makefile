@@ -760,7 +760,7 @@ hologf3: # attach the initial values
 	make seq4 LIST=$@.tmp
 	$(DBAT) "UPDATE seq4 s SET s.parm2 = (SELECT REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){4,64}') \
 	    FROM bfdata d WHERE d.aseqno = s.aseqno);"
-	$(DBAT) -x -44444 seq4 \
+	$(DBAT) -x "SELECT * FROM seq4 ORDER BY aseqno" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@*.tmp
@@ -770,7 +770,7 @@ hologf4: # apply Maple FPS/FindRE
 	| perl $(COMMON)/callmap22.pl -t 8 -n 16 -p hologf.mpat \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc       $@.tmp
+	wc -l    $@.tmp
 	grep -E "^A[0-9]*" $@.tmp | wc -l
 #--
 hologfm: # use hologf.mpat for manual subset of RM's conjectures
@@ -778,17 +778,36 @@ hologfm: # use hologf.mpat for manual subset of RM's conjectures
 	make hologf3 hologf4
 #--------
 satis:
-	grep -Ei "satis" $(COMMON)/jcat25.txt \
+	grep -Ei "satisfies" $(COMMON)/jcat25.txt \
 	| grep -E "^\%" \
 	| grep -vE "Decimal expansion|E\.\g\.\f\.|adic integer" \
 	| perl satis.pl \
 	>        $@.tmp
-	grep -E  "\?\?" $@.tmp >> $@.rest.tmp
+	grep -E  "\?\?" $@.tmp > $@.rest.tmp
 	grep -vE "\?\?" $@.tmp \
 	| sort | uniq -w7 \
 	> $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen $@.*tmp
+satis3: # attach the initial values
+	sort satis.gen | uniq -w7 \
+	| sed -e "s/\t0\t/\tx\t/" > $@.tmp
+	make seq4 LIST=$@.tmp
+	$(DBAT) "UPDATE seq4 s SET s.parm2 = (SELECT REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){4,64}') \
+	    FROM bfdata d WHERE d.aseqno = s.aseqno);"
+	$(DBAT) -x "SELECT * FROM seq4 ORDER BY aseqno" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc       $@*.tmp
+satis4:
+	cat satis3.tmp \
+	| sed -e "s/satis/holalg/" \
+	| perl $(COMMON)/callmap22.pl -t 8 -n 16 -p holalg.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	grep -E "^A[0-9]*" $@.tmp | wc -l
+	
 #----
 sq1:
 	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \

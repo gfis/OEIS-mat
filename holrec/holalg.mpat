@@ -1,17 +1,17 @@
 #!Maple
-# Convert an o.g.f. into a matrix for HolonomicRecurrence
-# 2022-11-06, Georg Fischer
+# Convert an algebraic equation into a matrix for HolonomicRecurrence
+# 2022-12-01, Georg Fischer
 with(FormalPowerSeries): # requires Maple 2022
 with(LREtools): with(StringTools):
 toString:= proc(expr) DeleteSpace(convert(expr, string)) end:
 C:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end: # A000108 Catalan's g.f.
 Catlan:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end:
-hologf:= proc(aseqno, cc, x, ogf, inits) local req1, reqm, ope1, opea, ord1, ordm, orda, offset, dist, ins1, i, j, u, matstr, inistr;
+holalg:= proc(aseqno, cc, x, alg, inits) local req1, reqm, ope1, opea, ord1, ordm, orda, offset, dist, ins1, i, j, u, matstr, inistr;
   try
     offset:= 0:
     dist:= 0:
-    req1:= FindRE(ogf, x, u(n),'specialfunctions');
-    ord1:= nops(op(1, req1));
+    req1:= diffeqtorec(AlgtoHolonomicDE(alg,A(x)),A(x),u(n));
+    ord1:= nops(req1);
     ins1:= seq(u(i-1)=inits[i], i=1..ord1);
     reqm:= MinimalRecurrence(req1, u(n), {ins1})[1];
     i:= 0; do i:= i + 1 until not has(reqm, u(n+i+1)):
@@ -31,8 +31,9 @@ hologf:= proc(aseqno, cc, x, ogf, inits) local req1, reqm, ope1, opea, ord1, ord
     error
   end try
 end;
-# trace(hologf);
-# hologf(A174403, hologf, x, (1-2*x-2*x^2-sqrt(1-4*x-4*x^2+8*x^3+4*x^4))/(2*x^2), [1, 2, 7, 22, 76, 268, 977, 3638]); # A174403
-#        aseqno   callcode var gf inits
+# trace(holalg);
+# A352413 G.f. A(x) satisfies: A(x)^4 = (1-x) * (A(x) + x)^3.
+# holalg(A352413, holalg, x, -A^4+(1-x)*(A+x)^3,[1,2,-6,22,-115,675,-4268,28328,-194664,1372984,-9882190,72293094,-535946436,4017628380,-30402186474]);
 
-timelimit($(TIMEOUT), hologf($(PARM0), $(PARM1), $(PARM2), $(PARM3), [$(PARM4)]));
+timelimit($(TIMEOUT), holalg($(PARM0), $(PARM1), $(PARM2), $(PARM3), [$(PARM4)]));
+

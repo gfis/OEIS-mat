@@ -1,0 +1,7 @@
+# linsig.man 
+# 2022-09-12, Georg Fischer
+# http://www.mathematik.uni-kassel.de/~bteguia/FPS_webpage/FPS.htm
+# A307717
+# A226782
+# A226784
+# A306245 obsolete, reallocated

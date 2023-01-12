@@ -33,6 +33,7 @@ refresh_atair:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -innn make refresh2 S=nnn
 refresh2: # S=012345, read from atair
+	scp gfis@atair:~/work/gits/OEIS-mat/common/bfile/b$(S).txt $(COMMON)/bfile/
 #--
 refresh_oeis:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
@@ -223,21 +224,27 @@ subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt > $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist amlist grlist oglist oplist phlist rzlist
+authors: ajlist amlist edlist grlist jvplist oglist oplist pblist phlist rzlist
 ajlist:
-	make subdir DIR=aj NAME=Jasinski
-amlist:
-	make subdir DIR=am NAME=Murthy
-grlist:
-	make subdir DIR=gr NAME=Resta
+	make subdir DIR=aj  NAME=Jasinski
+amlist:                 
+	make subdir DIR=am  NAME=Murthy
+edlist:                 
+	make subdir DIR=ed  NAME=Deutsch
+grlist:                 
+	make subdir DIR=gr  NAME=Resta
+jvplist:
+	make subdir DIR=jvp NAME="Vos Post"
 oglist:
-	make subdir DIR=og NAME=Olivier
-oplist:
-	make subdir DIR=op NAME=Omar
-phlist:
-	make subdir DIR=ph NAME=Hanna
-rzlist:
-	make subdir DIR=rz NAME=Zumkeller
+	make subdir DIR=og  NAME=Olivier
+oplist:                 
+	make subdir DIR=op  NAME=Omar
+pblist:                 
+	make subdir DIR=pb  NAME=Bala
+phlist:                 
+	make subdir DIR=ph  NAME=Hanna
+rzlist:                 
+	make subdir DIR=rz  NAME=Zumkeller
 #--------
 khintchin: khin1 khin2 khin3 khin4 # Which continued fractions belong to the "Khintchin" set
 khin1: # select the continued fractions

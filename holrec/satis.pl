@@ -2,6 +2,7 @@
 
 # Grep (differential) equations of the form "satis.* (\w*) ."
 # @(#) $Id$
+# 2022-12-01: CC=holalg
 # 2020-10-21: new attempt
 # 2020-01-08, Georg Fischer
 #
@@ -25,29 +26,31 @@ while(<>) {
     $line =~ s{\s+\Z}{}; # chompr
     if (0) {
     } elsif ($line =~ m{\.\.\.}) { # ignore ellipsis
-    #                              1        2                  3
-    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+([^s]*)satis\w+\:? ([^\.]+)\.}) { 
+    #                              1        2      3
+    } elsif ($line =~ m{\A\%[NF]\s+(A\d+)\s+([^s]*)(.*)}) {
         $aseqno = $1;
         $gf     = $2 || "";
         $rest   = $3;
-        $expr   = $rest;
-        $expr   =~ s{ }{}g;
-        $gf     =~ s{(O\.g\.|G\.)f\.[ \:]*}{};
-        $gf     =~ s{ }{}g;
-
-        $expr   =~ s{g\(}{A\(}ig;
-        $gf     =~ s{g\(}{A\(}ig;
-        $expr   =~ s{z}{x}g;
-        $gf     =~ s{z}{x}g;
-        if (0) {
-        } elsif ($expr =~ m{[a-z][a-z0-9]}i) { # no where, for, all, sum, prod, no ellipsis
-        } elsif ($expr =~ m{[\_\,\;]}) { #  no underscores, A[x,y] etc.
-        } elsif ($expr =~ m{[\']}) { # derivatives go to STDERR
-        	print     join("\t", $aseqno, "diffeq", 0, "??0 $expr", "", "", substr($line, 11)) . "\n";
-        } else {
-            $expr = &polish($gf, $expr);
-            if ($expr ne "") {
-                print join("\t", $aseqno, "satis" , 0, $expr      , "", "", substr($line, 11)) . "\n";
+        if ($rest =~ m{satisfies:? ([^\.]+)\.}) { 
+            $expr   = $1;
+            $expr   =~ s{ }{}g;
+            $gf     =~ s{(O\.g\.|G\.)f\.[ \:]*}{};
+            $gf     =~ s{ }{}g;
+            
+            $expr   =~ s{g\(}{A\(}ig;
+            $gf     =~ s{g\(}{A\(}ig;
+            $expr   =~ s{z}{x}g;
+            $gf     =~ s{z}{x}g;
+            if (0) {
+            } elsif ($expr =~ m{[a-z][a-z0-9]}i) { # no where, for, all, sum, prod, no ellipsis
+            } elsif ($expr =~ m{[\_\,\;]}) { #  no underscores, A[x,y] etc.
+            } elsif ($expr =~ m{[\']}) { # derivatives go to STDERR
+            	print     join("\t", $aseqno, "diffeq", 0, "??0 $expr", "", "", substr($line, 11)) . "\n";
+            } else {
+                $expr = &polish($gf, $expr);
+                if ($expr ne "") {
+                    print join("\t", $aseqno, "holalg", 0, $expr      , "", "", substr($line, 11)) . "\n";
+                }
             }
         }
     }

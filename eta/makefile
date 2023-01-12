@@ -103,7 +103,7 @@ gather3: # determine all weidis with their main attributes
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-unfull: # determine the ones which havbe no "full"
+unfull: # determine the ones which have no "full"
 	$(DBAT) -x "SELECT s.aseqno, d.termno, b.bfimax - b.bfimin + 1, i.keyword, n.name, j.superclass \
 	  FROM seq s, asdata d, bfinfo b, asinfo i, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE s.aseqno = d.aseqno \

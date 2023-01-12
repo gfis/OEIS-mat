@@ -87,6 +87,10 @@ comfact3:
 	$(DBAT) -n seq3
 comfact4:
 	$(DBAT) -f comfact.xml > comfact.html
+comfact5:
+	$(DBAT) "SELECT s.aseqno, s.pattern, s.info FROM seq3 s WHERE s.aseqno NOT IN (SELECT aseqno FROM joeis) ORDER BY 1" \
+	| tee    $@.txt
+	wc -l    $@.txt
 comfact_deploy:
 	scp comfact.html stylesheet.css javascript.js comfact2.bf.txt gfis@punctum.com:/var/www/html/teherba.org/OEIS-mat
 ASEQNO=A072143
