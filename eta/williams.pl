@@ -13,9 +13,10 @@ while (<DATA>) {
     s/\s+\Z//; # chompr
     my $line = $_;
     my ($num, $a, $a1, $a2, $a3, $a4, $a6, $a12, $b1, $b2, $b3, $b4, $b6, $b12) = split(/\s+/, $line);
-    my $etaprod = "";
-    print "# " . join("\t", $num, $a, $a1, $a2, $a3, $a4, $a6, $a12, $b1, $b2, $b3, $b4, $b6, $b12) . "\n";
-    print join("\t", "A99" + sprintf("%04d", $num), "etaprod", 0, $etaprod, $num, "Williams") . "\n";
+    # η(z)^a1 * η(2z)^a2 * η(3z)^a3 * η(4z)^a3 * η(6z)^a6 * η(12z)^a12 
+    my $etaprod = "[1,$a1;2,$a2;3,$a3;4,$a4;6,$a6;12,$a12]";
+    # print "# " . join("\t", $num, $a, $a1, $a2, $a3, $a4, $a6, $a12, $b1, $b2, $b3, $b4, $b6, $b12) . "\n";
+    print join("\t", "A99" . sprintf("%04d", $num), "etaprod", 0, "$etaprod", $a, $num, "Williams") . "\n";
 } # while DATA
 __DATA__
 Table 1. Values of a, a1, a2, a3, a4, a6, a12, b1, b2, b3, b4, b6, b12 for which ηa1 (z)ηa2 (2z)ηa3 (3z)
