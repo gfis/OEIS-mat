@@ -9,7 +9,7 @@
 #:#   perl etapost.pl [-d mode] [-n noterms] [-x] "postfix"
 #:#       -d    debugging mode: 0=none, 1=some, 2=more debugging output
 #:#       -n    number of terms to be generated 
-#:#       -x    execute java EuterTransformTest
+#:#       -x    execute java EulerTransformTest
 #:#       "postfix" string for the polynomial of Ramanujan functions eta,phi,psi,chi,f,theta_3
 #---------------------------------
 use strict;
@@ -108,8 +108,9 @@ if (scalar(@stack) != 1) {
     print join("\n", "# remaining stack:", @stack) . "\n";
 }
 my $result = pop(@stack); # should be the only remaining element
+@per1 = split(/\,/, $result);
 
-print "# resulting ET period: $result\n";
+print "# resulting ET period of length " . scalar(@per1) . ": $result\n";
 if ($execett) {
     my $cmd = "$ETPT -n $noterms -p \"$result\"";
     print "$cmd\n";

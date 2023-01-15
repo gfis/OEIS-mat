@@ -1,0 +1,14 @@
+A000122 Number 6 of the 14 primitive eta-products
+A002448 Number 2 of the 14 primitive eta-products
+A010054 Number 3 of the 14 primitive eta-products
+A010815 Number 1 of the 14 primitive eta-products
+A080995 Number 9 of the 14 primitive eta-products
+A089801 Number 12 of the 14 primitive eta-products
+A089802 Number 10 of the 14 primitive eta-products
+A089807 Number 11 of the 14 primitive eta-products
+A089810 Number 8 of the 14 primitive eta-products
+A089812 Number 7 of the 14 primitive eta-products
+A106459 Number 4 of the 14 primitive eta-products
+A121373 Number 5 of the 14 primitive eta-products
+A133985 Number 14 of the 14 primitive eta-products
+A133988 Number 13 of the 14 primitive eta-products

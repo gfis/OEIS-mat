@@ -32,7 +32,7 @@ my $numtheory = 0;
 my $data_limit = 260; # limit for DATA section length
 my $offset = 0;
 my $seqno = 0;
-my $prog = ""; # try to read from clipboard, STDIN or files
+my $buffer = ""; # try to read from clipboard, STDIN or files
 my $from_clip = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
@@ -56,7 +56,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 if ($numtheory) {
-    $prog = "with (numtheory): " . $prog;
+    $buffer = "with (numtheory): " . $buffer;
 }
 my $aseqno = sprintf("A%06d", $seqno);
 # get the name
@@ -66,18 +66,18 @@ $name =~ s{\s+}{ }g;
 my  $filename;
 if ($from_clip == 0) {
     # read from STDIN or files
-	while (<>) {
-        $prog .= $_;
+    while (<>) {
+        $buffer .= $_;
     }
 } else {
     # get it from the clipboard
-    $prog = `powershell -command Get-Clipboard`;
+    $buffer = `powershell -command Get-Clipboard`;
 }
 
 if (1) {
     $filename = "$aseqno.prog.tmp";
     open(OUT, ">", $filename) || die "cannot write to \"$filename\"";
-    print OUT "$prog\n";
+    print OUT "$buffer\n";
     close(OUT);
 }
 
@@ -93,7 +93,7 @@ my $bfimin = $offset;
 my $bfimax = $bfimin + scalar(@terms) - 1;
 
 if ($bfile) {
-    my $comment_clip = $prog;
+    my $comment_clip = $buffer;
     $comment_clip =~ s{\r?\n}{\n\# }g;
     my $header = <<"GFis";
 # $name
