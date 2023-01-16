@@ -3,21 +3,36 @@
 # Reformat Michael Somos' https://grail.cba.csuohio.edu/~somos/williams2.gp
 # @(#) $Id$
 # 2023-01-15, Georg Fischer
+# with modifications for A999999 entries
 #----
 use strict;
 use integer;
 use warnings;
 
+my ($aseqno, $num, $etaprod, $pqf, $inits, $termlist, @data);
+my $COMMON = "../common";
 while (<DATA>) {
     s/\s+\Z//; # chompr
     my $line = $_;
-    # \\ A321465 w1 [0,-12,30,4,-12,-10,4] echk([1,-12;2,30;3,4;4,-12;6,-10;12,4])
-    if ($line =~ m{\A\\\\ *(A\d+) *w(\d+) \[[^\]]+\] +echk\(([^\)]+)\)}) {
-#   if ($line =~ m{\A\\\\ *}) {
-        my ($aseqno, $num, $etaprod, $pqf, $inits) = ($1, $2, $3, "-1/1", ", 1");
+    if (0) {
+    
+    } elsif ($line =~ m{\A\\\\ *(A\d+)([^\[]+)\[[^\]]+\] +echk\(([^\)]+)\)}) {
+        # \\ A321465 w1 [0,-12,30,4,-12,-10,4] echk([1,-12;2,30;3,4;4,-12;6,-10;12,4])
+        ($aseqno, $num, $etaprod, $pqf, $inits) = ($1, $2, $3, "-1/1", ", 1");
         print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "Williams #$num") . "\n"; 
+        #                                       parm1     parm2 parm3   parm4
+    } elsif (0 && ($line =~ m{\A\s*chk\([^\[]*\[([^\]]+)\]})) {
+        # chk("w8==in1([1,6,15,24,33,36,33,48,69,78,90,72,51,84,120,144,141,108,87])");
+        $termlist = $1;
+        if (1 || $aseqno eq "A999999") {
+            @data = map {
+                s{\A(A\d+).*}{$1}; $_
+                } split(/\r?\n/, `grep \"$termlist\" $COMMON/bfdata.txt`);
+            if (scalar(@data) > 0) {
+                print "# $aseqno\t" . join(",", @data) . " -> $termlist\n";
+            }
+        }
     }
-    #                                           parm1     parm2 parm3   parm4
 } # while DATA
 __DATA__
 

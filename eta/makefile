@@ -89,3 +89,22 @@ etaperiod:
 	grep "Euler transform of " $(COMMON)/jcat25.txt | grep period | grep -E "^\%" \
 	| tee    $@.tmp
 	wc -l    $@.tmp
+#----
+etaprep:
+	grep -P "Expansion of " $(COMMON)/jcat25.txt | grep -E "^[\%]" | cut -b4- \
+	| grep -P "\beta\b" | grep -viP "\bA\b|product|theta" \
+	| perl etaprep.pl \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+etaprod:
+	cat etaprep.tmp \
+	| perl $(COMMON)/callmap22.pl -t 8 -n 16 -p etaprod.mpat \
+	>        $@.tmp
+	grep -E "^A[0-9]*" $@.tmp \
+	>        $@.gen
+	head -n4 $@.gen
+	wc -l    $@.gen
+#----
+williams2:
+	perl $@.pl | tee $@.tmp
+#----

@@ -1,0 +1,28 @@
+#!Maple
+# Describe an eta product by vector of tuples (spread,power)
+# 2023-01-16, Georg Fischer
+with(StringTools):
+toString:= proc(expr) DeleteSpace(convert(expr, string)) end:
+etaprod:= proc(aseqno, cc, offset, prod, pqf, init) local a,b,c,d,e,f,i, list:
+  list := [];
+  try
+    a:= expand(prod):
+    for i from 1 to nops(a) do: 
+      b:= op(i,a): 
+      c:= op(1,b): 
+      if nops(b) = 2 then d:= op(2,b) else 1 fi;
+      e:= op(1,c); 
+      if nops(e) = 1 then f:=1 else f:= op(nops(e),e) fi: 
+      list := [op(list), [f,d]];
+    od:
+    printf("%a\t%a\t%a\t%s\t%s\t%s\t%a\n", aseqno, cc, offset, toString(list), pqf, init, prod);
+  catch:
+    printf("# %a failed: %q\n", aseqno, lastexception):
+    error
+  end try
+end;
+# trace(etaprod);
+# etaprod(A260675, procname, x, eta(q^4)^2*eta(q^30)^5/(eta(q^2)*eta(q^15)^2*eta(q^60)^2), "-1/1", ", 1");
+
+timelimit($(TIMEOUT), etaprod($(PARM0), $(PARM1), $(PARM2), $(PARM3), $(PARM4), $(PARM5)));
+

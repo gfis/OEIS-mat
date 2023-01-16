@@ -1,0 +1,11 @@
+prod:=(eta(q^3)^2*eta(q^7)*eta(q^63))/(eta(q)*eta(q^9)*eta(q^21)^2);
+    a:= expand(prod);
+    for i from 1 to nops(a) do;
+      b:= op(i,a);
+      c:= op(1,b); 
+      if nops(b) = 2 then d:= op(2,b) else 1 fi;
+      e:= op(1,c); 
+      if nops(e) = 1 then f:=1 else f:= op(nops(e),e) fi; 
+      print([f,d]);
+    od;
+
