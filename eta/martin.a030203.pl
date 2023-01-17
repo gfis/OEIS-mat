@@ -15,7 +15,7 @@ while (<DATA>) {
     my ($num, $weight, $etaprod, $aseqno, $pqf, $inits) = split(/\,\s+/, $line);
     if (! defined($pqf  )) { $pqf   = "-1/1"; }
     if (! defined($inits)) { $inits = ", 1";  } else { $inits = ", $inits"; }
-    print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "Martin #$num, $weight") . "\n"; 
+    print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "", "Martin #$num, $weight") . "\n"; 
     #                                       parm1     parm2 parm3   parm4
 } # while DATA
 __DATA__

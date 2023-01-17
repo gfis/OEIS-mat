@@ -33,30 +33,27 @@ while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) {
 while (<>) {
     s/\r?\n//;
     my ($aseqno, $name) = split(/ /, $_, 2);
+    $callcode = "etaprod";
     $name =~ s/[\.\;].*//; 
     $name =~ s/ in powers of.*//i; 
     $name =~ s/^Expansion of *//;
     next if $name =~ m{ [\+\-] };
     next if $name =~ m{bcdf-pr-su-zA-Z]};
     $name =~ s/ //g;
+    my $factor = "1";
     my $qpf = "-1/1";
     my $init = 1;
     if ($name =~ s{^q\^\((\-?\d+\/\d+)\)\*}{}) {
-    	$qpf = $1;
+        $qpf = $1;
     }
-    print join("\t", $aseqno, $callcode, 0, $name, "\"$qpf\"", "\", $init\"") . "\n";
+    if ($name =~ s{^(\d+)\*}{}) {
+        $factor = $1;
+        $callcode = "etaprodf";
+    }
+    print join("\t", $aseqno, $callcode, 0, $name, "\"$qpf\"", "\", $init\"", $factor, $name) . "\n";
 } # while <>
 #--------------------
 __DATA__
-A093068 etapr   0       (eta(q^3)^2*eta(q^7)*eta(q^63))/(eta(q)*eta(q^9)*eta(q^21)^2)
-A100535 etapr   0       q^(-11/24)*2*eta(q^2)^2*eta(q^8)^2/(eta(q)^5*eta(q^4))
-A105094 etapr   0       8*(eta(q^2)/eta(q)^2)^8
-A113418 etapr   0       (eta(q^2)^7*eta(q^4)/(eta(q)*eta(q^8))^2-1)/2
-A113661 etapr   0       ((eta(q^2)^15*eta(q^3)^2*eta(q^12)^2)/(eta(q)^6*eta(q^4)^6*eta(q^6)^5)-1)/6
-A115977 etapr   0       16*(eta(q)*eta(q^4)^2/eta(q^2)^3)^8
-A119952 etapr   0       q^6*eta(q^2)*eta(q^7)*eta(q^9)*eta(q^28)*eta(q^36)*eta(q^126)/(eta(q)*eta(q^4)*eta(q^14)*eta(q^18)*eta(q^63)*eta(q^252))
-A143752 etapr   0       eta(q^3)*eta(q^4)*eta(q^5)*eta(q^60)/(eta(q)*eta(q^12)*eta(q^15)*eta(q^20))
-A145726 etapr   0       eta(q)*eta(q^4)*eta(q^6)*eta(q^10)*eta(q^15)*eta(q^60)/(eta(q^2)*eta(q^3)*eta(q^5)*eta(q^12)*eta(q^20)*eta(q^30))
-A145727 etapr   0       (eta(q^2)*eta(q^30))^3/(eta(q)*eta(q^4)*eta(q^6)*eta(q^10)*eta(q^15)*eta(q^60))
-A145782 etapr   0       eta(q)*eta(q^4)*eta(q^6)^4*eta(q^10)^4*eta(q^15)*eta(q^60)/(eta(q^2)*eta(q^3)*eta(q^5)*eta(q^12)*eta(q^20)*eta(q^30))^2
-A145786 etapr   0       (eta(q)*eta(q^4)*eta(q^6)*eta(q^10)*eta(q^15)*eta(q^60))^2/(eta(q^2)^4*eta(q^3)*eta(q^5)*eta(q^12)*eta(q^20)*eta(q^30)^4)
+A093068	etaprod	0	(eta(q^3)^2*eta(q^7)*eta(q^63))/(eta(q)*eta(q^9)*eta(q^21)^2)	"-1/1"	", 1"
+A100535	etaprod	0	2*eta(q^2)^2*eta(q^8)^2/(eta(q)^5*eta(q^4))	"-11/24"	", 1"
+A105094	etaprod	0	8*(eta(q^2)/eta(q)^2)^8	"-1/1"	", 1"

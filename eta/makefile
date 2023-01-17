@@ -98,9 +98,10 @@ etaprep:
 	wc -l    $@.tmp
 etaprod:
 	cat etaprep.tmp \
-	| perl $(COMMON)/callmap22.pl -t 8 -n 16 -p etaprod.mpat \
+	| perl $(COMMON)/callmap22.pl -t 4 -n 64 -p etaprod.mpat \
 	>        $@.tmp
 	grep -E "^A[0-9]*" $@.tmp \
+	| perl normsig.pl - \
 	>        $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen

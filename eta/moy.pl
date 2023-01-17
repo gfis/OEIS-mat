@@ -15,7 +15,7 @@ while (<DATA>) {
     my ($aseqno, $etaprod, $num) = split(/\t/, $line);
     my $pqf   = "-1/1";
     my $inits = ", 1";
-    print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "Moy Γ0($num)") . "\n"; 
+    print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "", "Moy Γ0($num)") . "\n"; 
     #                                       parm1     parm2 parm3   parm4
 } # while DATA
 __DATA__
