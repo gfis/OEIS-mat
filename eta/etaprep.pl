@@ -38,18 +38,21 @@ while (<>) {
     $name =~ s/ in powers of.*//i; 
     $name =~ s/^Expansion of *//;
     next if $name =~ m{ [\+\-] };
-    next if $name =~ m{bcdf-pr-su-zA-Z]};
+    next if $name =~ m{[bcdf-pr-su-zA-Z]};
     $name =~ s/ //g;
     my $factor = "1";
     my $qpf = "-1/1";
     my $init = 1;
-    if ($name =~ s{^q\^\((\-?\d+\/\d+)\)\*}{}) {
-        $qpf = $1;
-    }
-    if ($name =~ s{^(\d+)\*}{}) {
+    if ($name =~ s{^(\-?\d+)\*}{}) { # with constant factor
         $factor = $1;
         $callcode = "etaprodf";
-    }
+    } # constant
+    if ($name =~ s{^q\^\(?(\-?\d+(\/\d+)?)\)?\*}{}) { # with leading power of q factor
+        $qpf = $1;
+        if ($qpf !~ m{\/}) {
+            $qpf .= "/1";
+        }
+    } # leading qpf
     print join("\t", $aseqno, $callcode, 0, $name, "\"$qpf\"", "\", $init\"", $factor, $name) . "\n";
 } # while <>
 #--------------------

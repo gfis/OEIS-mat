@@ -1729,3 +1729,393 @@ T32b_
 echk([1,1;2,-2;4,2;8,-1],[4,2])
 echk([1,-1;2,2;4,-2;8,1],[4,2])
 quit
+v=[1, -8, -6, -48, 15, -168, -26, -496, 51, -1296, -102]
+EULER0(v)
+EULER(v)
+EULER0i(v)
+w=[-8, -34, -264, -1776, -13320, -102306, -809480, -6530176, -53529864, -444212770]
+EULER0(w/2)
+u = [1, 0, 4, 2, 6, 10, 15, 18, 37, 30, 57, 70, 105]
+EULER0(u)
+EULER0i(u)
+%/2
+EULER0(%)
+EULERi(u)
+EULER(%/2)
+EULER0i(u)
+EULER(%/2)
+EULERo(%14/2)
+EULER0(%14/2)
+EULER0(u)
+EULER0i(EULER0(u)/2)
+EULERi(EULER0(u)/2)
+EULERi(EULER(u)/2)
+quit
+P3(T35A)
+T35A
+f1a-1728
+quit
+f1a
+e1a
+f1A
+f1A-1728
+EULERi0(EULER0(f1A-1728)/2)
+EULER0i(EULER0(f1A-1728)/2)
+quit
+EULER0i(EULER0(f1A-1728)/2)
+EULERi(EULER(f1A-1728)/2)
+EULERi(EULER0(f1A-1728)/2)
+EULER(EULER0(f1A-1728)/2)
+EULER(EULER0(f1A)/2)
+EULER0(f1A-1728)
+EULER(f1A-1728)
+f1A
+polcoeff(f1A,x)
+polcoeff(f1A)
+polcoeff(x,f1A)
+?polcoeff
+?polcoef
+polcoeff(f1A,20,x)
+f1A
+polcoeff(f1A,20)
+polcoeff(f1A,2)
+Vec(polcoeff(f1A,i),i,1,20)
+?Vec
+Vec(f1A,20)
+Vec(f1A-1728,20)
+EULER0(Vec(f1A-1728,20))
+EULER0i(Vec(f1A-1728,20))
+EULER0(EULER0i(Vec(f1A-1728,20))/2)
+Vec(f1A-1728, 20)
+Vec(f1A, 20)
+(EULER0i(Vec(f1A-1728,20))/2)
+EULER0i(Vec(f1A-1728,20)))
+EULER0i(Vec(f1A-1728,20))
+Vec(f1A-1728,20)
+EULER0i(Vec(f1A-1728,20))
+v=[-12, -6, -48, 15, -168, -26, -496, 51, -1296, -102]/3
+EULER0(v)
+v=[-12, -6, -48, 15, -168, -26, -496, 51, -1296, -102]/2
+EULER0(v)
+EULER0(EULER0i(Vec(T8c - 4*q))/2)
+EULER0(EULER0i(Vec(T8c- 4))/2)
+EULER0(EULER0i(Vec(T15b+2))/2)
+EULER0(EULER0i(Vec(T10b+4))/4)
+EULER0(EULER0i(Vec(T15b-3))/3)
+EULER0(EULER0i(Vec(T24g - 2*q))/2)
+EULER0(EULER0i(Vec(T24g + 2*q))/2)
+EULER0(EULER0i(Vec(T24d- 2*q))/2)
+EULER0(EULER0i(Vec(T24d+ 2*q))/2)
+EULER0(EULER0i(Vec(T27d))/2)
+EULER0(EULER0i(Vec(T28B+2))/2)
+EULER0(EULER0i(Vec(T30C))/2)
+EULER0(EULER0i(Vec(T30e-2))/2)
+EULER0(EULER0i(Vec(q*T21A))/3)
+EULER0(EULER0i(Vec(T41A))/2)
+EULER0(EULER0i(Vec(2 + T51A))/2)
+EULER0(EULER0i(Vec(T39A+3))/3)
+EULER0(EULER0i(Vec(T60B))/2)
+EULER0(EULER0i(Vec(T66A))/2)
+EULER0(EULER0i(Vec(T70A+2))/2)
+quit
+EULER0(EULER0i(Vec(T70A+2))/2) 
+quit
+v=[8, 12, 18, 20, 27, 28, 30, 42, 44, 45, 50, 52, 63, 66, 68, 70, 75, 76, 78, 92, 98]
+EULER0(v)
+EULER0i(v)
+EULER(v)
+quit
+T24g
+EULER0i(Vect(T24g))
+EULER0i(Vec(T24g))
+EULER0i(Vec(T24d))
+EULER0i(Vec(T8c-4*q))
+(Vec(T8c-4*q))
+EULER0i(Vec(T24g-2*q))
+EULERi(Vec(T24g-2*q))
+EULER0i(Vec(T24g-2*q))
+EULER0(EULER0i(Vec(T8c-4*q))/2)
+sqrt(T8c-4*q)
+sqrtn(T8c-4*q),2
+sqrtn(T8c-4*q,2)
+sqrtn(Vec(T8c-4*q),2)
+P2(T8C)
+Vec(P2(T8C))
+sqrtn(-4+P2(T8C)+O(x^MM),2)
+Vec(sqrtn(-4+P2(T8C)+O(x^MM),2))
+Vec(sqrtn(-4+P2(T8C),2))
+Vec(T8C)
+Vec(-4+P2(T8C))
+EULER0i([1, 0, -2, 0, -2, 0, -4, 0, 3, 0, -2, 0, -6, 0, -4, 0, 7, 0, -12, 0, -10, 0, -16, 0, 16, 0, -14, 0, -20, 0, -20, 0])
+Vec(T24g - 2*q)
+EULER0i(Vec(T24g - 2*q))
+EULERi(Vec(T24g - 2*q))
+EULER0i(Vec(T24g - 2))
+EULER0(EULER0i(Vec(T24g - 2)))
+rootn(T24g-2,2)
+Vec(rootn(T24g-2,2))
+EULER0(EULER0i(Vec(T24g - 2))/2)
+Vec(T24g)
+Vec(P2(T8C))
+Vec(P2(T8C) - 4)
+Vec(T24g)
+Vec(T24g - 2*q)
+EULER0i(Vec(T24g - 2*q))
+EULER0i(Vec(T24g - 2*q)/q)
+((T24g - 2*q))
+Vec((T24g - 2*q))
+Vec((T24g - 2*q)/q)
+Vec((T24g - 2*q)[1..20])
+Vec((T24g - 2*q),1,20)
+Vec((T24g - 2*q),1)
+Vec((P2(T24g) - 2*q))
+Vec((P2(T24g) - 2*q^2))
+EULER0i(Vec((P2(T24g) - 2*q^2)))
+Vec(T24G)
+eta([q,qw,q3,-1;6,-1])
+eta([1,1;2,1;3,-1;6,-1])
+ecalc([1,1;2,1;3,-1;6,-1],[4,1])
+Vec(ecalc([1,1;2,1;3,-1;6,-1],[4,1]))
+Vec(ecalc([1,1;2,1;3,-1;6,-1],[1,1]))
+Vec(ecalc([1,1;2,1;3,-1;6,-1]))
+ecalc([1,1;2,1;3,-1;6,-1])
+ecalc([1,1;2,1;3,-1;6,-1],[2,1])
+ecalc([1,1;2,1;3,-1;6,-1],[4,1])
+Vec(ecalc([1,1;2,1;3,-1;6,-1]))
+Vec(ecalc([1,1;2,1;3,-1;6,-1],[4,1]))
+Vec(ecalc([2,1;4,1;6,-1;12,-1],[4,1]))
+Vec(ecalc([2,1;4,1;6,-1;12,-1],[8,1]))
+Vec(T24g)
+Vec(T24g - 2*q)
+EULER0i(Vec(T24g - 2*q))
+Vec(T24G - 2*q)
+Vec(T24G)
+Vec(T48c)
+Vec(F2(T48c))
+Vec(T24g)
+Vec(T24g-2)
+Vec(T24g-2*q)
+Vec(T24g-2)
+EULER0i(Vec(T24g-2))
+Vec(T24d)
+T41A=urs(41,1)^2/x
+Vec(urs(41,1)^2/x)
+Vec(urs(41,1)^2)
+Vec(urs(41,1))
+(f(u,v)=(u-v^2)*(u^2-v) +2*(u^2+v^2) -2*u*v);
+recurs()
+(f(u,v)=(u-v^2)*(u^2-v) +2*(u^2+v^2) -2*u*v);
+Vec(recurs(),100)
+Vec(recurs(),200)
+MM=400
+Vec(recurs(),200)
+MM=1000
+Vec(recurs(),200)
+write("x.tmp", Vec(recurs(),200))
+quit
+{Pn(fx,n,v)=if(!v,v=var(fx)); if(v,subst(fx,v,sign(n)*v^abs(n)),fx)};
+P3(fx,v)=Pn(fx,3,v);
+/* test potential solution of 0=f(u(x),u(x^2)) */
+{tst(u)=f(u,subst(u,x,x^2))};
+(f(u,v)=(u-v^2)*(u^2-v) +2*(u^2+v^2) -2*u*v);
+/* generate f(x) by recursion from modular relation f(u,v)=u^3+v^3+... */
+{recurs(MM=MM)=local(t); t=1/x+O(x);
+   forstep(n=0,MM,2,t=truncate(t); t+=tst(t+O(x)*x^n)/2*x^5); t};
+recurs(MM=MM)=local(t);t=1/x+O(x);forstep(n=0,MM,2,t=truncate(t);t+=tst(t+O(x)*x^n)/2*x^5);t;
+T35a=recurs();
+T35aquit
+quit
+{Pn(fx,n,v)=if(!v,v=var(fx)); if(v,subst(fx,v,sign(n)*v^abs(n)),fx)};
+P3(fx,v)=Pn(fx,3,v);
+/* test potential solution of 0=f(u(x),u(x^2)) */
+{tst(u)=f(u,subst(u,x,x^2))};
+/* generate f(x) by recursion from modular relation f(u,v)=u^3+v^3+... */
+{recurs(MM=MM)=local(t); t=1/x+O(x);
+   forstep(n=0,MM,2,t=truncate(t); t+=tst(t+O(x)*x^n)/2*x^5); t};
+recurs(MM=MM)=local(t);t=1/x+O(x);forstep(n=0,MM,2,t=truncate(t);t+=tst(t+O(x)*x^n)/2*x^5);t;
+(f(u,v)=(u-v^2)*(u^2-v) +2*(u^2+v^2) -2*u*v);
+T35a=recurs();
+T35a
+t
+quit
+x='x; u='u; v='v; q='x; 
+MM=400;
+{Pn(fx,n,v)=if(!v,v=var(fx)); if(v,subst(fx,v,sign(n)*v^abs(n)),fx)};
+P3(fx,v)=Pn(fx,3,v);
+/* test potential solution of 0=f(u(x),u(x^2)) */
+{tst(u)=f(u,subst(u,x,x^2))};
+/* generate f(x) by recursion from modular relation f(u,v)=u^3+v^3+... */
+{recurs(MM=MM)=local(t); t=1/x+O(x);
+   forstep(n=0,MM,2,t=truncate(t); t+=tst(t+O(x)*x^n)/2*x^5); t};
+recurs(MM=MM)=local(t);t=1/x+O(x);forstep(n=0,MM,2,t=truncate(t);t+=tst(t+O(x)*x^n)/2*x^5);t;
+(f(u,v)=(u-v^2)*(u^2-v) +2*(u^2+v^2) -2*u*v);
+T35a=recurs();
+T35a
+Vec(T35a,64)
+Vec(T35a,80)
+Vec(T35a,74)
+quit
+q='x; MM=400;
+{Pn(fx,n,v)=if(!v,v=var(fx)); if(v,subst(fx,v,sign(n)*v^abs(n)),fx)};
+P3(fx,v)=Pn(fx,3,v);
+/* test potential solution of 0=f(u(x),u(x^2)) */
+{tst(u)=f(u,subst(u,x,x^2))};
+/* generate f(x) by recursion from modular relation f(u,v)=u^3+v^3+... */
+{recurs(MM=MM)=local(t); t=1/x+O(x);
+forstep(n=0,MM,2,t=truncate(t); t+=tst(t+O(x)*x^n)/2*x^5); t};
+recurs(MM=MM)=local(t);t=1/x+O(x);forstep(n=0,MM,2,t=truncate(t);t+=tst(t+O(x)*x^n)/2*x^5);t;
+(f(u,v)=(u-v^2)*(u^2-v) +2*(u^2+v^2) -2*u*v);
+T35a=recurs(); Vec(T35a,74) \\ from _Michael Somos_, _Georg Fischer_ Jan 22, 2023 
+quit
+Vec(f1A)
+f1A
+EULER0(EULERi0(Vec(f1A))/24)
+EULER0(EULER0i(Vec(f1A))/24)
+EULER0i(Vec(f1A))/24)
+EULER0i(Vec(f1A))/24
+1, -24, -72, -96, -168, -144, -288, -192, -360, -312, -432, -288, -672, -336, -576, -576, -744, -432, -936, -480, -1008, -768, -864, -576, -1440, -744, -1008, -960, -1344, -720, -1728, -768, -1512, -1152, -1296, -1152, -2184, -912, -1440, -1344, -2160, -1008
+v=[1, -24, -72, -96, -168, -144, -288, -192, -360, -312, -432, -288, -672, -336, -576, -576, -744, -432, -936, -480, -1008, -768, -864, -576, -1440, -744, -1008, -960, -1344, -720, -1728, -768, -1512, -1152, -1296, -1152, -2184, -912, -1440, -1344, -2160, -1008]
+EULER0i(v)
+EULER0i(v)/24
+eta(q)
+Vec(eta(q))
+E6(q) = eta(q)^24 / eta(q^2)^12 - 480 * eta(q^2)^12 - 16896 * eta(q^2)^12 * eta(q^4)^8 / eta(q)^8 + 8192 * eta(q^4)^24 / eta(q^2)^12
+Vec(E6(q))
+Vec( eta(q)^24 / eta(q^2)^12 - 480 * eta(q^2)^12 - 16896 * eta(q^2)^12 * eta(q^4)^8 / eta(q)^8 + 8192 * eta(q^4)^24 / eta(q^2)^12)
+Vec(E6(q)^2)
+Vec(E6(q)^(1/2))
+quit
+v=[1, -24, -72, -96, -168, -144, -288, -192, -360, -312, -432, -288, -672, -336, -576, -576, -744, -432, -936, -480, -1008, -768, -864, -576, -1440, -744, -1008, -960, -1344, -720, -1728, -768, -1512, -1152, -1296, -1152, -2184, -912, -1440, -1344]
+EULER0i(v)
+EULER0i(v)/24
+EULERi(v)/24
+EULER0(v)
+ecalc([126,1;36,1;28,1;9,1;7,1;2,1;1,6;252,-1;63,-1;18,-1;14,-1;4,-1;1,-1],[61])
+ecalc([126,1;36,1;28,1;9,1;7,1;2,1;1,6;252,-1;63,-1;18,-1;14,-1;4,-1;1,-1],[6,1])
+ecalc([126,1;36,1;28,1;9,1;7,1;2,1;1,6;252,-1;63,-1;18,-1;14,-1;4,-1;1,-1])
+ecalc([126,1;36,1;28,1;9,1;7,1;2,1;1,6;252,-1;63,-1;18,-1;14,-1;4,-1;1,-1],[4,1])
+q^6 * eta(q^2) * eta(q^7) * eta(q^9) * eta(q^28) * eta(q^36) * eta(q^126) / (eta(q) * eta(q^4) * eta(q^14) * eta(q^18) * eta(q^63) * eta(q^252)) 
+eta(q^2) * eta(q^7) * eta(q^9) * eta(q^28) * eta(q^36) * eta(q^126) / (eta(q) * eta(q^4) * eta(q^14) * eta(q^18) * eta(q^63) * eta(q^252)) ecalc([126,1;36,1;28,1;9,1;7,1;2,1;1,6;252,-1;63,-1;18,-1;14,-1;4,-1;1,-1],[4,1])
+eta(q^2) * eta(q^7) * eta(q^9) * eta(q^28) * eta(q^36) * eta(q^126) / (eta(q) * eta(q^4) * eta(q^14) * eta(q^18) * eta(q^63) * eta(q^252))
+q^(-15/4) * eta(q^2)^5 * eta(q^60)^2 / (eta(q)^2 * eta(q^4)^2 * eta(q^30)) 
+eta(q^2)^5 * eta(q^60)^2 / (eta(q)^2 * eta(q^4)^2 * eta(q^30)) 
+{a(n) = my(A); if( n<0, 0, A = x * O(x^n); polcoeff( eta(x^2 + A)^5 * eta(x^60 + A)^2 / (eta(x + A)^2 * eta(x^4 + A)^2 * eta(x^30 + A)), n))};
+for(n=0,200,print(n," ",a(n)))
+Vec(ecalc([60,2;2,5;30,-1;4,-2;1,-2]))
+Vec(ecalc([60,2;2,5;30,-1;4,-2;1,-2],[-15,4]))
+Vec(ecalc([60,2;2,5;30,-1;4,-2;1,-2],[4,15]))
+Vec(ecalc([60,2;2,5;30,-1;4,-2;1,-2],[15,4]))
+q^(-15/4) * eta(q^2)^5 * eta(q^60)^2 / (eta(q)^2 * eta(q^4)^2 * eta(q^30))
+Vec(phi(x) * chi(x^30))
+Vec(Rphi(x) * Rchi(x^30))
+quit
+ eta(q^3) * eta(q^10) * eta(q^14) * eta(q^105)
+Vec( eta(q^3) * eta(q^10) * eta(q^14) * eta(q^105))
+q='q+O('q^50); A = eta(q^3)*eta(q^10)*eta(q^14)*eta(q^105); concat(vector(5), Vec(A))
+ecalc([96,2;6,2;1,1;48,-1;3,-1;2,-1])
+ecalc([96,2;6,2;1,1;48,-1;3,-1;2,-1])*q^(-19/3)
+ecalc([96,2;6,2;1,1;48,-1;3,-1;2,-1],[19,3])
+ecalc([2,1;4,1;1,-1;8,-1],[1,8]);
+ecalc([2,1;4,1;1,-1;8,-1],[1,8])
+Vec(ecalc([2,1;4,1;1,-1;8,-1],[1,8]))
+Vec(ecalc([2,1;4,1;1,-1;8,-1]))
+Vec(ecalc([2,1;4,1;1,-1;8,-1],[1,24]))
+ (eta(q^2) * eta(q^4) / ( eta(q) * eta(q^8) ))^8
+ecalc([2,2;1,-1;4,-1],[2,12]);
+ecalc([2,2;1,-1;4,-1],[2,12])
+ecalc([2,2;1,-1;4,-1],[1,12])
+ecalc([2,2;1,-1;4,-1],[2,24])
+ecalc([2,2;1,-1;4,-1],[2,12])
+q^(1/2) * (eta(q^2)^2 / (eta(q) * eta(q^4)))^12
+ (eta(q^2)^2 / (eta(q) * eta(q^4)))^12
+ecalc([2,2;1,-1;4,-1],[2,12])
+ecalc([2,2;1,-1;4,-1],[4,12])
+ecalc([2,2;1,-1;4,-1],[4,24])
+ecalc([2,2;1,-1;4,-1],[2,12])
+ecalc([1,1;3,-1],[2,6])
+Vec(ecalc([1,1;3,-1],[2,6]))
+Vec(ecalc([1,-1;3,1],[2,6]))
+( (eta(q^3) / eta(q^9))^4 + 9 * (eta(q^9) / eta(q^3))^4)
+Vec(ecalc([1,-1;3,1],[2,4]))
+Vec(ecalc([1,1;3,-1],[2,4]))
+Vec(e9c)
+e9c
+Vec(ecalc([3,1;9,-1]))
+Vec(ecalc([3,1;9,-1])*q^(1/4))
+Vec(ecalc([3,1;9,-1])*q^(-1/4))
+Vec(ecalc([3,4;9,-4]))
+Vec(ecalc([3,-4;9,4]))
+Vec(9*ecalc([3,-4;9,4]))
+1/e9c
+Vec(1/e9c)
+9*Vec(1/e9c) +Vec(e9c)
+Vec(9*(1/e9c) +e9c)
+(9*(1/e9c) +e9c)
+e9c
+9/e9c
+Vec(ecalc([3,-4;9,4])*q^2)
+Vec(ecalc([3,4;9,-4]))
+ecalc([3,4;9,-4])
+ecalc([3,1;9,-1],[4,1])
+ecalc([3,1;9,-1],[1,4])
+1/ecalc([3,1;9,-1],[1,4])
+ecalc([3,-1;9,1],[1,4])
+ecalc([3,-1;9,1],[1,4],,2)
+ecalc([3,-1;9,1],[1,4],,,2)
+{ecalc(v=[],t=[1,1],est=1,MM=MM,x='x)=echk(v,t,est*MM,x,0)};
+ecalc([3,-1;9,1],[1,4])
+ecalc([3,-1;9,1],[1,4],2)
+{ecalc(v=[],t=[1,1],est=1,MM=MM,x='x)=echk(v,t,est*MM,x,1)};
+ecalc([3,-1;9,1],[1,4],2)
+1/e9c
+e9c
+9/e9c
+e9c+9/e9c
+{ecalc(v=[],t=[1,1],est=1,MM=MM,x='x)=echk(v,t,est*MM,x,2)};
+neg=ecalc([3,-1;9,1],[1,4],2)
+{ecalc(v=[],t=[1,1],est=1,MM=MM,x='x)=echk(v,t,est*MM,x,0)};
+neg=ecalc([3,-1;9,1],[1,4],2)
+pos=ecalc([3,1;9,-1],[1,4])
+pos + 9*neg
+v=[1, 5, 19, 63, 185, 502, 1270, 3046, 6968, 15335, 32593, 67241, 135030, 264784, 508063, 955990, 1766742, 3211871, 5750824, 10153083, 17691868, 30454468, 51827503, 87259758, 145439278, 240113437, 392863105, 637330514, 1025589482]
+EULER0i(v)
+EULER0(v)
+EULERi(v)
+EULER(v)
+T1A
+T1A^2
+MM=10
+T1A^2
+T1A^2-1488*T1A+159768
+f1A^2-1488*f1A+159768
+f1A^2
+f1A
+EULER0i(Vec(f1A))
+EULER0i(Vec(f1A-744))
+EULER0(EULER0i(Vec(f1A-744))*2)
+EULER0(EULER0i(Vec(f1A))*2)
+EULER(EULERi(Vec(f1A))*2)
+EULER0(EULER0i(Vec(f1A))*2)-1488*f1A
+EULER0(EULER0i(Vec(f1A))*2)-Vec(1488*f1A)
+EULER(EULERi(Vec(f1A))*2)
+EULER0(EULER0i(Vec(f1A))*2)-1488*Vec(f1A)
+EULER(EULERi(Vec(f1A))*2)-1488*Vec(f1A)
+EULER0(EULER0i(Vec(f1A-744))*2)-1488*Vec(f1A-744)
+EULER(EULERi(Vec(f1A))*2/x)-1488*Vec(f1A)
+EULER(EULERi(Vec(f1A))*2)/x-1488*Vec(f1A)
+EULER(EULERi(Vec(f1A*2/x)))-1488*Vec(f1A)
+EULER0(EULER0i(Vec(f1A*2/x)))-1488*Vec(f1A)
+f1a/x
+f1A/x
+?shift
+?lift
+f1a^2
+f1A^2
+ecalc([2,5;1,-2;4,-2])
+EULER(EULERi(Vec(f1A))*2)/x-1488*Vec(f1A)
+MM=30
+ecalc([2,5;1,-2;4,-2])
+MM=64
+ecalc([2,5;1,-2;4,-2])
+Vec(ecalc([2,5;1,-2;4,-2])*ecalc([4,5;2,-2;8,-2]))
+Vec(ecalc([1,-2;2,3;4,1;8,3;3,-2;6,5;12,-2;16,-2]))

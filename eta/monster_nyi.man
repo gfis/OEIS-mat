@@ -1,0 +1,24 @@
+#  A058643	nyi			McKay-Thompson series of class 35a for Monster. sign,synth      -1..23  nyi     _N. J. A. Sloane_, Nov 27 2000
+%j A112144	nyi	FtoL	McKay-Thompson series of class 8a for the Monster group.        sign,   0..999  nyi     _Michael Somos_, Aug 28 2005
+#  A112153	nyi	Ft  	McKay-Thompson series of class 16f for the Monster group.       sign,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112168	nyi	Fto 	McKay-Thompson series of class 27e for the Monster group.       sign,   0..2500 nyi     _Michael Somos_, Aug 28 2005
+%j A112170	nyi	Ft  	McKay-Thompson series of class 30f for the Monster group.       sign,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112183	nyi	Ft  	McKay-Thompson series of class 40e for the Monster group.       sign,   0..1500 nyi     _Michael Somos_, Aug 28 2005
+%j A112185	nyi	Ft  	McKay-Thompson series of class 45c for the Monster group.       sign,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+#  A112188	nyi	Fto 	McKay-Thompson series of class 48c for the Monster group.       sign,   0..5000 nyi     _Michael Somos_, Aug 28 2005
+#  A112189	nyi	Fto 	McKay-Thompson series of class 48d for the Monster group.       sign,   0..5000 nyi     _Michael Somos_, Aug 28 2005
+#  A112190	nyi	Fto 	McKay-Thompson series of class 48e for the Monster group.       sign,   0..5000 nyi     _Michael Somos_, Aug 28 2005
+#  A112191	nyi	Fto 	McKay-Thompson series of class 48f for the Monster group.       sign,   0..5000 nyi     _Michael Somos_, Aug 28 2005
+%j A112195	nyi	Fto 	McKay-Thompson series of class 54d for the Monster group.       sign,   0..5000 nyi     _Michael Somos_, Aug 28 2005
+%j A112196	nyi	Fto 	McKay-Thompson series of class 56a for the Monster group.       nonn,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112200	nyi	Fto 	McKay-Thompson series of class 60a for the Monster group.       sign,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112202	nyi	Ft  	McKay-Thompson series of class 60d for the Monster group.       sign,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112204	nyi	Fto 	McKay-Thompson series of class 63a for the Monster group.       nonn,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112210	nyi	Ft  	McKay-Thompson series of class 82a for the Monster group.       nonn,   -1..2500        nyi     _Michael Somos_, Aug 28 2005
+%j A112218	nyi	Ft  	McKay-Thompson series of class 102a for the Monster group.      nonn,   0..2500 nyi     _Michael Somos_, Aug 28 2005
+%j A112220	nyi	Fto 	McKay-Thompson series of class 117a for the Monster group.      nonn,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112221	nyi	Fto 	McKay-Thompson series of class 120a for the Monster group.      nonn,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112223	nyi	Fto 	McKay-Thompson series of class 132a for the Monster group.      nonn,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A112224	nyi	Fto 	McKay-Thompson series of class 140a for the Monster group.      nonn,   0..1000 nyi     _Michael Somos_, Aug 28 2005
+%j A136560	nyi	    	Coefficients of replicable function number 49a with a(0) = 3.
+%j A152954	nyi	FtoG	McKay-Thompson series of class 9d for the Monster group with a(0) = -2. sign,   -1..5000        nyi     _Michael Somos_

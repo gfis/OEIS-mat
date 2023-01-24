@@ -84,15 +84,33 @@ etagf:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 	grep "Ramanujan" $@.tmp | wc -l
+etasum:
+	grep "Expansion of " $(COMMON)/jcat25.txt | grep -E "^\%" \
+	| grep -P "\b(eta|theta_?3|theta_?4|psi|phi|chi|f)\b" \
+	| grep -Pi "Ramanujan|Somos|Eisenstein" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	grep "Ramanujan" $@.tmp | wc -l
+etaq:
+	grep "Expansion of " $(COMMON)/jcat25.txt | grep -E "^\%[NFC]" \
+	| grep -P "\(q(\^\-?\d+(\/\d+)?)?\)" \
+	| cut -b4- \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+etaqpm:
+	grep "Expansion of " $(COMMON)/jcat25.txt | grep -E "^\%[NFC]" \
+	| grep -P "\(q(\^\-?\d+(\/\d+)?)?\)" \
+	| grep -vE " \+ | \- " \
+	| tee    $@.tmp
+	wc -l    $@.tmp
 #----
 etaperiod:
 	grep "Euler transform of " $(COMMON)/jcat25.txt | grep period | grep -E "^\%" \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-etaprep:
-	grep -P "Expansion of " $(COMMON)/jcat25.txt | grep -E "^[\%]" | cut -b4- \
-	| grep -P "\beta\b" | grep -viP "\bA\b|product|theta" \
+etaprep: etaq
+	cat etaq.tmp \
 	| perl etaprep.pl \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -101,7 +119,7 @@ etaprod:
 	| perl $(COMMON)/callmap22.pl -t 4 -n 64 -p etaprod.mpat \
 	>        $@.tmp
 	grep -E "^A[0-9]*" $@.tmp \
-	| perl normsig.pl - \
+	| perl norm_epsig.pl - \
 	>        $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen

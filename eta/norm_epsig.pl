@@ -1,11 +1,12 @@
 #!perl
 
-# Normalize eta signature(s)
+# Normalize eta product signature(s)
 # @(#) $Id$
+# 2023-01-24: concatenate several epsigs and join same qpows
 # 2023-01-17, Georg Fischer
 #
 #:# Usage:
-#:#   perl normsig.pl [-d mode] [srcsig|-c|-|file...] > tarsig
+#:#   perl norm_epsig.pl [-d mode] [srcsig|-c|-|file...] > tarsig
 #:#       -d    debugging mode: 0=none, 1=some, 2=more debugging output
 #:#       -c    read from clipboard
 #:#       file  read from file in seq4 format (eta signature in $(PARM1))
@@ -22,7 +23,7 @@ if (0 && scalar(@ARGV) == 0) {
 # defaults for options
 my $debug   = 0;
 my $from_clip  = 0;
-my $etasig = "";
+my $epsig = "";
 # get options
 while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
@@ -41,52 +42,52 @@ while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) {
 if (scalar(@ARGV) > 0) {
     my $arg = $ARGV[0];
     if ($arg =~ m{\A\[}) {
-        $etasig = $arg;
+        $epsig = $arg;
     }
 }
 if (0) {
-} elsif ($etasig ne "") {
+} elsif ($epsig ne "") {
     if ($debug >= 1) {
-        print "args source: $etasig\n";
+        print "args source: $epsig\n";
     }
-    print &normalize($etasig);
+    print &normalize($epsig);
 } elsif ($from_clip) {
-    $etasig = `powershell -command Get-Clipboard`;
+    $epsig = `powershell -command Get-Clipboard`;
     if ($debug >= 1) {
-        print "clip source: $etasig\n";
+        print "clip source: $epsig\n";
     }
-    print &normalize($etasig);
+    print &normalize($epsig);
 } else { # from file(s)
     while (<>) {
         s/\r?\n//;
-        my ($aseqno, $callcode, $offset, $sig, @rest) = split(/\t/, $_);
+        my ($aseqno, $callcode, $offset, $epsig, @rest) = split(/\t/, $_);
         if ($debug >= 2) {
-            print "file source: $sig\n";
+            print "file source: $epsig\n";
         }
-        $etasig = &normalize($sig);
-        print join("\t", $aseqno, $callcode, $offset, $etasig, @rest) . "\n";
+        $epsig = &normalize($epsig);
+        print join("\t", $aseqno, $callcode, $offset, $epsig, @rest) . "\n";
     } # while <>
 } # from file(s)
 #----
 sub normalize {
-    my ($sig) = @_;
-    $sig =~ s{\s}{}g; # remove whitespace
-    $sig =~ s{\]\,\[}{\;}g; # "],[" - ";"
-    $sig =~ s{[\[\]]}{}g; # remove [ ]
+    my ($epsig) = @_;
+    $epsig =~ s{\s}{}g; # remove whitespace
+    $epsig =~ s{\]\,\[}{\;}g; # "],[" - ";"
+    $epsig =~ s{[\[\]]}{}g; # remove [ ]
     my %hash = ();
-    foreach my $pair (split(/\;/, $sig)) {
-        my ($spread, $expon) = split(/\,/, $pair);
-        my $key = $expon < 0 ? sprintf("n%08d", $spread) : sprintf("p%08d", $spread);
+    foreach my $pair (split(/\;/, $epsig)) {
+        my ($qpow, $epow) = split(/\,/, $pair);
+        my $key = $epow < 0 ? sprintf("n%08d", $qpow) : sprintf("p%08d", $qpow);
         if ($debug >= 1) {
-            print "spread=$spread, expon=$expon, key=$key\n";
+            print "qpow=$qpow, epow=$epow, key=$key\n";
         }
-        $hash{$key} = $expon;
+        $hash{$key} = $epow;
     } # foreach $pair
     my $sep = "[";
     my $result = "";
     foreach my $key (reverse(sort(keys(%hash)))) {
-        my $spread = substr($key, 1) + 0;
-        $result .= "$sep$spread,$hash{$key}";
+        my $qpow = substr($key, 1) + 0;
+        $result .= "$sep$qpow,$hash{$key}";
         $sep = ";";
     }
     return "$result]";
