@@ -19,7 +19,7 @@ etaprod:= proc(aseqno, cc, offset, prod, pqf, init, factor)
       # print([spread,expon]);
       list := [op(list), [spread,expon]];
     od:
-    printf("%a\t%a\t%a\t%s\t%s\t%s\t%a\t%a\n", aseqno, cc, offset, toString(list), pqf, init, factor, prod);
+    printf("%a\t%a\t%a\t%s\t%s\t%a\t%a\t%a\n", aseqno, cc, offset, toString(list), pqf, init, factor, prod);
   catch:
     printf("# %a failed: %q\n", aseqno, lastexception):
     error

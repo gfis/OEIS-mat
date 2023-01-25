@@ -124,6 +124,9 @@ etaprod:
 	head -n4 $@.gen
 	wc -l    $@.gen
 #----
-williams2:
-	perl $@.pl | tee $@.tmp
+etalists:
+	rm -rf   $@.lst 
+	make acres martin moy williams2
+acres martin moy williams2:
+	perl $@.pl | perl norm_epsig.pl - | tee -a etalists.lst
 #----

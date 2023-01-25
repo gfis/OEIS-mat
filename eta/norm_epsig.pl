@@ -24,15 +24,18 @@ if (0 && scalar(@ARGV) == 0) {
 my $debug   = 0;
 my $from_clip  = 0;
 my $epsig = "";
+my $from_file = 1;
 # get options
-while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) {
+while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) { # starts with "-" or "+"
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{\-c}) {
         $from_clip = 1;
+        $from_file = 0;
     } elsif ($opt  =~ m{\-d}) {
         $debug     = shift(@ARGV);
     } elsif ($opt eq "-") {
+        $from_file = 1;
         $from_clip = 0;
     } else {
         die "invalid option \"$opt\"\n";
@@ -41,9 +44,17 @@ while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) {
 
 if (scalar(@ARGV) > 0) {
     my $arg = $ARGV[0];
-    if ($arg =~ m{\A\[}) {
+    if ($arg =~ m{\A\[}) { # starts with "["
         $epsig = $arg;
+        $from_file = 0;
+        $from_clip = 0;
+    } else {
+        $from_file = 1;
+        $from_clip = 0;
     }
+}
+if ($debug >= 2) {
+    print "#d2 from_file=$from_file, from_clip= $from_clip, epsig=\"$epsig\"\n";
 }
 if (0) {
 } elsif ($epsig ne "") {
@@ -60,9 +71,14 @@ if (0) {
 } else { # from file(s)
     while (<>) {
         s/\r?\n//;
-        my ($aseqno, $callcode, $offset, $epsig, @rest) = split(/\t/, $_);
+        my $line = $_;
         if ($debug >= 2) {
-            print "file source: $epsig\n";
+            print "#d3 line=$line\n";
+        }
+        next if $line !~ m{\AA\d};
+        my ($aseqno, $callcode, $offset, $epsig, @rest) = split(/\t/, $line);
+        if ($debug >= 2) {
+            print "#d4 line=$line\n";
         }
         $epsig = &normalize($epsig);
         print join("\t", $aseqno, $callcode, $offset, $epsig, @rest) . "\n";
@@ -72,24 +88,41 @@ if (0) {
 sub normalize {
     my ($epsig) = @_;
     $epsig =~ s{\s}{}g; # remove whitespace
-    $epsig =~ s{\]\,\[}{\;}g; # "],[" - ";"
-    $epsig =~ s{[\[\]]}{}g; # remove [ ]
-    my %hash = ();
-    foreach my $pair (split(/\;/, $epsig)) {
+    $epsig =~ s{\]\,?\[}{\;}g; # "],[" -> ";", there may be several lists to be concatenated
+    $epsig =~ s{[\[\]]}{}g; # remove all [ ]
+    my %hash = (); # keys are the qpows only
+    foreach my $pair (split(/\;/, $epsig)) { # pairs are separated by ";"
         my ($qpow, $epow) = split(/\,/, $pair);
-        my $key = $epow < 0 ? sprintf("n%08d", $qpow) : sprintf("p%08d", $qpow);
+        my $key = $qpow;
         if ($debug >= 1) {
-            print "qpow=$qpow, epow=$epow, key=$key\n";
+            print "#d1 (qpow,epow) = ($qpow,$epow), key=$key\n";
         }
-        $hash{$key} = $epow;
+        $hash{$key} = defined($hash{$key}) ? ($hash{$key} + $epow) : $epow; # add to same qpow if that exists
     } # foreach $pair
-    my $sep = "[";
+
+    my %hapn = (); # attach "p" or "n" in front of the keys, and leading zeros before the qpos
+    foreach my $key (keys(%hash)) { 
+        my $qpow = $key;
+        my $epow = $hash{$key};
+        my $keypn = $epow < 0 ? sprintf("n%08d", $qpow) : sprintf("p%08d", $qpow); # expand numbers to 8 digits with leading zeros for proper sort
+        if ($debug >= 2) {
+            print "#d2 (qpowpn,epowpn) = ($qpow,$epow)\n";
+        }
+        $hapn{$keypn} = $epow;
+    } # foreach $key
+
+    my @qpows = ();
+    my @epows = ();
     my $result = "";
-    foreach my $key (reverse(sort(keys(%hash)))) {
-        my $qpow = substr($key, 1) + 0;
-        $result .= "$sep$qpow,$hash{$key}";
-        $sep = ";";
-    }
+    foreach my $key (reverse(sort(keys(%hapn)))) { # sort into positive, negative groups and by descending qpow in each group
+        my $qpow = substr($key, 1) + 0; # remove "p", "n" and the leading zeros
+        my $epow = $hapn{$key};
+        if ($debug >= 3) {
+            print "#d3 (qpow,epow) = ($qpow,$epow)\n";
+        }
+        $result .= ";$qpow,$epow";
+    } # foreach $key
+    $result =~ s{^\;}{\[};
     return "$result]";
 } # normalize
 #----

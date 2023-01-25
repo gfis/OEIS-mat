@@ -12,11 +12,11 @@ while (<DATA>) {
     next if ! m{\AA\d+};
     s/\s+\Z//; # chompr
     my $line = $_;
-    my ($aseqno, $etaprod, $num) = split(/\t/, $line);
+    my ($aseqno, $epsig, $num) = split(/\t/, $line);
     my $pqf   = "-1/1";
     my $inits = ", 1";
-    print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "", "Moy Γ0($num)") . "\n"; 
-    #                                       parm1     parm2 parm3   parm4
+    print join("\t", $aseqno, "etaprod", 0, $epsig, $pqf, $inits, "1",  "Moy Γ0($num)") . "\n"; 
+    #                                       parm1   parm2 parm3   parm4 parm5
 } # while DATA
 __DATA__
 # Some are Overlapping with Acres & Broadhurst!

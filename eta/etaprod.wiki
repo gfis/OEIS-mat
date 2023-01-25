@@ -1,0 +1,94 @@
+===Eta product signatures (EPSIG)===
+The coefficient sequences for generating functions that are products of the eta function can be computed conveniently by an Euler transform of some periodic integer sequence. 
+Following Michael Somos, we describe an eta product by a matrix resp. a list of pairs ''(q<sub>i</sub>, e<sub>i</sub>)'' of the form
+ [q1,e1;q2,e2;q3,e3;...]
+The pairs are separated by ";". 
+* The ''q<sub>i</sub>'' are the powers of the argument ''q'' inside the eta function , and 
+* the ''e<sub>i</sub>'' are the powers of the eta functions. Only these can be negative.
+The following sections contain a number of examples.
+
+The order of the pairs is irrelevant for the computation of the period, but see the section about normalization, below. 
+Once they are normalized, these signatures can be sorted and stored in a database table.
+The original expression of eta functions can be reconstructed from them, while in the generated periods the original structure is lost.
+
+The generation of a period from an EPSIG, the following Euler transform and the generation of the coefficients is implemented in 
+[https://github.com/archmageirvine/joeis/blob/master/src/irvine/oeis/transform/EtaProductSequence.java transform/EtaProductSequence.java]
+as part of project [https://github.com/archmageirvine/joeis jOEIS] of Sean A. Irvine.
+===Common generating functions===
+====Partition numbers====
+ [https://oeis.org/A000041 A000041] 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231
+ Euler transform of period 1: [1]
+====Dedkind eta &eta; (without the q^(1/24) factor)====
+ [https://oeis.org/A010815 A010815] 1, -1, -1, 0, 0, 1, 0, 1, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1
+ G.f.: eta(q)
+ Euler transform of period 1: [-1]
+ EPSIG="[1,1]"
+====Jacobi theta_2 &theta;_2====
+ [https://oeis.org/A089800 A089800] 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2 ... = theta_2(q)/q^(1/4)
+====Jacobi theta_3 &theta;_3, Ramanujan phi &phi; ====
+ [https://oeis.org/A000122 A000122] 1, 2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2
+ a(0) = 1, for n >= 1: a(n) = 2 if n is a square, otherwise 0.
+ G.f.: eta(q^2)^5 / (eta(q)*eta(q^4))^2
+ Euler transform of period 4: [2,-3,2,-1]
+ EPSIG="[2,5;4,-2;1,-2]"
+====Jacobi theta_4 &theta;_4====
+ [https://oeis.org/A002448 A002448] 1, -2, 0, 0, 2, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 2
+ a(0) = 1, for n >= 1: a(n) = 2 * (-1)^sqrt(n) if n is a square, otherwise 0.
+ G.f.: eta(q)^2 / eta(q^2)
+ Euler transform of period 2: [2,-1]
+ EPSIG="[1,2;2,-1]"
+====Ramanujan psi &psi;====
+ [https://oeis.org/A010054 A010054] 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0
+ a(n) = 1 if n is a triangular number, otherwise 0.
+ G.f.: q^(-1/8) * eta(q^2)^2 / eta(q)
+ Euler transform of period 2: [1,-1]
+ EPSIG="[2,2;1,-1]"
+====Ramanujan chi &chi;====
+ [https://oeis.org/A000700 A000700] 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 5
+ G.f.: q^(1/24) * eta(q^2)^2 /(eta(q) * eta(q^4))
+ Euler transform of period 4: [1,-1,1,0]
+ EPSIG="[2,2;4,-1;1,-1]"
+====Ramanujan f====
+ [https://oeis.org/A121373 A121373] 1, 1, -1, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, 0, 1
+ a(n) = (-1)^n * [https://oeis.org/A010815 A010815](n)
+ G.f.: q^(-1/24) * eta(q^2)^3 / (eta(q) * eta(q^4))
+ Euler transform of period 4: [1,-2,1,-1]
+ EPSIG="[2,3;4,-1;1,-1]"
+===Leading power of q factor (pqf) ===
+Some of the generating functions have an additional power of q factor, in order to normalize the leading coefficient to <code>q^0</code>. 
+* Example [https://oeis.org/A226862 A226862]:
+ G.f.: q^(-1/6) * eta(q^4) * eta(q^6)^5 / (eta(q^3) * eta(q^12))^2
+ EPSIG="[4,1;6,5;3,-2;12,-2]"
+For all pairs we multiply the q power with the eta power and add the results, giving 4*1 + 6*5 - 3*2 - 12*2 = 4 + 30 - 6 - 24 = 4. This is the negative numerator of the pqf (expanded for denominator 24).
+* Example [https://oeis.org/A286813 A286813]:
+ G.f.: q^(-9/8) * (eta(q^2) * eta(q^16))^2 / (eta(q) * eta(q^8))
+ EPSIG="[2,2;16,2;1,-1;8,-1]" gives 2*2 * 16*2  - 1*1 - 8*1 = 36 - 9 = 27 and pqf = q^(-27/24)
+* Example [https://oeis.org/A286134 A286134] 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, -1, -1
+ G.f.: q^(-1/2) * eta(q^5) * eta(q^6) * eta(q^7) * eta(q^210)
+ EPSIG="[5,1;6,1;7,1;210,1]" gives 18 + 210 = 228 and pqf = q^(-228/24) = -9 -1/2. 
+The sequence is shifted right by 9 positions in this case.
+===Computation of the period from an EPSIG===
+This algorithm is rather straightforward. It uses an array of integers that are usually rather small. The length of the array is the least common multiply (LCM) of all ''q<sub>i</sub>''. The array with indexes [0..lcm-1] is initialized with zeros.
+# For all pairs ''(q<sub>i</sub>, e<sub>i</sub>)''
+## Build a block of '' q<sub>i</sub> - 1'' zeros, followed by ''-1 * e<sub>i</sub>''.
+## Add a sufficient concatenation of such blocks onto the whole array.
+# The resulting array is the period for the Euler transform.
+As an example, we derive the period of the theta_3 function above from its EPSIG <code>[2,5;4,-2;1,-2]</code>. The period length is LCM(2,1,4) = 4.
+  pair 2,5   ->   0 -5  0 -5 
+  pair 4,-2  ->   0  0  0  2
+  pair 1,-2  ->   2  2  2  2
+  --------------------------
+  sum = period = [2,-3, 2,-1] 
+This algorithm for expanding a list of powers of theta_3 functions is realized in <code>[https://github.com/gfis/joeis-lite/blob/master/internal/fischer/theta3_epsig.pl theta3_epsig.pl]</code>.
+===Normalization of an EPSIG===
+For long lists of generating functions it is convenient to require all EPSIGs to be normalized, such that they can be tested for equality and can be sorted.
+We use the following rules:
+# The sublist of pairs with positive ''e<sub>i</sub>'' comes before the sublist with negative ''e<sub>i</sub>''.
+# Inside a sublist the first components ''q<sub>i</sub>'' are in descending order.
+# Successive pairs with the same ''q<sub>i</sub>'' are combined into a single pair with the sum of the ''e<sub>i</sub>'' as second component.
+The normalization rules are implemented in <code>[https://github.com/gfis/OEIS-mat/blob/master/eta/norm_epsig.pl norm_epsig.pl]</code>.
+===Multiplication of two EPSIGs===
+Two EPSIGs could be multiplied by concatenating their list of pairs. It is convenient, however, to combine all occurrences of specific ''q<sub>i</sub>'' 
+by adding the corresponding eta exponents ''e''.
+===Exponentiation of an EPSIG===
+An EPSIG is taken to a power ''m'' by multiplying all ''e<sub>i</sub>'' (the second components in the pairs) by ''m''. The exponent may be ''1/2'' for the square root, or any other fraction ''m<sub>n</sub>/m<sub>d</sub>'' as long as the ''q<sub>i</sub>'' are all divisible by ''m<sub>d</sub>''.

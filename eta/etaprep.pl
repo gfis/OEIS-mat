@@ -33,27 +33,33 @@ while (scalar(@ARGV) > 0 && ($ARGV[0] =~ m{\A[\-\+]})) {
 while (<>) {
     s/\r?\n//;
     my ($aseqno, $name) = split(/ /, $_, 2);
-    $callcode = "etaprod";
+    $callcode = "etaprod"; # default, without pqf
     $name =~ s/[\.\;].*//; 
     $name =~ s/ in powers of.*//i; 
     $name =~ s/^Expansion of *//;
-    next if $name =~ m{ [\+\-] };
-    next if $name =~ m{[bcdf-pr-su-zA-Z]};
-    $name =~ s/ //g;
+    my $epsig = $name;
+    next if $epsig =~ m{ [\+\-] };
+    next if $epsig =~ m{[bcdf-pr-su-zA-Z]};
+    $epsig =~ s/ //g;
     my $factor = "1";
-    my $qpf = "-1/1";
-    my $init = 1;
-    if ($name =~ s{^(\-?\d+)\*}{}) { # with constant factor
+    my $pqf = "-1/1";
+    my $init = 1; # no longer used
+    if ($epsig =~ s{^(\-?\d+)\*}{}) { # first: extract constant factor
         $factor = $1;
-        $callcode = "etaprodf";
     } # constant
-    if ($name =~ s{^q\^\(?(\-?\d+(\/\d+)?)\)?\*}{}) { # with leading power of q factor
-        $qpf = $1;
-        if ($qpf !~ m{\/}) {
-            $qpf .= "/1";
+    if ($epsig =~ s{^q\^\(?(\-?\d+(\/\d+)?)\)?\*}{}) { # second: extract leading power of q factor
+        $pqf = $1;
+        if ($pqf !~ m{\/}) {
+            $pqf .= "/1";
         }
     } # leading qpf
-    print join("\t", $aseqno, $callcode, 0, $name, "\"$qpf\"", "\", $init\"", $factor, $name) . "\n";
+    if (0) {
+    } elsif ($factor != 1) {
+        $callcode =~ s{d}{f}; # "etaprof" with pqf and factor
+    } elsif ($pqf ne "-1/1") {
+        $callcode =~ s{d}{q}; # "etaproq" with pqf
+    }
+    print join("\t", $aseqno, $callcode, 0, $epsig, "\"$pqf\"", 0, $factor, $name) . "\n";
 } # while <>
 #--------------------
 __DATA__

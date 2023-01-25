@@ -12,11 +12,15 @@ while (<DATA>) {
     next if (! m{\A\d});
     s/\s+\Z//; # chompr
     my $line = $_;
-    my ($num, $weight, $etaprod, $aseqno, $pqf, $inits) = split(/\,\s+/, $line);
-    if (! defined($pqf  )) { $pqf   = "-1/1"; }
-    if (! defined($inits)) { $inits = ", 1";  } else { $inits = ", $inits"; }
-    print join("\t", $aseqno, "etaprod", 0, $etaprod, $pqf, $inits, "", "Martin #$num, $weight") . "\n"; 
-    #                                       parm1     parm2 parm3   parm4
+    my $callcode = "etaprod";
+    my ($num, $weight, $epsig, $aseqno, $pqf, $inits) = split(/\,\s+/, $line);
+    if (! defined($pqf)) { 
+        $pqf   = "-1/1"; 
+    } else {
+        $callcode = "etaproq";
+    }
+    print join("\t", $aseqno, $callcode, 0, $epsig, $pqf, 1,    1,    "Martin #$num, $weight") . "\n"; 
+    #                                       parm1   parm2 parm3 parm4 parm5
 } # while DATA
 __DATA__
 Index to Yves Martin's list of 74 multiplicative eta-quotients and their A-numbers
@@ -25,10 +29,10 @@ From Michael Somos, Mar 26 2016
 
 Number, Weight, Definition, A-number 
 1, Y1A, [1,24], A000594
-2, Y2A, [1,8;2,8], A002288, -1/1, 0,1
+2, Y2A, [1,8;2,8], A002288, -1/1
 3, Y3A, [1,-3;3,9], A106402
 4, Y3B, [1,9;3,-3], A109041
-5, Y3C, [1,6;3,6], A007332, -1/1, 0,1
+5, Y3C, [1,6;3,6], A007332, -1/1
 6, Y4A, [1,-4;2,10;4,-4], A004018
 7, Y4B, [1,-4;2,6;4,4], A050470
 8, Y4C, [1,4;2,6;4,-4], A120030
