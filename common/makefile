@@ -787,4 +787,101 @@ fiboluca:
 	| sort | uniq -w7 \
 	| tee $@.tmp
 	wc -l $@.tmp
+#----
+selfconv:
+	grep -Pi "self[\- ]convol|convolved with" jcat25.txt | grep -E "^\%[NFC]" | cut -b4- \
+	| perl nyi.pl -p \
+	| grep "{{" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+convinv:
+	grep -i " convolution inverse " jcat25.txt | grep -E "^\%[NFC]" | grep -v Dirichlet \
+	| perl nyi.pl -p | grep "{{" | cut -b4- \
+	| perl -ne 'use strict; m{^(A\d+)[^\{]+\{\{(A\d+)}; my ($$aseqno, $$rseqno) = ($$1, $$2); '\
+	' print join("\t", $$aseqno, "rootet", 0, $$rseqno, 0, -1, 1, 0) . "\n"; '\
+	| grep -vE "A115784" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+convprod:
+	grep -Pi "convolution of " jcat25.txt | grep -E "^\%[NFC]" | grep -v Dirichlet \
+	| perl nyi.pl -p | grep "{{" | cut -b4- \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+nest0:
+	grep -P "^\%[NFC] A\d+ a\(n\) *\= *" jcat25.txt \
+	| grep -P "\= *A\d+[\[\(]A\d+[\[\(]n([\+\-]\d)?[\)\]][\)\]]([\*\/]\w+)? *[\.\,\;\=]" \
+	| cut -b4- \
+	| sed -e "s/a(n) *= */\t/" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+nestuniq:
+	cut -f2 nest0.tmp | cut -b1-7 | sort -r | uniq -c | sort -rn > $@.tmp
+	head -n32 $@.tmp
+knesto: # operator \d+ follows
+	grep -E "^\%[NFC]" jcat25.txt | grep -Pi "\d\d a\(n\) *\= *A\d+\(n([\+\-]\d+)\)[\+\-\*\/\^\%](\d+) *[w\.\,\;]" \
+	| perl nyi.pl -p | cut -b6- | grep -vP "\#\?" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+knestm:
+	grep -E "^\%[NFC]" jcat25.txt | grep -Pi "\d\d a\(n\) *\= *A\d+\(n([\+\-]\d+)\)[\+\-\*\/\^\%](\d+) *[w\.\,\;]" \
+	| perl nyi.pl -p | cut -b6- | grep -vP "\#\?" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+simjagfa:
+	grep -E "^%[NF]" jcat25.txt \
+	| cut -b4- \
+	| grep -Pi "^A\d+ +a\(n\) *\=[ \d\+\-\*\/\^\(]*(Stirling\d?|tau|d|phi|gpf|gcd|lcm|lambda|core|pod|lpf|sopfr|omega|binomial|C|F(ibonacci)?|fib(onacci)?|[Ll]ucas|Bell|bell|sigma_?[\{\}n\d]+|log_2)\(" \
+	| grep -vE "prime|composite|Sum|Product|Pell|Bernoulli|digit|reverse|Gamma" \
+	| perl -ne 'my ($$aseqno, $$name) = split(/ /, $$_, 2); $$name =~ s{^ *a\(n\) *\= *}{}; '\
+	' if ($$name !~ m{A\d{6}}) { print join("\t", $$aseqno, "simbinom", 0, $$name); }' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+simpow:
+	grep -E "^%[NF]" jcat25.txt \
+	| cut -b4- \
+	| grep -Pi "^A\d+ +a\(n\) *\=[ \d\+\-\*\/\^\(]*" \
+	| perl -ne 'my ($$aseqno, $$name) = split(/ /, $$_, 2); $$name =~ s{^ *a\(n\) *\= *}{}; '\
+	' $$name =~ s{ *([\,\.\;\:]|where|if|for|with).*}{}; '\
+	' if (0 || ($$name =~ m{\^(\d+|\([ n\d\+\-\*]+\))\Z})) { print join("\t", $$aseqno, "simpow", 0, $$name); }' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+seqpoly:
+	grep -Pi "^%[NF] +A\d+ +a\(n\) *\=[An \d\+\-\*\/\^\(\)\^]+([\,\.\;\:]|where|if|for|with)" jcat25.txt \
+	| perl nyi.pl -p | cut -b6- | grep -vP "\#\?|\.\.\." \
+	| perl -ne 'my ($$aseqno, $$name) = split(/ /, $$_, 2); $$name =~ s{\s\Z}{}; my $$orig = $$name; '\
+	' $$name =~ s{^ *a\(n\) *\= *}{}; $$name =~ s{ *([\,\.\;\:]|where|if|for|with).*}{}; $$name =~ s{ }{}g; '\
+	' print join("\t", $$aseqno, $$name, $$orig) ."\n"; '\
+	| sort -k2.1 -k1.1 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+dirichcon:
+	grep -Pi "^%[NF]" jcat25.txt | grep -Pi "Dirichlet conv" \
+	| perl nyi.pl -p | cut -b6- | grep -v "#" | grep -E "^A[0-9]" \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+#----
+multnyi:
+	$(DBAT) "SELECT i.aseqno, i.offset1, n.name FROM asinfo i, asname n \
+	WHERE i.aseqno = n.aseqno \
+	  AND i.keyword LIKE '%mult%' \
+	  AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1;" \
+	| perl nyi.pl -p \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#----
 	

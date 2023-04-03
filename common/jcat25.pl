@@ -75,7 +75,7 @@ while (<>) { # CAT25 format
     } elsif ($state == 1   && ($line =~ m{\(End\)}i)) {
         $state = 0;
     }
-    if ($state == 1) {
+    if ($state == 1 || ($line =~ m{Conject|Apperent|Empiric}i)) {
         $line =~ s{\A.}{\?};
     }
     print $line;

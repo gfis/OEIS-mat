@@ -123,6 +123,7 @@ if (scalar(@ARGV) == 0 or $to_stdout == 1) { # no outfile name
 } else {
     $outfile = shift(@ARGV);
     open(OUT, ">", $outfile) or die "cannot write \"$outfile\"\n";
+    print STDERR "writing to $outfile\n";
     print OUT $outbuffer;
     if ($naked == 0) {
         print OUT "\n"; 

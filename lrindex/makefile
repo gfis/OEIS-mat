@@ -13,7 +13,9 @@
 # (make lrlink_prep on the server, now in lrlink_pull)
 # make lr0 lrlink_pull lrlink
 # make lrindx, repair duplicate key in lrindx.tmp
-# make lrlink_insert lrindx_post
+# make lrlink_insert 
+# make lrindex_check ; delete resulting sequences (except for high orders) manually
+# make lrindx_post
 # examine the diff files, whether the right side has more
 # upload lrindx.new.tmp to https://oeis.org/wiki/Index_to_OEIS:_Section_Rec
 #---------------------------------
@@ -42,7 +44,7 @@ lr0:
 	perl extract_lrindex.pl -d $(D) -m lrlink > lrlink.create.sql
 	$(DBAT) -f                                  lrlink.create.sql
 #--
-REMOTE=set_remote_server
+REMOTE=set_REMOTEeqUserAtServer
 lrlink_pull:
 	ssh $(REMOTE) 'cd ~/work/gits/OEIS-mat/lrindex ; make lrlink_prep'
 	make lrlink_scp
@@ -176,6 +178,7 @@ lrindx3:
 lrindx4:
 	perl extract_lrindex.pl -d $(D) -m wrindx -f lrindx.spec.tmp lrindx.sort.tmp \
 	| perl -pe 's/\<\/?strong\>//g; s/88888888//g;' \
+	| grep -vP "\)\:\Z" \
 	> lrindx.new.tmp
 	# | grep -vE "^ *$$"
 	tail -2 lrindx.new.tmp | hexdump -C
@@ -199,7 +202,14 @@ lr_checks: lrlink_check lrindex_check lriord_check lrlord_check
 # lrsign_check 
 #--	
 #--	
-lrindex_check: # Lin. rec. in index, but no link -&gt; delete index entry
+lrindex_check: # Lin. rec. in index, but no link -&gt; delete index entry (below)
+	$(DBAT) "SELECT a.seqno, a.lorder, a.signature as Index_Signature \
+	FROM lrindx a \
+	WHERE a.seqno <> '000000' AND seqno NOT IN (SELECT seqno FROM lrlink) \
+	ORDER by 1" \
+	>     $@.txt	
+	wc -l $@.txt	
+lrindex_check_99: # Lin. rec. in index, but no link -&gt; delete index entry (below)
 	$(DBAT) "SELECT a.seqno, a.lorder, a.signature as Index_Signature \
 	FROM lrindx a \
 	WHERE a.seqno NOT IN (SELECT seqno FROM lrlink) \
@@ -207,6 +217,12 @@ lrindex_check: # Lin. rec. in index, but no link -&gt; delete index entry
 	ORDER by 1" \
 	>     $@.txt	
 	wc -l $@.txt	
+lrindex_delete: # same as above: Lin. rec. in index, but no link -&gt; delete index entry
+	$(DBAT) -x "DELETE \
+	FROM lrindx  \
+	WHERE seqno NOT IN (SELECT seqno FROM lrlink) \
+	  AND (SELECT s.keyword FROM asinfo s WHERE s.aseqno = 'A' || seqno) NOT LIKE '%dead%' \
+	"
 #--	
 lrsign_check: # Differences in lin. rec. signatures
 	$(DBAT) "SELECT 'A' || a.seqno, a.lorder \

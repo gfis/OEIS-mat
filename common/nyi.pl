@@ -1,13 +1,16 @@
 #!perl
 
 # Check whether A-numbers in input file are already implemented in jOEIS
+# 2023-02-26: #? before nyi aseqnos
+# 2023-02-20: -p
 # 2023-01-13, Georg Fischer: copied from jcat25.txt
 #
 #:# Usage:
-#:#   perl aij.pl [-f ofter_file] [n] [-c|infile] 
+#:#   perl nyi.pl [-f ofter_file] [-n] [-c|infile] 
 #:#     -c read clipboard instead of input file
 #:#     -f file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
 #:#     -n print only those that are not yet implemented in jOEIS (defaul: all)
+#:#     -p print the whole file/clipboard
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -17,6 +20,7 @@ my $ofter_file = "../common/joeis_ofter.txt";
 my $debug      = 0;
 my $from_clip  = 0;
 my $only_nyi   = 0;
+my $print_it   = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if ($opt   =~ m{c}) {
@@ -30,6 +34,9 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     } 
     if ($opt   =~ m{n}) {
         $only_nyi = 1;
+    }
+    if ($opt   =~ m{p}) {
+        $print_it = 1;
     } 
 } # while $opt
 
@@ -47,6 +54,7 @@ close(OFT);
 print STDERR "# $0: " . scalar(%ofters) . " jOEIS offsets and some terms read from $ofter_file\n";
 #----------------
 my $buffer = "";
+my $aseqno;
 if ($from_clip == 0) { # read from STDIN or files
     while (<>) {
         $buffer .= $_;
@@ -55,28 +63,42 @@ if ($from_clip == 0) { # read from STDIN or files
     $buffer = `powershell -command Get-Clipboard`;
 }
 my %hash = ();
-foreach my $aseqno ($buffer =~ m{(A\d{6})}g) {
-    if (! defined($hash{$aseqno})) {
-        $hash{$aseqno} = defined($ofters{$aseqno}) ? 1 : 0;
+foreach my $line (split(/\n/, $buffer)) {
+    my %lasn;
+    foreach $aseqno ($line =~ m{(A\d{6})}g) {
+        $lasn{$aseqno} = 1;
+    } # foreach $aseqno
+    foreach $aseqno (keys(%lasn)) {
+        if (defined($ofters{$aseqno})) {
+            $hash{$aseqno} = 1;
+        } else {
+            $line =~ s{$aseqno}{\#\?$aseqno}g;
+        }
+    } # foreach $aseqno
+    if ($print_it) {
+        $line =~ s{^\#\?}{}; # assume that the leading column is nyi anyway
+        print "$line\n";
     }
-} # foreach
+} # $line
 my $ari = 0;
 my $nyi = 0;
-foreach my $key (sort(keys(%hash))) {
-    my $value = $hash{$key};
-    if ($value == 0) {
-        $nyi ++;
-    } else {
-        $ari ++;
-    }
-    if ($only_nyi) {
-        if ($value <= 0) {
-            print join("\t", $key, $value) . "\n";
+if ($print_it == 0) {
+    foreach my $key (sort(keys(%hash))) {
+        my $value = $hash{$key};
+        if ($value == 0) {
+            $nyi ++;
+        } else {
+            $ari ++;
         }
-    } else {
-            print join("\t", $key, $value, ($value <= 0) ? "**" : "") . "\n";
-    }
-} # for $key
+        if ($only_nyi) {
+            if ($value <= 0) {
+                print join("\t", $key, $value) . "\n";
+            }
+        } else {
+                print join("\t", $key, $value, ($value <= 0) ? "**" : "") . "\n";
+        }
+    } # for $key
+}
 print sprintf("%4d not implemented in jOEIS\n", $nyi);
 print sprintf("%4d already implemented\n"     , $ari);
 #================
@@ -85,16 +107,3 @@ A004018	parmof2	0	A000144	2	Number of ways of writing n as a sum of 2 squares.
 A005875	parmof2	0	A000144	3	Number of ways of writing n as a sum of 3 squares.
 A000118	parmof2	0	A000144	4 	Number of ways of writing n as a sum of 4 squares;
 A000132	parmof2	0	A000144	5 	Number of ways of writing n as a sum of 5 squares.
-A000141	parmof2	0	A000144	6 	Number of ways of writing n as a sum of 6 squares.
-A008451	parmof2	0	A000144	7 	Number of ways of writing n as a sum of 7 squares.
-A000143	parmof2	0	A000144	8 	Number of ways of writing n as a sum of 8 squares.
-A008452	parmof2	0	A000144	9 	Number of ways of writing n as a sum of 9 squares.
-A000144	parmof2	0	A000144	10	Number of ways of writing n as a sum of 10 squares.
-A008453	parmof2	0	A000144	11	Number of ways of writing n as a sum of 11 squares.
-A000145	parmof2	0	A000144	12	Number of ways of writing n as a sum of 12 squares.
-A276285	parmof2	0	A000144	13	Number of ways of writing n as a sum of 13 squares.
-A276286	parmof2	0	A000144	14	Number of ways of writing n as a sum of 14 squares.
-A276287	parmof2	0	A000144	15	Number of ways of writing n as a sum of 15 squares.
-A000152	parmof2	0	A000144	16	Number of ways of writing n as a sum of 16 squares.
-A000156	parmof2	0	A000144	24	Number of ways of writing n as a sum of 24 squares.
-A302856	parmof2	0	A000144	32	Number of ways of writing n as a sum of 32 squares.

@@ -841,6 +841,7 @@ rectoproc0:
 	wc -l    $@.tmp
 rectoproc:
 	grep -E "^A[0-9]" rectoproc.man \
+	| grep rectoproc \
 	| head -n99999 \
 	| perl rectopost.pl \
 	| perl rectoproc.pl 2>&1 \
@@ -851,7 +852,8 @@ rectoproc:
 	grep -PB1 '\*\*\*' $@.tmp || :
 #----
 rectopost: # generate for all valid sumrecursion results
-	perl rectopost.pl rectopost.man \
+	grep rectoproc rectopost.man \
+	| perl rectopost.pl \
 	| uniq -w 7 \
 	| tee    $@.tmp
 	wc -l    $@.tmp

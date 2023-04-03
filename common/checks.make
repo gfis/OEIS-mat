@@ -778,3 +778,34 @@ bfmess_stat:
 	| sed -e "s/[0-9]//g" > $@.1.tmp 
 	grep "neof" $@.1.tmp | wc -l
 	sort $@.1.tmp | uniq -c > $@.txt
+#----
+michel_tabl:
+	$(DBAT) "SELECT i.aseqno, i.termno, i.offset1, b.bfimin, b.bfimax \
+	  , CASE WHEN COALESCE(b.bfimax, 0) - COALESCE(b.bfimin, 0) + 1 \
+	  > termno THEN '<bf' ELSE '   ' END \
+	  , i.keyword, i.author \
+	  FROM asinfo i LEFT JOIN bfinfo b ON i.aseqno = b.aseqno\
+	  WHERE keyword LIKE '%tabl%' \
+	    AND termno NOT in (1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66\
+	    , 78, 91, 105, 120, 136, 153, 171) \
+	  ORDER BY 1" > $@.txt
+	head -n32 $@.txt
+	wc -l     $@.txt
+	sort -n  -k2.1 $@.txt > michel_sort.txt
+	grep "more"    $@.txt > michel_more.txt
+	wc -l michel_more.txt
+	grep "fini"    $@.txt > michel_fini.txt
+	wc -l michel_fini.txt
+	zip michel.`date +%Y-%m-%d.%H_%M`.zip michel*.txt
+michel_tabl_name:
+	$(DBAT) "SELECT i.aseqno, i.termno, n.name, i.author \
+	  FROM asinfo i LEFT JOIN asname n ON i.aseqno = n.aseqno\
+	  WHERE keyword LIKE '%tabl%' \
+	    AND termno NOT in (1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66\
+	    , 78, 91, 105, 120, 136, 153, 171) \
+	  ORDER BY 1" \
+	>         $@.txt
+	head -n32 $@.txt
+	wc -l     $@.txt
+	zip $@.`date +%Y-%m-%d.%H_%M`.zip $@.txt
+#----

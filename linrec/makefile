@@ -43,7 +43,7 @@ overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC
 setofs: # LIST= ; update $(OFFSET)
 	#==== $@ LIST=$(LIST)
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
-	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno) \
+	$(DBAT)  "UPDATE seq4 s SET offset1 = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno) \
 	  , callcode = 'holos';"
 #--------
 ogfbig: ogfbig1 ogfbig2 ogfbig3

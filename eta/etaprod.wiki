@@ -54,6 +54,20 @@ as part of project [https://github.com/archmageirvine/joeis jOEIS] of Sean A. Ir
  G.f.: q^(-1/24) * eta(q^2)^3 / (eta(q) * eta(q^4))
  Euler transform of period 4: [1,-2,1,-1]
  EPSIG="[2,3;4,-1;1,-1]"
+====Ramanujan a cubic AGM theta====
+ [https://oeis.org/A004016 A004016] 1, 6, 0, 6, 6, 0, 0, 12, 0, 6, 0, 0, 6, 12, 0, 0, 6
+ G.f.: theta_3(q) * theta_3(q^3) + theta_2(q) * theta_2(q^3)
+ (no EPSIG)
+====Ramanujan b cubic AGM theta====
+ [https://oeis.org/A005928 A005928] 1, -3, 0, 6, -3, 0, 0, -6, 0, 6, 0, 0, 6, -6, 0, 0, -3
+ G.f.: eta(q)^3 / (eta(q^3)
+ Euler transform of period 3: [-3,-3,-2]
+ EPSIG="[1,3;3,-1]"
+====Ramanujan c cubic AGM theta====
+ [https://oeis.org/A005882 A005882] 3, 3, 6, 0, 6, 3, 6, 0, 3, 6, 6, 0, 6, 0, 6, 0, 9, 6, 0
+ G.f.: 3 * eta(q^3)^3 / eta(q)
+ 3 * (Euler transform of period 3: [-3,-3,-2])
+ EPSIG="[3,3;1,-1]" Q="-1/3" F=3
 ===Leading power of q factor (pqf) ===
 Some of the generating functions have an additional power of q factor, in order to normalize the leading coefficient to <code>q^0</code>. 
 * Example [https://oeis.org/A226862 A226862]:

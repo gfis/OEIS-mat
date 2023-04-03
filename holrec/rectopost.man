@@ -207,3 +207,50 @@
 
 A180584	rectoproc	0	-a(n)+40*a(n-20)-72*a(n-19)-84*a(n-18)+928*a(n-17)-1018*a(n-16)+584*a(n-15)-3848*a(n-14)-11373*a(n-13)-4467*a(n-12)-1318*a(n-11)+5873*a(n-10)+11998*a(n-9)+8806*a(n-8)+5041*a(n-7)+2919*a(n-6)+22*a(n-5)-218*a(n-4)-345*a(n-3)-34*a(n-2)+23*a(n-1)
 A180585	rectoproc	0	-a(n)-188416*a(n-51)+835584*a(n-50)+7955456*a(n-49)-41793024*a(n-48)-33238528*a(n-47)+334600192*a(n-46)-1276157184*a(n-45)+2732681344*a(n-44)-2618432768*a(n-43)-5036989056*a(n-42)+11060535424*a(n-41)+27959018048*a(n-40)-52440361440*a(n-39)-37908518240*a(n-38)+74330191136*a(n-37)+59186108112*a(n-36)-68887152928*a(n-35)-33605932304*a(n-34)+43670159120*a(n-33)+48309187400*a(n-32)+33949381128*a(n-31)+12462888472*a(n-30)-88313767808*a(n-29)-107865096688*a(n-28)+20762733116*a(n-27)+153311805598*a(n-26)+152573320432*a(n-25)+38397703554*a(n-24)-70575876534*a(n-23)-117036064104*a(n-22)-90546530362*a(n-21)-20062310737*a(n-20)+30892900555*a(n-19)+30318783786*a(n-18)+6586175756*a(n-17)-5975151103*a(n-16)-4972136691*a(n-15)-2026783228*a(n-14)-1418765189*a(n-13)-1239197497*a(n-12)-576571223*a(n-11)-60031321*a(n-10)+63704924*a(n-9)+32475252*a(n-8)+6586040*a(n-7)+334567*a(n-6)-152710*a(n-5)-38447*a(n-4)-2238*a(n-3)+280*a(n-2)+23*a(n-1)
+A184553	sumrec	0	sumrecursion(C(3*n+k,n-k)*C(4*n-k,k),k,a(n));
+A306642	rectoproc	0	-72*(3*n-1)*(3*n-4)*(3*n-2)*(3*n-5)*a(n-2)-3*(3*n-1)*(3*n-2)*(7*n^2-7*n+2)*a(n-1)+a(n)*n^4	a(n) = Sum_{k=0..n} (3*n)!/(k! * (n-k)!)^3.     nonn,changed,   0..431  nyi     _Seiichi Manyama_, Mar 02 2019
+A307376	sumrec	0	sumrecursion((2*n+k)!/((n-k)!*k!*2^k),k,a(n));
+A243204	rectoproc	0	4*(4*n-5)*(4*n-7)*(2*n-3)*a(n-2)-2*(n-1)*(28*n^2-84*n+45)*a(n-1)+3*n*(n-1)*(2*n-5)*a(n)
+# A243659	sumrecursion((-2)^k * binomial(n,k) * binomial(3*n+k+1,n)/(3*n+k+1),k,a(n));
+A243659	rectoproc	0	12*(3*n+5)*(3*n+7)*(n+2)*(119*n^2+153*n+48)*a(n+2)+(-150416*n^5-870264*n^4-1939036*n^3-2067324*n^2-1048200*n-201600)*a(n+1)+3*(3*n+2)*(3*n+1)*(119*n^2+391*n+320)*n*a(n)
+A243667	sumrec	0	sumrecursion((-2)^k * binomial(n,k) * binomial(4*n+k+1,n)/(4*n+k+1),k,a(n));	a(n) = (-1)^n * Sum_{k=0..n} (-2)^k * binomial(n,k) * binomial(4*n+k+1,n)/(4*n+k+1).
+A243668	sumrec	0	sumrecursion((-2)^k * binomial(n,k) * binomial(5*n+k+1,n)/(5*n+k+1),k,a(n));	a(n) = (-1)^n * Sum_{k=0..n} (-2)^k * binomial(n,k) * binomial(5*n+k+1,n)/(5*n+k+1).
+A245769	rectoproc	0	-(n-2)*a(n-3)+(7*n-6)*a(n-2)-(7*n-8)*a(n-1)+a(n)*n
+A246459	rectoproc	0	-9*(n-2)^2*a(n-3)+(19*n^2-40*n+36)*a(n-2)-(11*n-4)*a(n-1)*n+a(n)*n^2
+A246028	rectoproc	0	-31*(n-1)*(n-2)*a(n-3)+6*(n-1)*(2*n-3)*a(n-2)-2*(6*n^2-12*n+5)*a(n-1)+2*a(n)*(2*n-3)*n
+A278415	rectoproc	0	3*(n-2)*(n-3)*(37*n^2-100*n+54)*a(n-4)+2*(n-2)*(296*n^3-1540*n^2+2342*n-1017)*a(n-3)+2*(370*n^4-2480*n^3+5705*n^2-5368*n+1728)*a(n-2)-6*(74*n^3-385*n^2+560*n-208)*(n-1)*a(n-1)+4*n*(n-1)*(37*n^2-174*n+191)*a(n)
+A290575	rectoproc	0	16*(n-1)^3*a(n-2)-4*(2*n-1)*(3*n^2-3*n+1)*a(n-1)+a(n)*n^3	Apéry-like numbers Sum_{k=0..n} (C(n,k) * C(2*k,n))^2
+A293468	rectoproc	0	2*(2*n-1)*(n-1)^2*a(n-2)-(n^3+2*n^2-8*n+3)*a(n-1)+a(n)*n*(n-2)
+A293550	rectoproc	0	2*(n+6)*(116*n+95)*a(n+2)+(-569*n^2-4577*n-12540)*a(n+1)-2*(359*n+569)*(2*n+3)*a(n)
+A302352	rectoproc	0	6*(n+7)*(155463*n+110644)*a(n+2)+(-6452250*n^3-36130409*n^2+5304631*n-88293912)*a(n+1)+2*(2*n+3)*(6452250*n^2+19494797*n+14656031)*a(n)
+A336170	sumrec	0	sumrecursion((-1)^(n-k) * (n+3*k)!/((n-k)! * (k!)^4),k,a(n));
+A336171	sumrec	0	sumrecursion((-1)^(n-k) * (n+4*k)!/((n-k)! * (k!)^5,k,a(n));
+A343898	sumrec	0	sumrecursion( (k!)^3 * binomial(n,k),k,a(n));
+A349253	sumrec	0	sumrecursion(binomial(n+k,n-k) * 2^k * binomial(3*k,k) / (2*k+1),k,a(n));
+A349254	sumrec	0	sumrecursion(binomial(n+k,n-k) * 3^k * binomial(3*k,k) / (2*k+1),k,a(n));
+A349255 sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+k,n-k) * 2^k * binomial(3*k,k) / (2*k+1),k,a(n));
+A349256	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+k,n-k) * 3^k * binomial(3*k,k) / (2*k+1),k,a(n));
+A349270	sumrec	0	sumrecursion((n - k)! * k! / floor(k / 2)!^2,k,a(n)	, row sums of A349269.
+A349289	sumrec	0	sumrecursion(binomial(n+2*k,3*k) * binomial(4*k,k) / (3*k+1),k,a(n));
+A349290	sumrec	0	sumrecursion(binomial(n+3*k,4*k) * binomial(5*k,k) / (4*k+1),k,a(n));
+A349291	sumrec	0	sumrecursion(binomial(n+4*k,5*k) * binomial(6*k,k) / (5*k+1),k,a(n));
+A349292	sumrec	0	sumrecursion(binomial(n+5*k,6*k) * binomial(7*k,k) / (6*k+1),k,a(n));
+A349293	sumrec	0	sumrecursion(binomial(n+6*k,7*k) * binomial(8*k,k) / (7*k+1),k,a(n));
+A349299	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+2*k,3*k) * binomial(4*k,k) / (3*k+1),k,a(n));
+A349300	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+3*k,4*k) * binomial(5*k,k) / (4*k+1),k,a(n));
+A349301	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+4*k,5*k) * binomial(6*k,k) / (5*k+1),k,a(n));
+A349302	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+5*k,6*k) * binomial(7*k,k) / (6*k+1),k,a(n));
+A349303	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n+6*k,7*k) * binomial(8*k,k) / (7*k+1),k,a(n));
+A349313	sumrec	0	sumrecursion(binomial(n+6*k,7*k) * binomial(7*k,k) / (6*k+1),k,a(n));
+A349314	sumrec	0	sumrecursion(binomial(n+7*k,8*k) * binomial(8*k,k) / (7*k+1),k,a(n));
+A349533	sumrec	0	sumrecursion(binomial(n+k,2*k) * binomial(3*k,k) * 2^(n-k) / (2*k+1),k,a(n));
+A349534	sumrec	0	sumrecursion(binomial(n+k,2*k) * binomial(3*k,k) * 3^(n-k) / (2*k+1),k,a(n));
+A349535	sumrec	0	sumrecursion(binomial(n+k,2*k) * binomial(3*k,k) * 4^(n-k) / (2*k+1),k,a(n));
+A350383	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n-1+k,k) * binomial(n,3*k),k,a(n));
+A350406	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n-1+k,k) * binomial(n,4*k),k,a(n));
+A350407	sumrec	0	sumrecursion((-1)^(n-k) * binomial(n-1+k,k) * binomial(n,5*k),k,a(n));
+
+# 2023-02-20
+#:# A137637	sumrec	0	sumrecursion(binomial(2*k+2,k)*binomial(2*k+2,n-k).k.a(n)); 
+#:# A137637	rectoproc	0	-2*(2*n-3)*(n^3-3*n^2+6*n+4)*a(n-4)-2*(6*n^4-27*n^3+51*n^2+n-23)*a(n-3)-2*(6*n^4-27*n^3+43*n^2+46*n+2)*a(n-2)-(3*n^4-15*n^3+29*n^2+23*n+32)*a(n-1)+(n+2)*(n^3-6*n^2+15*n-6)*a(n)
+
