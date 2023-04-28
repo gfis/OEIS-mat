@@ -869,7 +869,7 @@ seqpoly:
 	wc -l    $@.tmp
 dirichcon:
 	grep -Pi "^%[NF]" jcat25.txt | grep -Pi "Dirichlet conv" \
-	| perl nyi.pl -p | cut -b6- | grep -v "#" | grep -E "^A[0-9]" \
+	| perl nyi.pl -p | cut -b6- | grep -v "#" | grep -E "^A[0-9]"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -884,4 +884,6 @@ multnyi:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-	
+conjectural:
+	find $(JOEIS)/src/irvine/oeis/ -iname "A??????.java" | xargs -l grep -H "irvine.oeis.Conjectural" | tee $@.tmp
+

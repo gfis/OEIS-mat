@@ -224,7 +224,7 @@ subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt > $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist amlist edlist grlist jvplist oglist oplist pblist phlist rzlist
+authors: ajlist amlist edlist grlist jvplist oglist oplist pblist phlist rzlist smlist
 ajlist:
 	make subdir DIR=aj  NAME=Jasinski
 amlist:                 
@@ -245,6 +245,8 @@ phlist:
 	make subdir DIR=ph  NAME=Hanna
 rzlist:                 
 	make subdir DIR=rz  NAME=Zumkeller
+smlist:                 
+	make subdir DIR=sm  NAME=Seiichi
 #--------
 khintchin: khin1 khin2 khin3 khin4 # Which continued fractions belong to the "Khintchin" set
 khin1: # select the continued fractions
