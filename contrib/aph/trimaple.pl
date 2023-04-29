@@ -2,6 +2,7 @@
 
 # Generate a triangle program from Maple
 # @(#) $Id$
+# 2023-04-29: *.man in fischer/aman/
 # 2022-09-03: options
 # 2022-05-09, Georg Fischer
 #
@@ -97,7 +98,7 @@ GFis
 my $apack = lc(substr($aseqno, 0, 4));
 my $tarfile = "$litedir/manual/$aseqno.java";
 open(TAR, ">", $tarfile) || die "cannot write \"$tarfile\"\n";
-my $manfile = "$litedir/$aseqno.man";
+my $manfile = "$litedir/aman/$aseqno.man";
 open(MAN, ">", $manfile) || die "cannot write \"$manfile\"\n";
 print MAN "# $timestamp dependants of $aseqno:\n";
 # get the target's name

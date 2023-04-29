@@ -884,6 +884,40 @@ multnyi:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-conjectural:
+conjectural: # get all classes that "implement Conjectural"
 	find $(JOEIS)/src/irvine/oeis/ -iname "A??????.java" | xargs -l grep -H "irvine.oeis.Conjectural" | tee $@.tmp
+conject: conjec1 conjec2 conjec3 conjec4 conjec5
+conjec1: # obsolete
+conjec2: # extract the A-numbers
+	cat conjectural.tmp \
+	| perl -ne 'm{\/(A\d{6})\.}; print "$$1\n";' \
+	| sort \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+conjec3: # lines with conjectures and verifications
+	cat      conjec2.tmp \
+	| xargs -l -innn grep -iHE "empirical|apparent|conjectur|verif|is true" ajson/nnn.json \
+	| tee    $@.tmp
+conjec4: # those that have verification 1 line behind the conjecture
+	grep -EB1 "verif|is true" conjec3.tmp \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+conjec5: # get all from remote
+	scp gfis@atair:~/work/gits/OEIS-mat/common/conjec*.tmp .
+conjec6: # extract manually verified ones
+	grep -E "^ajson" conjec4.man | perl -ne 'm{\/(A\d{6})\.}; print "$$1\t" .substr($$_, 23);' \
+	| sort \
+	| tee    $@.tmp
+conjec7: # load those implementing Conjectural and those with decriptions containing "conj..|verif..."
+	make seq  LIST=conjec2.tmp
+	cat conjec3.tmp | perl -ne 'm{\/(A\d{6})\.}; print "$$1\n";' | sort | uniq | tee $@.1.tmp
+	make seq2 LIST=$@.1.tmp
+conjec8: # compare the 2 from conjec7
+	$(DBAT) "SELECT s.aseqno, j.superclass, n.name \
+	  FROM  seq s, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
+	  WHERE s.aseqno = n.aseqno \
+	    AND s.aseqno NOT IN (SELECT s2.aseqno FROM seq2 s2) ORDER BY 1" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#----
 
