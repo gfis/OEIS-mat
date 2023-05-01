@@ -13,3 +13,18 @@ A295287	"Conjectures verified by _Robert Israel_, Dec 05 2017.",
 A295293	"Conjectures verified by _Robert Israel_, Dec 05 2017.",
 A295867	"Colin Barker's conjecture is true. This is a cubic quasipolynomial of order 5: a(n) = 162/125*n^3 + 27/25*n^2 if n is 0 mod 5, 162/125*n^3 + 261/125*n^2 + 111/125*n + 12/125 if n is 4 mod 5, 162/125*n^3 + 297/125*n^2 + 144/125*n + 21/125 if n is 3 mod 5, 162/125*n^3 + 423/125*n^2 + 339/125*n + 84/125 if n is 2 mod 5, and 162/125*n^3 + 459/125*n^2 + 396/125*n + 108/125 if n is 1 mod 5. Generally a(n) = 162/125*n^3 + O(n^2). - _Charles R Greathouse IV_, Feb 20 2018"
 A309879	"(End) [Conjectures verified by _Wesley Ivan Hurt_, Aug 24 2019]"
+
+A120656	a(n) = (-4 + (-2)^n + 2*3^(n+1))/3 - [n=0].
+A187163	Number of 2-step self-avoiding walks on an n X n X n cube summed over all starting positions. (Zabolotsky)
+A240506	Number of length-n gap-free words on {1,2,3}. (Heinz)
+A250352	GeneratingFunctionSequence Conjectural	Number of length 3 arrays x(i), i=1..3 with x(i) in i..i+n and no value appearing more than 2 times. (Mathar)
+A250353	GeneratingFunctionSequence Conjectural	Number of length 4 arrays x(i), i=1..4 with x(i) in i..i+n and no value appearing more than 2 times. (Mathar)
+A259216	GeneratingFunctionSequence Conjectural	Number of (n+1) X (2+1) 0..1 arrays with each 2 X 2 subblock having clockwise pattern 0000 0011 or 0101.
+A263053	GeneratingFunctionSequence Conjectural	Number of (n+1) X 2 0..1 arrays with each row and column not divisible by 3, read as a binary number with top and left being the most significant bits.
+A285187	GeneratingFunctionSequence Conjectural	a(n) = Sum(psi(k-1)*psi(n-k-1),k=0..n)+(1-(-1)^n)/2, where psi(k) = A000931(k+6).
+A289693	GeneratingFunctionSequence Conjectural	The number of partitions of [n] with exactly 3 blocks without peaks.
+A290743	GeneratingFunctionSequence Conjectural	Maximum number of distinct Lyndon factors that can appear in words of length n over an alphabet of size 2.
+A296160	GeneratingFunctionSequence Conjectural	Sum of the larger parts of the partitions of n into two parts such that the smaller part is even.
+A307201	HolonomicRecurrence Conjectural	Coordination sequence for trivalent node of type alpha in the first Moore pentagonal tiling. (Arndt)
+A307202	HolonomicRecurrence Conjectural	Coordination sequence for trivalent node of type alpha'' in the first Moore pentagonal tiling. (Arndt)
+A308123	HolonomicRecurrence Conjectural	Sum of the perimeters of all integer-sided isosceles triangles with perimeter n. (Spezia)

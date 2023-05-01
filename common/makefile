@@ -913,7 +913,7 @@ conjec7: # load those implementing Conjectural and those with decriptions contai
 	cat conjec3.tmp | perl -ne 'm{\/(A\d{6})\.}; print "$$1\n";' | sort | uniq | tee $@.1.tmp
 	make seq2 LIST=$@.1.tmp
 conjec8: # compare the 2 from conjec7
-	$(DBAT) "SELECT s.aseqno, j.superclass, n.name \
+	$(DBAT) -x "SELECT s.aseqno, j.superclass, n.name \
 	  FROM  seq s, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
 	  WHERE s.aseqno = n.aseqno \
 	    AND s.aseqno NOT IN (SELECT s2.aseqno FROM seq2 s2) ORDER BY 1" \
