@@ -1,7 +1,7 @@
 #!perl
 
 # Copy CAT25 file and replace all leading "%" characters by "#" for jOEIS sequences
-# 2023-05-01: App(e->a)rent
+# 2023-05-01: App(e->a)rent, seem
 # 2021-95-30: Conjecture (Start) ... (End)
 # 2021-01-21, Georg Fischer
 #
@@ -76,7 +76,7 @@ while (<>) { # CAT25 format
     } elsif ($state == 1   && ($line =~ m{\(End\)}i)) {
         $state = 0;
     }
-    if ($state == 1 || ($line =~ m{Conject|Apparent|Empiric}i)) {
+    if ($state == 1 || ($line =~ m{Conject|Apparent|Appear|May be|Empiric|Seem}i)) {
         $line =~ s{\A.}{\?};
     }
     print $line;

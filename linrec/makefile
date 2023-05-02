@@ -90,7 +90,7 @@ afiles2:
 	wc -l    $@.tmp
 #--------
 linman0: linman1 linman2 linman4
-	grep -E "^A[0-9]" linman3.tmp \
+	grep -E "^A[0-9]" linman4.tmp \
 	>        $@.gen
 	head -n4 $@.gen
 	wc -l    $@.gen

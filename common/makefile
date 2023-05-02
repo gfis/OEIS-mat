@@ -362,10 +362,12 @@ joeis_jar1:
 joeis_jar2:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; make joeis_list'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
+#--
 joeis_pullloc: # refresh local önly
 	cd    $(JOEIS) ; git pull ; make joeis_list
 	cp -v $(JOEIS)/joeis_list.txt .
 	make joeis_reload
+#--
 joeis_reload: joeis_load joeis_ofter joeis_ofdec \
 	joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
 joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
