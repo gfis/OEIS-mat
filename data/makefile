@@ -1,35 +1,42 @@
 #!make
 
-# OEIS-mat/data - new extraction from ../../oeisdata
+# OEIS-mat/data - new extraction from repositories
 # @(#) $Id$
 # 2023-05-02: Georg Fischer
+#
+# from https://github.com/oeisbot/oeisdata     - sequences
+#  and https://github.com/archmageirvine/joeis - Java programs
 #---------------------------------
 GITS=../..
+COMMON=../common
 DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
-DATA=$(GITS)/OEIS-mat/data
+HERE=../OEIS-mat/data
 JOEIS=$(GITS)/joeis
 OEISDATA=$(GITS)/oeisdata
-REMOTE=atair
-# set_env_var_REMOTE
+REMOTE=set_environment_variable_REMOTE_to_g@a
+REMDIR=$(REMOTE):~/work/gits/OEIS-mat/data
 #-------------
-all: cat25 joeis_pull joeis_jar joeis_list joeis_ofter jcat25 pack_remote
+all: 
 help:
 	grep -E "^[a-z]" makefile
 #==============================
+# the following are to be used daily at 07:10 CET in a cron job on the remote server
+pull: cat25 joeis_pull joeis_jar joeis_list joeis_ofter jcat25 pack_remote
+#--
 cat25:
-	cd $(OEISDATA) ; git pull ; find seq | sort > $(DATA)/$@.list.tmp
+	cd $(OEISDATA) ; git pull ; find seq -type f | sort > $(HERE)/$@.list.tmp
 	rm -f    $@.txt
-	cd $(DATA) ; cat $(DATA)/$@.list.tmp | xargs -l -innn cat nnn >> $(DATA)/$@.txt
+	cd $(OEISDATA) ; cat $(HERE)/$@.list.tmp | xargs -l -innn cat nnn >> $(HERE)/$@.txt
 	head -n2 $@.txt
 	wc -l    $@.txt
 	ls -al   *$@.*
-#----
+#--
 joeis_pull: # update Sean's jOEIS repository
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt
 #--
 joeis_jar: # rebuild the joeis.jar
-	cd $(JOEIS) ; ant compile-internal jar'
-#----
+	cd $(JOEIS) ; ant compile-internal jar
+#--
 joeis_list: joeis_list1 joeis_list2 # get the A-numbers and used superclasses of all implemented sequences
 joeis_list1:
 	find $(JOEIS)/src/irvine/oeis -iname "A??????.java" \
@@ -46,12 +53,13 @@ joeis_list2:
 	      -e "s/ *[^A-Za-z0-9 ].*//" \
 	      -e "s/ /\t/" \
 	| sort \
+	| grep -E "^A" \
 	>        joeis_list.txt
 	head -n2 joeis_list.txt
 	wc -l    joeis_list.txt
 #--
 joeis_ofter: # build a preliminary ofter file (with offset = terms = 0) for jcat25.pl
-	sed -e "s/$$/\t0\t0,0,0,0,0,0,0,0$$/" joeis_aseqno.txt \
+	grep -E "^A" joeis_list.txt | cut -b1-7 | sed -e "s/$$/\t0\t0,0,0,0,0,0,0,0$$/" \
 	>        $@.txt
 	head -n2 $@.txt
 	wc -l    $@.txt
@@ -60,6 +68,16 @@ jcat25: # qualify the cat25 lines with "#" = implemented in jOEIS, "%" = nyi, "?
 	perl $(COMMON)/jcat25.pl cat25.txt > $@.txt
 	cut -b1 $@.txt | sort | uniq -c
 pack_remote:
-	gzip -ck cat25.txt jcat25.txt joeis_list.txt joeis_aseqno.txt > $@.gz
-#--------
-
+	tar -czvf $@.tgz jcat25.txt joeis_list.txt $(JOEIS)/build.tmp/joeis.jar 
+	ls -al
+#================
+# the following are to be used locally
+refresh: download distribute
+download: # from the REMOTE server
+	scp $(REMDIR)/pack_remote.tgz .
+	tar -xzvf pack_remote.tgz
+	ls -tclr
+distribute: # into proper directories
+	mv -v joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/ || :
+	mv -v jcat25.txt joeis_list.txt $(COMMON)/          || :
+#----

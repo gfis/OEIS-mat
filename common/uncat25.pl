@@ -2,6 +2,7 @@
 
 # Split a CAT25 file with the internal format, separated by empty lines
 # @(#) $Id$
+# 2023-05-04: %I with revision and timestamp
 # 2020-01-25: -m date
 # 2019-03-01, Georg Fischer
 #

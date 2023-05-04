@@ -81,7 +81,7 @@ while (<>) {
             ) {
         $fraction = $4 || "";
         $fraction =~ s{^[A-Z]\([a-z]\) *[\=\:] *}{};
-        $fraction =~ s{[\.\;\,\=].*}{}; # remove all behind first dot or semicolon
+        $fraction =~ s{[\.\;\,].*}{}; # remove all behind first dot, semicolon, comma
         $fraction =~ s{[\(\[]?(From |Correc|Amdended |_).*}{}i; # author etc.
         $fraction =~ s{\s}{}g;
         $fraction =~ s{a\(n\)\Z}{}; # following recurrence
@@ -98,9 +98,6 @@ while (<>) {
         }
         if ($fraction !~ m{\/}) {
             $comt = "?nodiv?";
-        }
-        if (&nesting_diff($fraction) != 0) {
-            $comt = "?unbal?";
         }
         if ($fraction =~ m{[a-hA-Z\<\>\=]}) { 
             $comt = "?letrs?";
@@ -125,6 +122,9 @@ while (<>) {
         }
         if (length($fraction) > 1023) { 
             $comt = "?toolong?";
+        }
+        if (&nesting_diff($fraction) != 0) {
+            $comt = "?unbal?";
         }
     } else {
         # ignore

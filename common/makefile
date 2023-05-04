@@ -370,7 +370,8 @@ joeis_pullloc: # refresh local önly
 #--
 joeis_reload: joeis_load joeis_ofter joeis_ofdec \
 	joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
-joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
+# joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
+joeis_rest: joeis_names joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
 	grep -E "^A" joeis_list.txt | sort \
@@ -922,4 +923,20 @@ conjec8: # compare the 2 from conjec7
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-
+parity:
+	grep -Pi "Parity of A\d+" jcat25.txt | grep -E "%[NF]" | perl nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#--
+selfcon:
+	grep -E "^%" jcat25.txt | grep -Pi "(Self\-)?convolution" | perl nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+diff1:
+	grep -E "^%" jcat25.txt | grep -P "First differences of A" | perl nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+partsum:
+	grep -E "^%" jcat25.txt | grep -P "Partial sums of A" | perl nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| tee    $@.tmp
+	wc -l    $@.tmp

@@ -24,56 +24,78 @@ help:
 linman4: # convert to num, den tuples with JPREP
 	$(JPREP) -f linman2.tmp \
 	>        $@.tmp
-	head -n4 $@.tmp
+	head -n2 $@.tmp
 	wc -l    $@.tmp
 linman: # -> lingf (*.gen)
 	grep -E "fract1" linman4.tmp \
 	| sed -e "s/fract1/lingf/" \
 	>        $@.gen
-	head -n4 $@.gen
+	head -n2 $@.gen
 	wc -l    $@.gen
 #--------
-# Ordinary (rational) generating functions
-ogf: ogf1 ogf2
+# Robot#1: Ordinary (rational) generating functions
+ogf: ogf1 ogf2 
 ogf1: # extract
 	grep -E "%[SOFN]" $(COMMON)/jcat25.txt \
 	| perl catex_gf.pl -d 0 \
 	>        $@.tmp
-	head -n4 $@.tmp
+	head -n2 $@.tmp
 	wc -l    $@.tmp
-ogf2: # convert to num, den tuples with JPREP
+ogf2: # use JPREP to generate (num, den) tuples for rational o.g.f.s 
 	$(JPREP) -f ogf1.tmp \
 	>        $@.tmp
 	grep -E "fract1" $@.tmp | sed -e "s/fract1/lingf/" \
 	| perl -ne 'my @f = split(/\t/); print if length($$f[4]) < 2048;' \
 	>        $@.gen
-	head -n4 $@.gen
+	head -n2 $@.gen
 	wc -l    $@.gen
 	mv -v    $@.gen ogf.gen
 	cp -v    ogf.gen ogf.`date +%Y-%m-%d`.gen
 #----
-fract: nfract fract1 fract2 fract39
-nfract:
+fract21:
+	grep -E  "fract21" ogf2.tmp \
+	| sed -e "s/fract21/trigf/" \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
+fract22:
+	grep -E  "fract22" ogf2.tmp \
+	| sed -e "s/fract22/trigf/" \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
+#----
+partsum:
+	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Partial sums of A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, partsum, 0, "", "", "new $$rn()", "") . "\n"; } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+xfract: nfract fract1 fract2 fract39
+xnfract:
 	grep -E "^#" catgf1.tmp \
 	| sort -k3 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp	
-fract1:
+xfract1:
 	grep -vE "^#" catgf1.tmp | grep fract1 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	make njoeis LIST=$@.tmp
-fract2:
+xfract2:
 	grep -vE "^#" catgf1.tmp | grep -E "fract2" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	# make njoeis LIST=$@.tmp
-fract2_prep:
+xfract2_prep:
 	
-fract39:
+xfract39:
 	grep -vE "^#" catgf1.tmp | grep -E "fract[3-9]" \
 	>       $@.tmp || :
 	head -64 $@.tmp
