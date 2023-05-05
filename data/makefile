@@ -15,15 +15,16 @@ JOEIS=$(GITS)/joeis
 OEISDATA=$(GITS)/oeisdata
 REMOTE=set_environment_variable_REMOTE_to_g@a
 REMDIR=$(REMOTE):~/work/gits/OEIS-mat/data
+D=0
 #-------------
 all: 
 help:
 	grep -E "^[a-z]" makefile
 #==============================
-# the following are to be used daily at 07:10 CET in a cron job on the remote server
-pull: cat25 joeis_pull joeis_jar joeis_list joeis_ofter jcat25 pack_remote
+# the following are to be used on the remote server
+catex_pull: cat28 catex
 #--
-cat25:
+cat28:
 	cd $(OEISDATA) ; git pull ; find seq -type f | sort > $(HERE)/$@.list.tmp
 	rm -f    $@.txt
 	cd $(OEISDATA) ; cat $(HERE)/$@.list.tmp | xargs -l -innn cat nnn >> $(HERE)/$@.txt
@@ -31,12 +32,13 @@ cat25:
 	wc -l    $@.txt
 	ls -al   *$@.*
 #--
-joeis_pull: # update Sean's jOEIS repository
-	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H`.txt
+catex: # extract preliminary ASINFO, ASNAME, BFINFO database tables
+	perl -w catex_info.pl -d $(D) cat28.txt
+	ls -al ??????.txt
+	wc -l  ??????.txt
+	tar -czvf catex.tgz asinfo.txt asname.txt bfinfo.txt
 #--
-joeis_jar: # rebuild the joeis.jar
-	cd $(JOEIS) ; ant compile-internal jar
-#--
+joeis_refresh: joeis_pull joeis_list joeis_ofter 
 joeis_list: joeis_list1 joeis_list2 # get the A-numbers and used superclasses of all implemented sequences
 joeis_list1:
 	find $(JOEIS)/src/irvine/oeis -iname "A??????.java" \
@@ -63,21 +65,57 @@ joeis_ofter: # build a preliminary ofter file (with offset = terms = 0) for jcat
 	>        $@.txt
 	head -n2 $@.txt
 	wc -l    $@.txt
+#----
+joeis_coral: # get the A-numbers with "... implements Conjectural"
+	grep -iE "Conjectural" joeis_list.txt \
+	| perl -ne 'm{ class (A\d+) }; print "$$1\n";'\
+	| sort > $@.txt
+	head -n2 $@.txt
+	wc -l    $@.txt
+
 #--
 jcat25: # qualify the cat25 lines with "#" = implemented in jOEIS, "%" = nyi, "?" = conjectured
 	perl $(COMMON)/jcat25.pl cat25.txt > $@.txt
 	cut -b1 $@.txt | sort | uniq -c
+#--
 pack_remote:
-	tar -czvf $@.tgz jcat25.txt joeis_list.txt $(JOEIS)/build.tmp/joeis.jar 
+	tar -czvf $@.tgz jcat25.txt joeis_list1.all.tmp joeis_list.txt joeis_coral.txt $(JOEIS)/build.tmp/joeis.jar 
 	ls -al
 #================
 # the following are to be used locally
-refresh: download distribute
+pull_remote: # pull remote repositories, recompile jar, generate jcat25.txt
+	ssh $(REMOTE) 'cd ~/work/gits/OEIS-mat/data ; git stash ; git pull'
+	scp makefile $(REMDIR)
+	ssh $(REMOTE) 'time make pull'
+#--
+pull_local:
+	cd $(JOEIS) ; git pull
+	make download
+	make distribute
 download: # from the REMOTE server
 	scp $(REMDIR)/pack_remote.tgz .
 	tar -xzvf pack_remote.tgz
 	ls -tclr
 distribute: # into proper directories
 	mv -v joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/ || :
-	mv -v jcat25.txt joeis_list.txt $(COMMON)/          || :
+	mv -v jcat25.txt $(COMMON)/ || :
+	cp -v joeis_list1.all.tmp joeis_list.txt joeis_coral.txt $(COMMON)/ || :
 #----
+#--
+joeis_pull: # update Sean's jOEIS repository
+	cd $(JOEIS) ; git pull | tee -a joeis_pull.`date +%Y-%m-%d.%H`.txt
+#========
+catex_refresh: # refresh oeisdata, generate db table content and download
+	ssh $(REMOTE)      "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
+	scp makefile $(REMOTE):~/work/gits/OEIS-mat/data/
+	ssh $(REMOTE)      "cd ~/work/gits/OEIS-mat/data/ ; make catex_pull"
+	scp          $(REMOTE):~/work/gits/OEIS-mat/data/catex.tgz .
+	tar -xzvf catex.tgz
+#========
+joeis_jar: # refresh jOEIS and rebuild the joeis.jar; needs > 8 GB RAM
+	ssh $(REMOTE) "cd ~/work/gits/joeis ; git pull ; ant compile-internal jar"
+	
+#========
+jar_push:
+	scp $(JOEIS)/build.tmp/joeis.jar $(REMOTE):work/gits/joeis/build.tmp/joeis.jar
+

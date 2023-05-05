@@ -32,6 +32,24 @@ linman: # -> lingf (*.gen)
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#----
+binomx:
+	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Binomial transform of A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, binomx, 0, "$$rn", "", "", "", "", "", "") . "\n"; } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+charfun:
+	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Characteristic function of A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, charfun, 0, "$$rn", "", "", "", "", "", "") . "\n"; } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
 #--------
 # Robot#1: Ordinary (rational) generating functions
 ogf: ogf1 ogf2 
@@ -51,7 +69,6 @@ ogf2: # use JPREP to generate (num, den) tuples for rational o.g.f.s
 	wc -l    $@.gen
 	mv -v    $@.gen ogf.gen
 	cp -v    ogf.gen ogf.`date +%Y-%m-%d`.gen
-#----
 fract21:
 	grep -E  "fract21" ogf2.tmp \
 	| sed -e "s/fract21/trigf/" \
@@ -65,6 +82,15 @@ fract22:
 	tail -n2 $@.gen
 	wc -l    $@.gen
 #----
+partprod:
+	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Partial products of A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, partprod, 0, "", "", "new $$rn()", "") . "\n"; } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
 partsum:
 	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Partial sums of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
@@ -74,30 +100,3 @@ partsum:
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
-xfract: nfract fract1 fract2 fract39
-xnfract:
-	grep -E "^#" catgf1.tmp \
-	| sort -k3 \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp	
-xfract1:
-	grep -vE "^#" catgf1.tmp | grep fract1 \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-	make njoeis LIST=$@.tmp
-xfract2:
-	grep -vE "^#" catgf1.tmp | grep -E "fract2" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-	# make njoeis LIST=$@.tmp
-xfract2_prep:
-	
-xfract39:
-	grep -vE "^#" catgf1.tmp | grep -E "fract[3-9]" \
-	>       $@.tmp || :
-	head -64 $@.tmp
-	wc -l   $@.tmp
-#-----
