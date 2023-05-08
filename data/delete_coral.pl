@@ -1,6 +1,6 @@
 #!perl
 
-# Delete all recordsthat stem from "... implements Conjectural" in the input file
+# Delete all records in the input file that stem from sequences with "... implements Conjectural" 
 # @(#) $Id$
 # 2023-05-05, Georg Fischer
 #

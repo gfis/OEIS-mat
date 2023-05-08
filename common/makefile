@@ -33,6 +33,7 @@ NMAX=90
 CMAX=180
 REMOTE=atair
 CC=man
+DATA=$(GITS)/OEIS-MAT/data
 # set_env_var_REMOTE
 #-------------
 all:
@@ -374,7 +375,7 @@ joeis_reload: joeis_load joeis_ofter joeis_ofdec \
 joeis_rest: joeis_names joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
-	grep -E "^A" joeis_list.txt | sort \
+	grep -E "^A" ../data/joeis_list.txt | sort \
 	| $(DBAT) -m csv -r joeis
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
@@ -439,7 +440,7 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
 	# currently not; cd $(FISCHER); make analog
-ALAST=A061000
+ALAST=A064000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -510,6 +511,8 @@ joeis_eval:
 	cut -f2 joeis_ccan.cc.tmp | sort | uniq -c | tee -a $@.tmp
 #----
 jcat25:
+	cp -v ../data/jcat28.txt jcat25.txt
+jcat25_old:
 	perl jcat25.pl cat25.txt > $@.txt
 	wc -l cat25.txt $@.txt
 	cut -b1 $@.txt | sort | uniq -c
@@ -936,7 +939,9 @@ diff1:
 	grep -E "^%" jcat25.txt | grep -P "First differences of A" | perl nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| tee    $@.tmp
 	wc -l    $@.tmp
-partsum:
-	grep -E "^%" jcat25.txt | grep -P "Partial sums of A" | perl nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| tee    $@.tmp
-	wc -l    $@.tmp
+signature:
+	grep -E "^%H" $(DATA)/jcat28.txt | grep -P "signature *\(" | cut -b4- \
+	| perl -ne 'if (m{order_(\d+)}) { my $$order = $$1 + 0; if (m{signature *\(([^\)]+)\)}) { my $$sig = $$1; $$sig =~ s{ }{}g;'\
+	' if (length($$sig) < 256 && $$order >= 3 && $$order < 64 && ($$sig !~ m{(0\,){7}})) { print join("\t", substr($$_, 0, 7), "ixsig", 0, $$sig, $$order) . "\n"; }}}'\
+	| tee    $@.gen
+	wc -l    $@.gen

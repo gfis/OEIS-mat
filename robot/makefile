@@ -2,17 +2,18 @@
 
 # OEIS-mat/robot - automatic preparation of parameters for the generation of Java programs for jOEIS
 # @(#) $Id$
-# 2023-05-01, Georg Fischer: start with lingf
+# 2023-05-01, Georg Fischer: start with ogf
 #---------------------------------
 GITS=../..
 COMMON=$(GITS)/OEIS-mat/common
 DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
+JCAT28=$(DATA)/jcat28.txt
 JPREP=$(RAMATH).sequence.JoeisPreparer
 PFRACT=java -cp  $(RAMATH).symbolic.PolyFraction
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
-ODATA=$(GITS)/oeisdata
+OEISDATA=$(GITS)/oeisdata
 HERE=$(GITS)/OEIS-mat/robot
 REMOTE=atair
 # set_env_var_REMOTE
@@ -21,20 +22,37 @@ all: help
 help:
 	grep -E "^[a-z]" makefile
 #========
-linman4: # convert to num, den tuples with JPREP
-	$(JPREP) -f linman2.tmp \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-linman: # -> lingf (*.gen)
-	grep -E "fract1" linman4.tmp \
-	| sed -e "s/fract1/lingf/" \
+#----
+# simple formula a(n) = Aqseqno(n...) op Arseqno(n...)
+anopan: anopan0 anopan1
+	grep -P "\tanopan\t" anopan1.tmp \
+	| grep -vE "A068310|A121835|A123538|A130911|A137851|A178467|A185246|A262348|A274996|A277078" \
 	>        $@.gen
-	head -n2 $@.gen
+	head -n4 $@.gen
 	wc -l    $@.gen
+anopan0:
+	grep -Pi "\= *A\d+\([^\)]+\) *([\+\-\*\/\^]|and|or|xor|xand|mod) *A\d+\([^\)]+\)" $(JCAT28) \
+	| grep -E "^\%[NFC]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
+	>        $@.tmp
+	wc -l    $@.tmp
+	make seq2 LIST=$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, 'anopan', i.offset1, REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){8}'), s.info \
+	  FROM seq2 s, asinfo i, asdata d \
+	  WHERE s.aseqno = i.aseqno \
+	    AND i.aseqno = d.aseqno \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+anopan1:
+	perl $(COMMON)/anopan.pl anopan0.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	wc -l    $@.tmp $@.rest.tmp
+	cut -f 2 $@.tmp | sort | uniq -c
 #----
 binomx:
-	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Binomial transform of A" \
+	grep -E "^%" $(JCAT28) | grep -P "Binomial transform of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
@@ -43,7 +61,7 @@ binomx:
 	wc -l    $@.gen
 #----
 charfun:
-	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Characteristic function of A" \
+	grep -E "^%" $(JCAT28) | grep -P "Characteristic function of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
@@ -54,7 +72,7 @@ charfun:
 # Robot#1: Ordinary (rational) generating functions
 ogf: ogf1 ogf2 
 ogf1: # extract
-	grep -E "%[SOFN]" $(COMMON)/jcat25.txt \
+	grep -E "%[SOFN]" $(JCAT28) \
 	| perl catex_gf.pl -d 0 \
 	>        $@.tmp
 	head -n2 $@.tmp
@@ -83,7 +101,7 @@ fract22:
 	wc -l    $@.gen
 #----
 partprod:
-	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Partial products of A" \
+	grep -E "^%" $(JCAT28) | grep -P "Partial products of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
@@ -92,7 +110,7 @@ partprod:
 	wc -l    $@.gen
 #----
 partsum:
-	grep -E "^%" $(COMMON)/jcat25.txt | grep -P "Partial sums of A" \
+	grep -E "^%" $(JCAT28) | grep -P "Partial sums of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\

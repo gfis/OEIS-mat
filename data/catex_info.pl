@@ -72,10 +72,13 @@ while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     #             1    2       3
-    $line =~ m{\A.(\w) (A\d+) +(.*)};
-    $ncode    = $1 || "";
-    $nseqno   = $2 || "";
-    $ncontent = $3 || "";
+    $line =~ m{\A.(\w) (A\d+) +(.*)\Z};
+    $ncode    = $1;
+    $nseqno   = $2;
+    $ncontent = $3;
+    if ($ncontent eq "") {
+        print STDERR "** content=\"$content\" line=\"$line\"\n";
+    }
     if ($debug >= 2) {
         print STDERR "* debug$debug: ncode=$ncode, nseqno=$nseqno, aseqno=$aseqno, content="
             . substr($content, 0, 64) . " line=" . substr($line, 0, 32) . "\n";
@@ -96,15 +99,18 @@ while (<>) {
     if (0) { # switch over the codes
     } elsif ($code =~ m{[CDeEY]}) { 
        # first ignore these b.o. performance
+       
     } elsif ($code eq 'A')        { # AUTHOR
-        $author = $content;
-        if ($content =~ s{, (\w\w\w +\d+[TtZz\d\: ]*)}{}) {
+        if ($content =~ s{, (\w\w\w +\d+[\d\: ]*)}{}) {
             $created  = &timeconv($1);
         }
+        $author = substr($content, 0, 64);
+
     } elsif ($code =~ m{[Fopt]})  { # FORMULA or programs
         if ($program !~ m{$code}) {
             $program .= $code;
         }
+
     } elsif ($code eq 'H')        { # LINKS; is it a b-file link?
         if ($content =~ m{href\=\"\/$aseqno/b\d+\.txt\"}) { # yes, it is
             # Table of n, a(n) for n = 0..2047
@@ -114,16 +120,20 @@ while (<>) {
                 $message = ""; # remove "synth"
             }
         } # b-file link
+
     } elsif ($code eq 'I')        { # ID
         # %I A000001 M0098 N0035 #234 Jan 22 2022 19:45:19
         if ($content =~ m{\#(\d+) +(\w\w\w +\d+[TtZz\d\: ]*)}) {
             $revision = $1;
             $access  = &timeconv($2);
         }
+
     } elsif ($code eq 'K')        { # KEYWORD
         $keyword = $content;
+
     } elsif ($code eq 'N')        { # NAME
         $name   = $content;
+
     } elsif ($code eq 'O')        { # OFFSET
         if ($debug >= 1) {
             print STDERR "* debug$debug: $line\n";
@@ -136,8 +146,9 @@ while (<>) {
             $offset1 = $1;
             $offset2 =  1;
         } else {
-            print STDERR "** wrong offset? aseqno=$aseqno, content=\"$content\"\n";
+            print STDERR "** wrong offset? aseqno=$aseqno, content=\"$content\", line=\"$line\"\n";
         }
+
     } elsif ($code =~ m{[STU]})   { # DATA
         $terms .= $content;
         if ($code eq 'S') { # first DATA line
@@ -154,6 +165,7 @@ while (<>) {
                 $term8 = "";
             }
         }
+
     } else { # ignore unknown code
     } # switch over $code
 } # while <>
@@ -202,14 +214,19 @@ sub initialize {
 sub timeconv {
     my ($value) = @_;
     # %I A000001 M0098 N0035 #234 Jan 22 2022 19:45:19
-    my ($monthname, $day, $year, $hour, $min, $sec) = split(/[\: ]/, $value);
-    my $month = $months{$monthname};
-    $year   = $year   || 1971;
-    $month  = $month  || "01";
-    $day    = $day    || "01";
-    $hour   = $hour   || "01";
-    $min    = $min    || "01";
-    $sec    = $sec    || "01";
+    # %A A038607 Vasiliy Danilov (danilovv(AT)usa.net), Jul 1998
+    my ($monthname, $day, $year, $hour, $min, $sec);
+    if (0) {
+    } elsif ($value =~ m{ *([A-Za-z]{3}) +(\d{4})}) {
+        ($monthname, $day, $year, $hour, $min, $sec) = ($1,  1, $2,  1,  1,  1);
+    } elsif ($value =~ m{ *([A-Za-z]{3}) (\d\d) +(\d{4}) (\d\d)\:(\d\d)\:(\d\d)}) {
+        ($monthname, $day, $year, $hour, $min, $sec) = ($1, $2, $3, $4, $5, $6);
+    } elsif ($value =~ m{ *([A-Za-z]{3}) (\d\d) +(\d{4})}) {
+        ($monthname, $day, $year, $hour, $min, $sec) = ($1, $2, $3,  1,  1,  1);
+    } else {
+        ($monthname, $day, $year, $hour, $min, $sec) = ("Jan", 01, 1971, 1, 1,  1);
+    }
+    my $month = $months{$monthname} || "01";
     if ($year < 1970) {
         # OEIS server sometimes sets "0000"
         # MariaDB does not accept timestamps < "1970-01-01 01:01:01"

@@ -2,6 +2,7 @@
 
 # OEIS-mat/holrec - holonomic recurrences
 # @(#) $Id$
+# 2023-05-05: ../common/callmaple.pl -> callmap22
 # 2020-03-13: HOLT, seq3
 # 2019-12-09, Georg Fischer: copied from ../linrec
 #---------------------------------
@@ -55,7 +56,7 @@ seq3: # parameter: $(LIST)
 	$(DBAT) -4 $@
 	$(DBAT) -n $@
 seq4: # parameter: $(LIST) with aseqno, offset, parm1, parm2, parm3, parm4, name
-	$(DBAT) -f $(FISCHER)/seq4.create.sql
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
 	cat $(LIST) | grep -E "^A" | sort | uniq > seq4.tmp
 	$(DBAT) -m csv -r seq4 < seq4.tmp
 	$(DBAT) -4 seq4
@@ -106,21 +107,21 @@ aperz_grep:
 bincoef: bincoef1 bincoef2
 	mv -v bincoef2.gen $@.gen
 bincoef1:
-	grep -E "^.[N] A...... Binomial coe" $(COMMON)/jcat25.txt \
+	grep -E "^%[N] A...... Binomial coe" $(COMMON)/jcat25.txt \
 	| perl bincoef.pl \
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
 	make seq4 LIST=$@.tmp
-	$(DBAT) "UPDATE seq4 s SET OFFSET = (SELECT offset1          FROM asinfo i WHERE i.aseqno = s.aseqno)\
+	$(DBAT) "UPDATE seq4 s SET OFFSET1 = (SELECT offset1         FROM asinfo i WHERE i.aseqno = s.aseqno)\
 	  , parm2 = '[' || (SELECT SUBSTR(data,1,LOCATE(',',data)-1) FROM asdata d WHERE d.aseqno = s.aseqno) || ']';"
 	$(DBAT) -x "SELECT * FROM seq4 ORDER BY 1" \
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
 bincoef2:
-	perl $(COMMON)/callmaple.pl -t 4 -n 32 -p bincoef.mpat bincoef1.tmp \
+	perl $(COMMON)/callmap22.pl -t 4 -n 32 -p bincoef.mpat bincoef1.tmp \
 	>        $@.tmp
 	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
 	| perl -ne 's/\[\]/\[0\]/g; print; '\
@@ -216,7 +217,7 @@ greprec2:
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
 greprec3: # convert the formulae into P-finite recurrences
-	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p $(FISCHER)/binomin.mpat greprec2.tmp \
+	perl $(COMMON)/callmap22.pl -t 4 -n 64 -p $(FISCHER)/binomin.mpat greprec2.tmp \
 	>        $@.tmp
 	grep -P "^A[0-9]" $@.tmp | sort | uniq -w7\
 	| perl -ne 's/\[\]/\[0\]/g; print; '\
@@ -242,7 +243,7 @@ aphrec2:
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
 aphrec3:
-	perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat aphrec2.tmp \
+	perl $(COMMON)/callmap22.pl -t 4 -n 4 -p holdfin.mpat aphrec2.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -256,7 +257,7 @@ aphrec4:
 aphrec5: # process the manual converted ones
 	grep -E "^A[0-9]" aphrec4.man \
 	| perl makeope.pl \
-	| perl $(COMMON)/callmaple.pl -t 4 -n 16 -p holdfin.mpat \
+	| perl $(COMMON)/callmap22.pl -t 4 -n 16 -p holdfin.mpat \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -270,7 +271,7 @@ recman1:
 recman2:
 	cat recman1.tmp recman2.man | grep -E "^A[0-9]" \
 	| perl makeope.pl \
-	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat \
+	| perl $(COMMON)/callmap22.pl -t 4 -n 4 -p holdfin.mpat \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -284,7 +285,7 @@ holex:
 #----------------
 holfind: # LIST=, pure aseqnos
 	make seq4 # expects LIST=
-	perl $(COMMON)/callmaple.pl -t 4 -n 64 -p holfind.mpat $(LIST)
+	perl $(COMMON)/callmap22.pl -t 4 -n 64 -p holfind.mpat $(LIST)
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -293,7 +294,7 @@ ADD=4
 holminit: # LIST=,ADD=... ; replace initial terms for a holonomic matrix; MATRIX=parm1, INIT=parm2, DIST=parm3, GFTYPE=parm4, rest ... unchanged
 	make seq4 # LIST=
 	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT i.aseqno FROM asinfo i WHERE i.keyword LIKE '%tab%');"
-	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset, s.parm1, d.data, s.parm3, s.parm4, s.parm5, s.parm6, s.parm7, s.parm8, s.name \
+	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset1, s.parm1, d.data, s.parm3, s.parm4, s.parm5, s.parm6, s.parm7, s.parm8, s.name \
 	  FROM seq4 s, bfdata d \
 	  WHERE s.aseqno = d.aseqno \
 	  ORDER BY 1" \
@@ -351,7 +352,7 @@ holdfing: # generally useable
 	  FROM seq4 s, asinfo i \
 	  WHERE s.aseqno = i.aseqno \
 	  ORDER BY 1" \
-	| perl $(COMMON)/callmaple.pl -t 4 -n 4 -p holdfin.mpat \
+	| perl $(COMMON)/callmap22.pl -t 4 -n 4 -p holdfin.mpat \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -420,7 +421,7 @@ sqrtext1: # 2nd grep has bracketting problems
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
 sqrtext2:
-	perl $(COMMON)/callmaple.pl -t 8 -n 8 -p holratgf.mpat sqrtext1.tmp \
+	perl $(COMMON)/callmap22.pl -t 8 -n 8 -p holratgf.mpat sqrtext1.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.*tmp
@@ -673,7 +674,7 @@ unsure4:
 #-------------------
 # too slow:
 hiter2slow:
-	$(DBAT) -f $(FISCHER)/seq4.create.sql
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
 	cat      hiter1.tmp \
 	| $(DBAT) -m csv -r seq4
 	$(DBAT) -4 seq4
@@ -729,7 +730,7 @@ maplass3:
 	head -n4 $@.tmp
 	wc       $@.tmp
 maplass4:
-	perl $(COMMON)/callmaple.pl -t 10 -n 16 -p holfind.mpat maplass2.tmp \
+	perl $(COMMON)/callmap22.pl -t 10 -n 16 -p holfind.mpat maplass2.tmp \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc       $@.tmp
