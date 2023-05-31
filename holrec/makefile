@@ -190,7 +190,7 @@ sectrec0:
 	2>       $@.rest.tmp \
 	| sort | uniq > $@.tmp
 	head -n4 $@.tmp
-	cut -f4 sectrec0.tmp | sort | uniq -c
+	cut -f4  sectrec0.tmp | sort | uniq -c
 	wc -l    $@*.tmp
 #--------------------------------
 greprec0:

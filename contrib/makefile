@@ -222,7 +222,9 @@ sdstest:
 #-------
 subdir:
 	mkdir $(DIR) || :
-	grep -P "$(NAME)" $(COMMON)/joeis_names.txt > $(DIR)/$(DIR)list.txt
+	grep -P "$(NAME)" $(COMMON)/joeis_names.txt \
+	| perl ../common/nyi.pl -p | cut -b1- | grep -vE "#\?" \
+	> $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
 authors: ajlist amlist edlist grlist jvplist oglist oplist pblist phlist rzlist smlist
 ajlist:
@@ -233,6 +235,8 @@ edlist:
 	make subdir DIR=ed  NAME=Deutsch
 grlist:                 
 	make subdir DIR=gr  NAME=Resta
+galist:                 
+	make subdir DIR=ga  NAME="Gary \S* Adamson"
 jvplist:
 	make subdir DIR=jvp NAME="Vos Post"
 oglist:

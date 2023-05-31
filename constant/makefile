@@ -2,6 +2,7 @@
 
 # OEIS-mat/constant: DecimalExpansion, Beatty, ContinuedFraction etc. of real constants
 # @(#) $Id$
+# 2023-05-08: offset -> offset1
 # 2021-07-13: moved from ./real
 # 2021-07-01, Georg Fischer: copied from ../weidis
 #---------------------------------
@@ -68,9 +69,9 @@ cons:
 	    AND d.aseqno = n.aseqno \
 	    AND i.keyword LIKE '%cons%' \
 	  ORDER BY 1" \
-	| perl -ne 's/\s+\Z//; my ($$aseqno, $$offset, $$terms, $$superclass, $$name) = split(/\t/);'\
+	| perl -ne 's/\s+\Z//; my ($$aseqno, $$offset1, $$terms, $$superclass, $$name) = split(/\t/);'\
 	' $$terms =~ s{\,(\d)}{$$1}g;'\
-	' print join("\t", $$aseqno, $$offset, $$terms, $$superclass, $$name) . "\n";'\
+	' print join("\t", $$aseqno, $$offset1, $$terms, $$superclass, $$name) . "\n";'\
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -128,7 +129,7 @@ cofr2: # cut expressions
 cofr3: # -> seq4
 	cd $(FISCHER) ; make seq4 LIST=../../../OEIS-mat/constant/cofr2.tmp
 cofr4: # search for Dec.Exp.Seq. with corresponding expressions
-	$(DBAT) -x "SELECT s.aseqno, 'cofr', s.offset \
+	$(DBAT) -x "SELECT s.aseqno, 'cofr', s.offset1 \
 	  , COALESCE((SELECT j.aseqno FROM joeis j, asname n \
 	      WHERE j.aseqno = n.aseqno \
 	        AND n.name LIKE '% of ' || parm1 || '%'\
@@ -251,11 +252,11 @@ post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
 	>        $(LIST)
 	wc -l    $@*.tmp $(LIST)
 #--
-load: # LIST= ; update $(OFFSET)
+load: # LIST= ; update $(OFFSET1)
 	#==== $@ LIST=$(LIST)
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
-	$(DBAT)  "UPDATE seq4 s SET offset = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno)\
-	    , parm3 = (SELECT SUBSTR(d.data, 1, 17)            FROM asdata d WHERE d.aseqno = s.aseqno)";
+	$(DBAT)  "UPDATE seq4 s SET offset1 = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno)\
+	    , parm3 = (SELECT SUBSTR(d.data, 1, 17)             FROM asdata d WHERE d.aseqno = s.aseqno)";
 #--
 interval: # LIST= WIDTH= ; unload and set low, high into $(PARM3), $(PARm4)
 	#==== $@ LIST=$(LIST)
@@ -402,12 +403,13 @@ solvetab: solvetab1 solvetab2 solvetab3 solvetab4 # generate for CK's tables in
 	wc -l    $@.gen
 solvetab1: # creates solve() parameters from Perl <DATA>, and writes $@.sql.tmp
 	perl solvetab.pl -a $(TAB) \
-	2>       $@.sql.tmp \
+	2>       $@.1.tmp \
 	| sort | uniq -w7 \
 	| perl -pe 's{(\D)1\*}{$$1}g;' \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
+	grep -E "^  " $@.1.tmp > $@.sql.tmp
 solvetab2: # convert to CR infix
 	cp -v solvetab1.tmp $@.tmp
 	make post_cr    LIST=$@.tmp
@@ -475,8 +477,8 @@ decexp3:
 	>        $@.tmp
 decexp4:
 	cat decexp3.tmp \
-	| perl -ne 'my ($$aseqno, $$callcode, $$offset, $$parm1, @rest) = split(/\t/); '\
-	' if ((length($$offset) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
+	| perl -ne 'my ($$aseqno, $$callcode, $$offset1, $$parm1, @rest) = split(/\t/); '\
+	' if ((length($$offset1) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
 	| sort | uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp

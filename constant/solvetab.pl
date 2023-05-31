@@ -291,7 +291,7 @@ while (<DATA>) {
 
     }
 } # while <DATA>
-print STDERR "COMMIT;\n";
+print STDERR "  COMMIT;\n";
 #----
 sub polish {
     my ($expr) = @_;
@@ -311,8 +311,8 @@ sub outstd {
 #----
 sub outerr {
     my ($aseqn1, $aseqn0) = @_;
-    print STDERR "UPDATE seq4 s1 SET s1.parm3 = (SELECT s0.parm3  FROM seq4 s0 WHERE s0.aseqno = \'$aseqn0\') "
-     .                           ", s1.offset = (SELECT s0.offset FROM seq4 s0 WHERE s0.aseqno = \'$aseqn0\') "
+    print STDERR "  UPDATE seq4 s1 SET s1.parm3 = (SELECT s0.parm3   FROM seq4 s0 WHERE s0.aseqno = \'$aseqn0\') "
+     .                            ", s1.offset1 = (SELECT s0.offset1 FROM seq4 s0 WHERE s0.aseqno = \'$aseqn0\') "
      . " WHERE s1.aseqno = \'$aseqn1\';\n";
 } # outerr
 __DATA__

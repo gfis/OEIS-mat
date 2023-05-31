@@ -25,25 +25,25 @@ help:
 # the following are to be used on the remote server
 #----
 # Download stripped.gz, names.gz, bfilelist.gz
-prep_down: prep1 prep2 prep3 prep_pack
-prep1:
+oprep_down: oprep1 oprep2 oprep3 oprep_pack
+oprep1:
 	rm -f stripped*
 	wget https://oeis.org/stripped.gz
 	gzip -df  stripped.gz
 	cp -pv    stripped  $(COMMON)
 	sleep $(SLEEP)
-prep2:
+oprep2:
 	rm -f names*
 	wget https://oeis.org/names.gz
 	gzip -df  names.gz
 	cp -pv    names     $(COMMON)
 	sleep $(SLEEP)
-prep3:
+oprep3:
 	rm -f bfilelist*
 	wget https://oeis.org/bfilelist.gz
 	gzip -df  bfilelist.gz
 	cp -pv    bfilelist $(COMMON)
-prep_pack:
+oprep_pack:
 	tar -czvf $@.tgz stripped names bfilelist
 	ls -al
 #----
@@ -61,13 +61,14 @@ cat28: # reassemble the cat25.txt file
 	ls -al   *$@.*
 tinfo: # extract ASINFO, ASNAME, BFINFO database tables
 	perl -w catex_info.pl -d $(D) cat28.txt
-	ls -al ??????.txt
-	wc -l  ??????.txt
+	ls -al   ??????.txt
+	wc -l    ??????.txt
+	tail -n2 ??????.txt
 catex_pack:
-	tar -czvf $@.tgz asinfo.txt asname.txt bfinfo.txt
+	tar -czvf $@.tgz asdata.txt asinfo.txt asname.txt bfinfo.txt
 	ls -al *.tgz
 #====
-joeis_down: joeis_pull joeis_list1 joeis_list2 joeis_ofpre joeis_coral jcat28 joeis_pack
+joeis_down: joeis_pull joeis_list1 joeis_list2 joeis_ofpre joeis_coral joeis_ofter jcat28 joeis_pack
 #--
 joeis_pull:	# update Sean's jOEIS repository
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H.%M`.txt
@@ -124,42 +125,47 @@ joeis_pack:
 #========
 # to be used locally:
 #
-remote: prep_remote jar_remote catex_remote joeis_remote
-	cd ../common ; make asinfo_load asname_load bfinfo_load joeis_reload
+remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4
+load4:
+	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload
 #====
-prep_remote: # download stripped, names, bfilelist
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data/ ; make prep_pull"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/prep_pack.tgz .
-	tar -xzvf prep_pack.tgz
+oprep_remote: # download stripped, names, bfilelist
+	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"
+	scp               $(REMOTE):~/work/gits/OEIS-mat/data/oprep_pack.tgz .
+	tar -xzvf                                             oprep_pack.tgz
 	ls -al
-	mv -v stripped names bfilelist ../common/
+	tail -n2 stripped names bfilelist
+	mv -v    stripped names bfilelist ../common/
 #====
 catex_remote: # refresh oeisdata, generate cat28 and db table content and download
 	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
 	scp makefile *.pl $(REMOTE):~/work/gits/OEIS-mat/data/
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data/ ; make catex_pull"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/catex.tgz .
-	tar -xzvf catex.tgz
+	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make catex_down"
+	scp               $(REMOTE):~/work/gits/OEIS-mat/data/catex_pack.tgz .
+	tar -xzvf                                             catex_pack.tgz
 	ls -al
-	mv -v asinfo.txt asname.txt bfinfo.txt ../common/
+	tail -n2 asdata.txt asinfo.txt asname.txt bfinfo.txt
+	mv -v    asdata.txt asinfo.txt asname.txt bfinfo.txt ../common/
 tinfo_remote: # refresh generate db table content and download
 	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
 	scp makefile *.pl $(REMOTE):~/work/gits/OEIS-mat/data/
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data/ ; make tinfo_pull"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/catex.tgz .
-	tar -xzvf catex.tgz
+	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make tinfo_down"
+	scp               $(REMOTE):~/work/gits/OEIS-mat/data/catex_pack.tgz .
+	tar -xzvf                                             catex_pack.tgz
 	ls -al
-	mv -v asinfo.txt asname.txt bfinfo.txt ../common/
+	tail -n2 asdata.txt asinfo.txt asname.txt bfinfo.txt
+	mv -v    asdata.txt asinfo.txt asname.txt bfinfo.txt ../common/
 #====
 joeis_remote: # update jOEIS repository, produce lists and jcat28, pack them and download
 	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
 	scp makefile *.pl $(REMOTE):~/work/gits/OEIS-mat/data/
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data/ ; make joeis_pull"
+	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make joeis_down"
 	scp               $(REMOTE):~/work/gits/OEIS-mat/data/joeis_pack.tgz .
-	tar -xzvf joeis_pack.tgz
+	tar -xzvf                                             joeis_pack.tgz
 	ls -al
-	cp -pv jcat28.txt ../common/jcat25.txt
-	cp -pv joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
+	tail -n2 jcat28.txt joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt
+	cp -pv   jcat28.txt ../common/jcat25.txt
+	cp -pv   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
 #====
 jar_remote: # refresh jOEIS and rebuild the joeis.jar; needs > 8 GB RAM
 	ssh $(REMOTE) "cd ~/work/gits/joeis ; git pull ; ant compile-internal jar"

@@ -6,6 +6,7 @@
 #---------------------------------
 GITS=../..
 COMMON=$(GITS)/OEIS-mat/common
+DATA=$(GITS)/OEIS-mat/data
 DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
 JCAT28=$(DATA)/jcat28.txt
@@ -28,11 +29,11 @@ anopan: anopan0 anopan1
 	grep -P "\tanopan\t" anopan1.tmp \
 	| grep -vE "A068310|A121835|A123538|A130911|A137851|A178467|A185246|A262348|A274996|A277078" \
 	>        $@.gen
-	head -n4 $@.gen
+	head -n2 $@.gen
 	wc -l    $@.gen
 anopan0:
 	grep -Pi "\= *A\d+\([^\)]+\) *([\+\-\*\/\^]|and|or|xor|xand|mod) *A\d+\([^\)]+\)" $(JCAT28) \
-	| grep -E "^\%[NFC]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
+	| grep -E "^%[NF]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
 	>        $@.tmp
 	wc -l    $@.tmp
 	make seq2 LIST=$@.tmp
@@ -42,14 +43,14 @@ anopan0:
 	    AND i.aseqno = d.aseqno \
 	    ORDER BY 1" \
 	>        $@.tmp
-	head -n4 $@.tmp
+	head -n2 $@.tmp
 	wc -l    $@.tmp
 anopan1:
 	perl $(COMMON)/anopan.pl anopan0.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	wc -l    $@.tmp $@.rest.tmp
-	cut -f 2 $@.tmp | sort | uniq -c
+	cut -f2  $@.tmp | sort | uniq -c
 #----
 binomx:
 	grep -E "^%" $(JCAT28) | grep -P "Binomial transform of A" \
@@ -115,6 +116,15 @@ partsum:
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
 	' print join("\t", $$an, partsum, 0, "", "", "new $$rn()", "") . "\n"; } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+triprod: # Triangles that are products of other triangles
+	grep -E "^%" $(JCAT28) |  grep -Pi "A\d{6} *\* *A\d{6}" | grep -iE "triang|matri|rows" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ m{(A\d{6}) *\* *(A\d{6})}) { my ($$an1, $$an2) = ($$1, $$2); '\
+	' print join("\t", substr($$line, 0, 7), triprod, 0, $$an1, $$an2, substr($$line, 8)); } else { print "# $$line"; }'\
+	| sort | uniq -w7 \
 	| tee    $@.gen
 	wc -l    $@.gen
 #----

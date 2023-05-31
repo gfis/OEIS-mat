@@ -2,6 +2,7 @@
 
 # Extract fields for database tables from a cat25 file
 # @(#) $Id$
+# 2023-05-08: asdata
 # 2023-05-05: Georg Fischer, modified from common/extract_info.pl
 #
 #:# Usage:
@@ -64,6 +65,7 @@ my  $ncontent = ""; # new $content
 my  $count    = 0;
 my  $content;
 my  $tabname;
+$tabname = "asdata"; open(ASDATA, ">", "$tabname.txt") || die "cannot write \"$tabname.txt\"";
 $tabname = "asinfo"; open(ASINFO, ">", "$tabname.txt") || die "cannot write \"$tabname.txt\"";
 $tabname = "asname"; open(ASNAME, ">", "$tabname.txt") || die "cannot write \"$tabname.txt\"";
 $tabname = "bfinfo"; open(BFINFO, ">", "$tabname.txt") || die "cannot write \"$tabname.txt\"";
@@ -171,6 +173,7 @@ while (<>) {
 } # while <>
 
 &output();
+close(ASDATA);
 close(ASINFO);
 close(ASNAME);
 close(BFINFO);
@@ -187,6 +190,7 @@ sub output {
         $bfimax = scalar(@list) + $bfimin - 1;
     } # no real b-file
     $termno = $bfimax - $bfimin + 1;
+    print ASDATA join("\t", $aseqno, $termno, $terms) . "\n";
     print ASINFO join("\t", $aseqno, $offset1, $offset2, $term8, $termno, length($terms), $keyword, $program, $author, $revision, $created, $access) . "\n";
     print ASNAME join("\t", $aseqno, $name) . "\n";
     print BFINFO join("\t", $aseqno, $bfimin, $bfimax, 0, $term8, "", 0, 0, $message, "1971-01-01 00:00:01") . "\n";

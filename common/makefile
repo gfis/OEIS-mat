@@ -369,8 +369,8 @@ joeis_pullloc: # refresh local önly
 	cp -v $(JOEIS)/joeis_list.txt .
 	make joeis_reload
 #--
-joeis_reload: joeis_load joeis_ofter joeis_ofdec \
-	joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
+tinfo_reload: asinfo_load asname_load bfinfo_load
+joeis_reload: joeis_load joeis_ofter joeis_ofdec joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
 # joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
 joeis_rest: joeis_names joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
@@ -485,7 +485,6 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 	| cut -b1-80
 #----
 joeis_ccan:
-	scp gfis@$(REMOTE):work/gits/joeis/joeis_list1.all.tmp .
 	# cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
 	>        $@.cc.tmp \
@@ -493,7 +492,6 @@ joeis_ccan:
 	head -n4 $@.*.tmp
 	wc -l    $@.*.tmp
 joeis_ccanloc:
-	# scp gfis@$(REMOTE):work/gits/joeis/joeis_list1.all.tmp .
 	cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
 	>        $@.cc.tmp \

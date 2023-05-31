@@ -41,7 +41,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 #----
 my $pattern = <<'Gfis';
-read "C:\\Program Files\\Maple 2019\\FPS.mpl":
+read "C:\\Program Files\\Maple 2022\\FPS.mpl":
 interface(prettyprint=0):
 with(gfun):
 catalan:= x -> (1/2)*(1-sqrt(1-4*x))/x:
@@ -85,7 +85,7 @@ sub execute {
     print MPL "$buffer\n";
     $buffer = "";
     close(MPL);
-    my $maple = "\"C:/Program Files/Maple 2019/bin.X86_64_WINDOWS/cmaple.exe\"";
+    my $maple = "\"C:/Program Files/Maple 2022/bin.X86_64_WINDOWS/cmaple.exe\"";
     my $cmd = "$maple -q $filename";
     # print STDERR "starting with $aseqno\n";
     my $result = `$cmd`;
