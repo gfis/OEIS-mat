@@ -25,7 +25,8 @@ recur.grep:
 dfinite.grep:
 	ssh gfis@atair 'cd ~/work/gits/OEIS-mat/common ; find ajson -iname "*.json" | sort | xargs -l grep -iHE "[DPC]\-finite"' | tee $@.txt
 dfinite:
-	perl dfinite.pl dfinite.grep.txt \
+	grep -P "^\%[NF]" $(COMMON)/jcat25.txt | cut -b4- \
+	| perl dfinite.pl\
 	| sort | uniq -w7 \
 	| grep -vE "A071359|A098442|A106191|A144580|A145889|A152886|A227292|A346224|A351930|A352681" \
 	>        $@.tmp

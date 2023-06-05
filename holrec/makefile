@@ -811,27 +811,27 @@ satis4:
 	
 #----
 sq1:
-	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/jcat25.txt \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 sq2:
-	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(\d+)\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2\)\s*\.}i" $(COMMON)/cat25.txt \
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(Expansion of\s*)?(([EO]\.)?G\.f\.\:?\s*)?(\d+)\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2\)\s*\.}i" $(COMMON)/jcat25.txt \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 sq3:
-	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x(\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2)?\)\s*\.}i" $(COMMON)/cat25.txt \
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x(\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2)?\)\s*\.}i" $(COMMON)/jcat25.txt \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 sq4:
-	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(1\s*[\+\-]\s*(\d*)\s*\*?\s*x(\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2)?\)\^\(\-?\d+\/2\))\s*\.}i" $(COMMON)/cat25.txt \
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(1\s*[\+\-]\s*(\d*)\s*\*?\s*x(\s*[\+\-]\s*(\d*)\s*\*?\s*x\^2)?\)\^\(\-?\d+\/2\))\s*\.}i" $(COMMON)/jcat25.txt \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 sq5:
-	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)[^\^]+\^\(\-?\d+\/2\)\s*\.}i" $(COMMON)/cat25.txt \
+	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)[^\^]+\^\(\-?\d+\/2\)\s*\.}i" $(COMMON)/jcat25.txt \
 	| grep -viE "(theta|log|exp|sin|cos|tan|satisf|series|bessel|lambert)" \
 	| tee    $@.tmp
 	wc -l    $@.tmp
-#	perl -ne "print if m{\A\%F\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/cat25.txt \
+#	perl -ne "print if m{\A\%F\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/jcat25.txt \
 #----
 rectoproc0:
 	grep -E "^%p " $(COMMON)/jcat25.txt \
@@ -1025,7 +1025,7 @@ matpap2:
 recuf:  recuf1  recuf_rest
 recuf_rest: recuf2 recuf3 recuf4 recuf5 recuf6 recuf7
 recuf1:
-	perl grep_rectab.pl $(COMMON)/cat25.txt \
+	perl grep_rectab.pl $(COMMON)/jcat25.txt \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

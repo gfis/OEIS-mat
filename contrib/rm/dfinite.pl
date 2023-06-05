@@ -2,6 +2,7 @@
 
 # Prepare result of grep -E "[PCD]\-finite"
 # @(#) $Id$
+# 2023-06-02: extract from common/jcat25.txt
 # 2022-07-29, Georg Fischer
 #
 #:# Usage:
@@ -33,14 +34,15 @@ while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     $callcode = ($line =~ s{Conjecture\:? *}{}) ? "holocj" : "holope";
-    $line =~ s{\Aajson\/(A\d+)\.json\:\t+\"(.*)}{$1};
+    $line =~ s{\A(A\d+) (.*)}{$1 $2};
     ($aseqno, $name) = ($1, $2);
     next if ($name =~ m{appears });
-    $name =~ s{\A.*[PCD]\-finite (with )?[Rrecun]+\:? *}{};
-    $name =~ s{Expansion satisfies }{};
-    $name =~ s{\(of order \d+\)\:?}{};
-    if ($name =~ m{a\(n}) {
-        print join("\t", $aseqno, $callcode, 0, $name) . "\n";
+    if ($name =~ s{\A.*[PCD]\-finite (with )?[Rrecun]+\:? *}{}) {
+        $name =~ s{Expansion satisfies }{};
+        $name =~ s{\(of order \d+\)\:?}{};
+        if ($name =~ m{a\(n}) {
+            print join("\t", $aseqno, $callcode, 0, $name) . "\n";
+        }
     }
 } # while <>
 #--------------------------------------------

@@ -17,6 +17,7 @@ FISCHER=$(LITE)/internal/fischer
 OEISDATA=$(GITS)/oeisdata
 HERE=$(GITS)/OEIS-mat/robot
 REMOTE=atair
+NYI=perl $(COMMON)/nyi.pl -q
 # set_env_var_REMOTE
 #-------------
 all: help
@@ -53,11 +54,11 @@ anopan1:
 	cut -f2  $@.tmp | sort | uniq -c
 #----
 binomx:
-	grep -E "^%" $(JCAT28) | grep -P "Binomial transform of A" \
+	grep -E "^%" $(JCAT28) | grep -P "[Bb]inomial transform of [^A]*A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, binomx, 0, "$$rn", "", "", "", "", "", "") . "\n"; } else { print "# $$line"; }}'\
+	' if ($$line =~ m{transform of [^A]*(A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, binomx, 0, "$$rn", ",0", (($$line =~ m{Inverse binomial}i) ? ", true" : ", false"), $$line); } else { print "# $$line"; }}'\
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
@@ -68,6 +69,45 @@ charfun:
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
 	' print join("\t", $$an, charfun, 0, "$$rn", "", "", "", "", "", "") . "\n"; } else { print "# $$line"; }}'\
 	| tee    $@.gen
+	wc -l    $@.gen
+#----
+diffseq:
+	grep -E "^%" $(JCAT28) | grep -P "(First |Second |Third |)[Dd]ifferences of [^A]* A\d{6}" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of [^A]*(A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, diffseq, 0, $$rn, $$line); } else { print "# $$line"; }}'\
+	| grep -vE "Annnnnn" \
+	| tee    $@.gen
+	wc -l    $@.gen
+#--------
+dirichcon: # Dirichlet convolution or inverse
+	grep -P "Dirichlet convolution of " $(JCAT28) | grep -P "^\%[NF]" | $(NYI) dirichcon \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
+	' $$name =~ s{(A\d+)(\(n\))? with itself}{$$1 with $$1};'\
+	' if ($$name =~ m{(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2) = ($$1, $$2);'\
+	' print join("\t", $$aseqno, "dirichcon2", $$offset, "new $$rn1()", 1, "new $$rn2()", 1, $$name); }'\
+	>        $@.gen
+	grep -P "Dirichlet inverse of " $(JCAT28) | grep -P "^\%[NF]" | $(NYI) dirichinv \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, "new $$rn1()", 1, $$name); }'\
+	>>       $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+#--------
+m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
+	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(JCAT28) | $(NYI) m1pow \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
+	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
+	>        $@.gen
+	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-1\)\^n *\* *A\d+\(n\)[ \.\,]" $(JCAT28) | $(NYI) m1mul \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
+	>>       $@.gen
+	head -n2 $@.gen
 	wc -l    $@.gen
 #--------
 # Robot#1: Ordinary (rational) generating functions
@@ -106,7 +146,7 @@ partprod:
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, partprod, 0, "", "", "new $$rn()", "") . "\n"; } else { print "# $$line"; }}'\
+	' print join("\t", $$an, partprod, 0, "", "", "new $$rn()", $$line); } else { print "# $$line"; }}'\
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
@@ -115,15 +155,25 @@ partsum:
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, partsum, 0, "", "", "new $$rn()", "") . "\n"; } else { print "# $$line"; }}'\
+	' print join("\t", $$an, partsum, 0, $$rn, "", "", $$line); } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+rowsums:
+	grep -E "^%" $(JCAT28) | grep -P "Row sums of [^A]* A\d{6}" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of [^A]*(A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, rowsums, 0, $$rn, $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A253722|A325546" \
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
 triprod: # Triangles that are products of other triangles
-	grep -E "^%" $(JCAT28) |  grep -Pi "A\d{6} *\* *A\d{6}" | grep -iE "triang|matri|rows" \
+	grep -E "^%" $(JCAT28) |  grep -P "A\d{6}[^A0-9]+A\d{6}" | grep -iE "triang|matri|rows|array" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ m{(A\d{6}) *\* *(A\d{6})}) { my ($$an1, $$an2) = ($$1, $$2); '\
-	' print join("\t", substr($$line, 0, 7), triprod, 0, $$an1, $$an2, substr($$line, 8)); } else { print "# $$line"; }'\
+	| perl -ne 'my $$line = $$_; if ($$line =~ m{(A\d{6})[^A0-9]+(A\d{6})}) { my ($$an1, $$an2) = ($$1, $$2); '\
+	' print join("\t", substr($$line, 0, 7), triprod, 0, $$an1, $$an2, $$line); } else { print "# $$line"; }'\
 	| sort | uniq -w7 \
 	| tee    $@.gen
 	wc -l    $@.gen

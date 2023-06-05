@@ -677,9 +677,8 @@ triprod2:
 trisimple:
 	cat $(COMMON)/joeis_names.txt \
 	| perl trisimple.pl \
-	| sort -k4,4 \
 	>         $@.tmp
-	head -n12 $@.tmp
+	head -n6  $@.tmp
 	wc -l     $@.tmp
 #--------
 wraptr:

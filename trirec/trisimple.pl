@@ -21,30 +21,32 @@ while (<>) {
     if ($line =~ m{\s[ATsta] *[\(\[]([a-z])\, *([a-z])[\)\]] *\=(([\d\+\-\*\/\^ \!\(\)])*([a-z]([\d\+\-\*\/\^ \!\(\)])+)+)([\,\.\<\=\>\;]|for|with|where|if)}) {
         my ($n, $k, $expr) = ($1, $2, $3);
         $expr =~ s{ }{}g;
+        $expr =~ s{\b$n\b}{\#n}g; # normalize to (n,k)
+        $expr =~ s{\b$k\b}{\#k}g;
+        $expr =~ s{\#}{}g;
         ($aseqno, $superclass, $name, $keyword, $bfims, @rest, $offset) = split(/\t/, $line);
         if (0) { # excludes:
-        } elsif ($superclass ne "null") { # already in jOEIS
-        } elsif ($keyword !~ m{tabl}) { # no keyword tabl
-        } elsif ($expr =~ m{[\+\-\+\/\^\(]\Z}) { # incomplete
+        } elsif ($superclass !~ m{\Anyi}) { # already in jOEIS
+        } elsif ($keyword    !~ m{tabl}) { # no keyword tabl
+        } elsif ($expr       =~ m{[\+\-\+\/\^\(]\Z}) { # incomplete
         } else {
             my $ok = 1;
-            foreach my $letter ($expr =~ m{([a-z])}g) {
-                if ($letter ne $n and $letter ne $k) {
-                    $ok = 0;
-                }
-            } # foreach
             if ($ok == 1) { # only $n and $k - normalize them to "n" and "k"
-                $expr =~ s{$n}{\{$n\}}g; # shield it
-                $expr =~ s{$k}{\{$k\}}g; # shield it
-                $expr =~ s{\{$n\}}{n}g;  # unshield and normalize
-                $expr =~ s{\{$k\}}{k}g;  # unshield and normalize
+                my $old_expr = $expr;
                 $expr =~ s{\(\-1\)\^([nk]|\([^\)]+\))}{\(\(\($1 \& 1\) == 0\) \? 1 \: \-1\)}g;
                 $expr =~ s{(\+|\-)}{ $1 }g;
                 $expr =~ s{\^2}{\.square\(\)}g;
                 $expr =~ s{\^}{\.pow}g;
+                $expr =~ s{\b([a-z0-9])([a-z])\b}{$1\*$2}g;
             #   $expr =~ s{\*}{\.multiply}g;
                 $expr =~ s{\/2}{\.divide2()}g;
                 $expr =~ s{\/}{\.divide(}g;
+                $expr =~ s{\bC\(}{binomial\(}g;
+                $expr =~ s{\bF(ib)?\(}{fibonacci\(}g;
+                $expr =~ s{binomial}{Binomial.binomial}g;
+                $expr =~ s{fibonacci}{Fibonacci.fibonacci}g;
+                $expr =~ s{\b([nk])\!}{MemoryFactorial.SINGLETON.factorial\($1\)}g;
+                $expr =~ s{\bpow([nk])}{pow\($1\)}g;
                 $callcode = "trisimple";
                 if ($keyword =~ m{tard}) {
                     $callcode = "trisimard";
@@ -54,7 +56,8 @@ while (<>) {
                 }
                 $bfims =~ m{\A(\-?\d+)};
                 $offset = $1;
-                print join("\t", $aseqno, $callcode, $offset, "Z.valueOf($expr)", $name, $keyword, $bfims, @rest). "\n";
+                print join("\t", "#", "", "", "", $old_expr) . "\n";
+                print join("\t", "#$aseqno", $callcode, $offset, "Z.valueOf($expr)", $name, $keyword, $bfims, @rest). "\n\n";
             }
         }
     } # if line
