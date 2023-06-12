@@ -169,12 +169,30 @@ rowsums:
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
-triprod: # Triangles that are products of other triangles
-	grep -E "^%" $(JCAT28) |  grep -P "A\d{6}[^A0-9]+A\d{6}" | grep -iE "triang|matri|rows|array" \
-	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ m{(A\d{6})[^A0-9]+(A\d{6})}) { my ($$an1, $$an2) = ($$1, $$2); '\
-	' print join("\t", substr($$line, 0, 7), triprod, 0, $$an1, $$an2, $$line); } else { print "# $$line"; }'\
-	| sort | uniq -w7 \
+triprod: 
+	# Triangles that are products of 2 other triangles
+	grep -E "^%[NF]" $(JCAT28) |  grep -P "A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) triprod \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
+	' $$name =~ s{A000012(\^\(\-1\)| *\(signed)}{A097807}g;'\
+	' $$name =~ s{A007318(\^\(\-1\)| *\(signed)}{A130595}g;'\
+	' if ($$name =~ m{(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2) = ($$1, $$2);'\
+	' print join("\t", $$aseqno, "triprod", $$offset, $$rn1, $$rn2, $$name); }'\
+	| tee    $@.gen
+	wc -l    $@.gen
+	# tripro3: # Triangles that are products of 3 other triangles
+	grep -E "^%[NF]" $(JCAT28) |  grep -P "A\d{6}(\^\(\-1\)| *\(signed\))? *\* A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) tripro3 \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
+	' $$name =~ s{A000012(\^\(\-1\)| *\(signed)}{A097807}g;'\
+	' $$name =~ s{A007318(\^\(\-1\)| *\(signed)}{A130595}g;'\
+	' if ($$name =~ m{(A\d+)[^A]+(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2, $$rn3) = ($$1, $$2, $$3);'\
+	' print join("\t", $$aseqno, "tripro3", $$offset, $$rn1, $$rn2, $$rn3, $$name); }'\
+	| tee -a $@.gen
+	wc -l    $@.gen
+trisum: 
+	# Triangles that are sums of other triangles
+	grep -E "^%[NF]" $(JCAT28) | grep -P "(\d+ *\* *)?(I|A\d{6}) *[-\+] *(\d+ *\* *)?(I|A\d{6})" | $(NYI) trisum \
+	| perl trisum.pl \
+	| grep -vE "A133571|A134233|A134349" \
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
