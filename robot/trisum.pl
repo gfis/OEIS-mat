@@ -1,6 +1,6 @@
 #!perl
 
-# Sums of triangles
+# Extract formulas for sums of triangles (G.A.)
 # @(#) $Id$
 # 2023-06-06, Georg Fischer; RH=77
 #

@@ -116,8 +116,8 @@ if (length($query) == 0 && $print_it == 0) {
     } # for $key
 }
 if (length($query) == 0) {
-    print sprintf("%4d not implemented in jOEIS\n", $nyi);
-    print sprintf("%4d already implemented\n"     , $ari);
+    print sprintf("# %4d not implemented in jOEIS\n", $nyi);
+    print sprintf("# %4d already implemented\n"     , $ari);
 }
 #================
 __DATA__

@@ -2,6 +2,7 @@
 
 # OEIS-mat/data - extraction from repositories
 # @(#) $Id$
+# 2023-06-17: compile-internal
 # 2023-05-02: Georg Fischer
 #
 # from https://github.com/oeis/oeisdata        - sequence in internal format and b-files
@@ -13,8 +14,8 @@ DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 HERE=../OEIS-mat/data
 JOEIS=$(GITS)/joeis
 OEISDATA=$(GITS)/oeisdata
-REMOTE=set_environment_variable_REMOTE_to_g@a
-REMDIR=$(REMOTE):~/work/gits/OEIS-mat/data
+REM=set_environment_variable_REMOTE_to_g@a
+REMDIR=$(REM):~/work/gits/OEIS-mat/data
 SLEEP=8
 D=0
 #-------------
@@ -130,37 +131,37 @@ load4:
 	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload
 #====
 oprep_remote: # download stripped, names, bfilelist
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/oprep_pack.tgz .
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"
+	scp               $(REM):~/work/gits/OEIS-mat/data/oprep_pack.tgz .
 	tar -xzvf                                             oprep_pack.tgz
 	ls -al
 	tail -n2 stripped names bfilelist
 	mv -v    stripped names bfilelist ../common/
 #====
 catex_remote: # refresh oeisdata, generate cat28 and db table content and download
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
-	scp makefile *.pl $(REMOTE):~/work/gits/OEIS-mat/data/
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make catex_down"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/catex_pack.tgz .
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
+	scp makefile *.pl $(REM):~/work/gits/OEIS-mat/data/
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make catex_down"
+	scp               $(REM):~/work/gits/OEIS-mat/data/catex_pack.tgz .
 	tar -xzvf                                             catex_pack.tgz
 	ls -al
 	tail -n2 asdata.txt asinfo.txt asname.txt bfinfo.txt
 	mv -v    asdata.txt asinfo.txt asname.txt bfinfo.txt ../common/
 tinfo_remote: # refresh generate db table content and download
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
-	scp makefile *.pl $(REMOTE):~/work/gits/OEIS-mat/data/
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make tinfo_down"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/catex_pack.tgz .
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
+	scp makefile *.pl $(REM):~/work/gits/OEIS-mat/data/
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make tinfo_down"
+	scp               $(REM):~/work/gits/OEIS-mat/data/catex_pack.tgz .
 	tar -xzvf                                             catex_pack.tgz
 	ls -al
 	tail -n2 asdata.txt asinfo.txt asname.txt bfinfo.txt
 	mv -v    asdata.txt asinfo.txt asname.txt bfinfo.txt ../common/
 #====
 joeis_remote: # update jOEIS repository, produce lists and jcat28, pack them and download
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
-	scp makefile *.pl $(REMOTE):~/work/gits/OEIS-mat/data/
-	ssh $(REMOTE)           "cd ~/work/gits/OEIS-mat/data ; make joeis_down"
-	scp               $(REMOTE):~/work/gits/OEIS-mat/data/joeis_pack.tgz .
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
+	scp makefile *.pl $(REM):~/work/gits/OEIS-mat/data/
+	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make joeis_down"
+	scp               $(REM):~/work/gits/OEIS-mat/data/joeis_pack.tgz .
 	tar -xzvf                                             joeis_pack.tgz
 	ls -al
 	tail -n2 jcat28.txt joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt
@@ -168,11 +169,13 @@ joeis_remote: # update jOEIS repository, produce lists and jcat28, pack them and
 	cp -pv   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
 #====
 jar_remote: # refresh jOEIS and rebuild the joeis.jar; needs > 8 GB RAM
-	ssh $(REMOTE) "cd ~/work/gits/joeis ; git pull ; ant compile-internal jar"
-	scp $(REMOTE):~/work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/joeis.jar 
+	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; ant all-jar"
+	scp $(REM):~/work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/joeis.jar 
 #========
-jar_push:
-	scp $(JOEIS)/build.tmp/joeis.jar $(REMOTE):work/gits/joeis/build.tmp/joeis.jar
-
+jar_push: # REM= ; distribute the local joeis.jar to some remote server
+	scp $(JOEIS)/build.tmp/joeis.jar $(REM):work/gits/joeis/build.tmp/joeis.jar
+#====
+joeis-prep: # REM= ; make a fresh copy of joeis on the remote server
+	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf build.tmp ; cp -pr ../joeis/* . ; ant clean all-jar ; ls -al ; pwd"
 xxx:
-	ssh $(REMOTE) "cd ~/work/gits/joeis ; git pull ; cd ~/work/gits/OEIS-mat/data/
+	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; cd ~/work/gits/OEIS-mat/data/

@@ -169,6 +169,20 @@ rowsums:
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
+seqsum:
+	# Sum of sequences with optional factors
+	grep   -E "^%[NFC]" $(JCAT28) \
+	| grep -P "^%[NFC] A\d+ (a\(\w\) *\=) *[\+\-]? *\(?\d+(\/\d+)?\)? *(\* *)?A\d+" \
+	| perl seqsum.pl > $@.tmp 2> $@.rest.tmp
+	wc -l $@*.tmp
+	cat $@.tmp \
+	| $(NYI) seqsum \
+	| grep -vE "A133571|A134233|A134349" \
+	| sort | uniq -w7 \
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+#----
 triprod: 
 	# Triangles that are products of 2 other triangles
 	grep -E "^%[NF]" $(JCAT28) |  grep -P "A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) triprod \

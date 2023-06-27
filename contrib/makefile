@@ -220,10 +220,11 @@ a051990: # Discriminants ... of ERD type
 sdstest:
 	perl a053880_next.pl $(PARMS)
 #-------
+NYI="#\?"
 subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt \
-	| perl ../common/nyi.pl -p | cut -b1- | grep -vE "#\?" \
+	| perl ../common/nyi.pl -p | cut -b1- | grep -vE $(NYI) \
 	> $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
 authors: ajlist amlist edlist grlist jvplist oglist oplist pblist phlist rzlist smlist
@@ -236,7 +237,7 @@ edlist:
 grlist:                 
 	make subdir DIR=gr  NAME=Resta
 galist:                 
-	make subdir DIR=ga  NAME="Gary \S* Adamson"
+	make subdir DIR=ga  NAME="Gary \S* Adamson" NYI="\#\#\#\#" # does not occur
 jvplist:
 	make subdir DIR=jvp NAME="Vos Post"
 oglist:

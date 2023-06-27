@@ -343,21 +343,46 @@ triknoll:
 	# 2> $@.viol.tmp 
 	head -n4 $@.tmp
 	wc -l    $@.*tmp  
-#----
-trixam:
-	$(DBAT) -x "SELECT i.aseqno, i.offset1, d.data FROM asinfo i, bfdata d \
-		WHERE i.aseqno = d.aseqno \
-		  AND i.keyword LIKE '%tabl%' \
-	    ORDER BY i.aseqno;" \
+#========
+trixam0: # prepare a seq4 table with all 'tabl' sequences fulfilling some condition
+	# all tables are (n,k) = (0,0) based
+	#                                                 parm1   2  3  4  5  6  7  8=nyi, 9=name
+	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '','','','','','' \
+	    , SUBSTR(COALESCE(j.superclass, 'nyi  x'), 1, 6), SUBSTR(n.name, 1, 128) \
+	    FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	    WHERE i.aseqno = d.aseqno \
+	      AND d.aseqno = n.aseqno \
+	      AND i.keyword LIKE '%tabl%' \
+	    ORDER BY 1;" \
 	>        $@.tmp
-	head -n4 $@.tmp
+	head -n2 $@.tmp
 	wc -l    $@.tmp  
-trixy:
-	perl trixamine.pl -m trixy -r 6 -s 2 trixam.tmp \
-	>        $@.tmp 
-	head -n4 $@.tmp
-	wc -l    $@.tmp  
-#--------
+trixam1: # CC= S= ; evaluate a single condition
+	sed -e "s/\ttrixam\w*\t/\t$(CC)\t/" trixam0.tmp \
+	| perl trixamine.pl -r 6 -s $(S) \
+	>        $(CC).tmp 
+	head -n2 $(CC).tmp
+	wc -l    $(CC).tmp
+	cut -f1,2,3,11,12 $(CC).tmp \
+	| tee    $(CC).short.tmp
+	wc -l    $(CC).short.tmp
+trixall: trixam0 trixdiag trixinter0 # evaluate all conditions
+trixy:       # cf. trixamine.pl
+	make trixam1 CC=$@
+trixdiag:    # triangles with non-zero elements in the diagonal only
+	make trixam1 CC=$@
+	grep -P "^A\d+" trixdiag.short.tmp \
+	| perl -ne 's{^(A\d+)}{lc(substr($$1, 0, 4)) . "/$$1"}e; m{(\S+)}; print "$$1\n"; '\
+	| xargs -innn cp -pv $(JOEIS)/src/irvine/oeis/nnn.java $(LITE)/internal/fischer/manual/ || :
+	grep -iHP "super\(" $(LITE)/internal/fischer/manual/*.java \
+	>        $@.tmp
+	perl $@.pl $@.tmp 2> $@.rest.tmp \
+	| tee    $@.gen
+	wc -l    $@.gen
+	cat      $@.rest.tmp || :
+trixint0:  # triangles where columns are interleaved with k+1 zeros
+	make trixam1 CC=$@ S=0
+#========
 # Triangle recurrences
 trec:
 	grep -E "^\%[NF]" $(COMMON)/jcat25.txt \
