@@ -13,13 +13,14 @@ COMMON=../common
 DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 HERE=../OEIS-mat/data
 JOEIS=$(GITS)/joeis
+FISCHER=$(GITS)/joeis-lite/internal/fischer
 OEISDATA=$(GITS)/oeisdata
 REM=set_environment_variable_REMOTE_to_g@a
 REMDIR=$(REM):~/work/gits/OEIS-mat/data
 SLEEP=8
 D=0
 #-------------
-all: 
+all: remote
 help:
 	grep -E "^[a-z]" makefile
 #==============================
@@ -126,9 +127,11 @@ joeis_pack:
 #========
 # to be used locally:
 #
-remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4
+remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect
 load4:
 	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload
+reflect:
+	cd $(FISCHER)/reflect ; make
 #====
 oprep_remote: # download stripped, names, bfilelist
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"
@@ -176,6 +179,6 @@ jar_push: # REM= ; distribute the local joeis.jar to some remote server
 	scp $(JOEIS)/build.tmp/joeis.jar $(REM):work/gits/joeis/build.tmp/joeis.jar
 #====
 joeis-prep: # REM= ; make a fresh copy of joeis on the remote server
-	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf build.tmp ; cp -pr ../joeis/* . ; ant clean all-jar ; ls -al ; pwd"
+	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf * ; cp -pr ../joeis/* . ; ant clean all-jar ; ls -al ; pwd"
 xxx:
 	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; cd ~/work/gits/OEIS-mat/data/

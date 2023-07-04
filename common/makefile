@@ -800,7 +800,7 @@ selfconv:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 convinv:
-	grep -i " convolution inverse " jcat25.txt | grep -E "^\%[NFC]" | grep -v Dirichlet \
+	grep -i "convolution inverse " jcat25.txt | grep -E "^\%[NFCY]" | grep -v Dirichlet \
 	| perl nyi.pl -p | grep "{{" | cut -b4- \
 	| perl -ne 'use strict; m{^(A\d+)[^\{]+\{\{(A\d+)}; my ($$aseqno, $$rseqno) = ($$1, $$2); '\
 	' print join("\t", $$aseqno, "rootet", 0, $$rseqno, 0, -1, 1, 0) . "\n"; '\
@@ -809,7 +809,7 @@ convinv:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 convprod:
-	grep -Pi "convolution of " jcat25.txt | grep -E "^\%[NFC]" | grep -v Dirichlet \
+	grep -Pi "convolution of " jcat25.txt | grep -E "^\%[NFCY]" | grep -v Dirichlet \
 	| perl nyi.pl -p | grep "{{" | cut -b4- \
 	>        $@.tmp
 	head -n4 $@.tmp

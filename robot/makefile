@@ -159,6 +159,14 @@ partsum:
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
+reconcat: # extract recurrent concatenations from asdata
+	$(DBAT) -x "SELECT d.aseqno, d.termno, d.data, SUBSTR(n.name, 1, 96) FROM asdata d, asname n WHERE d.aseqno = n.aseqno \
+	  AND d.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  AND UPPER(n.name) LIKE '%CONCATENAT%';"\
+	| perl reconcat.pl \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#----
 rowsums:
 	grep -E "^%" $(JCAT28) | grep -P "Row sums of [^A]* A\d{6}" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
