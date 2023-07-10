@@ -70,6 +70,14 @@ charfun:
 	' print join("\t", $$an, charfun, 0, "$$rn", "", "", "", "", "", "") . "\n"; } else { print "# $$line"; }}'\
 	| tee    $@.gen
 	wc -l    $@.gen
+#--------
+convol: # convolution, convolved with or inverse
+	grep -iP "convol" $(JCAT28) | grep -P "^\%[NFCY]" | grep -viP "Dirichlet|Exponential" | $(NYI) convprod \
+	| perl convol.pl \
+	2>       $@.rest.tmp \
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.*
 #----
 diffseq:
 	grep -E "^%" $(JCAT28) | grep -P "(First |Second |Third |)[Dd]ifferences of [^A]* A\d{6}" \
@@ -140,6 +148,16 @@ fract22:
 	>        $@.gen
 	tail -n2 $@.gen
 	wc -l    $@.gen
+#----
+parity:
+	grep -iP "Parity of A\d+" $(JCAT28) | grep -P "^\%[NFCY]" | $(NYI) parity \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, "$$rn1", 1, $$name); }'\
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+#--------
 #----
 partprod:
 	grep -E "^%" $(JCAT28) | grep -P "Partial products of A" \
