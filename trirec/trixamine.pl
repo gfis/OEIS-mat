@@ -8,7 +8,8 @@
 #:# Usage:
 #:#   perl trixamine.pl [-b bfdir] [-d debug] [-m {trixy|col0}] [-r rows] [-s start] infile.seq4 > outfile.seq4
 #:#       -b directory with b-files to be investigated (default: do not read b-files)
-#:#       -c type of check to be performed: 
+#:#       -m type of check to be performed: 
+#:#          trixcut1   = remove the first column
 #:#          trixdiag   = is diagonalized vector (default)
 #:#          trixinter0 = has progressive interleaved zeros in columns
 #:#          trixy      = cf. below
@@ -83,9 +84,42 @@ while (<>) {
             }
         } # while $ind
         my $nmax = $n - 1;
-        my $ok = $nmax >= $min_rows ? 1 : 0; # require at least $min_rows rows
+        my $ok = ($nmax >= $min_rows) ? 1 : 0; # require at least $min_rows rows
         $n = $start_row;
+        # print STDERR "n=$n, start_row=$start_row\n";
         if (0) {
+        #--------
+        } elsif ($callcode =~ m{trixceve}) { # "... in every column" (yields first column)
+            $n = 0; # patch the problem away?
+            my $newlist = "";
+            while ($ok > 0 and $n < $nmax) {
+                for ($k = 1; $k <= $n; $k ++) { # elements without first column
+                    $newlist.= "," . &T($n, $k);
+                } # for $k
+                $n ++;
+            } # while
+            $ok = 2; # cf. print below
+            $newlist =~ s{\A\,}{};
+            $newlist =~ s{\A\,}{};
+            $parms[0] = $newlist;
+        #--------
+        } elsif ($callcode =~ m{trixcut1}) { # remove the first column
+            $n = 0; # patch the problem away?
+            # print STDERR "# A156991 -> A015725\n";
+            my $col1 = "";
+            my $newlist = "";
+            while ($ok > 0 and $n < $nmax) {
+                $col1 .= "," . &T($n, 0); 
+                for ($k = 1; $k <= $n; $k ++) { # elements without first column
+                    $newlist.= "," . &T($n, $k);
+                } # for $k
+                $n ++;
+            } # while
+            $ok = 2; # cf. print below
+            $newlist =~ s{\A\,}{};
+            $col1    =~ s{\A\,}{};
+            $parms[0] = $newlist;
+            $parms[1] = $col1;
         #--------
         } elsif ($callcode =~ m{trixdiag}) { # non-zero elements only on the diagonal
             while ($ok > 0 and $n < $nmax) {
@@ -174,16 +208,21 @@ while (<>) {
             print STDERR "invalid callcode \"$callcode\"\n";
             exit(1);
         }
-        my $heads = "";
-        my $tails = "";
-        for ($n = 0; $n < $nmax; $n ++) {
-            $heads .= "," . &T($n, 0 );
-            $tails .= "," . &T($n, $n);
-        } # for $n
-        if ($ok == 1) {
+        if (0) {
+        } elsif ($ok == 1) {
+            my $heads = "";
+            my $tails = "";
+            for ($n = 0; $n < $nmax; $n ++) {
+                $heads .= "," . &T($n, 0 );
+                $tails .= "," . &T($n, $n);
+            } # for $n
             $parms[2] = substr($heads, 1);
             $parms[3] = substr($tails, 1);
             print join("\t", $aseqno, $callcode, @parms) . "\n";
+        } elsif ($ok == 2) { # trixcut1
+            if (length($parms[0]) >= 32) {
+                print join("\t", $aseqno, $callcode, 0, $parms[0], $parms[1]) . "\n";
+            }
         }
     } # with A-number
 } # while <>
@@ -224,4 +263,4 @@ sub read_bfile {
 #--------------------------------------------
 __DATA__
 A007318 1,1,1,1,2,1,1,3,3,1,1,4,6,4,1,1,5,10,10,5,1,1,6,15,20,15,6,1,1,7,21,35,35,21,7,1,1,8,28,56,70,56,28,8,1,1,9,36,84,126,126,84,36,9,1,1,10,45,120,210,252,210,120,45,10,1,1,11,55,165,330,462,462,330,165,55,11,1
-
+A156991	trixcut1	

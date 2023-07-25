@@ -22,7 +22,7 @@ NYI=perl $(COMMON)/nyi.pl -q
 #-------------
 all: help
 help:
-	grep -E "^[a-z]" makefile
+	grep -E "^[a-z]" makefile | sort
 #========
 #----
 # simple formula a(n) = Aqseqno(n...) op Arseqno(n...)
@@ -37,7 +37,7 @@ anopan0:
 	| grep -E "^%[NF]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
 	>        $@.tmp
 	wc -l    $@.tmp
-	make seq2 LIST=$@.tmp
+	cd $(COMMON) ; make seq2 LIST=$(HERE)/$@.tmp
 	$(DBAT) -x "SELECT s.aseqno, 'anopan', i.offset1, REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){8}'), s.info \
 	  FROM seq2 s, asinfo i, asdata d \
 	  WHERE s.aseqno = i.aseqno \
@@ -47,7 +47,35 @@ anopan0:
 	head -n2 $@.tmp
 	wc -l    $@.tmp
 anopan1:
-	perl $(COMMON)/anopan.pl anopan0.tmp \
+	cd $(FISCHER) ; perl anopan.pl ../../../OEIS-mat/robot/anopan0.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	wc -l    $@.tmp $@.rest.tmp
+	cut -f2  $@.tmp | sort | uniq -c
+#--
+nopan: nopan0 nopan1 # a(n) = gcd(n, Annnnnn(n))
+	grep -P "\tnopan\t" nopan1.tmp \
+	| grep -vE "A068310" \
+	>        $@.gen
+	grep -P "\tnopan\t" nopan1.man >> $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+nopan0:
+	grep -Pi "a\(n\) *\= *(min|max|and|xor|or|lcm|gcd|xand)\(n\," $(JCAT28) \
+	| grep -E "^%[NF]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
+	>        $@.tmp
+	wc -l    $@.tmp
+	cd $(COMMON) ; make seq2 LIST=$(HERE)/$@.tmp
+	$(DBAT) -x "SELECT s.aseqno, 'nopan', i.offset1, REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){8}'), s.info \
+	  FROM seq2 s, asinfo i, asdata d \
+	  WHERE s.aseqno = i.aseqno \
+	    AND i.aseqno = d.aseqno \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+nopan1:
+	perl nopan.pl nopan0.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	wc -l    $@.tmp $@.rest.tmp
@@ -73,6 +101,7 @@ charfun:
 #--------
 convol: # convolution, convolved with or inverse
 	grep -iP "convol" $(JCAT28) | grep -P "^\%[NFCY]" | grep -viP "Dirichlet|Exponential" | $(NYI) convprod \
+	| grep -vE "A171238" \
 	| perl convol.pl \
 	2>       $@.rest.tmp \
 	>        $@.gen
@@ -91,6 +120,7 @@ diffseq:
 #--------
 dirichcon: # Dirichlet convolution or inverse
 	grep -P "Dirichlet convolution of " $(JCAT28) | grep -P "^\%[NF]" | $(NYI) dirichcon \
+	| grep -vE "A159046" \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
 	' $$name =~ s{(A\d+)(\(n\))? with itself}{$$1 with $$1};'\
 	' if ($$name =~ m{(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2) = ($$1, $$2);'\
@@ -102,6 +132,16 @@ dirichcon: # Dirichlet convolution or inverse
 	' print join("\t", $$aseqno, $$callcode, $$offset, "new $$rn1()", 1, $$name); }'\
 	>>       $@.gen
 	head -n2 $@.gen
+	wc -l    $@.gen
+#----
+inverse:
+	grep -E "^%" $(JCAT28) | grep -P "Inverse +(permutation +)?(of|to) +A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{(of|to) (A\d+)}) { my $$rn = $$2; '\
+	' print join("\t", $$an, inverse, 0, "new $$rn()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A112846" \
+	| tee    $@.gen
 	wc -l    $@.gen
 #--------
 m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
@@ -174,6 +214,7 @@ partsum:
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
 	' print join("\t", $$an, partsum, 0, $$rn, "", "", $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A112846" \
 	| tee    $@.gen
 	wc -l    $@.gen
 #----

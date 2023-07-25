@@ -172,13 +172,13 @@ joeis_remote: # update jOEIS repository, produce lists and jcat28, pack them and
 	cp -pv   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
 #====
 jar_remote: # refresh jOEIS and rebuild the joeis.jar; needs > 8 GB RAM
-	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; ant all-jar"
+	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; ant clean all-jar"
 	scp $(REM):~/work/gits/joeis/build.tmp/joeis.jar $(JOEIS)/build.tmp/joeis.jar 
 #========
 jar_push: # REM= ; distribute the local joeis.jar to some remote server
 	scp $(JOEIS)/build.tmp/joeis.jar $(REM):work/gits/joeis/build.tmp/joeis.jar
 #====
 joeis-prep: # REM= ; make a fresh copy of joeis on the remote server
-	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf * ; cp -pr ../joeis/* . ; ant clean all-jar ; ls -al ; pwd"
+	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf * ; cp -pr ../joeis/* . ; rm -f joeis_pull* *.log ; ant clean ; ls -al"
 xxx:
 	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; cd ~/work/gits/OEIS-mat/data/

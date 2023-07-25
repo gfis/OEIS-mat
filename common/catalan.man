@@ -1,0 +1,17 @@
+grep -E "%[NF]" jcat25.txt | grep -Pi "catalan\(" > catalan.man
+A062627	simbinom	0	Mobius.mobius(mN).multiply(Binomial.catalan(mN))	a(n) = mu(n) * Catalan(n).
+A063017	simbinom	0	Binomial.catalan(mN).multiply(Z.THREE.pow(mN + 1).subtract(Z.ONE.shiftLeft(mN + 1)).add(1).divide2())	a(n) = Catalan(n)*(3^(n+1) - 2^(n+1) + 1)/2.
+A067770	simbinom	0	Binomial.catalan(mN).mod(Z.TWO.add(mN))	a(n) = Catalan(n) mod (n+2).
+A079103	simbinom	0	Binomial.catalan(mN).pow(2 * mN - 2)	Catalan(n)^(2n-2).
+A099398	simbinom	0	new Q(Binomial.catalan(mN), Z.ONE.shifLeft(2 * mN - 1).multiply(mN + 2)).num()	a(n) = numerator(A(n)) with A(n):= Catalan(n)/((n+2)*2^(2*n-1)) where Catalan(n):=A000108(n)=binomial(2*n, n)/(n+1).
+A119549	simbinom	0	Binomial.binomial(Binomial.catalan(mN), Z.FOUR)	Binomial( Catalan(n), 4).
+A170829	simbinom	0	Binomial.catalan(mN).gcd(MemoryFactorial.SINGLETON.factorial(mN))	a(n) = gcd(Catalan(n), n!).
+A241907	simbinom	0	Binomial.catalan(2 * mN).divide(Binomial.catalan(mN).square())	a(n) = floor( Catalan( 2*n ) / Catalan(n)^2 ).
+A246604	simbinom	0	Binomial.catalan(mN).subtract(mN)	a(n) = Catalan(n) - n.
+A246846	simbinom	0	Binomial.catalan(mN).mod(Fibonacci.fibonacci(mN))	a(n) = Catalan(n) mod Fibonacci(n).
+# A273399	simbinom	0		a(n) = Catalan(Catalan(n)).
+# A273400	simbinom	0		a(n) = Catalan(Catalan(Catalan(n))).
+A289679	simbinom	0	Binomial.catalan(mN - 1).multiply(BellNumbers.bell(mN))	a(n) = Catalan(n-1)*Bell(n).
+A289680	simbinom	0	Binomial.catalan(mN + 1).multiply(BellNumbers.bell(mN))	a(n) = Catalan(n+1)*Bell(n).
+A336257	simbinom	0	Binomial.catalan(mN).mod(Z.valueOf(2 * mN + 1)	a(n) = Catalan(n) mod (2*n+1).
+A342906	simbinom	0	Z.ONE.shiftLeft(2 * mN - 2).subtract(Binomial.catalan(mN))	a(n) = 2^(2*n-2) - Catalan(n).

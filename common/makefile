@@ -714,17 +714,20 @@ ageorg: # which were authored by Georg Fischer
 	# %A A307048 _Georg Fischer_, Mar 21 2019
 	#          1         2         3         4
 	# 1234567890123456789012345678901234567890
-	grep -E "^\%A" cat25.txt | grep "Georg Fischer" \
+	grep -E "^.A" jcat25.txt | grep "Georg Fischer" \
 	| cut -b4-11,29-39 \
 	| sed -e "s/ /\t/" \
 	| tee $@.tmp
 	$(DBAT) -f seq2.create.sql
 	$(DBAT) -m csv -r seq2 < $@.tmp
-	$(DBAT) "SELECT s.aseqno, s.info, n.name \
-	  FROM seq2 s, asname n \
+	$(DBAT) "SELECT s.aseqno, s.info, j.superclass, n.name \
+	  FROM seq2 s, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE s.aseqno = n.aseqno \
 	  ORDER BY 1" \
 	| tee $@.tmp
+#----
+datalen:
+	$(DBAT) "SELECT datalen, COUNT(datalen) FROM asinfo GROUP BY datalen ORDER BY by 1 DESC"  | head -32
 #----
 noprog:
 	$(DBAT) "SELECT i.aseqno, substr(n.name, 1,100), i.keyword \

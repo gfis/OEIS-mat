@@ -1,0 +1,82 @@
+# A001360	LinearRecurrence Conjectural	Crystal ball sequence for hyperbolic tessellation 3^7 (from triangle group (2,3,7)).
+A002575	A125790 Conjectural	Coefficients of Bell''s formula for making change.
+A002876	Sequence1 Conjectural	Number of weighted linear spaces of total weight n.
+A003270	A099054 Conjectural	A nonrepetitive sequence.
+A003652	A003658 Conjectural	Class number of real quadratic field with discriminant A003658(n), n >= 2.
+A006189	LinearRecurrence Conjectural	Number of self-avoiding walks of any length from NW to SW corners of a grid or lattice with n rows and 3 columns.
+A006754	MemorySequence Conjectural	The generalized Conway-Guy sequence w^{0}.
+A006755	MemorySequence Conjectural	The generalized Conway-Guy sequence w^{1}.
+A006756	MemorySequence Conjectural	The generalized Conway-Guy sequence w^{2}.
+A006757	MemorySequence Conjectural	The generalized Conway-Guy sequence w^{3}.
+A019280	A000043 Conjectural	Let sigma_m(n) be result of applying the sum-of-divisors function m times to n; call n (m,k)-perfect if sigma_m(n) = k*n; sequence gives log_2 of the (2,2)-perfect numbers.
+A027582	MemorySequence Conjectural	Sequence satisfies T(T(a))=a, where T is defined below.
+A027669	Sequence	Numbers n such that for some m, the sum of the first m n-gonal numbers is again an n-gonal number.
+A027684	Sequence0 Conjectural	Number of letters in n (in "dotted" Hebrew).
+A027696	A027669 Conjectural	Nonparametric solutions to problem in A027669: n such that for some m, the sum of the first m n-gonal numbers is again an n-gonal number.
+A028380	Sequence0 Conjectural	a_n = - sum_{i=1..n-1} C(i+1, n-i) (-1)^(n-i) a_i.
+A030454	Sequence1 Conjectural	Make a table giving binary expansion of zeta(m) for m = 2, 3, ...; a(n) = number of 1''s in n-th column of table (after decimal point).
+A035120	A003658 Conjectural	Discriminants of real quadratic number fields with class number >= 2.
+A035209	Sequence0 Conjectural	From a Dirichlet series.
+A046965	Sequence1 Conjectural	Cos(a(n)) decreases monotonically to -1.
+A049239	Sequence1 Conjectural	Smallest nonnegative value taken on by px^2-qy^2 for an infinite number of integer pairs (x,y), where (p,q) = (1,1), (1,2), (2,1), (1,3), (2,2), (3,1)...
+A049241	A049239 Conjectural	Smallest nonnegative value taken on by 2*x^2 - n*y^2 for an infinite number of integer pairs (x, y).
+A049242	A049239 Conjectural	Smallest nonnegative value taken on by 3x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049243	A049239 Conjectural	Smallest nonnegative value taken on by 4x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049244	A049239 Conjectural	Smallest nonnegative value taken on by 5x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049245	A049239 Conjectural	Smallest nonnegative value taken on by 6x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049246	A049239 Conjectural	Smallest nonnegative value taken on by 7x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049247	A049239 Conjectural	Smallest nonnegative value taken on by 8x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049248	A049239 Conjectural	Smallest nonnegative value taken on by 9x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049249	A049239 Conjectural	Smallest nonnegative value taken on by 10x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049250	A049239 Conjectural	Smallest nonnegative value taken on by 11x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049251	A049239 Conjectural	Smallest nonnegative value taken on by 12x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049252	A049239 Conjectural	Smallest nonnegative value taken on by 13x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049253	A049239 Conjectural	Smallest nonnegative value taken on by 14x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049254	A049239 Conjectural	Smallest nonnegative value taken on by 15x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049255	A049239 Conjectural	Smallest nonnegative value taken on by 16x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049256	A049239 Conjectural	Smallest nonnegative value taken on by 17x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049257	A049239 Conjectural	Smallest nonnegative value taken on by 18x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049258	A049239 Conjectural	Smallest nonnegative value taken on by 19x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049259	A049239 Conjectural	Smallest nonnegative value taken on by 20x^2 - ny^2 for an infinite number of integer pairs (x, y).
+A049260	A049239 Conjectural	Smallest nonnegative value taken on by n*x^2 - y^2 for an infinite number of integer pairs (x, y).
+A049261	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 2y^2 for an infinite number of integer pairs (x, y).
+A049262	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 3y^2 for an infinite number of integer pairs (x, y).
+A049263	A049239 Conjectural	Smallest nonnegative value taken on by n*x^2 - 4*y^2 for an infinite number of integer pairs (x, y).
+A049264	A049239 Conjectural	Smallest nonnegative value taken on by n*x^2 - 5*y^2 for an infinite number of integer pairs (x, y).
+A049265	A049239 Conjectural	Smallest nonnegative value taken on by n*x^2 - 6*y^2 for an infinite number of integer pairs (x, y).
+A049266	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 7y^2 for an infinite number of integer pairs (x, y).
+A049267	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 8y^2 for an infinite number of integer pairs (x, y).
+A049268	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 9y^2 for an infinite number of integer pairs (x, y).
+A049269	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 10y^2 for an infinite number of integer pairs (x, y).
+A049270	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 11y^2 for an infinite number of integer pairs (x, y).
+A049271	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 12y^2 for an infinite number of integer pairs (x, y).
+A049272	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 13y^2 for an infinite number of integer pairs (x, y).
+A049273	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 14y^2 for an infinite number of integer pairs (x, y).
+A049274	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 15y^2 for an infinite number of integer pairs (x, y).
+A049275	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 16y^2 for an infinite number of integer pairs (x, y).
+A049276	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 17y^2 for an infinite number of integer pairs (x, y).
+A049277	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 18y^2 for an infinite number of integer pairs (x, y).
+A049278	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 19y^2 for an infinite number of integer pairs (x, y).
+A049279	A049239 Conjectural	Smallest nonnegative value taken on by nx^2 - 20y^2 for an infinite number of integer pairs (x, y).
+A051705	Sequence1 Conjectural	Numbers whose Japanese name lacks syllable "ku".
+A052172	A304942 Conjectural	Pure 3-multicomplexes on infinite set of nodes with n 3-simplexes.
+A055077	A055460 Conjectural	Multiplicity of Max{gcd(d, n!/d)} when d runs over the divisors of n!.
+A056770	Sequence1 Conjectural	Smallest number that is n times the product of its digits or 0 if impossible.
+A057793	Sequence1 Conjectural	Integer nearest Riemann(10^n), where Riemann(x) = Sum of ( mu(k)/k * Integral Log( x^(1/k) ) for k = 1 to infinity.
+A059518	Sequence1 Conjectural	a(n)/n^2 is the minimal average squared Euclidean distance of n points to their center of gravity among all configurations of n points on the hexagonal lattice.
+A081119	Sequence1 Conjectural	Number of integral solutions to Mordell''s equation y^2 = x^3 + n.
+# A106541	GeneratingFunctionSequence Conjectural	a(n) = a(n-1) - 2*a(n-2) - 3*a(n-3) - ... - (n-1)*a(1), with a(1) = a(2) = 2, a(3) = -2.
+# A120656	HolonomicRecurrence Conjectural	a(n) = (-4 + (-2)^n + 2*3^(n+1))/3 - [n=0].
+# A187163	GeneratingFunctionSequence Conjectural	Number of 2-step self-avoiding walks on an n X n X n cube summed over all starting positions.
+# A240506	LinearRecurrence Conjectural	Number of length-n gap-free words on {1,2,3}.
+# A250352	GeneratingFunctionSequence Conjectural	Number of length 3 arrays x(i), i=1..3 with x(i) in i..i+n and no value appearing more than 2 times.
+# A250353	GeneratingFunctionSequence Conjectural	Number of length 4 arrays x(i), i=1..4 with x(i) in i..i+n and no value appearing more than 2 times.
+# A259216	GeneratingFunctionSequence Conjectural	Number of (n+1) X (2+1) 0..1 arrays with each 2 X 2 subblock having clockwise pattern 0000 0011 or 0101.
+# A263053	GeneratingFunctionSequence Conjectural	Number of (n+1) X 2 0..1 arrays with each row and column not divisible by 3, read as a binary number with top and left being the most significant bits.
+# A285187	GeneratingFunctionSequence Conjectural	a(n) = Sum(psi(k-1)*psi(n-k-1),k=0..n)+(1-(-1)^n)/2, where psi(k) = A000931(k+6).
+# A289693	GeneratingFunctionSequence Conjectural	The number of partitions of [n] with exactly 3 blocks without peaks.
+# A290743	GeneratingFunctionSequence Conjectural	Maximum number of distinct Lyndon factors that can appear in words of length n over an alphabet of size 2.
+# A296160	GeneratingFunctionSequence Conjectural	Sum of the larger parts of the partitions of n into two parts such that the smaller part is even.
+# A307201	HolonomicRecurrence Conjectural	Coordination sequence for trivalent node of type alpha in the first Moore pentagonal tiling.
+# A307202	HolonomicRecurrence Conjectural	Coordination sequence for trivalent node of type alpha'' in the first Moore pentagonal tiling.
+# A308123	HolonomicRecurrence Conjectural	Sum of the perimeters of all integer-sided isosceles triangles with perimeter n.

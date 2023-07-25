@@ -1,0 +1,50 @@
+A073267	rootet	0	A036987	0	2	1	0	, the characteristic function of the powers of 2. [_Gary W. Adamson_, Feb 23 2010]
+A073610	rootet	0	A010051	0	2	1	0	). - _Graeme McRae_, Jul 18 2006
+A085359	rootet	0	A085357	0	3	1	0	}} (residues of binomial(3k,k)/(2k+1) modulo 2).
+A089624	rootet	0	A002894	0	1	2	0	When convolved with itself gives {{A002894}}.
+A108802	rootet	0	A040051	0	2	1	0	 (parity of partition function).
+A108804	rootet	0	A010060	0	2	1	0	 (Thue-Morse sequence).
+A108806	rootet	0	A000002	0	2	1	0	 (Kolakoski sequence).
+A113662	rootet	0	A000699	0	2	1	0	.
+A118195	rootet	0	A118191	0	1	2	0	Self-convolution square-root of {{A118191}}, where {{A118191}} is column 0 of the matrix square of triangle {{A118190}} with {{A118190}}(n,k) = (5^k)^(n-k).
+A120880	rootet	0	A039966	0	2	1	0	. Row sums of triangle A117947(n,k) = balanced ternary of C(n,k) mod 3.
+A132608	rootet	0	A062817	0	1	2	0		 Self-convolution square-root of {{A062817}} (offset 2); thus g.f. A(x) satisfies: A(x)^2 = Sum(n>=2} {{A062817}}(n)*x^n, where {{A062817}}(n) = Sum_{k=0..n} (n-k)^k*k^(n-k).
+A136650	rootet	0	A006125	0	2	1	0	(n) = 2^{n(n-1)/2}.
+A136651	rootet	0	A014070	0	2	1	0	: a(n) = Sum_{k=0..n} C(2^k,k)*C(2^(n-k),n-k).
+A137610	rootet	0	A014062	0	2	1	0	, where {{A014062}}(n) = C(n^2, n).
+A137637	rootet	0	A073157	0	2	1	0	.
+A143927	rootet	0	A006605	0	2	1	0	.
+A160647	rootet	0	A001402	0	2	1	0	.
+A168451	rootet	0	A004304	0	2	1	0	, where {{A004304}}(n) is the number of planar tree-rooted maps with n edges.
+A180125	rootet	0	A035263	0	2	1	0	
+A182152	rootet	0	A007318	0	1	3	0	Equals the self-convolution cube of the flattened Pascal's triangle ({{A007318}}).
+A182153	rootet	0	A027907	0	1	2	0	Equals the self-convolution of the flattened triangle of trinomial coefficients ({{A027907}}).
+A183161	rootet	0	A183160	0	1	2	0	Self-convolution equals {{A183160}}.
+A184359	rootet	0	A184358	0	1	2	0	Self-convolution equals {{A184358}}.
+A184424	rootet	0	A184423	0	1	2	0	Self-convolution equals {{A184423}}, where {{A184423}}(n) = (2n)!*(3n)!/n!^5:
+A184888	rootet	0	A184887	0	2	1	0	}}, where
+A184890	rootet	0	A184889	0	2	1	0	}}:
+A184892	rootet	0	A184891	0	2	1	0	}}, where
+A184896	rootet	0	A184895	0	2	1	0	}}, where {{A184895}}(n) = (7^n/n!^2) * Product_{k=0..n-1} (14k+1)*(14k+6).
+A184898	rootet	0	A184897	0	2	1	0	}}, where {{A184897}}(n) = (8^n/n!^2) * Product_{k=0..n-1} (16k+1)*(16k+7).
+A186284	rootet	0	A127776	0	1	2	0	 Self-convolution square equals {{A127776}}.
+A186284	rootet	0	A002897	0	1	4	0	 Self-convolution 4th power equals {{A002897}}.
+A208977	rootet	0	A005810	0	1	2	0	 Self-convolution square-root of {{A005810}}, where {{A005810}}(n) = binomial(4*n,n).
+A214377	rootet	0	A078531	0	2	1	0	}}.
+A219197	rootet	0	A199033	0	1	2	0	 Self-convolution equals {{A199033}}.
+A226045	rootet	0	A187746	0	1	2	0	 Self-convolution equals {{A187746}}.
+A227846	rootet	0	A227845	0	1	2	0	 Self-convolution equals {{A227845}}.
+A243951	rootet	0	A243950	0	1	2	0	 Self-convolution square-root of A243950, which is the sums of the squares of the q-binomial coefficients for q=2 in rows of triangle {{A022166}}.
+A245931	rootet	0	A245930	0	1	2	0	 Self-convolution equals {{A245930}}.
+A277362	rootet	0	A000142	0	1	2	0	 Self-convolution of a(n)/4^n gives factorials ({{A000142}}).
+A277362	rootet	0	A047053	0	1	2	0	 Self-convolution of a(n) gives {{A047053}}.
+A277363	rootet	0	A003266	0	1	2	0	 Self-convolution of a(n)/4^n gives fibonorials ({{A003266}}).
+A298435	rootet	0	A007294	0	2	1	0	.
+A300417	rootet	0	A024940	0	2	1	0	.
+A305120	rootet	0	A006128	0	2	1	0	.
+A307502	rootet	0	A001615	0	2	1	0	).
+A320235	rootet	0	A107742	0	2	1	0	.
+A320236	rootet	0	A006171	0	2	1	0	.
+A327215	rootet	0	A008485	0	2	1	0	.
+A334768	rootet	0	A061397	0	2	1	0	.
+A355957	rootet	0	A005189	0	2	1	0	(omitting the first 2 terms).

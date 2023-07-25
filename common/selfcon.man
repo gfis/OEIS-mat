@@ -1,0 +1,8 @@
+A118341 Self-convolution square of A108447.
+A118342 Self-convolution cube of A108447.
+A160707 Self-convolution = the Robbins sequence, A005130: (1, 2, 7, 42, 429, 7436, ...).
+A187655 Self-convolution of the central Stirling numbers of the second kind.
+A323764 Dirichlet self-convolution of the integer partition numbers A000041.
+A334768 Self-convolution of A061397.
+A350503 Self-convolution of sigma_n(n).
+A360191 Self-convolution inverse of A080332.

@@ -359,16 +359,56 @@ trixam0: # prepare a seq4 table with all 'tabl' sequences fulfilling some condit
 	wc -l    $@.tmp  
 trixam1: # CC= S= ; evaluate a single condition
 	sed -e "s/\ttrixam\w*\t/\t$(CC)\t/" trixam0.tmp \
-	| perl trixamine.pl -r 6 -s $(S) \
+	| perl -w trixamine.pl -r 6 -s $(S) \
 	>        $(CC).tmp 
 	head -n2 $(CC).tmp
 	wc -l    $(CC).tmp
 	cut -f1,2,3,11,12 $(CC).tmp \
 	| tee    $(CC).short.tmp
 	wc -l    $(CC).short.tmp
-trixall: trixam0 trixdiag trixinter0 # evaluate all conditions
+trixall: trixam0 trixcut1 # trixdiag trixinter0 # evaluate all conditions
 trixy:       # cf. trixamine.pl
 	make trixam1 CC=$@
+#----
+trixcut: trixcut1 trixcut2 trixcut3 # determine triangles that were cut from other triangles
+trixcut1:    # remove the first column from all triangles
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -r 6 -s $(S) \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixcut2:    # load the truncated versions in seq4
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	$(DBAT) -r seq4 < trixcut1.tmp
+	$(DBAT) -n seq4
+	# load the original triangles in seq2
+	$(DBAT) -f $(COMMON)/seq2.create.sql
+	cut -f1,4 trixam0.tmp \
+	| $(DBAT) -r seq2
+trixcut3: # determine which truncated match originals
+	$(DBAT) -x "SELECT s2.aseqno, 'tricut1' \
+	  || (CASE WHEN s2.aseqno NOT IN (SELECT aseqno from joeis) THEN 'n' ELSE 'y' END) \
+	  || (CASE WHEN s4.aseqno NOT IN (SELECT aseqno from joeis) THEN 'n' ELSE 'y' END) \
+	  , i.offset1 \
+	  , s4.aseqno, s4.parm2 \
+	  FROM seq4 s4, seq2 s2, asinfo i \
+	  WHERE s2.aseqno <> s4.aseqno \
+	    AND s4.aseqno = i.aseqno \
+	    AND s2.info LIKE s4.parm1 || '%' \
+	    ORDER BY 1,2" \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixcut4:
+	grep -P "\ttricut1jx\t" trixcut3.tmp \
+	| sed -e "s/\r//" -e "s/trixcut1jx/tricut1/" \
+	>        tricut1.gen
+	head -n2 tricut1.gen
+	wc -l    tricut1.gen
+trixcut5:
+	cut -f4 trixcut4.tmp | cut -b1-64 | sort | uniq -c | sort -r \
+	> $@.tmp
+#----
 trixdiag:    # triangles with non-zero elements in the diagonal only
 	make trixam1 CC=$@
 	grep -P "^A\d+" trixdiag.short.tmp \

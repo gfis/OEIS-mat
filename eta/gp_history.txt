@@ -2317,3 +2317,4 @@ for(n=1,40,if(isA359767(n),print(n)))
 for(n=1,400,if(isA359767(n),print(n)))
 isA359767(n) = (!A065043(n)&&(A359764(n)));
 for(n=1,400,if(isA359767(n),print(n)))
+quit
