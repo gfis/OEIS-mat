@@ -1,0 +1,21 @@
+# 2022-10-04
+A104762	rioarr	1	(x*y/((1-x-x^2)*(1-x*y)))
+A065600	rioarr	0	(((1-2x)/(1-x)^2)/(1-y*(x(1-2x)/(1-x)^2)))
+# A171224	partran	0	A117641
+A171243	partran	0	A126952	(f(x)#x*g(x))
+A171486	?letai	0	(f(x)#x*f(x))
+A171488	?letai	0	(f(x)#x*f(x))
+A171505	?letai	0	(f(x)#x*f(x))
+A171509	?letai	0	(f(x)#x*f(x))
+A171515	?letai	0	(f(x)#x*f(x))
+A171567	?letai	0	(f(x)#x*f(x))
+A171568	?letai	0	(f(x)#x*f(x))
+A171589	?letai	0	(f(x)#x*f(x))
+
+A099089	?stdf	0	(1#s+tx)
+A099091	?stdf	0	(1#,2+3x)	(1#s+tx)
+A099092	?stdf	0	(1#2+4x)	(1#s+tx)
+A099093	?stdf	0	(1#s+tx)
+A099095	?stdf	0	(1#s+tx)
+A099096	?stdf	0	(1#s+tx)
+A099097	?stdf	0	(1#s+tx)

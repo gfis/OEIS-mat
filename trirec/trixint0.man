@@ -1,0 +1,39 @@
+# A010054	parmof2	0	A130162	new A000012()	a(n) = 1 if n is a triangular number, otherwise 0.
+A051731	parmof2	1	A130162	new A000012()	Triangle read by rows: T(n,k) = 1 if k divides n, T(n,k) = 0 otherwise (for n >= 1 and 1 <= k <= n).
+A054522	parmof2	1	A130162	new A000010()	Triangle T(n,k): T(n,k) = phi(k) if k divides n, T(n,k)=0 otherwise (n >= 1, 1<=k<=n). T(n,k) = number of elements of order k in
+A054524	parmof2	1	A130162	new A008683()	Triangle T(n,k): T(n,k) = mu(k) if k divides n, T(n,k)=0 otherwise (n >= 1, 1<=k<=n).
+A127093	parmof2	1	A130162	new A000027()	Triangle read by rows: T(n,k)=k if k is a divisor of n; otherwise, T(n,k)=0 (1 <= k <= n).
+A127570	parmof2	1	A130162	new A000203()	Triangle T(n,k) = sigma(k) if k|n, otherwise T(n,k)=0; 1 <= k <= n.
+A127573	parmof2	1	A130162	new A064987()	Triangle T(n, k) = k*sigma(k) if k divides n, else 0.
+A127626	parmof2	1	A130162	new A018804()	Triangle T(n,k) = A018804(k) if k|n, else T(n,k)=0.
+A127639	parmof2	1	A130162	new A000040()	A051731 * A127640, where A127640 = infinite lower triangular matrix with the sequence of primes in the main diagonal and the res
+A128589	parmof2	1	A130162	new A000045().skip(1)	A051731 * A127647.
+A130071	parmof2	1	A130162	new A007444()	Triangle, A007444(k) in each column interspersed with k zeros.
+A130093	parmof2	1	A130162	new A036987()	A051731 * a lower triangular matrix with A036987 on the main diagonal and the rest zeros.
+A130094	parmof2	1	A130162	new A007427()	A051731 * an infinite lower triangular matrix with A007427 in the main diagonal.
+A130106	parmof2	1	A130162	new A063659()	A051731 * diagonalized matrix of A063659.
+A130115	parmof2	1	A130162	new A130113()	Inverse Moebius transform of A130113 as a diagonalized matrix.
+A130116	parmof2	1	A130162	new A007436()	Inverse Moebius transform of a diagonalized matrix of A007436.
+A130160	parmof2	1	A130162	new A130159()	A051731 * A130159 as a diagonalized matrix.
+A130162	parmof2	0	A130162	new A000012()	Triangle read by rows: A051731 * A000837 as a diagonalized matrix.
+A130210	parmof2	1	A130162	new A000005()	Triangle read by rows: matrix product A051731 * A130209.
+A130888	parmof2	1	A130162	new A000225().skip(1)	nyi  x	Triangle read by rows, A051731(n,k) dot (1, 3, 7, 15, ...) with like numbers of terms.
+A133699	parmof2	1	A130162	new A001227()	A051731 * A133698.
+# A133704	parmof2	0	A130162	new A133696()	A051731 * a diagonalized matrix of A133696.
+A133727	parmof2	1	A130162	new A007438()	A051731 * A007438 as a diagonalized matrix.
+A134560	parmof2	1	A130162	new A005408()	A051731 * A127775.
+A134575	parmof2	1	A130162	new A000290().skip(1)	A051731 * A127733.
+A141846	parmof2	1	A130162	new A051953()	Triangle read by rows: A051731 * A051953^(n-k) * 0^(n-k), 1 <= k <= n.
+A143110	parmof2	1	A130162	new A000034()	Triangle read by rows, A051731 * A000034 * 0^(n-k), 1<=k<=n.
+A143111	parmof2	1	A130162	new A032742()	Triangle read by rows, T(n,k) = largest proper divisor of A127093(n,k) where (largest proper divisor)(n) = A032742(n) if n>0 and
+A143151	parmof2	1	A130162	new A020639()	Triangle read by rows, A051731 * (A020639 * 0^(n-k)), 1<=k<=n.
+A143256	parmof2	1	A130162	new A055615()	Triangle read by rows, matrix multiplication A051731 * A128407 * A127648, 1<=k<=n.
+A143425	parmof2	1	A130162	new A000079()	Triangle read by rows A051731 * A130123, 1<=k<=n.
+A143445	parmof2	1	A130162	new A001318().skip(1)	Triangle read by rows, A051731 * (A001318 * 0^(n-k)); 1<=k<=n.
+A143724	parmof2	1	A130162	new A116477()	Triangle read by rows, inverse M√∂bius transform of a diagonalized matrix of A116470.
+A143810	parmof2	1	A130162	new A003238()	Eigentriangle of A051731, the inverse Mobius transform.
+A157361	parmof2	1	A130162	new A114810()	Triangle read by rows, A051731 * (A114810 * 0^(n-k))
+A182720	parmof2	1	A130162	new A000041().skip(1)	Triangle read by rows: T(n,k) = A000041(k) if k divides n, T(n,k)=0 otherwise.
+A203398	parmof2	1	A130162	new A001037().skip(1)	T(n,k), a triangular array read by rows, is the number of classes of equivalent 2-color n-bead necklaces (turning over is not al
+A216953	parmof2	1	A130162	new A027375().skip(1)	Triangle read by rows: T(n,k) (n>=1, 1<=k<=n) = number of binary sequences of length n with minimal period k.
+A216954	parmof2	1	A130162	new A000740()	Triangle read by rows: A216953/2.

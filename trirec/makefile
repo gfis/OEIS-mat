@@ -348,7 +348,7 @@ trixam0: # prepare a seq4 table with all 'tabl' sequences fulfilling some condit
 	# all tables are (n,k) = (0,0) based
 	#                                                 parm1   2  3  4  5  6  7  8=nyi, 9=name
 	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '','','','','','' \
-	    , SUBSTR(COALESCE(j.superclass, 'nyi  x'), 1, 6), SUBSTR(n.name, 1, 128) \
+	    , SUBSTR(COALESCE(j.superclass, 'nyi  x'), 1, 7), SUBSTR(n.name, 1, 128) \
 	    FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	    WHERE i.aseqno = d.aseqno \
 	      AND d.aseqno = n.aseqno \
@@ -369,6 +369,35 @@ trixam1: # CC= S= ; evaluate a single condition
 trixall: trixam0 trixcut1 # trixdiag trixinter0 # evaluate all conditions
 trixy:       # cf. trixamine.pl
 	make trixam1 CC=$@
+#----
+trixtoep: trixtoep1 trixtoep2 trixtoep3 # determine triangles that have identical columns
+trixtoep1:    # determine the column
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -r 6 -s $(S) \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixtoep2:    # load the truncated versions in seq4
+	grep -vP "\AA0[0-2]" trixtoep1.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	cat $@.tmp | $(DBAT) -r seq4
+	$(DBAT) -n seq4
+trixtoep3:
+	# merge with data of references sequences
+	$(DBAT) -x " \
+	  (SELECT s.aseqno, '-------', 0        , '-------', '-----', '----' FROM seq4 s \
+	  ) UNION \
+	  (SELECT s.aseqno, 'tritoe_', i.offset1, 'A0_____', '', s.parm1 FROM seq4 s, asinfo i \
+	    WHERE s.aseqno = i.aseqno \
+	  ) UNION \
+	  (SELECT s.aseqno, 'tritoe_', i.offset1, x.rseqno , '', d.data  FROM seq4 s, asinfo i, asxref x, asdata d \
+	    WHERE s.aseqno = x.aseqno AND s.aseqno = i.aseqno AND x.rseqno = d.aseqno \
+	  ) ORDER BY 1,2,6" > $@.txt
+	head -n8 $@.txt
+	wc -l    $@.txt
 #----
 trixcut: trixcut1 trixcut2 trixcut3 # determine triangles that were cut from other triangles
 trixcut1:    # remove the first column from all triangles
@@ -400,11 +429,14 @@ trixcut3: # determine which truncated match originals
 	head -n2 $@.tmp
 	wc -l    $@.tmp
 trixcut4:
-	grep -P "\ttricut1jx\t" trixcut3.tmp \
-	| sed -e "s/\r//" -e "s/trixcut1jx/tricut1/" \
-	>        tricut1.gen
-	head -n2 tricut1.gen
-	wc -l    tricut1.gen
+	$(DBAT) -x "\
+	    (SELECT s.aseqno, '->', s.parm1 FROM seq4 s WHERE (s.aseqno, s.parm1) IN (SELECT aseqno, rseqno FROM asxref)) \
+	    UNION \
+	    (SELECT s.aseqno, '<-', s.parm1 FROM seq4 s WHERE (s.aseqno, s.parm1) IN (SELECT rseqno, aseqno FROM asxref)) \
+	    ORDER BY 1,2" \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
 trixcut5:
 	cut -f4 trixcut4.tmp | cut -b1-64 | sort | uniq -c | sort -r \
 	> $@.tmp

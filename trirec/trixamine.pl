@@ -89,19 +89,23 @@ while (<>) {
         # print STDERR "n=$n, start_row=$start_row\n";
         if (0) {
         #--------
-        } elsif ($callcode =~ m{trixceve}) { # "... in every column" (yields first column)
-            $n = 0; # patch the problem away?
+        } elsif ($callcode =~ m{trixtoep}) { # "... in every column" (yields first column)
+            $n = 0;
             my $newlist = "";
             while ($ok > 0 and $n < $nmax) {
-                for ($k = 1; $k <= $n; $k ++) { # elements without first column
-                    $newlist.= "," . &T($n, $k);
+                for ($k = 0; $k <= $n; $k ++) { 
+                    if ($k == 0) {
+                        $newlist .=  "," . &T($n, $k);
+                    } else {
+                        if (&T($n, $k) != &T($n - 1, $k - 1)) {
+                            $ok = 0;
+                        }
+                    }
                 } # for $k
                 $n ++;
             } # while
-            $ok = 2; # cf. print below
             $newlist =~ s{\A\,}{};
-            $newlist =~ s{\A\,}{};
-            $parms[0] = $newlist;
+            $parms[1] = $newlist;
         #--------
         } elsif ($callcode =~ m{trixcut1}) { # remove the first column
             $n = 0; # patch the problem away?
@@ -212,12 +216,16 @@ while (<>) {
         } elsif ($ok == 1) {
             my $heads = "";
             my $tails = "";
-            for ($n = 0; $n < $nmax; $n ++) {
-                $heads .= "," . &T($n, 0 );
-                $tails .= "," . &T($n, $n);
-            } # for $n
-            $parms[2] = substr($heads, 1);
-            $parms[3] = substr($tails, 1);
+            if ($callcode !~ m{trixtoep}) {
+                for ($n = 0; $n < $nmax; $n ++) {
+                    $heads .= "," . &T($n, 0 );
+                    $tails .= "," . &T($n, $n);
+                } # for $n
+                $heads =~ s{\A\,}{};
+                $tails =~ s{\A\,}{};
+            }
+            $parms[2] = $heads;
+            $parms[3] = $tails;
             print join("\t", $aseqno, $callcode, @parms) . "\n";
         } elsif ($ok == 2) { # trixcut1
             if (length($parms[0]) >= 32) {

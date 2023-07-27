@@ -1,0 +1,18 @@
+# A068424	trian	1	~~    ~~return Z.valueOf(n == 0 ? 1 : n * (n + 1));	T(n,k)=n(n-1)
+# A142595	modpas2	1	2	2	T(n,k)=2*T(n-1, k-1) + 2*T(n-1, k)
+# A265705	trian	0	~~    ~~return Z.valueOf((n ^ 0xffffff) | k);	T(n,k)=k IMPL n, 0 <= k <= n, bitwise logical IMPL
+A078341	modpas2	1	n	k	T(n,k)=n*T(n-1,k-1) + k*T(n-1,k) starting with T(0,0)=1
+A080098	trian	0	~~    ~~return Z.valueOf(n | k);	T(n,k)=n OR k, 0<=k<=n, bitwise logical OR
+A080099	trian	0	~~    ~~return Z.valueOf(n & k);	T(n,k)=n AND k, 0<=k<=n, bitwise logical AND
+A081114	trian	0	~~    ~~return n == k ? Z.ZERO : get(n - 1, k).multiply(n).add(n - k);	T(n,k)=n*T(n-1,k) + n - k starting at T(n,n)=0
+A092477	trian	1	~~    ~~return Z.ONE.shiftLeft(k + 1).subtract(1).pow(n + 1);	T(n,k)=(2^k - 1)^n, 1<=k<=n
+A104633	trian	1	~~    ~~return Z.valueOf(k - n - 1).multiply(k - n - 2).multiply(k + 1).divide2();	T(n,k)=k*(k-n-1)*(k-n-2)/2 1<=k<=n
+A111578	modpas2	1	1	4*k + 1	T(n,m)=T(n-1, m-1) + (4m-3)*T(n-1, m) 1<=m<=n
+A142459	modpas2	1	4*n - 4*k + 1	4*k + 1	T(n,k)=(4n-4k+1) * T(n-1,k-1) + (4k-3) * T(n-1,k)
+A143844	trian	0	~~    ~~return Z.valueOf(k * k);	T(n,k)=k^2
+A169603	trian	0	~~    ~~return Z.valueOf(k).multiply(4*n + 2 + k);	T(n,k)=k*(4*n+2+k)
+A176242	modpaz2	1	Z.ONE	k == 0 ? Z.ONE : Z.TWO.pow(k + 1)	T(n,k)=q^k*T(n-1, k) + T(n-1, k-1), with q=2
+A176243	modpaz2	1	Z.ONE	k == 0 ? Z.ONE : Z.THREE.pow(k + 1)	T(n,k)=q^k*T(n-1, k) + T(n-1, k-1), with q=3
+A176244	modpaz2	1	Z.ONE	k == 0 ? Z.ONE : Z.FOUR.pow(k + 1)	T(n,k)=q^k*T(n-1, k) + T(n-1, k-1), with q=4
+A274602	trian	1	~~    ~~return Z.valueOf(n - k + 1).square().multiply(k).add(n - k);	T(n,k)=k*(n-k+1)^2 + n - k, 0 <= k <= n
+A285061	modpas2	0	4	4*k + 1	T(n, -1) = 0, T(0, 0) = 1, T(n, m) = 0 if n < m. T(n, m) = 4*T(n-1, m-1) + (1 + 4*m)*T(n-1, m) for n >= 1, m = 0..n

@@ -1,0 +1,91 @@
+A051731	trixinter0	1	BaseTr	Triangle read by rows: T(n,k) = 1 if k divides n, T(n,k) = 0 otherwise (for n >= 1 and 1 <= k <= n).
+A054522	trixinter0	1	Sequen	Triangle T(n,k): T(n,k) = phi(k) if k divides n, T(n,k)=0 otherwise (n >= 1, 1<=k<=n). T(n,k) = number of elements of order k in
+A054524	trixinter0	1	Sequen	Triangle T(n,k): T(n,k) = mu(k) if k divides n, T(n,k)=0 otherwise (n >= 1, 1<=k<=n).
+A114002	trixinter0	0	Abstra	Expansion of x^k(1+x^(k+1))/(1-x^(k+1)).
+A115356	trixinter0	0	nyi  x	Matrix (1,x)+(x,x^2) in Riordan array notation.
+A115361	trixinter0	0	nyi  x	Inverse of matrix (1,x)-(x,x^2) (expressed in Riordan array notation).
+A117198	trixinter0	0	nyi  x	Generalized Riordan array (1,x)+(x,x^2)+(x^2,x^3).
+A127093	trixinter0	1	Triang	Triangle read by rows: T(n,k)=k if k is a divisor of n; otherwise, T(n,k)=0 (1 <= k <= n).
+A127446	trixinter0	1	nyi  x	Triangle T(n,k) = n*A051731(n,k) read by rows.
+A127504	trixinter0	1	nyi  x	Triangle T(n,k) = phi(n) if k|n, =0 otherwise.
+A127570	trixinter0	1	nyi  x	Triangle T(n,k) = sigma(k) if k|n, otherwise T(n,k)=0; 1 <= k <= n.
+A127573	trixinter0	1	nyi  x	Triangle T(n, k) = k*sigma(k) if k divides n, else 0.
+A127626	trixinter0	1	nyi  x	Triangle T(n,k) = A018804(k) if k|n, else T(n,k)=0.
+A127639	trixinter0	1	nyi  x	A051731 * A127640, where A127640 = infinite lower triangular matrix with the sequence of primes in the main diagonal and the res
+A127640	trixinter0	1	nyi  x	Triangle read by rows in which row n contains n-1 0''s followed by prime(n).
+A127641	trixinter0	1	nyi  x	A127640 * A051731 as infinite lower triangular matrices.
+A127647	tdiagonal	1	new A000045().skip(1)			Wrappe	Triangle read by rows: row n consists of n-1 zeros followed by Fibonacci(n).
+A127648	tdiagonal	0	new A000079().skip(1)		Genera	Triangle read by rows: row n consists of n zeros followed by n+1.
+A127773	tdiagonal	1	new A000219().skip(1)		Triangle read by rows: row n consists of n-1 zeros followed by n(n+1)/2.
+A127774	tdiagonal	1	new A000292().skip(1)		Triangle read by rows: row n consists of n-1 zeros followed by A000292(n).
+A127775	tdiagonal	1	new A005408()			Triangle read by rows: row n consists of n-1 zeros followed by 2n-1.
+A128407	tdiagonal	1	new A008683()			Triangle read by rows: T(n,n) = mobius(n) on the diagonal, zero elsewhere.
+A128408	trixinter0	1	Produc	Triangle read by rows: A128407 * A051731 as infinite lower triangular matrices.
+A128589	trixinter0	1	Produc	A051731 * A127647.
+A128980	trixinter0	1	nyi  x	A054525 * A129691(unsigned).
+A129236	trixinter0	1	Produc	A054525 * A129234.
+A129372	trixinter0	1	BaseTr	Triangle read by rows: T(n,k) = 1 if k divides n and n/k is odd, T(n,k) = 0 otherwise.
+A130071	trixinter0	1	nyi  x	Triangle, A007444(k) in each column interspersed with k zeros.
+A130093	trixinter0	1	nyi  x	A051731 * a lower triangular matrix with A036987 on the main diagonal and the rest zeros.
+A130094	trixinter0	1	nyi  x	A051731 * an infinite lower triangular matrix with A007427 in the main diagonal.
+A130106	trixinter0	1	nyi  x	A051731 * diagonalized matrix of A063659.
+A130115	trixinter0	1	nyi  x	Inverse Moebius transform of A130113 as a diagonalized matrix.
+A130116	trixinter0	1	nyi  x	Inverse Moebius transform of a diagonalized matrix of A007436.
+A130123	trixinter0	0	Genera	Infinite lower triangular matrix with 2^k in the right diagonal and the rest zeros. Triangle, T(n,k), n zeros followed by the te
+A130160	trixinter0	1	nyi  x	A051731 * A130159 as a diagonalized matrix.
+A130162	trixinter0	0	BaseTr	Triangle read by rows: A051731 * A000837 as a diagonalized matrix.
+A130207	tdiagonal	1	new A000010()		Diagonalized matrix of A000010.
+A130208	tdiagonal	1	new A000203()		Diagonalized matrix of A000203, Sigma(n).
+A130209	tdiagonal	1	new A000005()		Diagonalized matrix of d(n), A000005.
+A130210	trixinter0	1	Produc	Triangle read by rows: matrix product A051731 * A130209.
+A130277	trixinter0	1	Produc	Triangle read by rows: A130209 * A051731 as infinite lower triangular matrices.
+A130888	trixinter0	1	nyi  x	Triangle read by rows, A051731(n,k) dot (1, 3, 7, 15, ...) with like numbers of terms.
+A131427	tdiagonal	0	new A000108()		A000108(n) preceded by n zeros.
+A131431	tdialready	0	BaseTr	3n + 1 preceded by n zeros.
+A131436	tdiagonal	1	new A168604()		Triangle read by rows, (n-1) zeros followed by 2^n - 1.
+A132825	tdiagonal	1	new A000041().skip(1)		Triangle read by rows: zeros except for right border which are the partition numbers A000041.
+A132918	tdiagonal	1	new A059841()	Identity matrix with interpolated zeros.
+A133109	tdialready	1	BaseTr	Triangle read by rows, A042965 on the diagonal, 0 elsewhere.
+A133698	tdiagonal	0	new A001227()		Triangle, diagonal = A001227 with the rest zeros.
+A133699	trixinter0	1	Produc	A051731 * A133698.
+A133701	trixinter0	1	Produc	A133698 * A051731.
+A133703	trixinter0	1	Produc	A054525 * A133701.
+A133704	trixinter0	0	nyi  x	A051731 * a diagonalized matrix of A133696.
+A133727	trixinter0	1	BaseTr	A051731 * A007438 as a diagonalized matrix.
+A134309	trixinter0	0	Genera	Triangle read by rows, where row n consists of n zeros followed by 2^(n-1).
+A134402	trixinter0	0	Genera	Triangle read by rows, for n > 0, n zeros followed by n.
+A134560	trixinter0	1	Produc	A051731 * A127775.
+A134575	trixinter0	1	Produc	A051731 * A127733.
+A134576	trixinter0	1	Produc	A127733 * A051731.
+A136521	tdiagonal	0		Triangle read by rows: (1, 2, 2, 2, ...) on the main diagonal and the rest zeros.
+A136572	tdiagonal	0		Triangle read by rows: row n consists of n zeros followed by n!.
+A140579	tdiagonal	1		Triangle read by rows, A014963(n) * 0^(n-k); 1<=k<=n.
+A141846	trixinter0	1	nyi  x	Triangle read by rows: A051731 * A051953^(n-k) * 0^(n-k), 1 <= k <= n.
+A143110	trixinter0	1	nyi  x	Triangle read by rows, A051731 * A000034 * 0^(n-k), 1<=k<=n.
+A143111	trixinter0	1	nyi  x	Triangle read by rows, T(n,k) = largest proper divisor of A127093(n,k) where (largest proper divisor)(n) = A032742(n) if n>0 and
+A143151	trixinter0	1	nyi  x	Triangle read by rows, A051731 * (A020639 * 0^(n-k)), 1<=k<=n.
+A143256	trixinter0	1	Produc	Triangle read by rows, matrix multiplication A051731 * A128407 * A127648, 1<=k<=n.
+A143425	trixinter0	1	Produc	Triangle read by rows A051731 * A130123, 1<=k<=n.
+A143445	trixinter0	1	nyi  x	Triangle read by rows, A051731 * (A001318 * 0^(n-k)); 1<=k<=n.
+A143724	trixinter0	1	nyi  x	Triangle read by rows, inverse M√∂bius transform of a diagonalized matrix of A116470.
+A143810	trixinter0	1	nyi  x	Eigentriangle of A051731, the inverse Mobius transform.
+A144515	trixinter0	0	Produc	Triangle read by rows: A051731 * A103451.
+A153198	trixinter0	0	Wrappe	Triangle read by rows, T(n,k) = A006789(k) if (n=k) otherwise zero. = (A006789 * 0^(n-k))
+A156254	trixinter0	1	nyi  x	Triangle read by rows. Matrix inverse of A156241.
+A156297	trixinter0	1	nyi  x	Triangle T(n,k) read by rows. If n = k^2 then 1 else 0.
+A157361	trixinter0	1	nyi  x	Triangle read by rows, A051731 * (A114810 * 0^(n-k))
+A158902	trixinter0	1	Produc	Triangle read by rows: the matrix product A051731 * A158821.
+A158906	trixinter0	1	Produc	Triangle read by rows: the matrix product A158821 * A051731.
+A166141	trixinter0	1	nyi  x	Triangle T(n,k) read by rows. A080304(A126988).
+A168261	trixinter0	1	nyi  x	Triangle read by rows, A115361 * the diagonalized variant of A018819.
+A174712	trixinter0	0	Wrappe	Triangle, right border = A000041, else zero; by rows, A000041(n) preceded by n zeros. By columns, n-th column = A000041(n) follo
+A174852	trixinter0	1	nyi  x	Triangle T(n,k) read by rows. T(1,1)=1, n>1 T(n,1)=A049240, k>1 T(n,k)=A051731.
+A175992	trixinter0	1	nyi  x	Triangle T(n,k) read by rows. If n=k then 0, else if k divides n then 1 else 0.
+A176890	trixinter0	1	nyi  x	Triangle T(n,k) read by rows. Signed subsequence of A051731.
+A176918	trixinter0	1	nyi  x	Triangle read by rows, a signed variant of A077049 * A128407; as infinite lower triangular matrices
+A181101	trixinter0	1	nyi  x	Triangle T(n,k) read by rows. T(1,1)=-1, n>1: If n/k=A020639(n) then 1 else 0.
+A182720	trixinter0	1	nyi  x	Triangle read by rows: T(n,k) = A000041(k) if k divides n, T(n,k)=0 otherwise.
+A188023	trixinter0	1	nyi  x	Triangle read by rows, T(n,k) = k*A115361(n-1,k-1).
+A203398	trixinter0	1	nyi  x	T(n,k), a triangular array read by rows, is the number of classes of equivalent 2-color n-bead necklaces (turning over is not al
+A216953	trixinter0	1	nyi  x	Triangle read by rows: T(n,k) (n>=1, 1<=k<=n) = number of binary sequences of length n with minimal period k.
+A216954	trixinter0	1	nyi  x	Triangle read by rows: A216953/2.

@@ -1,0 +1,36 @@
+# A073423	trixdiag	0	new A000038()
+# A073424	trixdiag	0	new A057427()		new A057427(), "0");
+# A103451	trixdiag	0	n -> Z.valueOf(n)		"1", "1");
+# A103452	trixdiag	0	n -> Z.valueOf(n)		0, new long[] {1, -2, 0, 0, 1, 0, 0, 0, 0, 0}, new long[] {1, -1, -1, 0, 1, 0, 0, 0, 0, 0});
+# A103516	trixdiag	0	new A000027()		new A000027(), new A000027());
+A127640	trixdiag	1	new A000040()		prime(n)	Inverse of number triangle A103451.
+A127647	trixdiag	1	new A000045().skip(1)		"0", new A000045());
+A127648	trixdiag	0	n -> Z.valueOf(n + 1)		0, new long[] {1}, new long[] {1, 0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+A127773	trixdiag	1	new A000217().skip(1)		"0", new A000217());
+A127774	trixdiag	1	new A000292().skip(1)		1, 1, 1);
+A127775	trixdiag	1	new A005408()		"0", new A005408());
+A128407	trixdiag	1	new A008683()		"0", new A008683());
+A130123	trixdiag	0	n -> Z.ONE.shiftLeft(n)		0, new long[] {1}, new long[] {1, 0, -2, 0, 0, 0});
+A130207	trixdiag	1	new A000010()		"0", new A000010());
+A130208	trixdiag	1	new A000203()		"0", new A000203());
+A130209	trixdiag	1	new A000005()		"0", new A000005());
+A131427	trixdiag	0	new A000108()
+A131431	trixdiag	0	n -> Z.valueOf(3 * n + 1)		0, 0, 0);
+A131436	trixdiag	1	new A168604()		"0", new A168604());
+A132825	trixdiag	1	new A000041().skip(1)			Triangle read by rows: zeros except for right border which are the partition numbers A000041.
+A132918	trixdiag	1	n -> ((n & 1) == 1) ? Z.ONE : Z.ZERO			Identity matrix with interpolated zeros.
+A133109	trixdiag	1	new A042965().skip(1)		1, 1, 1);
+A133698	trixdiag	0	new A035228()		"0", new A035228());
+A134309	trixdiag	0	n -> (n == 0) ? Z.ONE : Z.ONE.shiftLeft(n - 1)		0, new long[] {1, 0, -1, 0, 0, 0}, new long[] {1, 0, -2, 0, 0, 0});
+A134402	trixdiag	0	n -> Z.valueOf((n == 0) ? 1 : n)		0, new long[] {1, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, new long[] {1, 0, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+A136521	trixdiag	0	new A036453()		"0", new A036453());
+A136572	trixdiag	0	new A000142()		"0", new A000142());
+A140579	trixdiag	1	new A014963()		"0", new A014963());
+# A144217	trixdiag	1	new A001477()		new A001477(), new A001477());
+# A145677	trixdiag	0	n -> Z.valueOf(n)		0, 0, 0);
+A153198	trixdiag	0	new A006789()		"0", new A006789());
+# A158821	trixdiag	0	n -> Z.valueOf(n)		0, 0, 0);
+A174712	trixdiag	0	new A000041()		"0", new A000041());
+# A185740	trixdiag	1	new A000079()		"1", new A000079());
+# A185911	trixdiag	1	n -> Z.valueOf(n)		1, 1, -1);
+# A198954	trixdiag	0	n -> Z.valueOf(n)		0, new long[] {1, 1, 0}, new long[] {1, -2, 0, 1, 0, 0});
