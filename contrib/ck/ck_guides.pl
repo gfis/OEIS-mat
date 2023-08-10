@@ -2,6 +2,7 @@
 
 # Extract parameters from Clark Kimberling's guides (overview tables)
 # @(#) $Id$
+# 2023-07-29: A194832, 3 x 19
 # 2022-11-27: A214992
 # 2022-04-30: A213500 convolution
 # 2021-11-25: Vandermode sequences
@@ -286,6 +287,7 @@ while (<DATA>) {
                 &out($ans[2], $callcode, "$fa[1].square()"       . ".subtract(" . $fa[2]                . ").add($fa[3].square())"  , "$fa[4]", "$fa[5]", "$expr", "");
                 &out($ans[3], $callcode, "$fa[1].square()"                                               . ".add($fa[3].square())"  , "$fa[4]", "$fa[5]", "$expr", "");
             }
+
         } elsif ($opt =~ m{U}) { # A213500 - convolutions
             # =U=	h*(h+1)/2 ..	h ..........	A213550	A002418	A005585
             my ($form1, $form2);
@@ -298,6 +300,7 @@ while (<DATA>) {
             $callcode = "parm3";
             &outstd($ans[0], ("A213500", $U_forms{$form1}, $U_forms{$form2}, "$form1", "$form2"));
             # print STDERR join("\t", $ans[0], "A213500", $U_forms{$form1}, $U_forms{$form2}, "$form1", "$form2") . "\n";
+
         } elsif ($opt =~ m{[VW]}) { # A205558 primes, A205840 Fibonacci
             #     c.k.......j.......p(k)-p(j).[p(k)-p(j)]/c
             # =V= 2 A133196 A131818 A204898   A205558
@@ -310,7 +313,7 @@ while (<DATA>) {
             my $ok = 1;
             $callcode = "parm4";
             my %hash = ( "V", "new A000040()"
-                       , "W", "new SkipSequence(new A000045(), 2)"
+                       , "W", "new A000045().skip(2)"
                        );
             # print STDERR join("\t", @ans, $opt, $c, $hash{"V"}, $hash{"W"}) . "\n";
             my $i = 0;
@@ -320,6 +323,31 @@ while (<DATA>) {
             &outstd($ans[$i ++], ("A205558", $hash{$opt}, $c, 4));
             &outstd($ans[$i ++], ("A205558", $hash{$opt}, $c, 5));
             &outstd($ans[$i ++], ("A205558", $hash{$opt}, $c, 6));
+
+        } elsif ($opt =~ m{X}) { # A194832, permutation of fractional parts 2023-07-29
+            # #  	r...............	Array1.	Array2.	Perm2
+            # =X=	tau.............	A054065	A054069	A054068
+            # =X=	-tau............	A194832	A194833	A194834
+            my $c;
+            ($opt, $c, @ans) = split(/\s+/, $line);
+            $opt =~ s{[^VW]}{}g;
+            @ans = map { (m{\AA\d+\Z}) ? $_ : "nnnn" } @ans;
+            $offset = 1;
+            $c =~ s/[ ]//g;
+            $c =~ s/sqrt\((\d+)\)/$1\.sqrt\(\)/g;
+            $c =~ s/tau/CR\.PHI/g;
+            $c =~ s/\b(e|pi)\b/"CR\." . uc($1)/eg;
+            $c =~ s/12/CR\.valueOf\(12\)/g;
+            $c =~ s/\b([0-9])\b/"CR\." . $anum[$1]/eg;
+            if ($c =~ s/\-//) {
+                $c .= ".negate()";
+            }
+            my $ok = 1;
+            $callcode = "parmof2";
+            &outstd($ans[0], ("A194832", $c));
+            &outstd($ans[1], ("A194833", "new $ans[0]()"));
+            &outstd($ans[2], ("A194834", "new $ans[1]()"));
+
         } elsif ($opt =~ m{a}) { # Philo lines
             #       m...h...k. x-intercept distance
             # =a=   1   2   1   A197032 A197033 lo1 lo2
@@ -330,6 +358,7 @@ while (<DATA>) {
             $callcode = "parmof5";
             &outstd($ans[0], ("A197032", (($m eq "1/2") ? 1 : $m * $MF2), $h, $k, "\"$lo\""));
             &outstd($ans[1], ("A197033", (($m eq "1/2") ? 1 : $m * $MF2), $h, $k, "\"$lo\""));
+
         } elsif ($opt =~ m{b}) {
             # A214992 Power ceiling-floor sequence of (golden ratio)^4.
             # b=    x ..... p1..... p2..... p3..... p4.......Limit
@@ -1326,28 +1355,28 @@ from A2135000:
 =W=	10	A205877	A205878	nnnn	nnnn	A205879	A205880
 #--------------------------------
 # A194832 = 21*3
-#  	r...............	Array1.	Array2.	Perm2
-=X=	tau.............	A054065	A054069	A054068
-=X=	-tau............	A194832	A194833	A194834
-=X=	sqrt(2).........	A054065	A054077	A054076
-=X=	-sqrt(2)........	A194835	A194836	A194837
-=X=	sqrt(3).........	A194838	A194839	A194840
-=X=	-sqrt(3)........	A194841	A194842	A194843
-=X=	sqrt(5).........	A194844	A194845	A194846
-=X=	-sqrt(5)........	A194856	A194857	A194858
-=X=	sqrt(6).........	A194871	A194872	A194873
-=X=	-sqrt(6)........	A194874	A194875	A194876
-=X=	sqrt(8).........	A194877	A194878	A194879
-=X=	-sqrt(8)........	A194896	A194897	A194898
-=X=	sqrt(12)........	A194899	A194900	A194901
-=X=	-sqrt(12).......	A194902	A194903	A194904
-=X=	e...............	A194859	A194860	A194861
-=X=	-e..............	A194865	A194866	A194867
-=X=	pi..............	A194905	A194906	A194907
-=X=	-pi.............	A194908	A194909	A194910
-=X=	(1+sqrt(3)/)/2..	A194862	A194863	A194864
-=X=	-(1+sqrt(3)/)/2.	A194868	A194869	A194870
-=X=	2^(1/3).........	A194911	A194912	A194913
+#  	r               	Array1 	Array2 	Perm2
+=X=	tau             	A054065	A054069	A054068
+=X=	-tau            	A194832	A194833	A194834
+=X=	sqrt(2)         	A054073	A054077	A054076		!!
+=X=	-sqrt(2)        	A194835	A194836	A194837
+=X=	sqrt(3)         	A194838	A194839	A194840
+=X=	-sqrt(3)        	A194841	A194842	A194843
+=X=	sqrt(5)         	A194844	A194845	A194846
+=X=	-sqrt(5)        	A194856	A194857	A194858
+=X=	sqrt(6)         	A194871	A194872	A194873
+=X=	-sqrt(6)        	A194874	A194875	A194876
+=X=	sqrt(8)         	A194877	A194878	A194879
+=X=	-sqrt(8)        	A194896	A194897	A194898
+=X=	sqrt(12)        	A194899	A194900	A194901
+=X=	-sqrt(12)       	A194902	A194903	A194904
+=X=	e               	A194859	A194860	A194861
+=X=	-e              	A194865	A194866	A194864		!!
+=X=	pi              	A194905	A194906	A194907
+=X=	-pi             	A194908	A194909	A194910
+=X=	CR.THREE.sqrt().add(CR.ONE).divide(CR.TWO)	A194862	A194863	A194867		!!
+=X=	CR.THREE.sqrt().add(CR.ONE).divide(CR.TWO).negate()	A194868	A194869	A194870		!
+=X=	CR.TWO.pow(CR.ONE_THIRD)	A194911	A194912	A194913
 #--------------------------------
 # A197032
 #   m...h...k. x-intercept distance

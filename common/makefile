@@ -375,11 +375,11 @@ joeis_reload: joeis_load joeis_ofter joeis_ofdec joeis_stamp joeis_ccan joeis_up
 joeis_rest: joeis_names joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
-	grep -E "^A" ../data/joeis_list.txt | sort \
+	grep -E "^A" ../data/joeis_list.txt | sort | uniq -w7 \
 	| $(DBAT) -m csv -r joeis
 	$(DBAT) -4 joeis
 	$(DBAT) -n joeis
-joeis_dead:
+joeis_dead: # not used
 	sed -e "s/$$/\tdead\t/" $(JOEIS)/src/irvine/oeis/dead.lst \
 	>        $@.tmp
 	wc -l    $@.tmp
@@ -387,7 +387,7 @@ joeis_dead:
 	$(DBAT) -n joeis
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
-joeis_names: # all A-numbers with their jOEIS superclass or null
+joeis_names: # all A-numbers with their jOEIS superclass or null 
 	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_close.js"
 	cmd /c attrib -R $@.txt
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
@@ -487,6 +487,7 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 joeis_ccan:
 	# cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
+	| sort | uniq -w7 \
 	>        $@.cc.tmp \
 	2>       $@.an.tmp
 	head -n4 $@.*.tmp
@@ -494,6 +495,7 @@ joeis_ccan:
 joeis_ccanloc:
 	cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
+	| sort | uniq -w7 \
 	>        $@.cc.tmp \
 	2>       $@.an.tmp
 	head -n4 $@.*.tmp

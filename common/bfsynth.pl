@@ -2,13 +2,15 @@
 
 # Synthesize b-files from 'stripped'
 # @(#) $Id$
+# 2023-07-28: -p
 # 2019-07-27: comment
 # 2019-02-19, Georg Fischer
 #
 #:# Usage:
-#:#   perl bfsynth.pl [-s substrip] -o outputdir infile
+#:#   perl bfsynth.pl -s substrip [-p len] [-o outputdir] infile
 #:#       -s  subset of stripped file
-#:#       -o  directory where to write synthesized b-files
+#:#       -p  print a message if so many leading characters of aseqno change (default 3)
+#:#       -o  directory where to write synthesized b-files (default "./temp")
 #:#       infile: lines with aseqno tab offset1
 #
 # OEIS server writes:
@@ -27,7 +29,8 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
 my $stripped  = "../common/stripped";
 my $asdata    = "asdata.txt";
 my %terms     = (); # key is aseqno
-my $outdir    = ".";
+my $outdir    = "./temp";
+my $plen      = 3;
 
 if (scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
@@ -41,6 +44,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         if (substr($outdir, -1) ne "/") {
             $outdir .= "/";
         }
+    } elsif ($opt  =~ m{p}) {
+        $plen      = shift(@ARGV);
     } elsif ($opt  =~ m{s}) {
         $stripped  = shift(@ARGV);
     } else {
@@ -62,6 +67,7 @@ while (<STR>) {
 close(STR);
 print STDERR "$count records read from $stripped\n";
 
+my $asubstr = "a999999";
 my ($aseqno, $offset1, @rest);
 while (<>) {
     s/\s+\Z//; # chompr
@@ -88,7 +94,7 @@ sub output {
 #   print OUT "# $aseqno (b-file synthesized from sequence entry)\n";
     print OUT "# $aseqno (b-file synthesized from seq bfsynth.pl)\n";
     #                                                ^^^^^^^^^^^
-    # caution, extract_info.pl relies on this       |
+    # caution, extract_info.pl relies on this        |
     my $ind = $offset1;
     foreach my $term (split(/\,/, $param)) {
         print OUT "$ind $term\n";
@@ -97,7 +103,10 @@ sub output {
     # print OUT "\n"; # for A.H. - but no, we want to have the same filesize
     close(OUT);
     $ind --;
-    print STDERR "$bfname\tn = $offset1..$ind\twritten\n";
+    if ($asubstr ne lc(substr($aseqno, 0, $plen))) {
+        $asubstr =  lc(substr($aseqno, 0, $plen));
+        print STDERR "$bfname\tn = $offset1..$ind\twritten\n";
+    }
 } # output
 #--------------------
 __DATA__

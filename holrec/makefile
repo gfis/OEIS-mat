@@ -291,13 +291,16 @@ holfind: # LIST=, pure aseqnos
 	wc -l    $@.tmp
 #----
 ADD=4
-holminit: # LIST=,ADD=... ; replace initial terms for a holonomic matrix; MATRIX=parm1, INIT=parm2, DIST=parm3, GFTYPE=parm4, rest ... unchanged
+holminit: # LIST=, ADD=... ; replace initial terms for a holonomic matrix; MATRIX=parm1, INIT=parm2, DIST=parm3, GFTYPE=parm4, rest ... unchanged
 	make seq4 # LIST=
-	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT i.aseqno FROM asinfo i WHERE i.keyword LIKE '%tab%');"
+	$(DBAT) -v "DELETE FROM seq4 WHERE aseqno IN (SELECT i.aseqno FROM asinfo i WHERE i.keyword LIKE '%tab%');"
 	$(DBAT) -x "SELECT s.aseqno, s.callcode, s.offset1, s.parm1, d.data, s.parm3, s.parm4, s.parm5, s.parm6, s.parm7, s.parm8, s.name \
-	  FROM seq4 s, bfdata d \
+	  FROM seq4 s, asdata d \
 	  WHERE s.aseqno = d.aseqno \
 	  ORDER BY 1" \
+	>        $@.1.tmp
+	wc -l    $@.1.tmp
+	cat      $@.1.tmp \
 	| perl holminit.pl -a $(ADD) \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -333,7 +336,7 @@ holgrep2:
 	make holdfing LIST=holgrep1.tmp
 #----------------
 holdfin: holdfin1 holdfin2
-	make holminit LIST=holdfing.tmp ADD=4
+	make holminit LIST=holdfing.tmp ADD=2
 	cp -v holminit.tmp $@.gen
 holdfin1:
 	grep -iE "^%F" $(COMMON)/jcat25.txt | grep -iE "finite with recurrence[ \:]+" \

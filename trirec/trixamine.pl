@@ -2,6 +2,7 @@
 
 # Examine tabl triangles for some condition
 # @(#) $Id$
+# 2023-07-28: trixcut1, trixmirr, trixtoep
 # 2023-06-23: filter 'tabl' sequence for some condition
 # 2021-10-26, Georg Fischer: copied from tricheck.pl
 #
@@ -9,12 +10,15 @@
 #:#   perl trixamine.pl [-b bfdir] [-d debug] [-m {trixy|col0}] [-r rows] [-s start] infile.seq4 > outfile.seq4
 #:#       -b directory with b-files to be investigated (default: do not read b-files)
 #:#       -m type of check to be performed: 
-#:#          trixcut1   = remove the first column
-#:#          trixdiag   = is diagonalized vector (default)
-#:#          trixinter0 = has progressive interleaved zeros in columns
-#:#          trixy      = cf. below
+#:#          trixcut1   : parm1 = triangle with first column removed, parm2 = that column
+#:#          trixdiag   : check for diagonalized vector, parm1 = diagonal (default)
+#:#          trixinter0 : check for progressive interleaved zeros in columns
+#:#          trixmirr   : parm1 = the mirror
+#:#          trixrelu   : check for mirrored Toeplitz form, parm1 = the diagonal
+#:#          trixtoep   : check for Toeplitz form, parm1 = the column
+#:#          trixy      : cf. below
 #:#       -r minimum number of rows (default: 6)
-#:#       -s starting row (default: 1)
+#:#       -s starting row (default: 0)
 #:# The input file has seq4 records: aseqno callcode offset parm1=data parm[2..7]="" "{nyi|}" name.   
 #:# In the output file, parm1=left, parm2=right, and the callcode may be modified.
 #--------------------------------------------------------
@@ -89,24 +93,6 @@ while (<>) {
         # print STDERR "n=$n, start_row=$start_row\n";
         if (0) {
         #--------
-        } elsif ($callcode =~ m{trixtoep}) { # "... in every column" (yields first column)
-            $n = 0;
-            my $newlist = "";
-            while ($ok > 0 and $n < $nmax) {
-                for ($k = 0; $k <= $n; $k ++) { 
-                    if ($k == 0) {
-                        $newlist .=  "," . &T($n, $k);
-                    } else {
-                        if (&T($n, $k) != &T($n - 1, $k - 1)) {
-                            $ok = 0;
-                        }
-                    }
-                } # for $k
-                $n ++;
-            } # while
-            $newlist =~ s{\A\,}{};
-            $parms[1] = $newlist;
-        #--------
         } elsif ($callcode =~ m{trixcut1}) { # remove the first column
             $n = 0; # patch the problem away?
             # print STDERR "# A156991 -> A015725\n";
@@ -152,6 +138,54 @@ while (<>) {
                 } # for $k
                 $n ++;
             } # while
+        #--------
+        } elsif ($callcode =~ m{trixmirr}) { # mirror / transpose
+            $n = 0;
+            my $newlist = "";
+            while ($ok > 0 and $n < $nmax) {
+                for ($k = $n; $k >= 0; $k --) { # reverse the row order
+                    $newlist .=  "," . &T($n, $k);
+                } # for $k
+                $n ++;
+            } # while
+            $newlist =~ s{\A\,}{};
+            $parms[1] = $newlist;
+        #--------
+        } elsif ($callcode =~ m{trixrelu}) { # "reluctant sequence", triangle with constant columns
+            $n = 0;
+            my $newlist = "";
+            while ($ok > 0 and $n < $nmax) {
+                for ($k = 0; $k <= $n; $k ++) { 
+                    if ($k == $n) {
+                        $newlist .=  "," . &T($n, $k);
+                    } else {
+                        if (&T($n, $k) != &T($n - 1, $k)) {
+                            $ok = 0;
+                        }
+                    }
+                } # for $k
+                $n ++;
+            } # while
+            $newlist =~ s{\A\,}{};
+            $parms[1] = $newlist;
+        #--------
+        } elsif ($callcode =~ m{trixtoep}) { # "... in every column" (yields first column)
+            $n = 0;
+            my $newlist = "";
+            while ($ok > 0 and $n < $nmax) {
+                for ($k = 0; $k <= $n; $k ++) { 
+                    if ($k == 0) {
+                        $newlist .=  "," . &T($n, $k);
+                    } else {
+                        if (&T($n, $k) != &T($n - 1, $k - 1)) {
+                            $ok = 0;
+                        }
+                    }
+                } # for $k
+                $n ++;
+            } # while
+            $newlist =~ s{\A\,}{};
+            $parms[1] = $newlist;
         #--------
         } elsif ($callcode =~ m{trixy}) {
             # A052179: This triangle belongs to the family of triangles defined by:
@@ -216,7 +250,7 @@ while (<>) {
         } elsif ($ok == 1) {
             my $heads = "";
             my $tails = "";
-            if ($callcode !~ m{trixtoep}) {
+            if ($callcode !~ m{trixmirr|trixtoep}) {
                 for ($n = 0; $n < $nmax; $n ++) {
                     $heads .= "," . &T($n, 0 );
                     $tails .= "," . &T($n, $n);

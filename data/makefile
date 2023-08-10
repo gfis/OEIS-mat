@@ -182,3 +182,18 @@ joeis-prep: # REM= ; make a fresh copy of joeis on the remote server
 	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf * ; cp -pr ../joeis/* . ; rm -f joeis_pull* *.log ; ant clean ; ls -al"
 xxx:
 	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; cd ~/work/gits/OEIS-mat/data/
+#====
+bfsynth: bfsynth1 bfsynth2 bfsynth3 # generate all "synthesized" b-files from asdata
+bfsynth1:
+	$(DBAT) -x "SELECT d.aseqno, ',' || d.data || ',' FROM asdata d, bfinfo b WHERE d.aseqno = b.aseqno AND b.message LIKE '%synth%' \
+	  ORDER BY 1" \
+	>        $@.tmp
+	tail -n2 $@.tmp
+bfsynth2:
+	$(DBAT) -x "SELECT i.aseqno, i.offset1            FROM asinfo i, bfinfo b WHERE i.aseqno = b.aseqno AND b.message LIKE '%synth%' \
+	  ORDER BY 1" \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    bfsynth*.tmp
+bfsynth3:
+	perl $(COMMON)/bfsynth.pl -s bfsynth1.tmp -p 3 -o $(COMMON)/bfile bfsynth2.tmp

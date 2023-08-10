@@ -344,11 +344,11 @@ triknoll:
 	head -n4 $@.tmp
 	wc -l    $@.*tmp  
 #========
-trixam0: # prepare a seq4 table with all 'tabl' sequences fulfilling some condition
+trixam0: # prepare a text file in seq4 format with all 'tabl' sequences fulfilling some condition
 	# all tables are (n,k) = (0,0) based
 	#                                                 parm1   2  3  4  5  6  7  8=nyi, 9=name
-	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '','','','','','' \
-	    , SUBSTR(COALESCE(j.superclass, 'nyi  x'), 1, 7), SUBSTR(n.name, 1, 128) \
+	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '' \
+	    , SUBSTR(COALESCE(j.superclass, 'nyi____x'), 1, 8) \
 	    FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	    WHERE i.aseqno = d.aseqno \
 	      AND d.aseqno = n.aseqno \
@@ -369,35 +369,6 @@ trixam1: # CC= S= ; evaluate a single condition
 trixall: trixam0 trixcut1 # trixdiag trixinter0 # evaluate all conditions
 trixy:       # cf. trixamine.pl
 	make trixam1 CC=$@
-#----
-trixtoep: trixtoep1 trixtoep2 trixtoep3 # determine triangles that have identical columns
-trixtoep1:    # determine the column
-	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
-	| perl -w trixamine.pl -r 6 -s $(S) \
-	>        $@.tmp 
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-trixtoep2:    # load the truncated versions in seq4
-	grep -vP "\AA0[0-2]" trixtoep1.tmp \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
-	cat $@.tmp | $(DBAT) -r seq4
-	$(DBAT) -n seq4
-trixtoep3:
-	# merge with data of references sequences
-	$(DBAT) -x " \
-	  (SELECT s.aseqno, '-------', 0        , '-------', '-----', '----' FROM seq4 s \
-	  ) UNION \
-	  (SELECT s.aseqno, 'tritoe_', i.offset1, 'A0_____', '', s.parm1 FROM seq4 s, asinfo i \
-	    WHERE s.aseqno = i.aseqno \
-	  ) UNION \
-	  (SELECT s.aseqno, 'tritoe_', i.offset1, x.rseqno , '', d.data  FROM seq4 s, asinfo i, asxref x, asdata d \
-	    WHERE s.aseqno = x.aseqno AND s.aseqno = i.aseqno AND x.rseqno = d.aseqno \
-	  ) ORDER BY 1,2,6" > $@.txt
-	head -n8 $@.txt
-	wc -l    $@.txt
 #----
 trixcut: trixcut1 trixcut2 trixcut3 # determine triangles that were cut from other triangles
 trixcut1:    # remove the first column from all triangles
@@ -452,8 +423,114 @@ trixdiag:    # triangles with non-zero elements in the diagonal only
 	| tee    $@.gen
 	wc -l    $@.gen
 	cat      $@.rest.tmp || :
+#----
 trixint0:  # triangles where columns are interleaved with k+1 zeros
 	make trixam1 CC=$@ S=0
+#----
+trixmirr: trixmirr1 trixmirr2 trixmirr3 trimirr4 trimirr5 # determine the mirror (transpose) of all triangles
+trixmirr1:    # determine the column
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -s trixmirr \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixmirr2:    # load the truncated versions in seq4
+	grep -vP "\AA000000" trixmirr1.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	cat $@.tmp | $(DBAT) -r seq4
+	$(DBAT) -n seq4
+trixmirr3:
+	# load the original triangles in seq2
+	$(DBAT) -f $(COMMON)/seq2.create.sql
+	cut -f1,4 trixam0.tmp \
+	| $(DBAT) -r seq2
+trimirr4:
+	# determine which truncated match originals
+	$(DBAT) -x "SELECT s2.aseqno, 'trimirror' \
+	  || (CASE WHEN s2.aseqno NOT IN (SELECT aseqno from joeis) THEN 'n' ELSE 'y' END) \
+	  || (CASE WHEN s4.aseqno NOT IN (SELECT aseqno from joeis) THEN 'n' ELSE 'y' END) \
+	  , i.offset1 \
+	  , s4.aseqno, s4.parm2, n.name \
+	  FROM seq4 s4, seq2 s2, asinfo i, asname n \
+	  WHERE s2.aseqno <> s4.aseqno \
+	    AND s4.aseqno = i.aseqno \
+	    AND s4.aseqno = n.aseqno \
+	    AND s2.info LIKE s4.parm1 || '%' \
+	    ORDER BY 1,2" \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	cut -f2  $@.tmp | sort | uniq -c
+trimirr5: # select names of the ones that are both nyi
+	$(DBAT) -f $(COMMON)/seq.create.sql
+	grep "trimirrornn" trimirr4.tmp | cut -f1 | sort | uniq \
+	| $(DBAT) -r seq
+	$(DBAT) -x "SELECT s.aseqno, n.name FROM seq s, asname n WHERE s.aseqno = n.aseqno ORDER BY 1" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+#----
+trixrelu: trixrelu1 trixrelu2 trixrelu3 # determine triangles that have identical columns
+trixrelu1: # determine the column
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -s trixrelu \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixrelu2:    # load the truncated versions in seq4
+	grep -vP "\AA0[0-2]" trixrelu1.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	cat $@.tmp | $(DBAT) -r seq4
+	$(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -n seq4
+trixrelu3:
+	# merge with data of referenced sequences
+	$(DBAT) -x " \
+	  (SELECT s.aseqno, '--------', 0        , '-------------', '-----', '----' FROM seq4 s \
+	  ) UNION \
+	  (SELECT s.aseqno, 'trirelu_', i.offset1, 'new A0_____()', '', s.parm1 FROM seq4 s, asinfo i \
+	    WHERE s.aseqno = i.aseqno \
+	  ) UNION \
+	  (SELECT s.aseqno, 'trirelu_', i.offset1, 'new ' || x.rseqno || '()', '', d.data  FROM seq4 s, asinfo i, asxref x, asdata d \
+	    WHERE s.aseqno = x.aseqno AND s.aseqno = i.aseqno AND x.rseqno = d.aseqno \
+	  ) ORDER BY 1,2,6" > $@.txt
+	head -n8 $@.txt
+	wc -l    $@.txt
+#----
+trixtoep: trixtoep1 trixtoep2 trixtoep3 # determine triangles that have identical columns
+trixtoep1:    # determine the column
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -s trixtoep \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixtoep2:    # load the truncated versions in seq4
+	grep -vP "\AA0[0-2]" trixtoep1.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	cat $@.tmp | $(DBAT) -r seq4
+	$(DBAT) -n seq4
+trixtoep3:
+	# merge with data of referenced sequences
+	$(DBAT) -x " \
+	  (SELECT s.aseqno, '-------', 0        , '-------', '-----', '----' FROM seq4 s \
+	  ) UNION \
+	  (SELECT s.aseqno, 'tritoe_', i.offset1, 'A0_____', '', s.parm1 FROM seq4 s, asinfo i \
+	    WHERE s.aseqno = i.aseqno \
+	  ) UNION \
+	  (SELECT s.aseqno, 'tritoe_', i.offset1, x.rseqno , '', d.data  FROM seq4 s, asinfo i, asxref x, asdata d \
+	    WHERE s.aseqno = x.aseqno AND s.aseqno = i.aseqno AND x.rseqno = d.aseqno \
+	  ) ORDER BY 1,2,6" > $@.txt
+	head -n8 $@.txt
+	wc -l    $@.txt
 #========
 # Triangle recurrences
 trec:

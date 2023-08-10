@@ -5,7 +5,7 @@
 # 2021-06-01, Georg Fischer
 #
 #:# Usage:
-#:#     grep -iE "^%F" $(COMMON)/jcat25.txt | grep "inite with recurrence "| grep -vI "conject|empiric" \
+#:#     grep -iE "^%F" $(COMMON)/jcat25.txt | grep "inite with recurrence"| grep -vI "conject|empiric" \
 #:#     | perl holdfin.pl -m dfin > output 
 #:#   or:
 #:#     perl holdfin.pl -m arec input > output
