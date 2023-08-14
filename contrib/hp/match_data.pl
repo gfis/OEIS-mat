@@ -5,14 +5,14 @@
 # 2023-08-10, Georg Fischer: copied from gcd_reform.pl
 #
 #:# usage:
-#:#   perl match_data input > output
+#:#   perl match_data.pl input.seq4 > output.seq4
 #---------------------------------
 use strict;
 use integer;
 # get options
 my $debug   = 0; # 0 (none), 1 (some), 2 (more)
 my $offset  = 0;
-my $width   = 16; # very high
+my $width   = 16; # minimum length of data list
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -53,17 +53,9 @@ while (<>) {
     if ($nlen >= $width && $olen >= $width) { # sufficient length
         $min = ($nlen < $olen) ? $nlen : $olen;
         if (substr($odata, 0, $min) eq substr($ndata, 0, $min)) { # matches
-            if (0) {
-                print join("\t", $oseqno, $occ, $nseqno, $ncc
-                    , (defined($ofters{$oseqno}) ? "y" : "n") 
-                    . (defined($ofters{$nseqno}) ? "y" : "n")
-                    , substr($ndata, 0, $min)
-                    ) . "\n";
-            } else {
-                print join("\t", $oseqno, (defined($ofters{$oseqno}) ? "y" : "n") . $occ, $ooff, $ogcd, $odata) . "\n";
-                print join("\t", $nseqno, (defined($ofters{$nseqno}) ? "y" : "n") . $ncc, $noff, $ngcd, $ndata) . "\n";
-                print "\n";
-            }
+            print join("\t", $oseqno, (defined($ofters{$oseqno}) ? "y" : "n") . $occ, $ooff, $ogcd, $odata) . "\n";
+            print join("\t", $nseqno, (defined($ofters{$nseqno}) ? "y" : "n") . $ncc, $noff, $ngcd, $ndata) . "\n";
+            print "\n";
             # matches
         } else {
         }

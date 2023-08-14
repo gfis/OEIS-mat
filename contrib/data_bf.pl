@@ -9,7 +9,7 @@
 #:#       -o  offset for "-to bf", default 0
 #:#       -n  number of terms to be output (default 65536)
 #:#       -s  separator: "," (default), ", " etc.
-#:#       -to data format, of b-file format (default)
+#:#       -to data format, or b-file format (default)
 #:#       -w  maximum width of lines for "-to data" (default 65536)
 #---------------------------------
 use strict;

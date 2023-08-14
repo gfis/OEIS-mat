@@ -94,6 +94,8 @@ foreach my $line (split(/\n/, $buffer)) {
         if ($line !~ m{\#\?}) {
             print join("\t", $aseqno, $query, 0, $line) . "\n";
         }
+    } else {
+        print "$line\n";
     }
 } # $line
 my $ari = 0;

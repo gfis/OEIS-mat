@@ -9,7 +9,7 @@ COMMON=$(GITS)/OEIS-mat/common
 DATA=$(GITS)/OEIS-mat/data
 DBAT=java -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
-JCAT28=$(DATA)/jcat28.txt
+CAT=$(COMMON)/jcat25.txt
 JPREP=$(RAMATH).sequence.JoeisPreparer
 PFRACT=java -cp  $(RAMATH).symbolic.PolyFraction
 LITE=$(GITS)/joeis-lite
@@ -33,7 +33,7 @@ anopan: anopan0 anopan1
 	head -n2 $@.gen
 	wc -l    $@.gen
 anopan0:
-	grep -Pi "\= *A\d+\([^\)]+\) *([\+\-\*\/\^]|and|or|xor|xand|mod) *A\d+\([^\)]+\)" $(JCAT28) \
+	grep -Pi "\= *A\d+\([^\)]+\) *([\+\-\*\/\^]|and|or|xor|xand|mod) *A\d+\([^\)]+\)" $(CAT) \
 	| grep -E "^%[NF]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
 	>        $@.tmp
 	wc -l    $@.tmp
@@ -61,7 +61,7 @@ nopan: nopan0 nopan1 # a(n) = gcd(n, Annnnnn(n))
 	head -n2 $@.gen
 	wc -l    $@.gen
 nopan0:
-	grep -Pi "a\(n\) *\= *(min|max|and|xor|or|lcm|gcd|xand)\(n\," $(JCAT28) \
+	grep -Pi "a\(n\) *\= *(min|max|and|xor|or|lcm|gcd|xand)\(n\," $(CAT) \
 	| grep -E "^%[NF]" | cut -b 4- | sort | uniq -w7 | sed -e "s/ /\t/" \
 	>        $@.tmp
 	wc -l    $@.tmp
@@ -82,7 +82,7 @@ nopan1:
 	cut -f2  $@.tmp | sort | uniq -c
 #----
 binomx:
-	grep -E "^%" $(JCAT28) | grep -P "[Bb]inomial transform of [^A]*A" \
+	grep -E "^%" $(CAT) | grep -P "[Bb]inomial transform of [^A]*A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{transform of [^A]*(A\d+)}) { my $$rn = $$1; '\
@@ -91,7 +91,7 @@ binomx:
 	wc -l    $@.gen
 #----
 charfun:
-	grep -E "^%" $(JCAT28) | grep -P "Characteristic function of A" \
+	grep -E "^%" $(CAT) | grep -P "Characteristic function of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
@@ -100,7 +100,7 @@ charfun:
 	wc -l    $@.gen
 #--------
 convol: # convolution, convolved with or inverse
-	grep -iP "convol" $(JCAT28) | grep -P "^\%[NFCY]" | grep -viP "Dirichlet|Exponential" | $(NYI) convprod \
+	grep -iP "convol" $(CAT) | grep -P "^\%[NFCY]" | grep -viP "Dirichlet|Exponential" | $(NYI) convprod \
 	| grep -vE "A171238" \
 	| perl convol.pl \
 	2>       $@.rest.tmp \
@@ -109,7 +109,7 @@ convol: # convolution, convolved with or inverse
 	wc -l    $@.*
 #----
 diffseq:
-	grep -E "^%" $(JCAT28) | grep -P "(First |Second |Third |)[Dd]ifferences of [^A]* A\d{6}" \
+	grep -E "^%" $(CAT) | grep -P "(First |Second |Third |)[Dd]ifferences of [^A]* A\d{6}" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of [^A]*(A\d+)}) { my $$rn = $$1; '\
@@ -119,14 +119,14 @@ diffseq:
 	wc -l    $@.gen
 #--------
 dirichcon: # Dirichlet convolution or inverse
-	grep -P "Dirichlet convolution of " $(JCAT28) | grep -P "^\%[NF]" | $(NYI) dirichcon \
+	grep -P "Dirichlet convolution of " $(CAT) | grep -P "^\%[NF]" | $(NYI) dirichcon \
 	| grep -vE "A159046" \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
 	' $$name =~ s{(A\d+)(\(n\))? with itself}{$$1 with $$1};'\
 	' if ($$name =~ m{(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2) = ($$1, $$2);'\
 	' print join("\t", $$aseqno, "dirichcon2", $$offset, "new $$rn1()", 1, "new $$rn2()", 1, $$name); }'\
 	>        $@.gen
-	grep -P "Dirichlet inverse of " $(JCAT28) | grep -P "^\%[NF]" | $(NYI) dirichinv \
+	grep -P "Dirichlet inverse of " $(CAT) | grep -P "^\%[NF]" | $(NYI) dirichinv \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
 	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
 	' print join("\t", $$aseqno, $$callcode, $$offset, "new $$rn1()", 1, $$name); }'\
@@ -135,7 +135,7 @@ dirichcon: # Dirichlet convolution or inverse
 	wc -l    $@.gen
 #----
 inverse:
-	grep -E "^%" $(JCAT28) | grep -P "Inverse +(permutation +)?(of|to) +A" \
+	grep -E "^%" $(CAT) | grep -P "Inverse +(permutation +)?(of|to) +A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{(of|to) (A\d+)}) { my $$rn = $$2; '\
@@ -145,12 +145,12 @@ inverse:
 	wc -l    $@.gen
 #--------
 m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
-	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(JCAT28) | $(NYI) m1pow \
+	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(CAT) | $(NYI) m1pow \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
 	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
 	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
 	>        $@.gen
-	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-1\)\^n *\* *A\d+\(n\)[ \.\,]" $(JCAT28) | $(NYI) m1mul \
+	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-1\)\^n *\* *A\d+\(n\)[ \.\,]" $(CAT) | $(NYI) m1mul \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
 	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
 	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
@@ -161,7 +161,7 @@ m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 # Robot#1: Ordinary (rational) generating functions
 ogf: ogf1 ogf2 
 ogf1: # extract
-	grep -E "%[SOFN]" $(JCAT28) \
+	grep -E "%[SOFN]" $(CAT) \
 	| perl catex_gf.pl -d 0 \
 	>        $@.tmp
 	head -n2 $@.tmp
@@ -190,7 +190,7 @@ fract22:
 	wc -l    $@.gen
 #----
 parity:
-	grep -iP "Parity of A\d+" $(JCAT28) | grep -P "^\%[NFCY]" | $(NYI) parity \
+	grep -iP "Parity of A\d+" $(CAT) | grep -P "^\%[NFCY]" | $(NYI) parity \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
 	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
 	' print join("\t", $$aseqno, $$callcode, $$offset, "$$rn1", 1, $$name); }'\
@@ -200,7 +200,7 @@ parity:
 #--------
 #----
 partprod:
-	grep -E "^%" $(JCAT28) | grep -P "Partial products of A" \
+	grep -E "^%" $(CAT) | grep -P "Partial products of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
@@ -209,7 +209,7 @@ partprod:
 	wc -l    $@.gen
 #----
 partsum:
-	grep -E "^%" $(JCAT28) | grep -P "Partial sums of A" \
+	grep -E "^%" $(CAT) | grep -P "Partial sums of A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
@@ -227,7 +227,7 @@ reconcat: # extract recurrent concatenations from asdata
 	wc -l    $@.tmp
 #----
 rowsums:
-	grep -E "^%" $(JCAT28) | grep -P "Row sums of [^A]* A\d{6}" \
+	grep -E "^%" $(CAT) | grep -P "Row sums of [^A]* A\d{6}" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of [^A]*(A\d+)}) { my $$rn = $$1; '\
@@ -238,7 +238,7 @@ rowsums:
 #----
 seqsum:
 	# Sum of sequences with optional factors
-	grep   -E "^%[NFC]" $(JCAT28) \
+	grep   -E "^%[NFC]" $(CAT) \
 	| grep -P "^%[NFC] A\d+ (a\(\w\) *\=) *[\+\-]? *\(?\d+(\/\d+)?\)? *(\* *)?A\d+" \
 	| perl seqsum.pl > $@.tmp 2> $@.rest.tmp
 	wc -l $@*.tmp
@@ -252,7 +252,7 @@ seqsum:
 #----
 triprod: 
 	# Triangles that are products of 2 other triangles
-	grep -E "^%[NF]" $(JCAT28) |  grep -P "A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) triprod \
+	grep -E "^%[NF]" $(CAT) |  grep -P "A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) triprod \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
 	' $$name =~ s{A000012(\^\(\-1\)| *\(signed)}{A097807}g;'\
 	' $$name =~ s{A007318(\^\(\-1\)| *\(signed)}{A130595}g;'\
@@ -261,7 +261,7 @@ triprod:
 	| tee    $@.gen
 	wc -l    $@.gen
 	# tripro3: # Triangles that are products of 3 other triangles
-	grep -E "^%[NF]" $(JCAT28) |  grep -P "A\d{6}(\^\(\-1\)| *\(signed\))? *\* A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) tripro3 \
+	grep -E "^%[NF]" $(CAT) |  grep -P "A\d{6}(\^\(\-1\)| *\(signed\))? *\* A\d{6}(\^\(\-1\))? *\* *A\d{6}" | $(NYI) tripro3 \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
 	' $$name =~ s{A000012(\^\(\-1\)| *\(signed)}{A097807}g;'\
 	' $$name =~ s{A007318(\^\(\-1\)| *\(signed)}{A130595}g;'\
@@ -271,9 +271,18 @@ triprod:
 	wc -l    $@.gen
 trisum: 
 	# Triangles that are sums of other triangles
-	grep -E "^%[NF]" $(JCAT28) | grep -P "(\d+ *\* *)?(I|A\d{6}) *[-\+] *(\d+ *\* *)?(I|A\d{6})" | $(NYI) trisum \
+	grep -E "^%[NF]" $(CAT) | grep -P "(\d+ *\* *)?(I|A\d{6}) *[-\+] *(\d+ *\* *)?(I|A\d{6})" | $(NYI) trisum \
 	| perl trisum.pl \
 	| grep -vE "A133571|A134233|A134349" \
 	| tee    $@.gen
 	wc -l    $@.gen
+#----
+union: 
+	# Union of 2 or 3 sequences (sorted, without duplicates)
+	grep -E "^%[NCFY]" $(CAT) | grep -iP "Union of" | $(NYI) union2 \
+	| perl union.pl \
+	2>       $@.rest.tmp \
+	| grep -vE "A000000" \
+	| tee    $@.gen
+	wc -l    $@.*
 #----
