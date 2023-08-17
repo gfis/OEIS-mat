@@ -347,8 +347,8 @@ triknoll:
 trixam0: # prepare a text file in seq4 format with all 'tabl' sequences fulfilling some condition
 	# all tables are (n,k) = (0,0) based
 	#                                                 parm1   2  3  4  5  6  7  8=nyi, 9=name
-	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '' \
-	    , SUBSTR(COALESCE(j.superclass, 'nyi____x'), 1, 8) \
+	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '','','','','','' \
+	    , SUBSTR(COALESCE(j.superclass, 'nyi____x'), 1, 8), n.name \
 	    FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	    WHERE i.aseqno = d.aseqno \
 	      AND d.aseqno = n.aseqno \
@@ -366,7 +366,7 @@ trixam1: # CC= S= ; evaluate a single condition
 	cut -f1,2,3,11,12 $(CC).tmp \
 	| tee    $(CC).short.tmp
 	wc -l    $(CC).short.tmp
-trixall: trixam0 trixcut1 # trixdiag trixinter0 # evaluate all conditions
+trixall: trixam0 trixcut1 trixdiag trixinter0 trixthin # evaluate all conditions
 trixy:       # cf. trixamine.pl
 	make trixam1 CC=$@
 #----
@@ -473,6 +473,7 @@ trimirr5: # select names of the ones that are both nyi
 	head -n2 $@.tmp
 	wc -l    $@.tmp
 #----
+# "recluctant" triangles: all rows start with the first n members of an underlying sequence; all columns are constant
 trixrelu: trixrelu1 trixrelu2 trixrelu3 # determine triangles that have identical columns
 trixrelu1: # determine the column
 	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
@@ -503,6 +504,39 @@ trixrelu3:
 	head -n8 $@.txt
 	wc -l    $@.txt
 #----
+# "thin" triangles: only the members of an underlying sequence do occur
+trixthin: trixthin1 trixthin2 trixthin3 # determine triangles that have identical columns
+trixthin1:    # determine the column
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -s trixthin \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixthin2:    # load the truncated versions in seq4
+	grep -P "\AA" trixthin1.tmp \
+	| sed -e "s/ /_/g" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	cat $@.tmp | $(DBAT) -r seq4
+	$(DBAT) -v "DELETE FROM seq4 WHERE aseqno NOT IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -n seq4
+trixthin3:
+	# merge with data of referenced sequences
+	$(DBAT) -x " \
+	  (SELECT s.aseqno, '-------', 0        , '-------', parm8, name FROM seq4 s \
+	  ) UNION \
+	  (SELECT s.aseqno, 'trithi_', i.offset1, 'A0_____', '', s.parm1 FROM seq4 s, asinfo i \
+	    WHERE s.aseqno = i.aseqno \
+	  ) UNION \
+	  (SELECT s.aseqno, 'trithi_', i.offset1, x.rseqno , '', d.data  FROM seq4 s, asinfo i, asxref x, asdata d \
+	    WHERE s.aseqno = x.aseqno AND s.aseqno = i.aseqno AND x.rseqno = d.aseqno \
+	  ) ORDER BY 1,2,6" > $@.txt
+	head -n8 $@.txt
+	wc -l    $@.txt
+#----
+# Toeplitz form: all diagonals are constant
 trixtoep: trixtoep1 trixtoep2 trixtoep3 # determine triangles that have identical columns
 trixtoep1:    # determine the column
 	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \

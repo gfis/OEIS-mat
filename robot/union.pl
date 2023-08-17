@@ -37,11 +37,11 @@ while (<>) {
     my ($aseqno, $callcode, $offset, $name) = split(/\t/, $line);
     my @parms   = ();
     if(0) { 
-    } elsif ($name =~ m{ (A\d+) (and +|\, *)(A\d+) and (A\d+)}  ) { 
-        $callcode = "union2";
-        push(@parms, map { "new " . $_ . "()" } ($1, $2, $4));
-    } elsif ($name =~ m{ (A\d+) and (A\d+)}             ) { 
+    } elsif ($name =~ m{ (A\d+) (and) (A\d+) and (A\d+)}  ) { 
         $callcode = "union3";
+        push(@parms, map { "new " . $_ . "()" } ($1, $3, $4));
+    } elsif ($name =~ m{ (A\d+) and (A\d+)}             ) { 
+        $callcode = "union2";
         push(@parms, map { "new " . $_ . "()" } ($1, $2));
     } else {
     }

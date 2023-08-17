@@ -7,7 +7,7 @@
 # 2021-10-26, Georg Fischer: copied from tricheck.pl
 #
 #:# Usage:
-#:#   perl trixamine.pl [-b bfdir] [-d debug] [-m {trixy|col0}] [-r rows] [-s start] infile.seq4 > outfile.seq4
+#:#   perl trixamine.pl [-b bfdir] [-d debug] [-m {trixy|col0}] [-r rows] [-n] [-s start] infile.seq4 > outfile.seq4
 #:#       -b directory with b-files to be investigated (default: do not read b-files)
 #:#       -m type of check to be performed: 
 #:#          trixcut1   : parm1 = triangle with first column removed, parm2 = that column
@@ -15,8 +15,10 @@
 #:#          trixinter0 : check for progressive interleaved zeros in columns
 #:#          trixmirr   : parm1 = the mirror
 #:#          trixrelu   : check for mirrored Toeplitz form, parm1 = the diagonal
+#:#          trixthin   : check for "thin" triangles that contain the members of an underlying (linear) sequence only
 #:#          trixtoep   : check for Toeplitz form, parm1 = the column
 #:#          trixy      : cf. below
+#:#       -n for select nyi sequences only
 #:#       -r minimum number of rows (default: 6)
 #:#       -s starting row (default: 0)
 #:# The input file has seq4 records: aseqno callcode offset parm1=data parm[2..7]="" "{nyi|}" name.   
@@ -38,6 +40,7 @@ my $debug = 0;
 my $check = "trixdiag";
 my $start_row = 0;
 my $min_rows  = 6;
+my $nyi = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -47,6 +50,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $debug     = shift(@ARGV);
     } elsif ($opt  =~ m{m}) {
         $check     = shift(@ARGV);
+    } elsif ($opt  =~ m{n}) {
+        $nyi       = 1;
     } elsif ($opt  =~ m{r}) {
         $min_rows  = shift(@ARGV);
     } elsif ($opt  =~ m{s}) {
@@ -59,15 +64,19 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my @t; # triangular matrix
 my $line;
 my ($aseqno, $callcode, @parms);
-my ($offset1, $data, $name);
+my ($offset1, $data, $superclass, $name);
 while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     if ($line =~ m{^A\d+\t\S+\t\S}) { # with A-number
         ($aseqno, $callcode, @parms) = split(/\t/, $line);
-        $offset1 = $parms[0];
-        $data    = $parms[1];
-        $name    = $parms[9];
+        $offset1    = $parms[0];
+        $data       = $parms[1];
+        $superclass = $parms[8];
+        $name       = $parms[9];
+        if ($nyi && ($superclass !~ m{^nyi})) {
+            next;
+        }
         my @terms = split(/\,/, $data);
         if (length($bfdir) > 0) {
             @terms = &read_bfile($aseqno);
@@ -169,6 +178,28 @@ while (<>) {
             $newlist =~ s{\A\,}{};
             $parms[1] = $newlist;
         #--------
+        } elsif ($callcode =~ m{trixthin}) { # members of an underlying sequence only
+            $n = 0;
+            my $newlist = "";
+            my %hash = ();
+            while ($ok > 0 and $n < $nmax) {
+                for ($k = 0; $k <= $n; $k ++) { 
+                    my $term = &T($n, $k);
+                    if (defined($hash{$term})) {
+                        $hash{$term} ++;
+                    } else {
+                        $hash{$term} = 1;
+                    }
+                } # for $k
+                $n ++;
+            } # while
+            if (scalar(keys(%hash)) <= $nmax + 1) {
+                $newlist = join(",", sort { $a <=> $b } (keys(%hash)));
+            } else {
+                $ok = 0;
+            }
+            $parms[1] = $newlist;
+        #--------
         } elsif ($callcode =~ m{trixtoep}) { # "... in every column" (yields first column)
             $n = 0;
             my $newlist = "";
@@ -250,7 +281,7 @@ while (<>) {
         } elsif ($ok == 1) {
             my $heads = "";
             my $tails = "";
-            if ($callcode !~ m{trixmirr|trixtoep}) {
+            if ($callcode !~ m{trixmirr|trixthin|trixtoep}) {
                 for ($n = 0; $n < $nmax; $n ++) {
                     $heads .= "," . &T($n, 0 );
                     $tails .= "," . &T($n, $n);
@@ -260,10 +291,10 @@ while (<>) {
             }
             $parms[2] = $heads;
             $parms[3] = $tails;
-            print join("\t", $aseqno, $callcode, @parms) . "\n";
+            print join("\t", $aseqno, $callcode, @parms, $name) . "\n";
         } elsif ($ok == 2) { # trixcut1
             if (length($parms[0]) >= 32) {
-                print join("\t", $aseqno, $callcode, 0, $parms[0], $parms[1]) . "\n";
+                print join("\t", $aseqno, $callcode, 0, $parms[0], $parms[1], $parms[8], $name) . "\n";
             }
         }
     } # with A-number

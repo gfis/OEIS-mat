@@ -133,7 +133,7 @@ load4:
 reflect:
 	cd $(FISCHER)/reflect ; make
 robots:
-	cd $(FISCHER)/reflect ; make robots
+	cd $(FISCHER) ; make robots
 #====
 oprep_remote: # download stripped, names, bfilelist
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"
