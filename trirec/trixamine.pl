@@ -69,7 +69,8 @@ while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     if ($line =~ m{^A\d+\t\S+\t\S}) { # with A-number
-        ($aseqno, $callcode, @parms) = split(/\t/, $line);
+        my $iparm = -1;
+        ($aseqno, $callcode, @parms) = map { $iparm ++; (length($_) > 0) ? $_ : "parm$iparm" } split(/\t/, $line);
         $offset1    = $parms[0];
         $data       = $parms[1];
         $superclass = $parms[8];
@@ -281,7 +282,7 @@ while (<>) {
         } elsif ($ok == 1) {
             my $heads = "";
             my $tails = "";
-            if ($callcode !~ m{trixmirr|trixthin|trixtoep}) {
+            if ($callcode !~ m{trixmirr|trixtoep}) {
                 for ($n = 0; $n < $nmax; $n ++) {
                     $heads .= "," . &T($n, 0 );
                     $tails .= "," . &T($n, $n);
@@ -291,7 +292,7 @@ while (<>) {
             }
             $parms[2] = $heads;
             $parms[3] = $tails;
-            print join("\t", $aseqno, $callcode, @parms, $name) . "\n";
+            print join("\t", $aseqno, $callcode, @parms) . "\n";
         } elsif ($ok == 2) { # trixcut1
             if (length($parms[0]) >= 32) {
                 print join("\t", $aseqno, $callcode, 0, $parms[0], $parms[1], $parms[8], $name) . "\n";

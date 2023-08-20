@@ -2,6 +2,7 @@
 
 # OEIS-mat/robot - automatic preparation of parameters for the generation of Java programs for jOEIS
 # @(#) $Id$
+# 2023-08-20: sumbin & co.
 # 2023-05-01, Georg Fischer: start with ogf
 #---------------------------------
 GITS=../..
@@ -20,9 +21,8 @@ REMOTE=atair
 NYI=perl $(COMMON)/nyi.pl -q
 # set_env_var_REMOTE
 #-------------
-all: help
-help:
-	grep -E "^[a-z]" makefile | sort
+all: # all possible targets:
+	grep -P "^\w[^\:]*\:" makefile | sort 
 #========
 #----
 # simple formula a(n) = Aqseqno(n...) op Arseqno(n...)
@@ -249,6 +249,67 @@ seqsum:
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#----
+simtraf: 
+	# Simple transformations
+	grep -iP "^\%[NFC] +(a\(n\) *\= *)?([\-\+]? *\d+ *[\+\-\*] *)?A\d+ A\d{6}(\(n([\+\-]\d+)?\))? *([\+\-\*\/\!\^] *\d+| +mod +\d+)[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
+	| tee    $@.gen
+	wc -l    $@.gen
+prepend: # Simple skip/prepending
+	grep -iP "^\%[NFC] +(a\(n\) *\= *)?(\{ *\-?\d+(\, *\-?\d+)* *\} *U *)?A\d+ A\d{6}( *[U\\\\] *\{ *\-?\d+(\, *\-?\d+)* *\} *)?[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+sum_prog: sum_pari sum_list sum_oeis sum_maple sum_mma sum_mma0
+sum_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama, 
+	grep -P "^\%o" $(CAT) | cut -b4- \
+	| grep -P "a\(n\) *\= *[^s]*sum\(" | grep -iP "binomial|stirling" | grep -viP "numbpart|sqrt|prime" \
+	| perl sum_pari.pl -d 1 \
+	2>       $@.rest.tmp \
+	| sort -k4,4 -k5,5 \
+	>        $@.tmp
+	head -n2 $@.tmp
+	cut -f2  $@.tmp | sort | uniq -c
+	grep  -P "binomial" $@.tmp >> $@.rest.tmp
+	grep -vP "binomial" $@.tmp >  $@.txt
+	wc -l    $@*
+sum_list: # get the A-numbers of sumbingp
+	cut -f1  sum_pari.txt | sort | uniq -w7 \
+	>        $@.tmp
+	wc -l    $@.tmp
+sum_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) * binomial(n+2*k-1,n-k)/k!.
+	grep -P "^\%F" $(CAT) | cut -b4- \
+	| grep -iP "binomial|stirling" \
+	| grep -vf sum_list.tmp \
+	| perl sum_oeis.pl \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+xx: 
+	echo x \
+	| perl sum_pari.pl \
+	2>       $@.rest.tmp \
+
+sum_maple: # Maple
+	grep -P "^\%p" $(CAT) | cut -b4- \
+	| grep -iP "binomial|stirling" | grep -P "seq\(add\(|sum" \
+	| grep -vf sum_list.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+sum_mma: # Mathematica
+	grep -P "^\%t" $(CAT) | cut -b4- \
+	| grep -iP "binomial|stirling" \
+	| grep -vf sum_list.tmp \
+	| grep -P "Sum" | grep -viP "DivisorSum|exp|Harmonic|HyperGeometric|prime|partition|Numerator|Denominator|MoebiusMu" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+sum_mma0: # Mathematica starting with "a[0] = "
+	grep -P "^A\d+ a\[\d\] *=" sum_mma.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
 #----
 triprod: 
 	# Triangles that are products of 2 other triangles

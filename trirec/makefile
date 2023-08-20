@@ -16,11 +16,11 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 HERE=../../../OEIS-mat/trirec
+CAT=$(COMMON)/jcat25.txt
 D=0
 #========
-all:
-	# targets: new = prepare newseq archlist regen (in that order)
-	grep -E "^[a-z]" makefile
+all: # all possible targets:
+	grep -P "^\w[^\:]*\:" makefile | sort 
 	# the wiki index page for lin.rec.s is regenerated with 'make linrec'
 #--------
 trepl:
@@ -103,7 +103,7 @@ cdrof: # (column|diagonal|row) of"
 	wc -l    $@.tmp
 #----
 tablof: # "Table T(n,k) by antidiagonals of ..."
-	grep -E "^\%[NF] A" $(COMMON)/jcat25.txt \
+	grep -E "^\%[NF] A" $(CAT) \
 	| cut -b4- | sed -e "s/ /\tnull\t/" \
 	| perl -ne 'my ($$aseqno, $$superclass, $$name) = split(/\t/);'\
 	' if ($$name =~ m{\A(Table|Array) +\w\(\w\, *\w\) +(read )?by +antidiagonals +(of )?(.*)}) { my $$expr = $$4; s{\..*}{}; '\
@@ -117,7 +117,7 @@ tablof: # "Table T(n,k) by antidiagonals of ..."
 #
 dhd: dhd1 dhd2 dhd_joeis dhd_cf dhd_gf
 dhd1: # raw extract of word "DELTA" 
-	grep DELTA $(COMMON)/cat25.txt \
+	grep DELTA $(CAT) \
 	| perl dhd_extract.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -224,12 +224,12 @@ trirecur:
 # Riordan arrays
 rio: rio0 rio1 rio2 rio3
 rio0:
-	grep -iE "Riordan *array" $(COMMON)/jcat25.txt \
+	grep -iE "Riordan *array" $(CAT) \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 rio1:
-	perl extract_rio.pl $(COMMON)/cat25.txt \
+	perl extract_rio.pl $(CAT) \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -248,7 +248,7 @@ rio3:
 	wc -l    $@.tmp
 #--------
 riordan:
-	grep -iE "Riordan" $(COMMON)/jcat25.txt \
+	grep -iE "Riordan" $(CAT) \
 	| grep -E "^\%[NCF]" \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -308,7 +308,7 @@ factabl2:
 	wc -l    $@.tmp
 #--------
 tricolk:
-	grep -E "^[\%\?][NCFY]" $(COMMON)/jcat25.txt \
+	grep -E "^[\%\?][NCFY]" $(CAT) \
 	| grep -iE "column" \
 	| perl rowsums.pl -c \
 	2>       $@.rest.tmp \
@@ -317,7 +317,7 @@ tricolk:
 	wc -l    $@.*tmp
 #--------
 rowsums:
-	grep -E "^[\%\?][NCFY]" $(COMMON)/jcat25.txt \
+	grep -E "^[\%\?][NCFY]" $(CAT) \
 	| grep -iE "row sum" \
 	| perl rowsums.pl -r \
 	2>       $@.rest.tmp \
@@ -347,8 +347,8 @@ triknoll:
 trixam0: # prepare a text file in seq4 format with all 'tabl' sequences fulfilling some condition
 	# all tables are (n,k) = (0,0) based
 	#                                                 parm1   2  3  4  5  6  7  8=nyi, 9=name
-	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, '','','','','','' \
-	    , SUBSTR(COALESCE(j.superclass, 'nyi____x'), 1, 8), n.name \
+	$(DBAT) -x "SELECT i.aseqno, 'trixam', i.offset1, d.data, 'parm2','parm3','parm4','parm5','parm6','parm7' \
+	    , SUBSTR(COALESCE(j.superclass, 'nyi____x'), 1, 8) AS parm8, SUBSTR(n.name, 1, 128) \
 	    FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	    WHERE i.aseqno = d.aseqno \
 	      AND d.aseqno = n.aseqno \
@@ -514,13 +514,14 @@ trixthin1:    # determine the column
 	wc -l    $@.tmp
 trixthin2:    # load the truncated versions in seq4
 	grep -P "\AA" trixthin1.tmp \
-	| sed -e "s/ /_/g" \
+	| sed -e "s/ /_/g" -e "s/\t\t/\tx\t/g" \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
 	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
-	cat $@.tmp | $(DBAT) -r seq4
-	$(DBAT) -v "DELETE FROM seq4 WHERE aseqno NOT IN (SELECT aseqno FROM joeis);"
+	cat $@.tmp | $(DBAT) -s "\t" -r seq4
+	$(DBAT) -v "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -4 seq4
 	$(DBAT) -n seq4
 trixthin3:
 	# merge with data of referenced sequences
@@ -568,7 +569,7 @@ trixtoep3:
 #========
 # Triangle recurrences
 trec:
-	grep -E "^\%[NF]" $(COMMON)/jcat25.txt \
+	grep -E "^\%[NF]" $(CAT) \
 	| perl -ne \
 	's{with |where |when |for |if }{for }g;'\
 	'if  ((! m{[\!\|]|\.\.\.|ceil|floor|min|max|[Nn]umber|Pi|[Ss]um|[ATa]\d{6}\S}) '\
@@ -858,7 +859,7 @@ triupcp: triuple
 	# cp -v triuple.tmp triuple.man
 #---------
 fusion: # "correlation triangle"
-	grep -E "^%[NCF]" $(COMMON)/jcat25.txt \
+	grep -E "^%[NCF]" $(CAT) \
 	| grep -Pi "self[\- ]fusion" \
 	| tee     $@.tmp
 	wc -l     $@.tmp
@@ -963,7 +964,7 @@ const_add: # Which nonzero Pasc traits do occur?
 	wc -l     $@.tmp
 #--------
 tnrec1:
-	grep -E "^\%[N] " $(COMMON)/jcat25.txt \
+	grep -E "^\%[N] " $(CAT) \
 	| grep -P "T[\(\)\[\][i-n\)\]\, ]+\= *[\, Ti-n\+\-\*\/\^\d\(\)\[\]]*" \
 	| grep -vEi "number of" \
 	| tee $@.tmp
@@ -981,7 +982,7 @@ power_sides: # Determine triangles where the LeftSide and RightSide traits are s
 #--------
 # Weight array of ...
 weightar:
-	grep -E "^[\%\#][NCF]" $(COMMON)/jcat25.txt \
+	grep -E "^[\%\#][NCF]" $(CAT) \
 	| grep -E "Weight array" \
 	| tee     $@.tmp
 	wc -l     $@.tmp

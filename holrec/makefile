@@ -28,7 +28,7 @@ REMDIR=~/work/gits/OEIS-mat/holrec
 REMOTE=$(SERVER):$(REMDIR)
 
 all:
-	echo select specific target
+	grep -P "^\w[^\:]*\:" makefile | sort 
 # rectab recuf
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
 #===============================================
