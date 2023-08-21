@@ -1,0 +1,54 @@
+0	numb	0	Z.ZERO	0
+1	numb	0	Z.ONE	0
+2	numb	0	Z.TWO	0
+3	numb	0	Z.THREE	0
+4	numb	0	Z.FOUR	0
+5	numb	0	Z.FIVE	0
+6	numb	0	Z.SIX	0
+7	numb	0	Z.SEVEN	0
+8	numb	0	Z.EIGHT	0
+9	numb	0	Z.NINE	0
+10	numb	0	Z.TEN	0
+01234567	numb	0	Z.valueOf(op1)	0
+i	name	0	i	0
+j	name	0	j	0
+k	name	0	k	0
+m	name	0	m	0
+n	name	0	n	0
+d	name	0	d	0
+
+V0	name	0	V0	0
+V1	name	0	V1	0
+V2	name	0	V2	0
+V3	name	0	V3	0
+V4	name	0	V4	0
+V5	name	0	V5	0
+V6	name	0	V6	0
+V7	name	0	V7	0
+V8	name	0	V8	0
+V9	name	0	V9	0
+
++	meth	2	op1.add(op2)	0
+-	meth	2	op1.subtract(op2)	0
+-.	meth	1	op1.negate()	0
+*	meth	2	op1.multiply(op2)	0
+/	meth	2	op1.divide(op2)	0
+%	meth	2	op1.mod(op2)	0
+^	meth	2	op1.pow(op2)	0
+!	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
+
+BIN)	func	2	Binomial.binomial(op1, op2)	0
+FACTORIAL)	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
+INTSUM)	func	4	Integers.SINGLETON.sum(op1, op2, op3 -> op4)
+POW2)	func	1	Z.ONE.shiftLeft(op1)	0
+POW_1)	func	1	(((op1 & 1) == 0) ? Z.ONE : Z.NEG_ONE)	0
+VALOF)	func	1	Z.valueOf(op1)	0
+STIR1)	func	2	Stirling.firstKind(op1, op2)	0
+STIR2)	func	2	Stirling.seoncdKind(op1, op2)	0
+SUMDIV)	func	3	Integers.SINGLETON.sumdiv(op1, op2 -> op3)
+floor)	func	1	op1	0
+gcd)	func	2	op1.gcd(op2)	0
+lcm)	func	2	op1.lcm(op2)	0
+phi)	func	1	irvine.math.z.Euler.phi(op1)	0
+FACTORIAL)	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
+

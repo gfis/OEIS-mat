@@ -260,6 +260,27 @@ prepend: # Simple skip/prepending
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
+expr: expr_pari expr_post
+expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama, 
+	grep -P "^\%o" $(CAT) | cut -b4- \
+	| grep -P "a\(n\) *\=" | grep -iP "binomial|stirling" | grep -viP "numbpart|sqrt|prime" \
+	| perl $@.pl -d 1 \
+	2>       $@.rest.tmp \
+	| sort -k4,4 -k5,5 \
+	>        $@.tmp
+	head -n2 $@.tmp
+	cut -f2  $@.tmp | sort | uniq -c
+	grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp
+	grep -vP "binomial|stirling" $@.tmp >  $@.txt
+	wc -l    $@*
+expr_post: # translate into jOEIS Z language
+	$(JPREP) -p expr.ttab -f expr_pari.txt -cc postrans \
+	>        $@.1.tmp
+	grep -E  "\?" $@.1.tmp > $@.rest.tmp || :
+	grep -vE "\?" $@.1.tmp > $@.tmp || :
+	head -n4 $@.tmp
+	wc -l    $@*.tmp
+#----
 sum_prog: sum_pari sum_list sum_oeis sum_maple sum_mma sum_mma0
 sum_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama, 
 	grep -P "^\%o" $(CAT) | cut -b4- \
@@ -282,14 +303,11 @@ sum_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) *
 	| grep -iP "binomial|stirling" \
 	| grep -vf sum_list.tmp \
 	| perl sum_oeis.pl \
+	| perl sum_pari.pl \
+	2>       $@.rest.tmp \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
-xx: 
-	echo x \
-	| perl sum_pari.pl \
-	2>       $@.rest.tmp \
-
 sum_maple: # Maple
 	grep -P "^\%p" $(CAT) | cut -b4- \
 	| grep -iP "binomial|stirling" | grep -P "seq\(add\(|sum" \

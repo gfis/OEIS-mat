@@ -2,10 +2,10 @@
 
 # Extract sums with binomial|stirling
 # @(#) $Id$
-# 2023-08-20, Georg Fischer; CC=67
+# 2023-08-20, Georg Fischer
 #
 #:# Usage:
-#:#   perl sumpari.pl input.cat25-type > sumbin.gen
+#:#   perl sum_pari.pl input.cat25-type > sumbin.gen
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -39,6 +39,7 @@ while (<>) {
     $line =~ s/\s+\Z//; # chompr
     $nok = 0;
     my ($aseqno, $name) = split(/ /, $line, 2);
+    $name =~ s{\(PARI[^\)]*\)}{}; # e.g. %o A248705 (PARI: For b-file)
     if ($name =~ m{polcoeff|numerator|denominator}) {
         next;
     }
@@ -52,7 +53,6 @@ while (<>) {
         $form =~ s/[ \{\}]//g; 	# spaces and surrounding "{" ... "}"
         $form =~ s/\;.*//;      # end of statement
         $form =~ s/\\\\.*//;    # comment with "\\" at the end
-        $form =~ s/\(PARI\)//;  # programming language
         $form =~ s/\\/\//g;     # "\" -> "/", integer division
         $form =~ s/\) *\Z//;    # trailing ")" of "sum("
     } else {
