@@ -17,16 +17,36 @@ m	name	0	m	0
 n	name	0	n	0
 d	name	0	d	0
 
-V0	name	0	V0	0
-V1	name	0	V1	0
-V2	name	0	V2	0
-V3	name	0	V3	0
-V4	name	0	V4	0
-V5	name	0	V5	0
-V6	name	0	V6	0
-V7	name	0	V7	0
-V8	name	0	V8	0
-V9	name	0	V9	0
+V0V	name	0	V0V	0
+V1V	name	0	V1V	0
+V2V	name	0	V2V	0
+V3V	name	0	V3V	0
+V4V	name	0	V4V	0
+V5V	name	0	V5V	0
+V6V	name	0	V6V	0
+V7V	name	0	V7V	0
+V8V	name	0	V8V	0
+V9V	name	0	V9V	0
+V10V	name	0	V10V	0
+V11V	name	0	V11V	0
+V12V	name	0	V12V	0
+V13V	name	0	V13V	0
+V14V	name	0	V14V	0
+V15V	name	0	V15V	0
+V16V	name	0	V16V	0
+V17V	name	0	V17V	0
+V18V	name	0	V18V	0
+V19V	name	0	V19V	0
+V20V	name	0	V20V	0
+V21V	name	0	V21V	0
+V22V	name	0	V22V	0
+V23V	name	0	V23V	0
+V24V	name	0	V24V	0
+V25V	name	0	V25V	0
+V26V	name	0	V26V	0
+V27V	name	0	V27V	0
+V28V	name	0	V28V	0
+V29V	name	0	V29V	0
 
 +	meth	2	op1.add(op2)	0
 -	meth	2	op1.subtract(op2)	0
@@ -37,15 +57,19 @@ V9	name	0	V9	0
 ^	meth	2	op1.pow(op2)	0
 !	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
 
+BELL)	func	1	BellNumbers.bell(op1)	0
 BIN)	func	2	Binomial.binomial(op1, op2)	0
 FACTORIAL)	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
+IF)	func	3	((op1) ? op2 : op3)	0
 INTSUM)	func	4	Integers.SINGLETON.sum(op1, op2, op3 -> op4)
+POW)	func	2	op1.pow(op2)	0
 POW2)	func	1	Z.ONE.shiftLeft(op1)	0
 POW_1)	func	1	(((op1 & 1) == 0) ? Z.ONE : Z.NEG_ONE)	0
 VALOF)	func	1	Z.valueOf(op1)	0
 STIR1)	func	2	Stirling.firstKind(op1, op2)	0
-STIR2)	func	2	Stirling.seoncdKind(op1, op2)	0
+STIR2)	func	2	Stirling.secondKind(op1, op2)	0
 SUMDIV)	func	3	Integers.SINGLETON.sumdiv(op1, op2 -> op3)
+abs)	func	1	op1.abs()	0
 floor)	func	1	op1	0
 gcd)	func	2	op1.gcd(op2)	0
 lcm)	func	2	op1.lcm(op2)	0

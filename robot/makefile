@@ -260,26 +260,41 @@ prepend: # Simple skip/prepending
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
-expr: expr_pari expr_post
+expr: expr_pari subst_list expr_trans expr_post expr_gen
 expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama, 
 	grep -P "^\%o" $(CAT) | cut -b4- \
 	| grep -P "a\(n\) *\=" | grep -iP "binomial|stirling" | grep -viP "numbpart|sqrt|prime" \
 	| perl $@.pl -d 1 \
 	2>       $@.rest.tmp \
-	| sort -k4,4 -k5,5 \
 	>        $@.tmp
-	head -n2 $@.tmp
-	cut -f2  $@.tmp | sort | uniq -c
-	grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp
-	grep -vP "binomial|stirling" $@.tmp >  $@.txt
+	tail -n4 $@.tmp
+	grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp || :
+	grep -vP "binomial|stirling" $@.tmp >  $@.txt || :
+	cut -f3  $@.rest.tmp | sort | uniq -c | sort -n
 	wc -l    $@*
-expr_post: # translate into jOEIS Z language
+subst_list: # print a sorted list of all values to be substituted
+	perl $@.pl expr_pari.txt \
+	| sort | uniq -c \
+	>        $@.tmp
+	grep -P "Z\." $@.tmp || :
+	wc -l    $@.tmp
+expr_trans: # translate into jOEIS Z language
 	$(JPREP) -p expr.ttab -f expr_pari.txt -cc postrans \
 	>        $@.1.tmp
-	grep -E  "\?" $@.1.tmp > $@.rest.tmp || :
-	grep -vE "\?" $@.1.tmp > $@.tmp || :
+	grep -P  "\<\?" $@.1.tmp > $@.rest.tmp || :
+	grep -vP "\<\?" $@.1.tmp > $@.tmp || :
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
+expr_post: # postprocess: substitute variables in expression
+	perl $@.pl -d 1 expr_trans.tmp \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+expr_gen:
+	grep -E "^A[0-9]" expr_post.tmp | sort | uniq -w7 \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
 #----
 sum_prog: sum_pari sum_list sum_oeis sum_maple sum_mma sum_mma0
 sum_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama, 
@@ -361,7 +376,7 @@ union:
 	grep -E "^%[NCFY]" $(CAT) | grep -iP "Union of" | $(NYI) union2 \
 	| perl union.pl \
 	2>       $@.rest.tmp \
-	| grep -vE "A000000" \
+	| grep -vE "A281265" \
 	| tee    $@.gen
 	wc -l    $@.*
 #----
