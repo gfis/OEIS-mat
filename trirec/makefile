@@ -473,8 +473,39 @@ trimirr5: # select names of the ones that are both nyi
 	head -n2 $@.tmp
 	wc -l    $@.tmp
 #----
-# "recluctant" triangles: all rows start with the first n members of an underlying sequence; all columns are constant
-trixrelu: trixrelu1 trixrelu2 trixrelu3 # determine triangles that have identical columns
+# # base sequence in column k=1; for k >= 2: T(n,k) = T(n/k, 1)
+trixndivk: trixndivk1 trixndivk2 trixndivk3 
+trixndivk1: # determine the column
+	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
+	| perl -w trixamine.pl -s trixndivk \
+	>        $@.tmp 
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+trixndivk2:    # load the truncated versions in seq4
+	grep -vP "\AA0[0-2]" trixndivk1.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT) -f $(FISCHER)/sql/seq4.create.sql
+	cat $@.tmp | $(DBAT) -r seq4
+	# $(DBAT) "DELETE FROM seq4 WHERE aseqno IN (SELECT aseqno FROM joeis);"
+	$(DBAT) -n seq4
+trixndivk3:
+	# merge with data of referenced sequences
+	$(DBAT) -x " \
+	  (SELECT s.aseqno, '--------', 0        , '-------------', '-----', '----' FROM seq4 s \
+	  ) UNION \
+	  (SELECT s.aseqno, 'trindivk_', i.offset1, 'new A0_____()', '', s.parm1 FROM seq4 s, asinfo i \
+	    WHERE s.aseqno = i.aseqno \
+	  ) UNION \
+	  (SELECT s.aseqno, 'trindivk_', i.offset1, 'new ' || x.rseqno || '()', '', d.data  FROM seq4 s, asinfo i, asxref x, asdata d \
+	    WHERE s.aseqno = x.aseqno AND s.aseqno = i.aseqno AND x.rseqno = d.aseqno \
+	  ) ORDER BY 1,2,6" > $@.txt
+	head -n8 $@.txt
+	wc -l    $@.txt
+#----
+# "recluctant" triangles: all rows start with the first n members of an underlying sequence; all diagonals are constant
+trixrelu: trixrelu1 trixrelu2 trixrelu3
 trixrelu1: # determine the column
 	sed -e "s/\ttrixam\w*\t/\t$@\t/" trixam0.tmp \
 	| perl -w trixamine.pl -s trixrelu \

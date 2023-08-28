@@ -14,6 +14,7 @@
 #:#          trixdiag   : check for diagonalized vector, parm1 = diagonal (default)
 #:#          trixinter0 : check for progressive interleaved zeros in columns
 #:#          trixmirr   : parm1 = the mirror
+#:#          trixndivk  : base sequence in column k=1; for k >= 2: T(n,k) = T(n/k, 1)
 #:#          trixrelu   : check for mirrored Toeplitz form, parm1 = the diagonal
 #:#          trixthin   : check for "thin" triangles that contain the members of an underlying (linear) sequence only
 #:#          trixtoep   : check for Toeplitz form, parm1 = the column
@@ -155,6 +156,24 @@ while (<>) {
             while ($ok > 0 and $n < $nmax) {
                 for ($k = $n; $k >= 0; $k --) { # reverse the row order
                     $newlist .=  "," . &T($n, $k);
+                } # for $k
+                $n ++;
+            } # while
+            $newlist =~ s{\A\,}{};
+            $parms[1] = $newlist;
+        #--------
+        } elsif ($callcode =~ m{trixndivk}) { # base sequence in column k=1; for k >= 2: T(n,k) = T(n/k, 1)
+            $n = 0;
+            my $newlist = "";
+            while ($ok > 0 and $n < $nmax) {
+                for ($k = 0; $k <= $n; $k ++) { 
+                    if ($k == 0) {
+                        $newlist .=  "," . &T($n, $k);
+                    } else {
+                        if (&T($n, $k) != &T(($n - $k) / ($k + 1), 0)) {
+                            $ok = 0;
+                        }
+                    }
                 } # for $k
                 $n ++;
             } # while

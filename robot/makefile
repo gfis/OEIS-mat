@@ -19,6 +19,7 @@ OEISDATA=$(GITS)/oeisdata
 HERE=$(GITS)/OEIS-mat/robot
 REMOTE=atair
 NYI=perl $(COMMON)/nyi.pl -q
+D=0
 # set_env_var_REMOTE
 #-------------
 all: # all possible targets:
@@ -263,20 +264,21 @@ prepend: # Simple skip/prepending
 expr: expr_pari subst_list expr_trans expr_post expr_gen
 expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama, 
 	grep -P "^\%o" $(CAT) | cut -b4- \
-	| grep -P "a\(n\) *\=" | grep -iP "binomial|stirling" | grep -viP "numbpart|sqrt|prime" \
+	| grep -P "^A\d+ (\(PARI[^\)]*\))? *\{? *a\(n\) *\=" \
+	| grep -viP "numbpart|prime" \
 	| perl $@.pl -d 1 \
 	2>       $@.rest.tmp \
-	>        $@.tmp
-	tail -n4 $@.tmp
-	grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp || :
-	grep -vP "binomial|stirling" $@.tmp >  $@.txt || :
-	cut -f3  $@.rest.tmp | sort | uniq -c | sort -n
+	>        $@.txt
+	tail -n4 $@.txt
+	# grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp || :
+	# grep -vP "binomial|stirling" $@.tmp >  $@.txt || :
+	cut -f3  $@.rest.tmp | sort | uniq -c | sort -n | tail -32
 	wc -l    $@*
 subst_list: # print a sorted list of all values to be substituted
 	perl $@.pl expr_pari.txt \
 	| sort | uniq -c \
 	>        $@.tmp
-	grep -P "Z\." $@.tmp || :
+	# grep -P "Z\." $@.tmp || :
 	wc -l    $@.tmp
 expr_trans: # translate into jOEIS Z language
 	$(JPREP) -p expr.ttab -f expr_pari.txt -cc postrans \
@@ -313,33 +315,38 @@ sum_list: # get the A-numbers of sumbingp
 	cut -f1  sum_pari.txt | sort | uniq -w7 \
 	>        $@.tmp
 	wc -l    $@.tmp
-sum_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) * binomial(n+2*k-1,n-k)/k!.
+expr_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) * binomial(n+2*k-1,n-k)/k!.
 	grep -P "^\%F" $(CAT) | cut -b4- \
-	| grep -iP "binomial|stirling" \
-	| grep -vf sum_list.tmp \
-	| perl sum_oeis.pl \
-	| perl sum_pari.pl \
+	| grep -P "Sum_\{|Prod(uct)?_\{|[Bb]inomial\(|[Ss]tirling|\bC\(" \
+	| perl expr_oeis.pl \
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+	perl expr_pari.pl $@.tmp \
+	2>       expr_pari.rest.tmp \
+	>        expr_pari.txt
+	wc -l    expr_pari*.t*
+	make expr_trans expr_post expr_gen
+expr_mma: # Mathematica; uniq -w takes first row only
+	grep -P "^\%t " $(CAT) | cut -b4- | uniq -w7 \
+	| grep -iP "^A\d+ +Table\[" \
+	| perl expr_mma.pl -d $(D) \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@*.tmp
+	cut -f1  $@.rest.tmp | sort | uniq -c | sort -n | tail -n64
+	perl expr_pari.pl $@.tmp \
+	2>       expr_pari.rest.tmp \
+	>        expr_pari.txt
+	wc -l    expr_pari*.t*
+	make expr_trans expr_post expr_gen
+#--
 sum_maple: # Maple
 	grep -P "^\%p" $(CAT) | cut -b4- \
 	| grep -iP "binomial|stirling" | grep -P "seq\(add\(|sum" \
 	| grep -vf sum_list.tmp \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-sum_mma: # Mathematica
-	grep -P "^\%t" $(CAT) | cut -b4- \
-	| grep -iP "binomial|stirling" \
-	| grep -vf sum_list.tmp \
-	| grep -P "Sum" | grep -viP "DivisorSum|exp|Harmonic|HyperGeometric|prime|partition|Numerator|Denominator|MoebiusMu" \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-sum_mma0: # Mathematica starting with "a[0] = "
-	grep -P "^A\d+ a\[\d\] *=" sum_mma.tmp \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
@@ -376,7 +383,7 @@ union:
 	grep -E "^%[NCFY]" $(CAT) | grep -iP "Union of" | $(NYI) union2 \
 	| perl union.pl \
 	2>       $@.rest.tmp \
-	| grep -vE "A281265" \
+	| grep -vE "A177457|A274994|A277334|A281265|A331669|A356301" \
 	| tee    $@.gen
 	wc -l    $@.*
 #----

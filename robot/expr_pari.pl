@@ -47,16 +47,18 @@ my $max_ivar = 0; # maximum of $ivar below
 my $ivar; # generate variable names V{ivar}_
 $offset1 = 0;
 my $line;
+my $func1_pattern = qr/abs|bell|bigomega|core|eulerphi|fibonacci|floor|gpf|hammingweight|lpf|moebius|numdiv|omega|rad|sign|sqrtint/;
+my $func2_pattern = qr/bitand|bitxor|gcd|kronecker|log|logint|lcm|max|min|[Mm]od|sigma|sqrtn|sqrtnint|valuation/;
 while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     $nok = 0;
     ($aseqno, $name) = split(/ /, $line, 2);
-    $name =~ s{\(PARI[^\)]*\)}{}; # e.g. %o A248705 (PARI: For b-file)
-    if ($name =~ m{polcoeff}) {
+    $name =~ s{\(PARI[^\)]*\) *}{}; # e.g. "A248705 (PARI: For b-file)"
+    if ($name =~ m{polcoeff|\; *\S}) {
         next;
     }
-    $name =~ s/[\{\}]//g; # remove any surrounding "{" ... "}"
+    $name =~ s/[\{\}]//g; # remove any  "{" ... "}"
     $name =~ s{\A +}{}; # remove leading spaces
     #                          1  1
     if ($name =~ m{^ *a\(n\) *\= *(.*)}) {
@@ -77,14 +79,14 @@ while (<>) {
     }
 
     my @dummy = map {
-        if (! m{abs|bell|binomial|floor|gcd|if|lcm|stirling|Stirling2|sum}i) {
+        if (! m{$func1_pattern|$func2_pattern|binomial|if|prod|stirling\d?|Stirling2|sum|[a-z]\d+}i) {
             $nok = "2/$_";
         }
         $_
         } ($form =~ m{([A-Za-z]\w+)}g);
 
     $expr = $form;
-    if ($expr =~ m{(a\([a-z]\))}) {
+    if ($expr =~ m{(\ba\([a-z]\))}) {
         $nok = "4/$1";
     }
     $list = "";
@@ -101,47 +103,102 @@ while (<>) {
 #   $expr =~    s{([\-])([a-z]|\d+)\*\(([a-z]|\d+)([\+\-])([a-z]|\d+)\)}
 #       {"$1$2\*" . (($3 eq "+") ? "-" : "+") . "$4$2\*$5"}eg;            # -k*(n-3) -> -k*n+k*3
     #               1 (           )1  
-    $expr =~ s{floor(\([a-z]+\/\w+\))}
-        {$1}g;
+    $expr =~ s{floor(\([a-z]+\/\w+\))}                                                          {$1}g;
     #               1 ( ( a + b          ) / d  )1
-    $expr =~ s{floor(\(\([a-z0-9\+\-\*]+\)\/\d+\))}
-        {$1}g;
+    $expr =~ s{floor(\(\([a-z0-9\+\-\*]+\)\/\d+\))}                                             {$1}g;
 
     # "if" must first be tested
     #                    (1      1  2   2  3  3
-    while ($expr =~ m{if\(([^\,]+)\,(\d+)\,(.*)}                                                ) { # if(n<=2,0,...
+    while ($expr =~ m{if\(([^\,]+)\,(\d+)\,(.*)}i                                               ) { # if(n<=2,0,...
         $a = $1;
         $b = $2;
         $c = $3;
         $x = &newvar();
         $y = &newvar();
-        $expr    =~ s{if\(([^\,]+)\,(\d+)\,(.*)}                                                {IF\($x\,Z\.valueOf\($y\)\,$c}; # assume that the closing ")" is at the end
+        $expr    =~ s{if\(([^\,]+)\,([^\,]+)\,(.*)}                                             {IF\($x\,Z\.valueOf\($y\)\,$c}i; # assume that the closing ")" is at the end
         &append($x, $a);
         &append($y, $b);
     } # while
-    #                           1                       1
-    while ($expr =~     m{bell\(([a-z0-9\+\-\*\^\/\%]+)\)}                                      ) { # bell(k)
+
+    #                 prod (1   1 =2      2 ,3      3 ,
+    while ($expr =~ m{prod\((\w+)\=([^\,]+)\,([^\,]+)\,}i                                       ) { # "prod(k=0,n,"  -> "INTPROD(0,n,k,"
         $a = $1;
+        $b = $2;
+        $c = $3;
         $x = &newvar();
-        $expr    =~     s{bell\(([a-z0-9\+\-\*\^\/\%]+)\)}                                      {BELL\($x\)};
-        &append($x, $a);
+        $y = &newvar();
+        $z = &newvar();
+        #             prod (1   1 =2      2 ,3      3 ,
+        $expr    =~ s{prod\((\w+)\=([^\,]+)\,([^\,]+)\,}                                        {INTPROD\($x\,$y\,$z\,}i;
+        if ($debug >= 2) {
+            print "# aseqno=$aseqno $x=$b $y=$c $z=$a expr=$expr\n";
+        }
+        &append($x, $b);
+        &append($y, $c);
+        &append($z, $a);  # move the lambda variable behind!
     } # while
-    while ($expr =~ m{binomial\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}         ) { # binomial(a,b)
+    #                   sum (1   1 =2      2 ,3      3 ,
+    while ($expr =~ m{\bsum\((\w+)\=([^\,]+)\,([^\,]+)\,}i                                     ) { # "sum(k=0,n,"  -> "INTSUM(0,n,k,"
+        $a = $1;
+        $b = $2;
+        $c = $3;
+        $x = &newvar();
+        $y = &newvar();
+        $z = &newvar();
+        #             sum (1      1 =2      2 ,3      3 ,
+        $expr    =~ s{sum\((\w+)\=([^\,]+)\,([^\,]+)\,}                                        {INTSUM\($x\,$y\,$z\,}i;
+        if ($debug >= 2) {
+            print "# aseqno=$aseqno $x=$b $y=$c $z=$a expr=$expr\n";
+        }
+        &append($x, $b);
+        &append($y, $c);
+        &append($z, $a);  # move the lambda variable behind!
+    } # while
+    #                 sumdiv (1      1 ,2      2 ,
+    while ($expr =~ m{sumdiv\(([^\,]+)\,([^\,]+)\,}i                                            ) { # "sumdiv(n,d, "  -> "SUMDIV(x,y,"
         $a = $1;
         $b = $2;
         $x = &newvar();
         $y = &newvar();
-        $expr    =~ s{binomial\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}         {BIN\($x\,$y\)};
+        $expr    =~ s{sumdiv\(([^\,]+)\,([^\,]+)\,}                                             {SUMDIV\($x\,$y\,}i;
+        &append($x, $a);
+        &append($y, $b);
+    } # while
+
+    #                 1              1 (2                     2 )
+    while ($expr =~ m{($func1_pattern)\(([a-z0-9\+\-\*\^\/\%]+)\)}                              ) { # bell(k)
+        $a = $2;
+        $x = &newvar();
+        $expr    =~ s{($func1_pattern)\(([a-z0-9\+\-\*\^\/\%]+)\)}                              {$1\($x\)};
+        &append($x, $a);
+    } # while
+    #                  1             1  2                         2  3                     3
+    while ($expr =~ m{($func2_pattern)\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)} ) { # gcd(a,b)
+        $a = $2;
+        $b = $3;
+        $x = &newvar();
+        $y = &newvar();
+        $expr    =~ s{($func2_pattern)\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)} {$1\($x\,$y\)};
+        &append($x, $a);
+        &append($y, $b);
+    } # while
+    #                          (1                         1 ,2                     2 )
+    while ($expr =~ m{binomial\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}i        ) { # binomial(a,b)
+        $a = $1;
+        $b = $2;
+        $x = &newvar();
+        $y = &newvar();
+        $expr    =~ s{binomial\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}         {BIN\($x\,$y\)}i;
         &append($x, $a);
         &append($y, $b);
     } # while
     #                           1                         1  2                     2
-    while ($expr =~ m{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}         ) { # stirling(a,b)
+    while ($expr =~ m{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}i        ) { # stirling(a,b)
         $a = $1;
         $b = $2;
         $x = &newvar();
         $y = &newvar();
-        $expr    =~ s{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}         {STIR1\($x\,$y\)};
+        $expr    =~ s{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%]+)\)}         {STIR1\($x\,$y\)}i;
         &append($x, $a);
         &append($y, $b);
     } # while
@@ -156,40 +213,13 @@ while (<>) {
         &append($y, $b);
     } # while
     #                           1                         1  2                     2      3    3
-    while ($expr =~ m{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%\(\)]+)\,([12])\)} ) { # stirling(a,b,{1|2})
+    while ($expr =~ m{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%\(\)]+)\,([12])\)}i ) { # stirling(a,b,{1|2})
         $a = $1;
         $b = $2;
         $c = $3;
         $x = &newvar();
         $y = &newvar();
-        $expr    =~ s{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%\(\)]+)\,([12])\)} {STIR$c\($x\,$y\)};
-        &append($x, $a);
-        &append($y, $b);
-    } # while
-    #                   sum (1      1 =2      2 ,3      3 ,
-    while ($expr =~ m{\bsum\(([a-z]+)\=([^\,]+)\,([^\,]+)\,}                                    ) { # "sum(k=0,n,"  -> "INTSUM(0,n,k,"
-        $a = $1;
-        $b = $2;
-        $c = $3;
-        $x = &newvar();
-        $y = &newvar();
-        $z = &newvar();
-        #             sum (1      1 =2      2 ,3      3 ,
-        $expr    =~ s{sum\(([a-z]+)\=([^\,]+)\,([^\,]+)\,}                                      {INTSUM\($x\,$y\,$z\,};
-        if ($debug >= 2) {
-            print "# aseqno=$aseqno $x=$b $y=$c $z=$a expr=$expr\n";
-        }
-        &append($x, $b);
-        &append($y, $c);
-        &append($z, $a);  # move the lambda variable behind!
-    } # while
-    #                 sumdiv (1      1 ,2      2 ,
-    while ($expr =~ m{sumdiv\(([^\,]+)\,([^\,]+)\,}                                             ) { # "sumdiv(n,d, "  -> "SUMDIV(x,y,"
-        $a = $1;
-        $b = $2;
-        $x = &newvar();
-        $y = &newvar();
-        $expr    =~ s{sumdiv\(([^\,]+)\,([^\,]+)\,}                                             {SUMDIV\($x\,$y\,};
+        $expr    =~ s{stirling\(([a-z0-9\+\-\*\^\/\%\(\)]+)\,([a-z0-9\+\-\*\^\/\%\(\)]+)\,([12])\)} {STIR$c\($x\,$y\)}i;
         &append($x, $a);
         &append($y, $b);
     } # while
@@ -226,6 +256,7 @@ while (<>) {
         &append($x, $a);
         &append($y, $b);
     } # while
+
     my $loop_check = 16;
     while (-- $loop_check >= 0 and (
            #            1                     1
@@ -238,9 +269,9 @@ while (<>) {
     if ($loop_check <= 0) {
         print "# loop_check: expr=$expr, list=$list\n";
     }
-    $expr =~ s{\A(\-?[a-z]|\-?\d+)}                                                             {VALOF\($1\)};  # int at the beginning of the expr
-    #          1     1  2               2
-    $expr =~ s{(\A|\W)\((\-?[a-z]|\-?\d+)}                                                      {$1\(VALOF\($2\)}g; # "(int"
+#   $expr =~ s{\A(\-?[a-z]|\-?\d+)}                                                             {VALOF\($1\)};  # int at the beginning of the expr
+#   #          1     1  2               2
+#   $expr =~ s{(\A|\W)\((\-?[a-z]|\-?\d+)\b}                                                    {$1\(VALOF\($2\)}g; # "(int"
 
     @parms = ();
     push(@parms, $expr, $list);
@@ -274,9 +305,9 @@ sub append {
     $value =~                                 s{2\^([a-z]|\d+|\([a-z0-9\+\-\*\/]+\))}           {Z\.ONE\.shiftLeft\($1\)}g; # 2^k
     #           1     1   1 (                  )1 ^2     2   2 (                  )2
     $value =~ s{([a-z]|\d+|\([a-z0-9\+\-\*\/]+\))\^([a-z]|\d+|\([a-z0-9\+\-\*\/]+\))}           {Z\.valueOf\($1\)\.pow\($2\)}g; # 3^k
-    if ($value !~ m{\)\Z}) { # no trailing ")"
-        #            )1      12                 2
-        $value =~ s{\)([\+\-])([a-z0-9\+\-\*\/]+)\Z}                                            {\)\.add\($2\)}; # ")-n-1+k" -> ").add(-n-1+k)"
+    if ($value !~ m{[\w\+\-\*\/]+\Z}) { # no trailing ")"
+        #           )1     12             2
+        $value =~ s{([\+\-])([\w\+\-\*\/]+)\Z}                                                  {($1 eq "+") ? "\.add\($2\)" : "\.add\(\-$2\)"}e; # ")-n-1+k" -> ").add(-n-1+k)"
     }
     if ($value =~ m{Z\.}) {
         #            1                    1   2  2
@@ -286,8 +317,8 @@ sub append {
         $value =~ s{([^\*])\*(.*)}                                                              {$1\.multiply\($2\)};
     }
     $value =~ s{([a-z0-9]+)\.}                                                                  {Z\.valueOf\($1\)\.}g;  # int expr before ".Z-op"
-    if ($value =~ m{1\/}) {
-        $nok = "3/1/x";
+    if ($value =~ m{\/}) {
+        # $nok = "3//x";
     }
     $list .= "$var=$value;"
 } # append

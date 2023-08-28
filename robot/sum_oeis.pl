@@ -1,11 +1,12 @@
 #!perl
 
-# Preprocess FORMULA section lines for sumpari.pl (PARI)
+# Preprocess FORMULA section lines for expr_pari.pl (PARI)
 # @(#) $Id$
+# 2023-08-27: was for sumpari.pl
 # 2023-08-20, Georg Fischer; CC=67
 #
 #:# Usage:
-#:#   perl sumbinf.pl input.cat25-type > output.cat25-type
+#:#   perl sum_oeis.pl input.cat25-type > output.cat25-type
 #--------------------------------------------------------
 use strict;
 use integer;

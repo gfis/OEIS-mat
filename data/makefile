@@ -127,7 +127,7 @@ joeis_pack:
 #========
 # to be used locally:
 #
-remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect robots
+remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect
 load4:
 	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload
 reflect:

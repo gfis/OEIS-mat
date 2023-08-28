@@ -16,6 +16,7 @@ k	name	0	k	0
 m	name	0	m	0
 n	name	0	n	0
 d	name	0	d	0
+s	name	0	s	0
 
 V0V	name	0	V0V	0
 V1V	name	0	V1V	0
@@ -57,22 +58,46 @@ V29V	name	0	V29V	0
 ^	meth	2	op1.pow(op2)	0
 !	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
 
-BELL)	func	1	BellNumbers.bell(op1)	0
+abs)	func	1	op1.abs()	0
+bell)	func	1	BellNumbers.bell(op1)	0
+bigomega)	func	1	Jaguar.factor(op1).bigOmega()	0
 BIN)	func	2	Binomial.binomial(op1, op2)	0
+bitxor)	func	2	op1.xor(op2)	0
+bitand)	func	2	op1.and(op2)	0
+core)	func	1	Jaguar.factor(op1).core()	0
+eulerphi)	func	1	Euler.phi(op1)	0
 FACTORIAL)	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
+fibonacci)	func	1	Fibonacci.fibonacci(op1)	0
+floor)	func	1	op1	0
+gcd)	func	2	op1.gcd(op2)	0
+gpf)	func	1	Jaguar.factor(op1).largestPrimeFactor()	0
+hammingweight)	func	1	op1.bitCount()	0
 IF)	func	3	((op1) ? op2 : op3)	0
-INTSUM)	func	4	Integers.SINGLETON.sum(op1, op2, op3 -> op4)
+INTPROD)	func	4	Integers.SINGLETON.product(op1, op2, op3 -> op4)	0
+INTSUM)	func	4	Integers.SINGLETON.sum(op1, op2, op3 -> op4)	0
+kronecker)	func	2	LongUtils.kronecker(op1, op21)	0
+lcm)	func	2	op1.lcm(op2)	0
+lpf)	func	1	Jaguar.factor(op1).leastPrimeFactor()	0
+log)	func	2	op1.log(op2)	0
+logint)	func	2	op1.log(op2)	0
+max)	func	2	op1.max(op2)	0
+min)	func	2	op1.min(op2)	0
+Mod)	func	2	op1.mod(op2)	0
+mod)	func	2	op1.mod(op2)	0
+moebius)	func	1	Mobius.mobius(op1)	0
+numdiv)	func	1	Jaguar.factor(op1).sigma0()	0
+omega)	func	1	Jaguar.factor(op1).omega()	0
 POW)	func	2	op1.pow(op2)	0
 POW2)	func	1	Z.ONE.shiftLeft(op1)	0
-POW_1)	func	1	(((op1 & 1) == 0) ? Z.ONE : Z.NEG_ONE)	0
-VALOF)	func	1	Z.valueOf(op1)	0
+POW_1)	func	1	((((op1) & 1) == 0) ? Z.ONE : Z.NEG_ONE)	0
+rad)	func	1	Jaguar.factor(op1).squareFreeKernel()	0
+sign)	func	1	op1.signum()	0
+sigma)	func	2	Jaguar.factor(op1).sigma(op2)	0
+sqrtint)	func	1	op1.sqrt()	0
+sqrtn)	func	2	op1.root(op2)	0
+sqrtnint)	func	2	op1.root(op2)	0
 STIR1)	func	2	Stirling.firstKind(op1, op2)	0
 STIR2)	func	2	Stirling.secondKind(op1, op2)	0
 SUMDIV)	func	3	Integers.SINGLETON.sumdiv(op1, op2 -> op3)
-abs)	func	1	op1.abs()	0
-floor)	func	1	op1	0
-gcd)	func	2	op1.gcd(op2)	0
-lcm)	func	2	op1.lcm(op2)	0
-phi)	func	1	irvine.math.z.Euler.phi(op1)	0
-FACTORIAL)	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
-
+VALOF)	func	1	Z.valueOf(op1)	0
+valuation)	func	2	ZUtils.valuation(op1,op2)	0	

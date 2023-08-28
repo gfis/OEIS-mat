@@ -56,8 +56,12 @@ while (<>) {
     # patches
     #          1           (2      2 )1
     $expr =~ s{(Z\.valueOf\((\-?\d+)\))}    {defined($znames{$2}) ? $znames{$2} : "$1"}eg;   # Z.valueOf(4)  -> Z.FOUR
-    $expr =~ s{\.pow\(2\)}                  {\.square\(\\)}g; # .pow(2) -> .square()
+    $expr =~ s{\.pow\(2\)}                  {\.square\(\)}g; # .pow(2) -> .square()
+    $expr =~ s{\.pow\(Z\.TWO\)}             {\.square\(\)}g; # .pow(Z.TWO) -> .square()
     $expr =~ s{Z\.valueOf\(Z\.}             {\(Z\.}g; # bad patch of translation error
+    $expr =~ s{\A([a-z]|[0-9]+)\.}          {Z\.valueOf\($2\)\.}; # "n." -> "Z.valueOf(n."
+    #          1            12        2
+    $expr =~ s{(\A|\(|\-\> *)([a-z0-9])\.}  {$1Z\.valueOf\($2\)\.}g; # "(n." -> "Z.valueOf(n."
     $expr =~ s{\,(\S)}                      {\, $1}g; # force space behind ","
     
     # The following code fails for k=0:                              ----vvvvvvvvv
