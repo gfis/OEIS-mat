@@ -49,20 +49,20 @@ while (<>) {
         }
         #           1         1  2                    2
         $value =~ s{([a-z]|\d+)\^([a-z]|\d+|\([^\)]+\))}{Z\.valueOf\($1\).pow\($2\)}g; # (n-1)^(k-1) -> Z.valueOf(n-1).pow(k-1)
-        
         $expr =~ s{$name}{"$value"}eg;
     } # foreach substituion
     #----
     # patches
     #          1           (2      2 )1
-    $expr =~ s{(Z\.valueOf\((\-?\d+)\))}    {defined($znames{$2}) ? $znames{$2} : "$1"}eg;   # Z.valueOf(4)  -> Z.FOUR
-    $expr =~ s{\.pow\(2\)}                  {\.square\(\)}g; # .pow(2) -> .square()
-    $expr =~ s{\.pow\(Z\.TWO\)}             {\.square\(\)}g; # .pow(Z.TWO) -> .square()
-    $expr =~ s{Z\.valueOf\(Z\.}             {\(Z\.}g; # bad patch of translation error
-    $expr =~ s{\A([a-z]|[0-9]+)\.}          {Z\.valueOf\($2\)\.}; # "n." -> "Z.valueOf(n."
-    #          1            12        2
-    $expr =~ s{(\A|\(|\-\> *)([a-z0-9])\.}  {$1Z\.valueOf\($2\)\.}g; # "(n." -> "Z.valueOf(n."
-    $expr =~ s{\,(\S)}                      {\, $1}g; # force space behind ","
+    $expr =~ s{(Z\.valueOf\((\-?\d+)\))}    	{defined($znames{$2}) ? $znames{$2} : "$1"}eg;   # Z.valueOf(4)  -> Z.FOUR
+    $expr =~ s{\.pow\(2\)}                  	{\.square\(\)}g; # .pow(2) -> .square()
+    $expr =~ s{\.pow\(Z\.TWO\)}             	{\.square\(\)}g; # .pow(Z.TWO) -> .square()
+    $expr =~ s{Z\.valueOf\(Z\.}             	{\(Z\.}g; # bad patch of translation error
+    $expr =~ s{\A([a-z]|[0-9]+)\.}          	{Z\.valueOf\($1\)\.}; # "n." -> "Z.valueOf(n."
+    #          1            12        2     	
+    $expr =~ s{(\A|\(|\-\> *)([a-z0-9])\.}  	{$1Z\.valueOf\($2\)\.}g; # "(n." -> "Z.valueOf(n."
+    $expr =~ s{\,(\S)}                      	{\, $1}g; # force space behind ","
+    $expr =~ s{\.(divide|multiply)\(Z\.TWO\)}	{\.${1}2\(\)}g;
     
     # The following code fails for k=0:                              ----vvvvvvvvv
     # super(0, n -> Integers.SINGLETON.sum(0,n,k -> Z.valueOf(-2*n+2*k+1).pow(k-1).multiply(Z.valueOf(2*k).pow(n-k)).multiply(Binomial.binomial(n,k))));

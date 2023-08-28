@@ -71,7 +71,13 @@ while (<>) {
             if ($debug >= 1) {
                 print "# ranges=" . join(" | ", @ranges) . "\n";
             }
-            shift(@ranges); # remove the range of "Table["
+            my $tabrange1 = shift(@ranges); # remove the range of "Table["
+            if ($tabrange1 =~ m{\A([^\,]+)}) {
+                $var = $1;
+                if ($var ne "n") {
+                    $name =~ s{\b$var\b}{n}g;
+                }
+            }
             foreach $range (@ranges) { # append range
                 if ($range =~ s{\;}{\,}) {
                     $name =~ s{(Sum)\[}{sumdiv\($range\,};
