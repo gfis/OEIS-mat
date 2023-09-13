@@ -224,10 +224,10 @@ NYI="#\?"
 subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt \
-	| perl ../common/nyi.pl -p | cut -b1- | grep -vE $(NYI) \
+	| perl ../common/nyi.pl -p | cut -b1- \
 	> $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist amlist edlist grlist jvplist oglist oplist pblist phlist rzlist smlist
+authors: ajlist amlist edlist grlist iglist jvplist oglist oplist pblist phlist rzlist smlist
 ajlist:
 	make subdir DIR=aj  NAME=Jasinski
 amlist:                 
@@ -238,6 +238,8 @@ grlist:
 	make subdir DIR=gr  NAME=Resta
 galist:                 
 	make subdir DIR=ga  NAME="Gary \S* Adamson" NYI="\#\#\#\#" # does not occur
+iglist:                 
+	make subdir DIR=ig  NAME="Gutkovskiy"
 jvplist:
 	make subdir DIR=jvp NAME="Vos Post"
 oglist:

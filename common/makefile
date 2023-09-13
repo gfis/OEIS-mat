@@ -487,17 +487,17 @@ joeis_stat: # percentage of sequences implemented in jOEIS
 joeis_ccan:
 	# cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
+	2>       $@.an.tmp \
 	| sort | uniq -w7 \
-	>        $@.cc.tmp \
-	2>       $@.an.tmp
+	>        $@.cc.tmp
 	head -n4 $@.*.tmp
 	wc -l    $@.*.tmp
 joeis_ccanloc:
 	cp -v ../../joeis/joeis_list1.all.tmp .
 	perl joeis_list.pl             joeis_list1.all.tmp \
+	2>       $@.an.tmp \
 	| sort | uniq -w7 \
-	>        $@.cc.tmp \
-	2>       $@.an.tmp
+	>        $@.cc.tmp
 	head -n4 $@.*.tmp
 	wc -l    $@.*.tmp
 joeis_update:

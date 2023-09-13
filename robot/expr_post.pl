@@ -53,6 +53,7 @@ while (<>) {
     } # foreach substituion
     #----
     # patches
+    $expr =~ s{\\}{\/}g;
     #          1           (2      2 )1
     $expr =~ s{(Z\.valueOf\((\-?\d+)\))}    	{defined($znames{$2}) ? $znames{$2} : "$1"}eg;   # Z.valueOf(4)  -> Z.FOUR
     $expr =~ s{\.pow\(2\)}                  	{\.square\(\)}g; # .pow(2) -> .square()

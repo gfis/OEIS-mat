@@ -29,20 +29,26 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
-my ($line, $aseqno, $name, $orig_name, $range, @ranges, $expr, $var, $lo, $hi, $n, $d);
+my ($line, $aseqno, $callcode, $offset1, $name, $orig_name, $range, @ranges, $expr, $var, $lo, $hi, $n, $d);
 # while (<DATA>) {
 while (<>) {
     my $nok = 1;
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     $line =~ s{ *\(\*.*}{}; # remove trailing comment
-    #               1    1         2  2
-    if ($line =~ m{^(A\d+) +Table\[(.*)\]\Z}) {
-        ($aseqno, $name) = ($1, $2);
-        $orig_name = $name;
+    $nok = 0;
+    ($aseqno, $callcode, $offset1, $name) = split(/\t/, $line);
+    if ($debug >= 1) {
+        print "# aseqno=$aseqno, name=$name\n";
+    }
+    $orig_name = $name;
+    $name =~ s{\/\/ *Flatten}{}g;
+    #                        1  1
+    if ($name =~ m{^ *Table\[(.*)\]\Z}) {
+        $name = $1;
         $nok = 0;
         foreach my $word ($name =~ m{([A-Z][a-zA-Z0-9]+)}g) {
-            if ($word !~ m{Sum|Product|Abs|BellB|Binomial|Divisor\b|DivisorSigma|EulerPhi|Fibonacci|Floor|GCD|If|KroneckerDelta|LCM|Max|Min|Mod|MoebiusMu|PrimeOmega|Sign|StirlingS[12]}) {
+            if ($word !~ m{Sum|Product|Abs|BellB|Binomial|Divisor\b|DivisorSigma|EulerPhi|Fibonacci|Floor|GCD|If|KroneckerDelta|LCM|Max|Min|Mod|MoebiusMu|Prime|PrimePi|PrimeOmega|Sign|Sqrt|StirlingS[12]}) {
                 $nok = "2/$word";
             }
         }
@@ -55,7 +61,7 @@ while (<>) {
             # A338548 Table[n^3 Sum[(-1)^(n/d + 1) MoebiusMu[d]/d^3, {d, Divisors[n]}], {n, 1, 42}]
             #                      {  1CCCCC  ,  C}C}C}C 2 ,  }}}}} 2 1   }
             while ($name =~ s[\, *\{ *([^\,]+\, *[^\}\,]+(\, *[^\}]+)?) *\}\s*][]) { # extract ranges from the beginning
-                $range = $1;
+                $range = $1 || "";
                 $range =~ s{ }{}g;
                 #                 1dddddd1 ,         [2nnnnnn2 ]
                 if ($range =~ m{\A([^\,]+)\,Divisors\[([^\]]+)\]\Z}i) {
@@ -63,7 +69,7 @@ while (<>) {
                     $range = "$n;$d";
                 } else {
                     #             1      1  2      2
-                    $range =~ s[\A([^\,]+)\,([^\,]+)\Z]       [$1\,1\,$2];
+                    $range =~ s[\A([^\,]+)\,([^\,]+)\Z]       [$1\,1\,$2]; # if there were only 2 operands
                     $range =~ s[\,]                           [\=]; # only first ","
                 }
                 unshift(@ranges, $range);
@@ -128,7 +134,7 @@ while (<>) {
         } # if ok
     } # while sum
     if ($nok eq "0") {
-        print "$aseqno a(n)=$name \\\\ $orig_name\n";
+        print join("\t", $aseqno, $callcode, $offset1, "a(n)=$name \\\\ $orig_name") . "\n";
     } else {
         print STDERR "$nok\t$line\n";
     }

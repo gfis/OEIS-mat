@@ -30,26 +30,42 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
-my ($line, $aseqno, $name, $expr, $var, $lo, $hi, $n, $d);
+my ($line, $aseqno, $callcode, $offset1,  $name, $orig_name, $expr, $var, $lo, $hi, $n, $d);
 # while (<DATA>) {
 while (<>) {
     my $nok = 1;
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     $line =~ s{ for .*|(\, )?where.*}{}; # remove conditions
-    $line =~ s{^(A\d+) +\(\d+\) +(.*)}{$1$2}; # remove formular numbering
+
+    $nok = 0;
+    ($aseqno, $callcode, $offset1, $name) = split(/\t/, $line);
+    if ($debug >= 1) {
+        print "# aseqno=$aseqno, name=$name\n";
+    }
+    $orig_name = $name;
+
+    $name =~ s{^ *\(\d+\) +(.*)}{$2}; # remove formula numbering
     #               1    1              2  2
-    if ($line =~ m{^(A\d+) +a\(n\) *\= *(.*)}) {
-        ($aseqno, $name) = ($1, $2);
-        if ($debug >= 1) {
-            print "aseqno=$aseqno, name=$name\n";
-        }
-        $nok = 0;
+    if ($name =~ m{^ *a\(n\) *\= *(.*)}) {
         if ($name =~ m{(A\d{6})}) { # if there is a underlying sequence
             $nok = "2/$1";
         }
+        if (1) { # from expr_mma.pl
+            $name =~ tr{\[\]}
+                       {\(\)};
+            $name =~ s{[\)\!] *\(}          {\)\*\(}g;      # ) (
+            $name =~ s{[\)\!] *(\w)}        {\)\*$1}g;      # ) a
+            $name =~ s{(\b\w|\!) +\(}       {$1\*\(}g;      # a (
+            $name =~ s{(\b\d) *([a-z])}     {$1\*$2}g;      # 2 a
+            $name =~ s{(\w|\!) +(\w)}       {$1\*$2}g;      # a b
+        }
+        #          1 (       )1 $
+        $name =~ s{(\([^\)]+\))\$}                                                      {swingingFactorial$1}g;
+        $name =~ s{([i-n])\$}                                                           {swingingFactorial$1}g;
         $name =~ s{\bC\(}                                                               {binomial\(}g;
         $name =~ s{\bphi\(}                                                             {eulerphi\(}g;
+        $name =~ s{\bprimePi\(|prime\#\(}                                               {primepi\(}g;
         #                           1  1 
         $name =~ s{Stirling[a-zA-Z]*(\d)\(}                                             {stirling$1\(}g;
         #                 1   1   2  2      3      3        4      4    5  5
@@ -72,7 +88,7 @@ while (<>) {
         }
     } # while sum
     if ($nok eq "0") {
-        print "$aseqno a(n)=$name\n";
+        print join("\t", $aseqno, "lambda", 0, "$name \\\\ $orig_name") . "\n";
     } else {
         print STDERR "# $nok: $line\n";
     }

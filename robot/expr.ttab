@@ -65,6 +65,7 @@ BIN)	func	2	Binomial.binomial(op1, op2)	0
 bitxor)	func	2	op1.xor(op2)	0
 bitand)	func	2	op1.and(op2)	0
 core)	func	1	Jaguar.factor(op1).core()	0
+DIVSUM)	func	3	Integers.SINGLETON.sumdiv(op1, op2 -> op3)
 eulerphi)	func	1	Euler.phiAsLong(op1)	0
 FACTORIAL)	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
 fibonacci)	func	1	Fibonacci.fibonacci(op1)	0
@@ -90,6 +91,8 @@ omega)	func	1	Jaguar.factor(op1).omega()	0
 POW)	func	2	op1.pow(op2)	0
 POW2)	func	1	Z.ONE.shiftLeft(op1)	0
 POW_1)	func	1	((((op1) & 1) == 0) ? Z.ONE : Z.NEG_ONE)	0
+prime)	func	1	Puma.primeZ(op1)	0
+primepi)	func	1	Puma.primePiZ(op1)	0
 rad)	func	1	Jaguar.factor(op1).squareFreeKernel()	0
 sign)	func	1	op1.signum()	0
 sigma)	func	2	Jaguar.factor(op1).sigma(op2)	0
@@ -98,6 +101,5 @@ sqrtn)	func	2	op1.root(op2)	0
 sqrtnint)	func	2	op1.root(op2)	0
 STIR1)	func	2	Stirling.firstKind(op1, op2)	0
 STIR2)	func	2	Stirling.secondKind(op1, op2)	0
-SUMDIV)	func	3	Integers.SINGLETON.sumdiv(op1, op2 -> op3)
 VALOF)	func	1	Z.valueOf(op1)	0
 valuation)	func	2	ZUtils.valuation(op1,op2)	0	
