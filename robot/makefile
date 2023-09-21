@@ -197,6 +197,16 @@ fract22:
 	>        $@.gen
 	tail -n2 $@.gen
 	wc -l    $@.gen
+#--------
+ANCHOR=anch
+morfix:
+	grep -iP "(\d+) *\-\> *{ *\d" $(CAT) | grep -P "^\%[NFC]" | $(NYI) $@ \
+	| perl $@.pl -d $(D) -a $(ANCHOR) \
+	2>       $@.rest.tmp \
+	>        $@.gen
+	grep morfix $@.man >> $@.gen
+	head -n2 $@.gen
+	wc -l    $@*
 #----
 parity:
 	grep -iP "Parity of A\d+" $(CAT) | grep -P "^\%[NFCY]" | $(NYI) parity \
@@ -206,7 +216,6 @@ parity:
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
-#--------
 #----
 partprod:
 	grep -E "^%" $(CAT) | grep -P "Partial products of A" \

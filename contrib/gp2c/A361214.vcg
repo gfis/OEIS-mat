@@ -1,0 +1,166 @@
+graph: { title:"test"
+xmax: 700 ymax: 700 x: 30 y: 30
+layout_downfactor: 8
+node: { title: "0" label: "GNIL" }
+node: { title: "1" label: "GNOARG" }
+node: { title: "1389" label: "Fseq" }
+edge: { sourcename: "1389" targetname: "1388" class:2 color:red}
+node: { title: "1388" label: "def(init_A361214)" }
+edge: { sourcename: "1388" targetname: "1396" class:2 color: blue}
+node: { title: "1396" label: "bloc(0)" }
+edge: { sourcename: "1396" targetname: "1393" class:2 color: blue}
+node: { title: "1393" label: "Fseq" }
+edge: { sourcename: "1393" targetname: "1385" class:2 color:red}
+node: { title: "1385" label: "Fseq" }
+edge: { sourcename: "1385" targetname: "1394" class:2 color:red}
+node: { title: "1394" label: "_copyarg" }
+edge: { sourcename: "1385" targetname: "1383" class:2 color:blue}
+node: { title: "1383" label: "_initfunc" }
+edge: { sourcename: "1393" targetname: "1392" class:2 color:blue}
+node: { title: "1392" label: "return" }
+edge: { sourcename: "1392" targetname: "0" class:2 color: blue}
+edge: { sourcename: "1389" targetname: "1382" class:2 color:blue}
+node: { title: "1382" label: "def(a)" }
+edge: { sourcename: "1382" targetname: "1433" class:2 color: blue}
+node: { title: "1433" label: "bloc(1)" }
+edge: { sourcename: "1433" targetname: "1401" class:2 color: blue}
+node: { title: "1401" label: "Fseq" }
+edge: { sourcename: "1401" targetname: "1435" class:2 color:red}
+node: { title: "1435" label: "Fseq" }
+edge: { sourcename: "1435" targetname: "1400" class:2 color:red}
+node: { title: "1400" label: "_copyarg" }
+edge: { sourcename: "1435" targetname: "1379" class:2 color:blue}
+node: { title: "1379" label: "bloc(2)" }
+edge: { sourcename: "1379" targetname: "1431" class:2 color: blue}
+node: { title: "1431" label: "bloc(3)" }
+edge: { sourcename: "1431" targetname: "1430" class:2 color: blue}
+node: { title: "1430" label: "Fseq" }
+edge: { sourcename: "1430" targetname: "1415" class:2 color:red}
+node: { title: "1415" label: "Fassign" }
+edge: { sourcename: "1415" targetname: "1413" class:2 color:red}
+node: { title: "1413" label: "3" }
+edge: { sourcename: "1415" targetname: "1414" class:2 color:blue}
+node: { title: "1414" label: "0" }
+edge: { sourcename: "1430" targetname: "1429" class:2 color:blue}
+node: { title: "1429" label: "for" }
+edge: { sourcename: "1429" targetname: "1428" class:2 color: blue}
+node: { title: "1428" label: "Flistarg" }
+edge: { sourcename: "1428" targetname: "1427" class:2 color:red}
+node: { title: "1427" label: "Flistarg" }
+edge: { sourcename: "1427" targetname: "1426" class:2 color:red}
+node: { title: "1426" label: "Flistarg" }
+edge: { sourcename: "1426" targetname: "1420" class:2 color:red}
+node: { title: "1420" label: "Fassign" }
+edge: { sourcename: "1420" targetname: "1340" class:2 color:red}
+node: { title: "1340" label: "k" }
+edge: { sourcename: "1420" targetname: "1402" class:2 color:blue}
+node: { title: "1402" label: "0" }
+edge: { sourcename: "1426" targetname: "1423" class:2 color:blue}
+node: { title: "1423" label: "_<=_" }
+edge: { sourcename: "1423" targetname: "1422" class:2 color: blue}
+node: { title: "1422" label: "Flistarg" }
+edge: { sourcename: "1422" targetname: "1421" class:2 color:red}
+node: { title: "1421" label: "k" }
+edge: { sourcename: "1422" targetname: "1406" class:2 color:blue}
+node: { title: "1406" label: "n" }
+edge: { sourcename: "1427" targetname: "1418" class:2 color:blue}
+node: { title: "1418" label: "bloc(4)" }
+edge: { sourcename: "1418" targetname: "1419" class:2 color: blue}
+node: { title: "1419" label: "_+=_" }
+edge: { sourcename: "1419" targetname: "1417" class:2 color: blue}
+node: { title: "1417" label: "Flistarg" }
+edge: { sourcename: "1417" targetname: "1411" class:2 color:red}
+node: { title: "1411" label: "3" }
+edge: { sourcename: "1417" targetname: "1377" class:2 color:blue}
+node: { title: "1377" label: "_/_" }
+edge: { sourcename: "1377" targetname: "1376" class:2 color: blue}
+node: { title: "1376" label: "Flistarg" }
+edge: { sourcename: "1376" targetname: "1373" class:2 color:red}
+node: { title: "1373" label: "_*_" }
+edge: { sourcename: "1373" targetname: "1372" class:2 color: blue}
+node: { title: "1372" label: "Flistarg" }
+edge: { sourcename: "1372" targetname: "1361" class:2 color:red}
+node: { title: "1361" label: "_*_" }
+edge: { sourcename: "1361" targetname: "1360" class:2 color: blue}
+node: { title: "1360" label: "Flistarg" }
+edge: { sourcename: "1360" targetname: "1349" class:2 color:red}
+node: { title: "1349" label: "_^_" }
+edge: { sourcename: "1349" targetname: "1348" class:2 color: blue}
+node: { title: "1348" label: "Flistarg" }
+edge: { sourcename: "1348" targetname: "1346" class:2 color:red}
+node: { title: "1346" label: "-3" }
+edge: { sourcename: "1348" targetname: "1347" class:2 color:blue}
+node: { title: "1347" label: "k" }
+edge: { sourcename: "1360" targetname: "1359" class:2 color:blue}
+node: { title: "1359" label: "_^_" }
+edge: { sourcename: "1359" targetname: "1358" class:2 color: blue}
+node: { title: "1358" label: "Flistarg" }
+edge: { sourcename: "1358" targetname: "1353" class:2 color:red}
+node: { title: "1353" label: "_+_" }
+edge: { sourcename: "1353" targetname: "1352" class:2 color: blue}
+node: { title: "1352" label: "Flistarg" }
+edge: { sourcename: "1352" targetname: "1350" class:2 color:red}
+node: { title: "1350" label: "k" }
+edge: { sourcename: "1352" targetname: "1351" class:2 color:blue}
+node: { title: "1351" label: "1" }
+edge: { sourcename: "1358" targetname: "1357" class:2 color:blue}
+node: { title: "1357" label: "_-_" }
+edge: { sourcename: "1357" targetname: "1356" class:2 color: blue}
+node: { title: "1356" label: "Flistarg" }
+edge: { sourcename: "1356" targetname: "1354" class:2 color:red}
+node: { title: "1354" label: "k" }
+edge: { sourcename: "1356" targetname: "1355" class:2 color:blue}
+node: { title: "1355" label: "1" }
+edge: { sourcename: "1372" targetname: "1371" class:2 color:blue}
+node: { title: "1371" label: "binomial" }
+edge: { sourcename: "1371" targetname: "1370" class:2 color: blue}
+node: { title: "1370" label: "Flistarg" }
+edge: { sourcename: "1370" targetname: "1365" class:2 color:red}
+node: { title: "1365" label: "_-_" }
+edge: { sourcename: "1365" targetname: "1364" class:2 color: blue}
+node: { title: "1364" label: "Flistarg" }
+edge: { sourcename: "1364" targetname: "1362" class:2 color:red}
+node: { title: "1362" label: "n" }
+edge: { sourcename: "1364" targetname: "1363" class:2 color:blue}
+node: { title: "1363" label: "1" }
+edge: { sourcename: "1370" targetname: "1369" class:2 color:blue}
+node: { title: "1369" label: "_-_" }
+edge: { sourcename: "1369" targetname: "1368" class:2 color: blue}
+node: { title: "1368" label: "Flistarg" }
+edge: { sourcename: "1368" targetname: "1366" class:2 color:red}
+node: { title: "1366" label: "n" }
+edge: { sourcename: "1368" targetname: "1367" class:2 color:blue}
+node: { title: "1367" label: "k" }
+edge: { sourcename: "1376" targetname: "1375" class:2 color:blue}
+node: { title: "1375" label: "_!" }
+edge: { sourcename: "1375" targetname: "1374" class:2 color: blue}
+node: { title: "1374" label: "k" }
+edge: { sourcename: "1428" targetname: "1425" class:2 color:blue}
+node: { title: "1425" label: "_++" }
+edge: { sourcename: "1425" targetname: "1424" class:2 color: blue}
+node: { title: "1424" label: "k" }
+edge: { sourcename: "1401" targetname: "1399" class:2 color:blue}
+node: { title: "1399" label: "return" }
+edge: { sourcename: "1399" targetname: "1381" class:2 color: blue}
+node: { title: "1381" label: "_*_" }
+edge: { sourcename: "1381" targetname: "1380" class:2 color: blue}
+node: { title: "1380" label: "Flistarg" }
+edge: { sourcename: "1380" targetname: "1339" class:2 color:red}
+node: { title: "1339" label: "_*_" }
+edge: { sourcename: "1339" targetname: "1338" class:2 color: blue}
+node: { title: "1338" label: "Flistarg" }
+edge: { sourcename: "1338" targetname: "1335" class:2 color:red}
+node: { title: "1335" label: "_^_" }
+edge: { sourcename: "1335" targetname: "1334" class:2 color: blue}
+node: { title: "1334" label: "Flistarg" }
+edge: { sourcename: "1334" targetname: "1332" class:2 color:red}
+node: { title: "1332" label: "-1" }
+edge: { sourcename: "1334" targetname: "1333" class:2 color:blue}
+node: { title: "1333" label: "n" }
+edge: { sourcename: "1338" targetname: "1337" class:2 color:blue}
+node: { title: "1337" label: "_!" }
+edge: { sourcename: "1337" targetname: "1336" class:2 color: blue}
+node: { title: "1336" label: "n" }
+edge: { sourcename: "1380" targetname: "1434" class:2 color:blue}
+node: { title: "1434" label: "3" }
+}

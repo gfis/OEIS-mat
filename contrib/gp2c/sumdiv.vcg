@@ -1,0 +1,104 @@
+graph: { title:"test"
+xmax: 700 ymax: 700 x: 30 y: 30
+layout_downfactor: 8
+node: { title: "0" label: "GNIL" }
+node: { title: "1" label: "GNOARG" }
+node: { title: "1356" label: "Fseq" }
+edge: { sourcename: "1356" targetname: "1355" class:2 color:red}
+node: { title: "1355" label: "def(init_sumdiv)" }
+edge: { sourcename: "1355" targetname: "1363" class:2 color: blue}
+node: { title: "1363" label: "bloc(0)" }
+edge: { sourcename: "1363" targetname: "1360" class:2 color: blue}
+node: { title: "1360" label: "Fseq" }
+edge: { sourcename: "1360" targetname: "1352" class:2 color:red}
+node: { title: "1352" label: "Fseq" }
+edge: { sourcename: "1352" targetname: "1361" class:2 color:red}
+node: { title: "1361" label: "_copyarg" }
+edge: { sourcename: "1352" targetname: "1350" class:2 color:blue}
+node: { title: "1350" label: "_initfunc" }
+edge: { sourcename: "1360" targetname: "1359" class:2 color:blue}
+node: { title: "1359" label: "return" }
+edge: { sourcename: "1359" targetname: "0" class:2 color: blue}
+edge: { sourcename: "1356" targetname: "1349" class:2 color:blue}
+node: { title: "1349" label: "def(a)" }
+edge: { sourcename: "1349" targetname: "1400" class:2 color: blue}
+node: { title: "1400" label: "bloc(1)" }
+edge: { sourcename: "1400" targetname: "1368" class:2 color: blue}
+node: { title: "1368" label: "Fseq" }
+edge: { sourcename: "1368" targetname: "1402" class:2 color:red}
+node: { title: "1402" label: "Fseq" }
+edge: { sourcename: "1402" targetname: "1367" class:2 color:red}
+node: { title: "1367" label: "_copyarg" }
+edge: { sourcename: "1402" targetname: "1348" class:2 color:blue}
+node: { title: "1348" label: "bloc(2)" }
+edge: { sourcename: "1348" targetname: "1398" class:2 color: blue}
+node: { title: "1398" label: "bloc(3)" }
+edge: { sourcename: "1398" targetname: "1397" class:2 color: blue}
+node: { title: "1397" label: "Fseq" }
+edge: { sourcename: "1397" targetname: "1382" class:2 color:red}
+node: { title: "1382" label: "Fassign" }
+edge: { sourcename: "1382" targetname: "1380" class:2 color:red}
+node: { title: "1380" label: "3" }
+edge: { sourcename: "1382" targetname: "1381" class:2 color:blue}
+node: { title: "1381" label: "0" }
+edge: { sourcename: "1397" targetname: "1396" class:2 color:blue}
+node: { title: "1396" label: "for" }
+edge: { sourcename: "1396" targetname: "1395" class:2 color: blue}
+node: { title: "1395" label: "Flistarg" }
+edge: { sourcename: "1395" targetname: "1394" class:2 color:red}
+node: { title: "1394" label: "Flistarg" }
+edge: { sourcename: "1394" targetname: "1393" class:2 color:red}
+node: { title: "1393" label: "Flistarg" }
+edge: { sourcename: "1393" targetname: "1387" class:2 color:red}
+node: { title: "1387" label: "Fassign" }
+edge: { sourcename: "1387" targetname: "1331" class:2 color:red}
+node: { title: "1331" label: "k" }
+edge: { sourcename: "1387" targetname: "1369" class:2 color:blue}
+node: { title: "1369" label: "0" }
+edge: { sourcename: "1393" targetname: "1390" class:2 color:blue}
+node: { title: "1390" label: "_<=_" }
+edge: { sourcename: "1390" targetname: "1389" class:2 color: blue}
+node: { title: "1389" label: "Flistarg" }
+edge: { sourcename: "1389" targetname: "1388" class:2 color:red}
+node: { title: "1388" label: "k" }
+edge: { sourcename: "1389" targetname: "1373" class:2 color:blue}
+node: { title: "1373" label: "n" }
+edge: { sourcename: "1394" targetname: "1385" class:2 color:blue}
+node: { title: "1385" label: "bloc(4)" }
+edge: { sourcename: "1385" targetname: "1386" class:2 color: blue}
+node: { title: "1386" label: "_+=_" }
+edge: { sourcename: "1386" targetname: "1384" class:2 color: blue}
+node: { title: "1384" label: "Flistarg" }
+edge: { sourcename: "1384" targetname: "1378" class:2 color:red}
+node: { title: "1378" label: "3" }
+edge: { sourcename: "1384" targetname: "1346" class:2 color:blue}
+node: { title: "1346" label: "_*_" }
+edge: { sourcename: "1346" targetname: "1345" class:2 color: blue}
+node: { title: "1345" label: "Flistarg" }
+edge: { sourcename: "1345" targetname: "1339" class:2 color:red}
+node: { title: "1339" label: "_^_" }
+edge: { sourcename: "1339" targetname: "1338" class:2 color: blue}
+node: { title: "1338" label: "Flistarg" }
+edge: { sourcename: "1338" targetname: "1336" class:2 color:red}
+node: { title: "1336" label: "k" }
+edge: { sourcename: "1338" targetname: "1337" class:2 color:blue}
+node: { title: "1337" label: "n" }
+edge: { sourcename: "1345" targetname: "1344" class:2 color:blue}
+node: { title: "1344" label: "_!" }
+edge: { sourcename: "1344" targetname: "1343" class:2 color: blue}
+node: { title: "1343" label: "_-_" }
+edge: { sourcename: "1343" targetname: "1342" class:2 color: blue}
+node: { title: "1342" label: "Flistarg" }
+edge: { sourcename: "1342" targetname: "1340" class:2 color:red}
+node: { title: "1340" label: "n" }
+edge: { sourcename: "1342" targetname: "1341" class:2 color:blue}
+node: { title: "1341" label: "k" }
+edge: { sourcename: "1395" targetname: "1392" class:2 color:blue}
+node: { title: "1392" label: "_++" }
+edge: { sourcename: "1392" targetname: "1391" class:2 color: blue}
+node: { title: "1391" label: "k" }
+edge: { sourcename: "1368" targetname: "1366" class:2 color:blue}
+node: { title: "1366" label: "return" }
+edge: { sourcename: "1366" targetname: "1401" class:2 color: blue}
+node: { title: "1401" label: "3" }
+}
