@@ -17,18 +17,10 @@ node: { title: "1356" label: "_copyarg" }
 edge: { sourcename: "1347" targetname: "1345" class:2 color:blue}
 node: { title: "1345" label: "_initfunc" }
 edge: { sourcename: "1348" targetname: "1344" class:2 color:blue}
-node: { title: "1344" label: "_*_" }
+node: { title: "1344" label: "_/_" }
 edge: { sourcename: "1344" targetname: "1343" class:2 color: blue}
 node: { title: "1343" label: "Flistarg" }
-edge: { sourcename: "1343" targetname: "1341" class:2 color:red}
-node: { title: "1341" label: "_*_" }
-edge: { sourcename: "1341" targetname: "1340" class:2 color: blue}
-node: { title: "1340" label: "Flistarg" }
-edge: { sourcename: "1340" targetname: "1338" class:2 color:red}
-node: { title: "1338" label: "_*_" }
-edge: { sourcename: "1338" targetname: "1337" class:2 color: blue}
-node: { title: "1337" label: "Flistarg" }
-edge: { sourcename: "1337" targetname: "1335" class:2 color:red}
+edge: { sourcename: "1343" targetname: "1335" class:2 color:red}
 node: { title: "1335" label: "_+_" }
 edge: { sourcename: "1335" targetname: "1334" class:2 color: blue}
 node: { title: "1334" label: "Flistarg" }
@@ -42,12 +34,20 @@ edge: { sourcename: "1331" targetname: "1330" class:2 color:blue}
 node: { title: "1330" label: "b" }
 edge: { sourcename: "1334" targetname: "1333" class:2 color:blue}
 node: { title: "1333" label: "c" }
-edge: { sourcename: "1337" targetname: "1336" class:2 color:blue}
-node: { title: "1336" label: "d" }
-edge: { sourcename: "1340" targetname: "1339" class:2 color:blue}
-node: { title: "1339" label: "e" }
 edge: { sourcename: "1343" targetname: "1342" class:2 color:blue}
-node: { title: "1342" label: "f" }
+node: { title: "1342" label: "_*_" }
+edge: { sourcename: "1342" targetname: "1341" class:2 color: blue}
+node: { title: "1341" label: "Flistarg" }
+edge: { sourcename: "1341" targetname: "1339" class:2 color:red}
+node: { title: "1339" label: "_*_" }
+edge: { sourcename: "1339" targetname: "1338" class:2 color: blue}
+node: { title: "1338" label: "Flistarg" }
+edge: { sourcename: "1338" targetname: "1336" class:2 color:red}
+node: { title: "1336" label: "d" }
+edge: { sourcename: "1338" targetname: "1337" class:2 color:blue}
+node: { title: "1337" label: "e" }
+edge: { sourcename: "1341" targetname: "1340" class:2 color:blue}
+node: { title: "1340" label: "f" }
 edge: { sourcename: "1355" targetname: "1354" class:2 color:blue}
 node: { title: "1354" label: "return" }
 edge: { sourcename: "1354" targetname: "0" class:2 color: blue}

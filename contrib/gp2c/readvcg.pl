@@ -5,7 +5,13 @@
 # 2023-09-21, Georg Fischer: copied from internal/fischer/gen_seq4.pl
 #
 #:# Usage:
-#:#   perl readvcg.pl infile.vcg > output
+#:#   perl readvcg.pl [-d debug] [-m mode] [-s sep] infile.vcg > output
+#:#       -d debugging output: 0=none, 1=some, 2=more
+#:#       -m mode "post"=postfix (default), "in"=infix, "pre"=prefix
+#:#       -s separator for mode "post" (default ";")
+#
+# A node has no children if it is an operand, and
+# an optional red child and a blue child if it is an operation.
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -18,7 +24,8 @@ my $version_id  = "readvcg.pl V1.0";
 
 my $indent  = 4;
 my $debug   = 0;
-my $mode    = 1; # output mode: 1 = postfix
+my $mode    = "post"; # output mode
+my $sep     = ";";    # separator for "post"
 if (scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
@@ -30,6 +37,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $debug     =  shift(@ARGV);
     } elsif ($opt  =~ m{m}) {
         $mode      =  shift(@ARGV);
+    } elsif ($opt  =~ m{s}) {
+        $sep       =  shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -58,26 +67,147 @@ while (<>) { # read inputfile
     }
 } # while <>
 if ($debug >= 2) {
-	print "nodes:";
-	foreach my $node (sort(keys(%hnodes))) {
-		print " $node:$hnodes{$node}";
-	}
-	print "\n";
-	print "edges:";
-	foreach my $edge (sort(keys(%hedges))) {
-		print " $edge:$hedges{$edge}";
-	}
-	print "\n";
-	print "root=$root\n";
+    print "nodes:";
+    foreach my $node (sort(keys(%hnodes))) {
+        print " $node:$hnodes{$node}";
+    }
+    print "\n";
+    print "edges:";
+    foreach my $edge (sort(keys(%hedges))) {
+        print " $edge:$hedges{$edge}";
+    }
+    print "\n";
+    print "root=$root\n";
 }
-
+#----------------
 my $output = "";
-my $sep    = ";";
 if (0) {
-} elsif ($mode == 1) { # postfix: red child, blue child, node
+} elsif ($mode =~ m{^pre})  { # prefix:  op ( [red ,] blue )
+    &prefix ($root);
+} elsif ($mode =~ m{^in})   { # infix:   ( red ) op ( blue )
+    &infix  ($root, &get_label($root));
+} elsif ($mode =~ m{^post}) { # postfix: red ; blue ; op ;
     &postfix($root);
+} else {
+    die "readvcg.pl: invalid mode \"$mode\"\n";
 }
 print "$output\n";
+#================================
+sub get_label { # of a node
+    my ($node) = @_;
+    my $label = $hnodes{$node} || "";
+    if ($label !~ m{^_[a-zA-Z]}) {
+        $label =~ s{_}{}g;
+    }
+    if ($label =~ m{^bloc}) {
+    	$label =~ s{\(}{_};
+    	$label =~ s{\)}{};
+    }
+    return $label;
+} # get_label
+#----
+sub relevant { # test whether the label is relevant
+    my ($label) = @_;
+    return (length($label) > 0 && ($label !~ m{^(F|_[a-z]|def)})) ? 1 : 0;
+} # relevant
+#----
+sub prefix { # caution: recursive tree walking
+    my ($parent) = @_;
+    my $child;
+    my $label = &get_label($parent);
+    if (&relevant($label)) {
+        $label =~ s{_}{}g;
+        $output .= "$label";
+        $child = $hedges{"1,$parent"} || "";
+        if (length($child) > 0) {
+            $output .= "(";
+            &prefix($child);
+            $child = $hedges{"2,$parent"} || "";
+            if (length($child) > 0) {
+                $output .= ",";
+                &prefix($child);
+                $output .= ")";
+            }
+        } else {
+            $child = $hedges{"2,$parent"} || "";
+            if (length($child) > 0) {
+                $output .= "(";
+                &prefix($child);
+                $output .= ")";
+            }
+        }
+    } else { # visit children, but no own output except for ","
+        $child = $hedges{"1,$parent"} || "";
+        if (length($child) > 0) {
+            &prefix($child);
+            $child = $hedges{"2,$parent"} || "";
+            if (length($child) > 0) {
+                $output .= ",";
+                &prefix($child);
+            }
+        } else {
+            $child = $hedges{"2,$parent"} || "";
+            if (length($child) > 0) {
+                &prefix($child);
+            }
+        }
+    }
+} # prefix
+#----
+sub relevant_child { # pass through irrelevant node "Flistarg" reached by blue (single) edges
+    my ($parent, $child_no) = @_;
+    if ($debug >= 2) {
+        print "# relevant_child($parent, $child_no)\n";
+    }
+    my $child = "";
+    my $label;
+    my $busy = 1;
+    if (length($child) == 0) { # no red edge
+        $child = $hedges{"2,$parent"} || "";
+        if (length($child) > 0) { # blue edge
+            $label = &get_label($child);
+            if ($label eq "Flistarg") {
+                $child = $hedges{"$child_no,$child"} || "";
+                $busy = 0;
+            }
+        }
+    }
+    if ($busy == 1) {
+        $child = $hedges{"$child_no,$parent"} || "";
+    }
+    return $child;
+} # relevant_child
+#----
+# bloc(0)((((a)+(b))+(c))/(((d)*(e))*(f))return)
+sub infix { # caution: recursive tree walking
+    my ($parent) = @_;
+    my $child;
+    my $label = &get_label($parent);
+    if (&relevant($label)) {
+        $child = &relevant_child($parent, 1);
+        if (length($child) > 0) {
+            $output .= "(";
+            &infix($child);
+            $output .= ")";
+        }
+        $output .= "$label";
+        $child = &relevant_child($parent, 2);
+        if (length($child) > 0) {
+            $output .= "(";
+            &infix($child);
+            $output .= ")";
+        }
+    } else {
+        $child = &relevant_child($parent, 1);
+        if (length($child) > 0) {
+            &infix($child);
+        }
+        $child = &relevant_child($parent, 2);
+        if (length($child) > 0) {
+            &infix($child);
+        }
+    }
+} # infix
 #----
 sub postfix { # caution: recursive tree walking
     my ($parent) = @_;
@@ -91,11 +221,12 @@ sub postfix { # caution: recursive tree walking
         }
     } # foreach child
     my $label = $hnodes{$parent};
-    if ($label !~ m{^(F|_[a-z]|bloc|def)}) {
+    if ($label !~ m{^(F|_[a-z]|def)}) {
         $label =~ s{_}{}g;
         $output .= "$label$sep";
     }
 } # postfix
+#================================
 __DATA__
 graph: { title:"test"
 xmax: 700 ymax: 700 x: 30 y: 30
