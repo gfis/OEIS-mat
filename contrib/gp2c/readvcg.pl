@@ -100,15 +100,16 @@ sub get_label { # of a node
         $label =~ s{_}{}g;
     }
     if ($label =~ m{^bloc}) {
-    	$label =~ s{\(}{_};
-    	$label =~ s{\)}{};
+        $label =~ s{\(}{_};
+        $label =~ s{\)}{};
     }
+    $label =~ s{^Fassign}{\=};
     return $label;
 } # get_label
 #----
 sub relevant { # test whether the label is relevant
     my ($label) = @_;
-    return (length($label) > 0 && ($label !~ m{^(F|_[a-z]|def)})) ? 1 : 0;
+    return (length($label) > 0 && ($label eq "Fassign" || ($label !~ m{^(F|_[a-z]|def)}))) ? 1 : 0;
 } # relevant
 #----
 sub prefix { # caution: recursive tree walking
@@ -178,24 +179,27 @@ sub relevant_child { # pass through irrelevant node "Flistarg" reached by blue (
     return $child;
 } # relevant_child
 #----
+
 # bloc(0)((((a)+(b))+(c))/(((d)*(e))*(f))return)
 sub infix { # caution: recursive tree walking
     my ($parent) = @_;
     my $child;
     my $label = &get_label($parent);
     if (&relevant($label)) {
-        $child = &relevant_child($parent, 1);
-        if (length($child) > 0) {
-            $output .= "(";
-            &infix($child);
-            $output .= ")";
-        }
-        $output .= "$label";
-        $child = &relevant_child($parent, 2);
-        if (length($child) > 0) {
-            $output .= "(";
-            &infix($child);
-            $output .= ")";
+        foreach my $child_no ((1, 2)) {
+            $child = &relevant_child($parent, $child_no);
+            if (length($child) > 0) {
+                if (defined($hedges{"1,$child"}) || defined($hedges{"2,$child"})) { # non-atomar
+                    $output .= "(";
+                    &infix($child);
+                    $output .= ")";
+                } else { # atomar, without "( )"
+                    &infix($child);
+                }
+            }
+            if ($child_no == 1) {
+                $output .= "$label";
+            }
         }
     } else {
         $child = &relevant_child($parent, 1);
@@ -220,8 +224,8 @@ sub postfix { # caution: recursive tree walking
             &postfix($child);
         }
     } # foreach child
-    my $label = $hnodes{$parent};
-    if ($label !~ m{^(F|_[a-z]|def)}) {
+    my $label = &get_label($parent);
+    if (&relevant($label)) {
         $label =~ s{_}{}g;
         $output .= "$label$sep";
     }

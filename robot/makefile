@@ -126,6 +126,18 @@ diffseq:
 	| grep -vE "A217866|A217976|A303749|A334087" \
 	| tee    $@.gen
 	wc -l    $@.gen
+diffs:
+	perl -ne 'if (m{\A(A\d{6})}) { print "$$1\n"; }' $@.napp  > $@.igno
+	grep -P "\A\%[NF]" $(CAT) | grep -P "(A\d{6})\(n *\+ *1\) *\- \1\(n\)" | grep -P "^%" >  $@.tmp 
+	grep -P "\A\%[NF]" $(CAT) | grep -P "(A\d{6})\(n\) *\- \1\(n *\- *1\)" | grep -P "^%" >> $@.tmp 
+	cat $@.tmp | $(NYI) diffs \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{(A\d{6})\(n}) { my $$rn = $$1; '\
+	' print join("\t", $$an, "diffseq", 0, $$rn, $$line); } else { print "# $$line"; }}'\
+	| grep -vf $@.igno \
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
 #--------
 dirichcon: # Dirichlet convolution or inverse
 	grep -P "Dirichlet convolution of " $(CAT) | grep -P "^\%[NF]" | $(NYI) dirichcon \
@@ -368,6 +380,17 @@ expr_gen:
 	>        $@.gen
 	tail -n4 $@.gen
 	wc -l    $@.gen
+#----
+form_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
+	grep -P "^\%o" $(CAT) | cut -b4- \
+	| sed -e "s/ /\tlambda\t0\t/" \
+	| grep -P "^(A\d{6})\t\w+\t\S+\t *(PARI[^\)]*\))? *\{? *(\w\d{6}\w*|a)\(n\) *\=" \
+	| grep -vP "\bmy\b" \
+	| perl   form_pari.pl -d $(D) \
+	2>       $@.rest.tmp \
+	>        $@.txt
+	tail -n4 $@.txt $@.rest.tmp
+	wc -l    $@*.t*
 #----
 sum_prog: sum_pari sum_list sum_oeis sum_maple sum_mma sum_mma0
 sum_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
