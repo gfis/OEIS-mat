@@ -30,7 +30,7 @@ all: # all possible targets:
 anopan: anopan0 anopan1
 	grep -P "\tanopan\t" anopan1.tmp \
 	| grep -vE "A068310|A121835|A123538|A130911|A137851|A178467|A185246|A262348|A274996|A277078" \
-	>        $@.gen
+	>        $@.gen || :
 	head -n2 $@.gen
 	wc -l    $@.gen
 anopan0:
@@ -57,7 +57,7 @@ anopan1:
 nopan: nopan0 nopan1 # a(n) = gcd(n, Annnnnn(n))
 	grep -P "\tnopan\t" nopan1.tmp \
 	| grep -vE "A068310" \
-	>        $@.gen
+	>        $@.gen || :
 	grep -P "\tnopan\t" nopan1.man >> $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
@@ -256,7 +256,7 @@ reconcat: # extract recurrent concatenations from asdata
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-filter:
+filter: # selects only " in ", does not work
 	grep -P "([A-Z]\w+ )([^i]\w+ )*in A\d{6}" $(CAT) | grep -P "^\%[NF]" | $(NYI) $@ \
 	| perl -ne 'use strict; my $$line = $$_; if ($$line =~ m{\A(A\d+)\t\w+\t\d+\t(.*)}) { my ($$an, $$name) = ($$1, $$2); '\
 	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1; '\
@@ -284,6 +284,62 @@ filtpospri:
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#----
+knowna: knowna0 knowna1 knowna2 knowna3 # grep A-numbers of known functions
+knowna0: # grep "a(n) = [factor *] Annnnnn("
+	grep -P "^\%[NF] A\d+ +a\(n\) *\= *[\+\-]? *(\(?\d+(\/\d+)?\)? *\*?)? *A\d{6}\(" $(CAT) | $(NYI) $@ \
+	| perl knowna0.pl \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+knowna1: # select rseqnos with counts >= 8
+	cut -f4  knowna0.tmp | sort | uniq -c | sort -n | grep -vP "^ *[1-7] " \
+	| perl -ne 's{ *(\w+) +(\w+)}{$$2\t$$1}; print;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+knowna2: # attach the names of the rseqnos
+	cd $(COMMON) ; make seq2 LIST=../robot/knowna1.tmp
+	$(DBAT)  "SELECT s.aseqno AS ANumber, 'knowna', CAST(s.info AS INT) AS count, '' AS lambda, n.name AS Definition FROM seq2 s, asname n WHERE s.aseqno = n.aseqno ORDER BY 3 DESC;" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT)  -x "SELECT '====> total ', CAST(SUM(s.info) AS INT) FROM seq2 s"
+	perl $(FISCHER)/htmlize.pl $@.tmp \
+	>        $@.html
+	# cmd /c $@.html
+knowna3: # select "pure" applications
+	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\tA\d{6}\(A\d+\(n(\-1)?\)\)\." knowna0.tmp \
+	| sort -k5,5 -t"	" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+#---
+knownf: knownf0 knownf1 knownf2 knownf3 # grep names of known functions
+knownf0: # grep "a(n) = [factor *] Annnnnn("
+	grep -P "^\%[NF] A\d+ +a\(n\) *\= *[\+\-]? *(\(?\d+(\/\d+)?\)? *\*?)? *[a-zB-Z]\w*\(A\d{6}" $(CAT) | $(NYI) $@ \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+knownf1: # select rseqnos with counts >= 8
+	cut -f4  knowna0.tmp | sort | uniq -c | sort -n | grep -vP "^ *[1-7] " \
+	| perl -ne 's{ *(\w+) +(\w+)}{$$2\t$$1}; print;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+knownf2: # attach the names of the rseqnos
+	cd $(COMMON) ; make seq2 LIST=../robot/knowna1.tmp
+	$(DBAT)  "SELECT s.aseqno AS A-Number, 'knowna', CAST(s.info AS INT) AS count, 'Z.' AS lambda, n.name AS Definition FROM seq2 s, asname n WHERE s.aseqno = n.aseqno ORDER BY 3 DESC;" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	$(DBAT)  -x "SELECT '====> total ', CAST(SUM(s.info) AS INT) FROM seq2 s"
+	perl $(FISCHER)/htmlize.pl $@.tmp \
+	>        $@.html
+	# cmd /c $@.html
+knownf3: # select "pure" applications
+	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\ta\(n\) *\= *A\d{6}\(A\d+\(n(\-1)?\)\)\." knowna0.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
 #----
 primpos:
 	grep -P "Indices of primes " $(CAT) | grep -P "^\%" | $(NYI) filtpos \
