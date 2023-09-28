@@ -37,7 +37,7 @@ while (<>) {
     $line =~ s/\s+\Z//; # chompr
     $line =~ s/  +/ /g; # only single spaces
     my ($aseqno, $callcode, $offset, $name) = split(/\t/, $line);
-    $name =~ s{^ *a\(n\) *\= *}{}; # remove "a(n) = "
+    $name =~ s{^ *a\(n\) *\= *}{}; # remove any "a(n) = "
     if ($name =~ m{(A\d{6})}) { # always
         $rseqno = $1;
         print join("\t", ($aseqno, $callcode, $offset, $rseqno, $name)) . "\n";

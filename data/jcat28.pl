@@ -1,14 +1,17 @@
 #!perl
 
 # Copy CAT25 file and replace all leading "%" characters by "#" for jOEIS sequences
+# 2023-09-28: nyi A-numbers -> "Ännnnnn"
 # 2023-05-05: renamed from ../common/jcat25.pl
 # 2023-05-01: App(e->a)rent, seem
 # 2021-95-30: Conjecture (Start) ... (End)
 # 2021-01-21, Georg Fischer
 #
 #:# Usage:
-#:#   perl jcat28.pl [-f ofter_file] cat28.txt > jcat28.txt \
-#:#     -f  file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
+#:#   perl jcat28.pl [-f ofter_file] [-d debug] [-n nyi-char] cat28.txt > jcat28.txt 
+#:#     -d debugging mode: 0=none, 1=some, 2=more
+#:#     -n character that replaces "A" in A-numbers that are not yet implemented in jOEIS, e.g. "Ä"
+#:#     -f file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -18,6 +21,7 @@ my $line = "";
 my $ofter_file = "joeis_ofter.txt";
 my $debug = 0;
 my $sharp = "#";
+my $nyi_char = "";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -25,6 +29,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $debug      = shift(@ARGV);
     } elsif ($opt   =~ m{\-f}  ) {
         $ofter_file = shift(@ARGV);
+    } elsif ($opt   =~ m{\-n}  ) {
+        $nyi_char   = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -79,6 +85,10 @@ while (<>) { # CAT25 format
     }
     if ($state == 1 || ($line =~ m{[Cc]onject|Apparent|Appear|May be|Empiric|Seem})) {
         $line =~ s{\A.}{\?};
+    }
+    if ($nyi_char ne "") {
+        #                      12 23     31
+        substr($line, 11) =~ s{((A)(\d{6}))}{defined($ofters{"$1"}) ? "$1" : "$nyi_char$3"}eg;
     }
     print $line;
 } # while <>

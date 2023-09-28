@@ -285,15 +285,16 @@ filtpospri:
 	head -n2 $@.gen
 	wc -l    $@.gen
 #----
-knowna: knowna0 knowna1 knowna2 knowna3 # grep A-numbers of known functions
+# grep A-numbers of known functions
+knowna: knowna0 knowna1 knowna2 knowna3 knowna4 
 knowna0: # grep "a(n) = [factor *] Annnnnn("
-	grep -P "^\%[NF] A\d+ +a\(n\) *\= *[\+\-]? *(\(?\d+(\/\d+)?\)? *\*?)? *A\d{6}\(" $(CAT) | $(NYI) $@ \
+	grep -P "^\%[NF] A\d+ +(a\(n\) *\= *)?[\+\-]? *(\(?\d+(\/\d+)?\)? *[\+\-\*]?)? *A\d{6}\(" $(CAT) | $(NYI) $@ \
 	| perl knowna0.pl \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
-knowna1: # select rseqnos with counts >= 8
-	cut -f4  knowna0.tmp | sort | uniq -c | sort -n | grep -vP "^ *[1-7] " \
+knowna1: # select rseqnos with counts >= 1
+	cut -f4  knowna0.tmp | sort | uniq -c | sort -n | grep -vP "^ *[0] " \
 	| perl -ne 's{ *(\w+) +(\w+)}{$$2\t$$1}; print;' \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -308,20 +309,35 @@ knowna2: # attach the names of the rseqnos
 	>        $@.html
 	# cmd /c $@.html
 knowna3: # select "pure" applications
-	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\tA\d{6}\(A\d+\(n(\-1)?\)\)\." knowna0.tmp \
+	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\tA\d{6}\(A\d+\(n(\-1)?\)\)(\.|for +n *\>)" knowna0.tmp \
 	| sort -k5,5 -t"	" \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+knowna4: # finally generate
+	make known LIST=knowna3.tmp
+	mv -v known.gen $@.gen
+known: # LIST= generate for SimpleTransformSequence
+	perl $@.pl $(LIST) \
+	>        $@.gen \
+	2>       $@.rest.tmp
+	head -n2 $@.gen
+	wc -l    $@.*
+knowna5: # select applications with expressions in n
+#                                      1 (    2     2  )            1                  (                  )  3                     3 4             4
+	grep -P "^A\d+\t\w+\t\d+\t[\+\-]? *(\(?\d+(\/\d+)?\)? *[\+\-\*]?)? *A\d{6}\tA\d{6}\([n0-9\+\-\*\/\^]+\) *(\/ *[n0-9\+\-\*\/\^]+)?(\.|for +n *\>)" knowna0.tmp \
+	| tee    $@.tmp
 #---
 knownf: knownf0 knownf1 knownf2 knownf3 # grep names of known functions
 knownf0: # grep "a(n) = [factor *] Annnnnn("
-	grep -P "^\%[NF] A\d+ +a\(n\) *\= *[\+\-]? *(\(?\d+(\/\d+)?\)? *\*?)? *[a-zB-Z]\w*\(A\d{6}" $(CAT) | $(NYI) $@ \
-	>        $@.tmp
+	grep -P "^\%[NF] A\d+ +(a\(n\) *\= *)?[\+\-]? *(\(?\d+(\/\d+)?\)? *[\+\-\*]?)? *[a-zB-Z]\w*\(A\d{6}" $(CAT) | $(NYI) $@ \
+	| perl knownf0.pl \
+	>        $@.tmp \
+	2>       $@.rest.tmp
 	head -n2 $@.tmp
-	wc -l    $@.tmp
-knownf1: # select rseqnos with counts >= 8
-	cut -f4  knowna0.tmp | sort | uniq -c | sort -n | grep -vP "^ *[1-7] " \
+	wc -l    $@*.tmp
+knownf1: # select rseqnos with counts >= 5
+	cut -f4  knowna0.tmp | sort | uniq -c | sort -n | grep -vP "^ *[1-4] " \
 	| perl -ne 's{ *(\w+) +(\w+)}{$$2\t$$1}; print;' \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -336,7 +352,7 @@ knownf2: # attach the names of the rseqnos
 	>        $@.html
 	# cmd /c $@.html
 knownf3: # select "pure" applications
-	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\ta\(n\) *\= *A\d{6}\(A\d+\(n(\-1)?\)\)\." knowna0.tmp \
+	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\ta\(n\) *\= *A\d{6}\(A\d+\(n(\-1)?\)\)\." knownf0.tmp \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
