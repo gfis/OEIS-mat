@@ -191,3 +191,4 @@ A007955	knowna	1	Jaguar.factor(v).pod()	Product of divisors
 A008683	knowna	1	Z.valueOf(Jaguar.factor(v).mobius())	Moebius mu function
 A001157	knowna	4	Jaguar.factor(v).sigma(2)	
 A001158	knowna	1	Jaguar.factor(v).sigma(3)	
+A001615	knowna	0	A001615.dedekindPsi(v.intValueExact())	

@@ -117,7 +117,7 @@ joeis_ofter: # A-numbers implemented in jOEIS, offsets and a few terms, reduced 
 	cp -pv   $@.txt ../common
 #--
 jcat28: # qualify the cat28 lines with "#" = implemented in jOEIS, "%" = nyi, "?" = conjectured
-	perl jcat28.pl -f joeis_ofpre.txt -n Ä cat28.txt > $@.txt
+	perl jcat28.pl -f joeis_ofpre.txt -n € cat28.txt > $@.txt
 	cut -b1 $@.txt | sort | uniq -c
 	cp -pv    $@.txt ../common/jcat25.txt
 #--

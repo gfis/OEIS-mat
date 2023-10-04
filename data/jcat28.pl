@@ -21,7 +21,7 @@ my $line = "";
 my $ofter_file = "joeis_ofter.txt";
 my $debug = 0;
 my $sharp = "#";
-my $nyi_char = "";
+my $nyia = "";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -30,7 +30,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     } elsif ($opt   =~ m{\-f}  ) {
         $ofter_file = shift(@ARGV);
     } elsif ($opt   =~ m{\-n}  ) {
-        $nyi_char   = shift(@ARGV);
+        $nyia       = shift(@ARGV); # usually "Ä"
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -86,9 +86,9 @@ while (<>) { # CAT25 format
     if ($state == 1 || ($line =~ m{[Cc]onject|Apparent|Appear|May be|Empiric|Seem})) {
         $line =~ s{\A.}{\?};
     }
-    if ($nyi_char ne "") {
+    if ($nyia ne "") {
         #                      12 23     31
-        substr($line, 11) =~ s{((A)(\d{6}))}{defined($ofters{"$1"}) ? "$1" : "$nyi_char$3"}eg;
+        substr($line, 11) =~ s{((A)(\d{6}))}{defined($ofters{"$1"}) ? "$1" : "$nyia$3"}eg;
     }
     print $line;
 } # while <>

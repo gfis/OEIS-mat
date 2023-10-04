@@ -227,9 +227,11 @@ subdir:
 	| perl ../common/nyi.pl -p | cut -b1- \
 	> $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist amlist edlist grlist iglist jvplist oglist oplist pblist phlist rblist rzlist smlist
+authors: ajlist aklist amlist edlist grlist iglist jvplist oglist oplist pblist phlist rblist rzlist smlist
 ajlist:
 	make subdir DIR=aj  NAME=Jasinski
+aklist:
+	make subdir DIR=ak  NAME=Karttunen
 amlist:                 
 	make subdir DIR=am  NAME=Murthy
 edlist:                 

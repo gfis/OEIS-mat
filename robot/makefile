@@ -25,6 +25,12 @@ D=0
 all: # all possible targets:
 	grep -P "^\w[^\:]*\:" makefile | sort
 #========
+napp: # CC=; remove FAILed ones
+	touch notapp/$(CC).napp
+	cut -f1 notapp/$(CC).napp > napp.tmp
+	grep -vf napp.tmp $(CC).gen > $(CC).tmp
+	mv $(CC).tmp $(CC).gen
+	wc -l    $(CC).gen
 #----
 # simple formula a(n) = Aqseqno(n...) op Arseqno(n...)
 anopan: anopan0 anopan1
@@ -92,10 +98,10 @@ binomx:
 	wc -l    $@.gen
 #----
 charfun:
-	grep -E "^%" $(CAT) | grep -P "Characteristic function of A" \
+	grep -E "^%" $(CAT) | grep -P "Characteristic function (for|of) A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' if ($$line =~ m{(for|of) (A\d+)}) { my $$rn = $$2; '\
 	' print join("\t", $$an, charfun, 0, "$$rn", "", "", "", "", "", "") . "\n"; } else { print "# $$line"; }}'\
 	| tee    $@.gen
 	wc -l    $@.gen
@@ -219,6 +225,17 @@ morfix:
 	grep morfix $@.man >> $@.gen
 	head -n2 $@.gen
 	wc -l    $@*
+#--------
+ordtraf: # Ordinal transform of Annnnnn
+	grep -iP "Ordinal transform" $(CAT) | grep -P "^\%[NFY]" | $(NYI) $@ \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{[Oo]rdinal +transform +of[^A]+(A\d{6})}) { my $$rn1 = $$1;'\
+	' print        join("\t", $$aseqno, "$@" , 1, "new $$rn1()", "", $$name); } else {'\
+	' print STDERR "# $$aseqno $$name"; }' \
+	2>       $@.rest.tmp \
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen $@.rest.tmp
 #----
 parity:
 	grep -iP "Parity of A\d+" $(CAT) | grep -P "^\%[NFCY]" | $(NYI) parity \
@@ -270,8 +287,9 @@ filter: # selects only " in ", does not work
 filtpos:
 	grep -P "(The positions|Positions|Indices|Places) of |such that (\d+ ?\* ?)?(A\d{6})\(\w[^\)]*\)( *[\+\-\] *\d+)? is " $(CAT) | grep -P "^\%[NF]" | $(NYI) $@ \
 	| perl filtpos.pl \
-	>        $@.gen \
-	2>       $@.rest.tmp
+	2>       $@.rest.tmp \
+	| grep -vE "A256563|A362453|A362454" \
+	>        $@.gen 
 	head -n2 $@.gen
 	wc -l    $@.gen $@.rest.tmp
 	cut -f6  $@.gen      | sort | uniq -c | sort -n | tail -n64
