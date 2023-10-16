@@ -72,7 +72,7 @@ $tabname = "bfinfo"; open(BFINFO, ">", "$tabname.txt") || die "cannot write \"$t
 &initialize();
 while (<>) {
     $line = $_;
-    $line =~ s/\s+\Z//; # chompr
+    $line =~ s/\s+\Z/    /; # chompr, but append "    " in order to handle empty $ncontent
     #             1    2       3
     $line =~ m{\A.(\w) (A\d+) +(.*)\Z};
     $ncode    = $1;

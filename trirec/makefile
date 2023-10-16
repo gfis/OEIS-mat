@@ -11,7 +11,7 @@ TRIREC=../trirec
 DBAT=java   -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 RAMATH=java -cp  $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
 PFRACT=java -cp  $(RAMATH).symbolic.PolyFraction
-JOEISPREP=java -cp  $(RAMATH).sequence.JoeisPreparer
+JPREP=java -cp  $(RAMATH).sequence.JoeisPreparer
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
@@ -51,12 +51,13 @@ seq: # parameter: $(LIST)
 	$(DBAT) -n seq
 #====================================
 tabl:
-	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 6), i.offset1, n.name, b. bfimin || '..' || b.bfimax, i.keyword, i.author \
+	$(DBAT) -x "SELECT i.aseqno, SUBSTR(COALESCE(j.superclass, "null"), 1, 7), i.offset1, n.name, b. bfimin || '..' || b.bfimax, i.keyword, i.author \
 	  FROM asinfo i, bfinfo b, asname n LEFT JOIN joeis j ON n.aseqno = j.aseqno \
 	  WHERE i.aseqno = b.aseqno \
 	    AND b.aseqno = n.aseqno \
 	    AND i.keyword LIKE '%tabl%' \
 	  ORDER BY n.name, i.aseqno;" \
+	| perl $(COMMON)/nyi.pl -p \
 	>         $@.tmp
 	head -n 4 $@.tmp
 	wc -l     $@.tmp
@@ -143,7 +144,7 @@ dhd_cf: # continued fraction
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 dhd_gf: # generating function
-	$(JOEISPREP) -f dhd_cf.tmp \
+	$(JPREP) -f dhd_cf.tmp \
 	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -157,7 +158,7 @@ fract2:
 	| grep -E "fract2" \
 	| grep -vE "A134552" \
 	| sed -e "s/$$/\t0\t0/" \
-	| $(JOEISPREP) -f - \
+	| $(JPREP) -f - \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -166,7 +167,7 @@ fract2man:
 	| grep -E "fract2" \
 	| grep -vE "A134552" \
 	| sed -e "s/$$/\t0\t0/" \
-	| $(JOEISPREP) -f - \
+	| $(JPREP) -f - \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -242,7 +243,7 @@ rio2: # LIST=
 rio3:
 	cat rio2.tmp \
 	| sed -e "s/$$/\t0\t0\t0/" -e "s/rioarr/fract2/"\
-	| $(JOEISPREP) -f - \
+	| $(JPREP) -f - \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -1029,7 +1030,28 @@ joeismore:
 	head -n4  $@.tmp
 	wc -l     $@.tmp
 	# They all run too slow, or are Colin's conjectures.
-#-------------------------------
+#----
+# copied from ../contrib/ga/makefile
+trigft: trigft1 trigft2 trigft3 # guess generating functions
+trigft1: # select all nyi triangles from ga
+	grep -P "\tnull\t" tabl.tmp \
+	>        $@.tmp
+	wc -l    $@.tmp
+	cd $(COMMON) ; make seq LIST=../trirec/$@.tmp
+trigft2: # attach offset and terms if first term is 1
+	$(DBAT) -x "SELECT s.aseqno, 'trigf', i.offset1, 10, '[1]', d.data FROM seq s, asdata d, asinfo i \
+	  WHERE d.data LIKE '1,%' \
+	    AND s.aseqno = d.aseqno \
+	    AND d.aseqno = i.aseqno \
+	  ORDER BY 1"\
+	>        $@.txt
+	head -n2 $@.txt
+	wc -l    $@.txt
+trigft3: # call ordinaryTriangle
+	$(JPREP) -f trigft2.txt \
+	| tee    $@.gen
+	wc -l    $@.gen
+	#-------------------------------
 trimpl: # sequences that are implemented with triangle.Triangle
 	$(DBAT) -x "SELECT j.aseqno, LOWER(SUBSTR(superclass, 1, 6)), 0, n.name \
 	  FROM joeis j, asname n \

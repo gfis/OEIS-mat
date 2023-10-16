@@ -65,7 +65,7 @@ while (<>) {
             $oseqno = $aseqno; 
             $oper = "";
         }
-    } elsif ( ($code =~ m{[FNC]}) # FORMULA, NAME, COMMENT
+    } elsif ( ($code =~ m{[NFCY]}) # NAME, FORMULA, COMMENT, CROSSREFRENCE
               and 
               ($content =~ m{[Rr]iordan\s*[Aa]rray[\s\:]*(\([\w\s\+\-\^\,\;\(\)\[\]\*\/]+)}) 
             ) {

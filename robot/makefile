@@ -171,6 +171,13 @@ inverse:
 	| tee    $@.gen
 	wc -l    $@.gen
 #--------
+known4:
+	perl known.pl knowna.man \
+	>        $@.gen \
+	2>       $@.rest.tmp
+	wc -l    $@.gen $@.rest.tmp
+	sort $@.rest.tmp | uniq -c | sort -n
+#--------
 m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(CAT) | $(NYI) m1pow \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
@@ -215,6 +222,13 @@ fract22:
 	>        $@.gen
 	tail -n2 $@.gen
 	wc -l    $@.gen
+fract2:
+	grep -P "^\%[NF]" ../../OEIS-mat/common/jcat25.txt | grep -P "[Gg]\.f\.\:? *[xy\(\)\/\*\^\+\-0-9 ]+\." | grep -vP "\.\.\." \
+	| sed -e "s/Expansion of //" -e "s/O\.g/G/" -e "s/\. - .*//" \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
+#--------
 #--------
 ANCHOR=anch
 morfix:

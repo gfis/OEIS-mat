@@ -1,6 +1,7 @@
 #!perl
 
 # Check whether A-numbers in input file are already implemented in jOEIS
+# 2023-10-07: #?Annnnnn -> €nnnnnn
 # 2023-06-04: -q; BD=77
 # 2023-02-26: #? before nyi aseqnos
 # 2023-02-20: -p
@@ -81,18 +82,18 @@ foreach my $line (split(/\n/, $buffer)) {
         if (defined($ofters{$rseqno})) {
             $hash{$rseqno} = 1;
         } else {
-            $line =~ s{$rseqno}{\#\?$rseqno}g;
+            $line =~ s{$rseqno}{"€" . substr($rseqno, 1)}eg;
         }
     } # foreach $rseqno
     if (0) {
     } elsif ($print_it > 0) {
-        $line =~ s{^\#\?}{}; # assume that the leading column is nyi anyway
+        $line =~ s{^€}{A}; # assume that the leading column is nyi anyway
         print "$line\n";
     } elsif (length($query) > 0) {
-        $line =~ s{^.. (\#\?)?(A\d+) *}{}; # assume that the leading column is nyi anyway
-        $aseqno = $2;
-        if ($line !~ m{\#\?}) {
-            print join("\t", $aseqno, $query, 0, $line) . "\n";
+        $line =~ s{^.. [€A](\d+) *}{}; # assume that the leading column is nyi anyway
+        my $seqno = $1;
+        if ($line !~ m{€}) {
+            print join("\t", "A$seqno", $query, 0, $line) . "\n";
         }
     } else {
         print "$line\n";
