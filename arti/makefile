@@ -51,6 +51,7 @@ sortprep:
 	wc -l      $@.tmp
 evalsame:
 	cat sortprep.tmp \
+	| grep -vP "€" \
 	| perl evalsame.pl \
 	>          $@.tmp
 	head -n2   $@.tmp

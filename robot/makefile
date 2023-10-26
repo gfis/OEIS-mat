@@ -169,6 +169,13 @@ inverse:
 	' print join("\t", $$an, inverse, 0, "new $$rn()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
 	| grep -vE "A112846" \
 	| tee    $@.gen
+rinverse:
+	grep -E "^#" $(CAT) | grep -Pi "Inverse (of|is|is in|in) +€" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{Inverse (of|is|is in|in) +€(\d+)}i) { my $$rn = "A$$2"; '\
+	' print join("\t", $$rn, inverse, 0, "new $$an()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A112846" \
+	| tee -a $@.gen
 	wc -l    $@.gen
 #--------
 known4:
@@ -191,6 +198,12 @@ m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 	>>       $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#--------
+nest3:
+#                                                                                1              | (               )          1
+	grep -P "^\%[NF] A\d+  *a\(n\) *\=" $(CAT) | grep -vP "€" | grep -P "A\d{6}\(([0-9\+\-\* n]+|\([0-9\+\-\* n]+\)[\*\+\- ]*)?A\d{6}\(n" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
 #--------
 # Robot#1: Ordinary (rational) generating functions
 ogf: ogf1 ogf2
@@ -446,6 +459,16 @@ prepend: # Simple skip/prepending
 	grep -iP "^\%[NFC] +(a\(n\) *\= *)?(\{ *\-?\d+(\, *\-?\d+)* *\} *U *)?A\d+ A\d{6}( *[U\\\\] *\{ *\-?\d+(\, *\-?\d+)* *\} *)?[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
 	| tee    $@.gen
 	wc -l    $@.gen
+#----
+tuptraf: # tuple transformations
+	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?(\d+ *[\*\+\-])? *A\d+\(n\) *([\+\-\*\/\^] *(A\d+\(n\)|n|\d+))+ *[fiw\.\:\,\=\;]" $(CAT) | grep -P "^%[NF]" | grep -vP "€" \
+	| tee    $@.man
+	wc       $@.man
+#
+#	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?" $(CAT) | cut -b4- \
+#	| perl tuptraf.pl \
+#	| tee    $@.gen
+#	wc       $@.gen
 #----
 expr: expr_pari subst_list expr_trans expr_post expr_gen
 expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,

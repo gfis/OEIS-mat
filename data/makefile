@@ -127,11 +127,13 @@ joeis_pack:
 #========
 # to be used locally:
 #
-remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect
+remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
 load4:
 	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload
 reflect:
 	cd $(FISCHER)/reflect ; make
+arti:
+	cd ../arti ; make sortprep evalsame
 robots:
 	cd $(FISCHER) ; make robots
 #====

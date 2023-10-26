@@ -343,4 +343,13 @@ lrindx_nyi_check:
 	wc -l    $@.txt
 	head -n4 $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
+#--------
+polys: polys1 polys2 # grep the ones with "polynomials"
+polys1: 
+	grep polynomials lrindx.new.tmp > $@.tmp
+polys2:
+	cat polys1.tmp | perl -ne 'foreach my $$aseqno(m{(A\d{6})}g) { print "$$aseqno\n"; }' \
+	| sort | uniq > $@.tmp
+	wc -l    $@.tmp
+	grep -f polys2.tmp ../arti/evalsame.tmp | wc
 

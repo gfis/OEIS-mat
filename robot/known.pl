@@ -138,7 +138,7 @@ A006068	knowna	6		a(n) is Gray-coded into n.
 A006519	knowna	7	Z.valueOf(ZUtils.valuation(v, Z.TWO))	Highest power of 2 dividing n. Integer.lowestOneBit(n)
 A006530	knowna	27	Jaguar.factor(v).largestPrimeFactor()	 greatest prime dividing n, for n >= 2; a(1)=1.
 A006577	knowna	10		Number of halving and tripling steps to reach 1 in ''3x+1'' problem, or -1 if 1 is never reached.
-A006882	knowna	5		Double factorials n!!: a(n) = n*a(n-2) for n > 1, a(0) = a(1) = 1.
+A006882	knowna	5	MemoryFactorial.SINGLETON.doubleFactorial(v.intValueExact())	Double factorials n!!: a(n) = n*a(n-2) for n > 1, a(0) = a(1) = 1.
 A007088	knowna	6	new Z(Z.toString(2))		The binary numbers (or binary words, or binary vectors, or binary expansion of n): numbers written in base 2.
 A007504	knowna	16		Sum of the first n primes.
 A007539	knowna	5		a(n) = first n-fold perfect (or n-multiperfect) number.
@@ -154,20 +154,21 @@ A007955	knowna	1	Jaguar.factor(v).pod()	Product of divisors
 A008284	knowna	5		Triangle of partition numbers: T(n,k) = number of partitions of n in which the greatest part is k, 1 <= k <= n. Also number of partitions of n into k positive parts, 1 <= k <= n.
 A008472	knowna	11	Jaguar.factor(v).sopf()	Sum of the distinct primes dividing n.
 A008475	knowna	5		If n = Product (p_j^k_j) then a(n) = Sum (p_j^k_j) (a(1) = 0 by convention).
-A008578	knowna	6		Prime numbers at the beginning of the 20th century (today 1 is no longer regarded as a prime).
+A008578	knowna	6	{ final int n = v.intValueExact(); return (n == 1) ? Z.ONE : Puma.primeZ(n + 1); }	Prime numbers at the beginning of the 20th century (today 1 is no longer regarded as a prime).
 A008683	knowna	1	Z.valueOf(Jaguar.factor(v).mobius())	Moebius mu function
 A008908	knowna	6		(1 + number of halving and tripling steps to reach 1 in the Collatz (3x+1) problem), or -1 if 1 is never reached.
 A010051	knowna	8	v.isProbablePrime() ? Z.ONE : Z.ZERO	Characteristic function of primes: 1 if n is prime, else 0.
 A010060	knowna	5		Thue-Morse sequence: let A_k denote the first 2^k terms; then A_0 = 0 and for k >= 0, A_{k+1} = A_k B_k, where B_k is obtained from A_k by interchanging 0''s and 1''s.
 A010873	knowna	6	v.mod(Z.FOUR)	a(n) = n mod 4.
 A010888	knowna	13	{ final int n = v.intValueExact(); return n == 0 ? Z.ZERO : Z.valueOf(1 + (n+8) % 9); }	Digital root of n (repeatedly add the digits of n until a single digit is reached).
-A013632	knowna	7		Difference between n and the next prime greater than n.
+A013632	knowna	7	{ final int n = v.intValueExact(); return Puma.nextPrimeZ(n).subtract(v); }	Difference between n and the next prime greater than n.
 A013928	knowna	7		Number of (positive) squarefree numbers < n.
 A019565	knowna	5		The squarefree numbers ordered lexicographically by their prime factorization (with factors written in decreasing order). a(n) = Product_{k in I} prime(k+1), where I is the set of indices of nonzero binary digits in n = Sum_{k in I} 2^k.
 A020338	knowna	5	{ String s = v.toString(); return new Z(s + s); }	Doublets: base-10 representation is the juxtaposition of two identical strings.
 A020639	knowna	19	Jaguar.factor(v).leastPrimeFactor()	Lpf(n): least prime dividing n (when n > 1); a(1) = 1. Or, smallest prime factor of n, or smallest prime divisor of n.
 A032742	knowna	9	{ final Z[] divisors = Jaguar.factor(v).divisorsSorted(); return divisors[divisors.length - 2]; }	a(1) = 1; for n > 1, a(n) = largest proper divisor of n (that is, for n>1, maximum divisor d of n in range 1 <= d < n).
 A034448	knowna	7	Jaguar.factor(v).unitarySigma()	usigma(n) = sum of unitary divisors of n (divisors d such that gcd(d, n/d)=1); also called UnitarySigma(n).
+A046523	knowna	0	FactorUtils.leastPrimeSignature(v)
 A048385	knowna	5		In base-10 notation replace digits of n with their squared values (Version 1).
 A048673	knowna	6		Permutation of natural numbers: a(n) = (A003961(n)+1) / 2 [where A003961(n) shifts the prime factorization of n one step towards larger primes].
 A048675	knowna	12		If n = p_i^e_i * ... * p_k^e_k, p_i < ... < p_k primes (with p_i = prime(i)), then a(n) = (1/2) * (e_i * 2^i + ... + e_k * 2^k).
@@ -196,3 +197,6 @@ A151800	knowna	17	Puma.primeZ(Puma.primePi(v) + 1)	Least prime > n (version 2 of
 A151899	knowna	0	Z.valueOf((new int[] {0,0,1,1,1,2})[v.mod(6)])
 A183063	knowna	7		Number of even divisors of n.
 A278222	knowna	9		The least number with the same prime signature as A005940(n+1).
+A289813	knowna	0	new Z(Integer.toString(v, 3).replace('2', '0'), 2)	
+A289813	knowna	0	new Z(Integer.toString(v, 3).replace('1', '0').replace('2', '1'), 2)	
+A291770	knowna	0	new Z(Integer.toString(v, 3).replace('0', '_').replaceAll("[12]", "0").replace('_', '1'), 2);
