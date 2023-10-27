@@ -610,3 +610,8 @@ union:
 	| tee    $@.gen
 	wc -l    $@.*
 #----
+lambdan:
+	grep -P "^\%[NF] A\d+ +a\(n\) *\=[n0-9\(\)\+\-\^\* ]+\." jcat25.txt  | grep -vP "\.\.\." \
+	| tee   $@.tmp
+	wc -l   $@.tmp
+	
