@@ -178,13 +178,6 @@ rinverse:
 	| tee -a $@.gen
 	wc -l    $@.gen
 #--------
-known4:
-	perl known.pl knowna.man \
-	>        $@.gen \
-	2>       $@.rest.tmp
-	wc -l    $@.gen $@.rest.tmp
-	sort $@.rest.tmp | uniq -c | sort -n
-#--------
 m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(CAT) | $(NYI) m1pow \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
@@ -202,6 +195,13 @@ m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 nest3:
 #                                                                                1              | (               )          1
 	grep -P "^\%[NF] A\d+  *a\(n\) *\=" $(CAT) | grep -vP "€" | grep -P "A\d{6}\(([0-9\+\-\* n]+|\([0-9\+\-\* n]+\)[\*\+\- ]*)?A\d{6}\(n" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+nest3b:
+	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
+	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
+	' print join("\t", $$ano, "nest3b", 0, $$rno, $$qno) ."\n";'\
+	| sort -k4,4 -k5,5 \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #--------
@@ -354,14 +354,20 @@ knowna2: # attach the names of the rseqnos
 	>        $@.html
 	# cmd /c $@.html
 knowna3: # select "pure" applications
-	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\tA\d{6}\(A\d+\(n(\-1)?\)\)(\.|for +n *\>)" knowna0.tmp \
-	| sort -k5,5 -t"	" \
+	grep -P "^A\d+\t\w+\t\d+\tA\d{6}\tA\d{6}\(A\d+\(n\)\)(\.|for +n *\>)" knowna0.tmp \
+	| sort -k5,5 -t"	" | uniq \
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
 knowna4: # finally generate
 	make known LIST=knowna3.tmp
-	mv -v known.gen $@.gen
+	cp -v known.gen $@.gen
+known4:
+	perl known.pl knowna.man \
+	>        $@.gen \
+	2>       $@.rest.tmp
+	wc -l    $@.gen $@.rest.tmp
+	sort $@.rest.tmp | uniq -c | sort -n
 known: # LIST= generate for SimpleTransformSequence
 	perl $@.pl $(LIST) \
 	>        $@.gen \
@@ -610,8 +616,9 @@ union:
 	| tee    $@.gen
 	wc -l    $@.*
 #----
-lambdan:
-	grep -P "^\%[NF] A\d+ +a\(n\) *\=[n0-9\(\)\+\-\^\* ]+\." jcat25.txt  | grep -vP "\.\.\." \
+compound0: # prepare for CompoundSequence
+	grep -P "^\%[NF] A\d+ +a\(n\) *\=[n0-9\(\)\+\-\^\*\!\/ ]*a[n0-9\(\)\+\-\^\*\!\/ ]*[\.fw\,\;]" $(CAT) \
+	| grep -viP "\.\.\.|floor|ceil|mod|sum|a\(2" \
 	| tee   $@.tmp
 	wc -l   $@.tmp
 	

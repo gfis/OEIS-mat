@@ -5,7 +5,8 @@
 # 2023-09-25, Georg Fischer
 #
 #:# Usage:
-#:#   perl known.pl input.seq4 > output.seq4
+#:#   perl known.pl [-t] input.seq4 > output.seq4
+#:#       -t print table data only
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -31,7 +32,6 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 
 my $line;
 my ($aseqno, $callcode, $offset, $name, $fseqno, $rseqno, $lambda, $dist);
-my $headers = <DATA>;
 my %fmap = (); # rseqno -> lambda
 while (<DATA>) { # read mappings
     ($rseqno, $callcode, $offset, $lambda, $name) = split(/\t/, $_, 5);
@@ -68,7 +68,6 @@ A337471	knowna0	0	A003961	A003961(A108951(n)).
 GFis
 #--------------------------------------------
 __DATA__
-ANumber	knowna	count	lambda	Definition
 A000001	knowna	13		/* A000001 */ Z.valueOf(GroupFactory.smallGroups(v.intValueExact()).size())	Number of groups of order n.
 A000002	knowna	5		Kolakoski sequence: a(n) is length of n-th run; a(1) = 1; sequence consists just of 1''s and 2''s.
 A000005	knowna	47	Jaguar.factor(v).sigma0()	d(n) (also called tau(n) or sigma_0(n)), the number of divisors of n.
@@ -105,14 +104,15 @@ A001158	knowna	1	Jaguar.factor(v).sigma(3)
 A001177	knowna	5		Fibonacci entry points: a(n) = least k >= 1 such that n divides Fibonacci number F_k (=A000045(k)).
 A001221	knowna	28	Z.valueOf(Jaguar.factor(v).omega())	Number of distinct primes dividing n (also called omega(n)).
 A001222	knowna	25	Z.valueOf(Jaguar.factor(v).bigOmega())	Number of prime divisors of n counted with multiplicity (also called big omega of n, bigomega(n) or Omega(n)).
+A001223	knowna	0	Puma.primeZ(v.add(1)).subtract(Puma.primeZ(v))	Prime gaps: differences between consecutive primes
 A001227	knownd	25		Number of odd divisors of n 
 A001358	knowna	10		Semiprimes (or biprimes): products of two primes.
 A001359	knowna	5		Lesser of twin primes.
 A001414	knownd	7	Jaguar.factor(v).sopfr()	Integer log of n: sum of primes dividing n (with repetition). Also called sopfr(n).
 A001511	knowna	7	Z.valueOf(ZUtils.valuation(v.multiply2(), 2))		The ruler function: 2^a(n) divides 2n. Or, a(n) = 2-adic valuation of 2n.
 A001615	knowna	0	A001615.dedekindPsi(v.intValueExact())	
-A001951	knowna	7		A Beatty sequence: a(n) = floor(n*sqrt(2)).
-A001952	knowna	7		A Beatty sequence: a(n) = floor(n*(2 + sqrt(2))).
+A001951	knownd	7		A Beatty sequence: a(n) = floor(n*sqrt(2)).
+A001952	knownd	7		A Beatty sequence: a(n) = floor(n*(2 + sqrt(2))).
 A002110	knowna	17	ZUtils.primorial(v.longValueExact())	Primorial numbers (first definition): product of first n primes. Sometimes written prime(n)#.
 A002182	knowna	6		Highly composite numbers, definition (1): numbers n where d(n), the number of divisors of n (A000005), increases to a record.
 A002322	knowna	7	Carmichael.lambda(v)	Reduced totient function psi(n): least k such that x^k == 1 (mod n) for all x prime to n; also known as the Carmichael lambda function (exponent of unit group mod n); also called the universal exponent of n.
@@ -158,24 +158,27 @@ A008475	knownd	5		If n = Product (p_j^k_j) then a(n) = Sum (p_j^k_j) (a(1) = 0 b
 A008578	knowna	6	{ final int n = v.intValueExact(); return (n == 1) ? Z.ONE : Puma.primeZ(n + 1); }	Prime numbers at the beginning of the 20th century (today 1 is no longer regarded as a prime).
 A008683	knowna	1	Z.valueOf(Jaguar.factor(v).mobius())	Moebius mu function
 A008908	knowna	6		(1 + number of halving and tripling steps to reach 1 in the Collatz (3x+1) problem), or -1 if 1 is never reached.
+A008966	knownd	0	Jaguar.factor(v).isSquareFree() ? Z.ONE : Z.ZERO
 A010051	knowna	8	v.isProbablePrime() ? Z.ONE : Z.ZERO	Characteristic function of primes: 1 if n is prime, else 0.
 A010060	knowna	5		Thue-Morse sequence: let A_k denote the first 2^k terms; then A_0 = 0 and for k >= 0, A_{k+1} = A_k B_k, where B_k is obtained from A_k by interchanging 0''s and 1''s.
+A010786	knownd	0		Floor-factorial numbers: a(n) = Product_{k=1..n} floor(n/k).
 A010873	knowna	6	v.mod(Z.FOUR)	a(n) = n mod 4.
-A010888	knowna	13	{ final int n = v.intValueExact(); return n == 0 ? Z.ZERO : Z.valueOf(1 + (n+8) % 9); }	Digital root of n (repeatedly add the digits of n until a single digit is reached).
-A013632	knownd	7	{ final int n = v.intValueExact(); return Puma.nextPrimeZ(n).subtract(v); }	Difference between n and the next prime greater than n.
-A013928	knowna	7		Number of (positive) squarefree numbers < n.
+A010888	knowna	13	{ final int ni = v.intValueExact(); return ni == 0 ? Z.ZERO : Z.valueOf(1 + (ni + 8) % 9); }	Digital root of n (repeatedly add the digits of n until a single digit is reached).
+A013632	knownd	7	Puma.nextPrimeZ(v).subtract(v)	Difference between n and the next prime greater than n.
+A013928	knownd	7	Integers.SINGLETON.sum(1, v.intValueExact() - 1, k -> Jaguar.factor(v).isSquareFree() ? Z.ONE : Z.ZERO)	Integers.SINGLETON.sum(1, n - 1, k -> LongUtils.isSquareFree(n) ? Z.ONE : Z.ZERO)	Number of (positive) squarefree numbers < n.
 A019565	knownd	5		The squarefree numbers ordered lexicographically by their prime factorization (with factors written in decreasing order). a(n) = Product_{k in I} prime(k+1), where I is the set of indices of nonzero binary digits in n = Sum_{k in I} 2^k.
 A020338	knowna	5	{ String s = v.toString(); return new Z(s + s); }	Doublets: base-10 representation is the juxtaposition of two identical strings.
 A020639	knowna	19	Jaguar.factor(v).leastPrimeFactor()	Lpf(n): least prime dividing n (when n > 1); a(1) = 1. Or, smallest prime factor of n, or smallest prime divisor of n.
 A032742	knowna	9	{ final Z[] divisors = Jaguar.factor(v).divisorsSorted(); return divisors[divisors.length - 2]; }	a(1) = 1; for n > 1, a(n) = largest proper divisor of n (that is, for n>1, maximum divisor d of n in range 1 <= d < n).
 A033879	knownd	0		x
+A034444	knowna	0	Jaguar.factor(v).unitarySigma0()	usigma(n) = sum of unitary divisors of n (divisors d such that gcd(d, n/d)=1); also called UnitarySigma(n).
 A034448	knowna	7	Jaguar.factor(v).unitarySigma()	usigma(n) = sum of unitary divisors of n (divisors d such that gcd(d, n/d)=1); also called UnitarySigma(n).
 A046523	knowna	0	FactorUtils.leastPrimeSignature(v)
 A048385	knownd	5		In base-10 notation replace digits of n with their squared values (Version 1).
 A048673	knowna	6		Permutation of natural numbers: a(n) = (A003961(n)+1) / 2 [where A003961(n) shifts the prime factorization of n one step towards larger primes].
 A048675	knownd	12		If n = p_i^e_i * ... * p_k^e_k, p_i < ... < p_k primes (with p_i = prime(i)), then a(n) = (1/2) * (e_i * 2^i + ... + e_k * 2^k).
 A049084	knowna	8	Z.valueOf(Puma.primePi(v)).isProbablePrime() ? Z.ONE : Z.ZERO	a(n) = pi(n) if n is prime, otherwise 0.
-A049501	knownd	 9		Major index of n, first definition.
+A049501	knownd	9		Major index of n, first definition.
 A049502	knownd	9		Major index of n, 2nd definition.
 A051903	knowna	9	Z.valueOf(Jaguar.factor(v).maxExponent())	Maximal exponent in prime factorization of n.
 A053735	knowna	7	Z.valueOf(ZUtils.digitSum(v, 3))	Sum of digits of (n written in base 3).
@@ -203,8 +206,8 @@ A183063	knownd	7		Number of even divisors of n.
 A254049	knownd	0		x
 A278219	knownd	0		x
 A278222	knownd	9		The least number with the same prime signature as A005940(n+1).
-A289813	knownd	0	new Z(Integer.toString(v, 3).replace('2', '0'), 2)	
-A289814	knownd	0	new Z(Integer.toString(v, 3).replace('1', '0').replace('2', '1'), 2)	
-A291770	knowna	0	new Z(Integer.toString(v, 3).replace('0', '_').replaceAll("[12]", "0").replace('_', '1'), 2);
+A289813	knownd	0	new Z(v.toString(3).replace('2', '0'), 2)	
+A289814	knownd	0	new Z(v.toString(3).replace('1', '0').replace('2', '1'), 2)	
+A291770	knowna	0	new Z(v.toString(3).replace('0', '_').replaceAll("[12]", "0").replace('_', '1'), 2)
 A319356	knownd	0		x
 A319692	knownd	0		x

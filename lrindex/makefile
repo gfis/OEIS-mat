@@ -22,6 +22,8 @@
 GITS=../..
 DBAT=java   -jar $(GITS)/dbat/dist/dbat-lite.jar -e UTF-8 -c worddb
 COMMON=../common
+RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
+JPREP=$(RAMATH) org.teherba.ramath.sequence.JoeisPreparer
 D=0
 G=n
 SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G)  -k8$(G)  -k9$(G) \
@@ -344,12 +346,40 @@ lrindx_nyi_check:
 	head -n4 $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
 #--------
-polys: polys1 polys2 # grep the ones with "polynomials"
-polys1: 
+polys: polys1 polys2 # grep linear recurrences with "polynomials" from the Index
+polys1: # grep the lines with "polynomial" from the OEIS Index "Rec"
 	grep polynomials lrindx.new.tmp > $@.tmp
-polys2:
+polys2: # linearize the aseqnos
 	cat polys1.tmp | perl -ne 'foreach my $$aseqno(m{(A\d{6})}g) { print "$$aseqno\n"; }' \
 	| sort | uniq > $@.tmp
 	wc -l    $@.tmp
-	grep -f polys2.tmp ../arti/evalsame.tmp | wc
-
+	grep -f polys2.tmp ../arti/evalsame.tmp \
+	|tee     $@.txt
+	wc -l    $@.txt
+polys3: # load the aseqnos in table seq
+	cd ../common ; make seq LIST=../lrindex/polys2.tmp
+polys4: # attach definitions and lin.rec. signatures
+	$(DBAT) -x "SELECT s.aseqno, 'polys', i.offset1, l.signature, n.name FROM seq s, asinfo i, asname n, lrindx l \
+	   WHERE s.aseqno = i.aseqno AND i.aseqno = n.aseqno AND SUBSTR(n.aseqno, 2, 7) = l.seqno ORDER BY 1" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+polys5: # attach names 
+	$(DBAT) -x "SELECT s.aseqno, 'polys', i.offset1, ''         , n.name FROM seq s, asinfo i, asname n           \
+	   WHERE s.aseqno = i.aseqno AND i.aseqno = n.aseqno                                      ORDER BY 1" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+polint1: # attach 32 data terms and names
+	$(DBAT) -x "SELECT s.aseqno, 'polint', i.offset1, REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){1,31}'), n.name \
+	    FROM seq s, asinfo i, asdata d, asname n \
+	    WHERE s.aseqno = i.aseqno AND i.aseqno = d.aseqno and d.aseqno = n.aseqno \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+polint2: # integrate 
+	$(JPREP) -f polint1.tmp \
+	2>       $@.err.tmp \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	
+	

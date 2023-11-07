@@ -13,7 +13,7 @@
 #:#     -f file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
 #:#     -n print only those that are not yet implemented in jOEIS (defaul: all)
 #:#     -p print the whole file/clipboard
-#:#     -q cut to leading A-number and print lines only if all R-numbers are implemented, inset callcode and offset
+#:#     -q cut to leading A-number and print lines only if all R-numbers are implemented, insert callcode and offset
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -58,7 +58,7 @@ while (<OFT>) {
     $ofters{$aseqno} = "$offset\t$terms";
 } # while <OFT>
 close(OFT);
-if (length($query) == 0) {
+if (length($query) >= 0) {
     print STDERR "# $0: " . scalar(%ofters) . " jOEIS offsets and some terms read from $ofter_file\n";
 }
 #----------------
@@ -79,7 +79,7 @@ foreach my $line (split(/\n/, $buffer)) {
         $lasn{$rseqno} = 1;
     } # foreach $rseqno
     foreach $rseqno (keys(%lasn)) {
-        if (defined($ofters{$rseqno})) {
+        if (length($query) > 0 || defined($ofters{$rseqno})) {
             $hash{$rseqno} = 1;
         } else {
             $line =~ s{$rseqno}{"€" . substr($rseqno, 1)}eg;
