@@ -194,16 +194,36 @@ m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 #--------
 nest3:
 #                                                                                1              | (               )          1
-	grep -P "^\%[NF] A\d+  *a\(n\) *\=" $(CAT) | grep -vP "€" | grep -P "A\d{6}\(([0-9\+\-\* n]+|\([0-9\+\-\* n]+\)[\*\+\- ]*)?A\d{6}\(n" \
+	grep -P "^\%[NF] A\d+ +a\(n\) *\=" $(CAT) | grep -vP "€" | grep -P "A\d{6}\(([0-9\+\-\* n]+|\([0-9\+\-\* n]+\)[\*\+\- ]*)?A\d{6}\(n" \
 	| tee    $@.tmp
 	wc -l    $@.tmp
-nest3b:
+nest3a:
 	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
 	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
 	' print join("\t", $$ano, "nest3b", 0, $$rno, $$qno) ."\n";'\
 	| sort -k4,4 -k5,5 \
 	| tee    $@.tmp
 	wc -l    $@.tmp
+nest3b:
+	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
+	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
+	' print join("\t", $$ano, "dirtraf", 0, "new $$rno()", "new $$qno()") ."\n";'\
+	| sort -k4,4 -k5,5 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+nest3c:
+	cut -f1,4 nest3b.tmp | sort | uniq -w7 \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	cd ../common ; make seq2 LIST=../robot/nest3c.tmp
+	$(DBAT) -x "SELECT s2.aseqno, s4.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
+	| tee    $@.txt
+	wc -l    $@.txt
+nest3d:
+	$(DBAT) -x "SELECT s2.aseqno, direct.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
+	| tee    $@.txt
+	wc -l    $@.txt
 #--------
 # Robot#1: Ordinary (rational) generating functions
 ogf: ogf1 ogf2
@@ -378,6 +398,14 @@ knowna5: # select applications with expressions in n
 #                                      1 (    2     2  )            1                  (                  )  3                     3 4             4
 	grep -P "^A\d+\t\w+\t\d+\t[\+\-]? *(\(?\d+(\/\d+)?\)? *[\+\-\*]?)? *A\d{6}\tA\d{6}\([n0-9\+\-\*\/\^]+\) *(\/ *[n0-9\+\-\*\/\^]+)?(\.|for +n *\>)" knowna0.tmp \
 	| tee    $@.tmp
+knowna7a: # match with direct polynomials
+	cut -f4 knowna0.tmp > $@.tmp
+	cd $(COMMON) ; make seq LIST=../robot/knowna7.tmp
+knowna7:
+	$(DBAT) -x "SELECT s.aseqno, 'knowna7', s4.aseqno FROM seq s, seq4 s4 WHERE s.aseqno = s4.aseqno ORDER BY 1;" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
 #---
 knownf: knownf0 knownf1 knownf2 knownf3 # grep names of known functions
 knownf0: # grep "a(n) = [factor *] Annnnnn("

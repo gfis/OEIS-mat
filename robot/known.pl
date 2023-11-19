@@ -194,6 +194,7 @@ A062731	knowna	0	Jaguar.factor(v.multiply2()).sigma()	sigma(2*n)
 A064097	knowna	8		A quasi-logarithm defined inductively by a(1) = 0 and a(p) = 1 + a(p-1) if p is prime and a(n*m) = a(n) + a(m) if m,n > 1.
 A064989	knowna	28		Multiplicative with a(2^e) = 1 and a(p^e) = prevprime(p)^e for odd primes p.
 A065547	knowna	8		Triangle of Salie numbers.
+A078008 knowna	0	Z.TWO.pow(n).add(Z.NEG_ONE.pow(n).multiply2()).divide(3)
 A079216	knowna	5		Square array A(n>=0,k>=1) (listed antidiagonally: A(0,1)=1, A(1,1)=1, A(0,2)=1, A(2,1)=2, A(1,2)=1, A(0,3)=1, A(3,1)=3, ...) giving the number of n-edge general plane trees fixed by k-fold application of Catalan Automorphisms A057511/A057512 (Deep rotation of general parenthesizations/plane trees).
 A091137	knowna	5		Largest number m such that number of times m divides k! is almost k/n for large k, i.e., largest m with A090624(m)=n.
 A121548	knowna	10		Triangle read by rows: T(n,k) is the number of compositions of n into k Fibonacci numbers (1 <= k <= n; only one 1 is considered as a Fibonacci number).
