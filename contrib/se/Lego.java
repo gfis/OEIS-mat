@@ -79,17 +79,16 @@ public class Lego {
     int i;
     for (i=0; i<placed; i++) {
       if (meetsXY(i,placed)) {
-        switch (z[i]-z[placed])
-        {
-        case 0:
-          // Colission
-          return false;
-        case 1:
-        case -1:
-          if (i<attachable) {
-             // Could have been placed before
+        switch (z[i]-z[placed]) {
+          case 0:
+            // Colission
             return false;
-          }
+          case 1:
+          case -1:
+            if (i<attachable) {
+               // Could have been placed before
+              return false;
+            }
         }
       }
     }
@@ -132,20 +131,23 @@ public class Lego {
     // must be the center of the box. Test that all bricks are either rotated back to themselves or are rotated
     // to another brick this way. Place index of matching brick(s) in paired-array.
     // Return with 1 if this fails at any stage, indicated by a -1 persisting after having tried to find a match.
-    for (i=0; i<placed; i++) {
+    for (i=0; i < placed; i++) {
       if (paired[i]<0) {
         // Coordinates of rotated brick
         x0=xmax+xmin-x[i]-xdim(i);
         y0=ymax+ymin-y[i]-ydim(i);
-        for (j=i;  j<placed;  j++) {
+        boolean busy = true;
+        j =i ;  
+        while (busy && j < placed){
           if (x[j] == x0 && y[j] == y0 && z[j] == z[i] && hz[j] == hz[i] ) {
             paired[i]=j;
             paired[j]=i;
-            break;
+            busy = false;
           }
-          if (paired[i]<0) {
-            return 1;
-          }
+          j++;
+        }
+        if (paired[i]<0) {
+          return 1;
         }
       }
     }
@@ -155,31 +157,34 @@ public class Lego {
     // the case we flag back to -1. For the rest we look for the brick which is a 90 degree rotation of the given one. If it
     // exists, it cannot be paired with itself, and all the four involved bricks are flagged with -1.
     // We return 2 if this process fails at any stage, indicated by a persisting non-negative index, and 4 if it doesn't.
-    if ((xmax-xmin)!=(ymax-ymin)) {
+    if ((xmax-xmin) != (ymax-ymin)) {
       return 2;
     }
-    for (i=0;  i<placed;  i++) {
+    for (i=0;  i < placed;  i++) {
       if (paired[i] >= 0) {
         if (paired[i] == i) {
           if (w == b) {
-            paired[i]=-1;
+            paired[i] = -1;
           } else {
             return 2;
           }
         }
         x0 = -y[i]+(ymax+ymin+xmax+xmin)/2-ydim(i);
         y0 = x[i]+(ymax+ymin-xmax-xmin)/2;
-        for (j=i+1; j<placed; j++) {
-          if (x[j] == x0 && y[j] == y0 && z[j] == z[i] && (w == b || hz[j] != hz[i]) ) {
+        boolean busy = true;
+        j = i+1; 
+        while (busy && j<placed) {
+          if (x[j] == x0 && y[j] == y0 && z[j] == z[i] && (w == b || hz[j] == !hz[i])) {
             paired[paired[i]] = -1;
             paired[paired[j]] = -1;
             paired[i] = -1;
             paired[j] = -1;
-            break;
+            busy = false;
           }
-          if (paired[i] >= 0) {
-            return 2;
-          }
+          j++;
+        }
+        if (paired[i] >= 0) {
+          return 2;
         }
       }
     }
@@ -187,28 +192,30 @@ public class Lego {
   }
 
   /**
-   * Count configurations recursively adding bricks to index attachfrom. If indexfrom is positive the bricks added
-   * to the brick at attachfrom must have index bigger than or equal to indexfrom, in the sense of the placeRelative()
+   * Count configurations recursively adding bricks to index attachFrom. If indexFrom is positive the bricks added
+   * to the brick at attachFrom must have index bigger than or equal to indexFrom, in the sense of the placeRelative()
    * method. Several global variables are used for efficiency.
    */
-  private void count(int attachfrom, int indexfrom) {
-    int buildon,i;
-    if (n == placed) {
-      // Configuration finished, compute and add weight
-      counter += symmetryWeight();
+  private void count(int attachFrom, int indexFrom) {
+    int buildon, i;
+    System.out.println("attachFrom=" + attachFrom + ", indexFrom=" + indexFrom);
+    if (n == placed) { // Configuration finished, compute and add weight
+      int sw = symmetryWeight();
+      System.out.println("  sw=" + sw);
+      counter += sw;
     } else {
       // Go through all options for adding the next brick
-      for (buildon = attachfrom;  buildon<placed;  buildon++) {
-        for (i = indexfrom; i<2*options; i++) {
-          placeRelative(buildon,i);
+      for (buildon = attachFrom; buildon < placed; buildon++) {
+        for (i = indexFrom; i<2*options; i++) {
+          placeRelative(buildon, i);
           if (placeable(buildon)) {
             // Place brick and continue recursively
             placed++;
-            count(buildon,i+1);
+            count(buildon, i+1);
             placed--;
           }
         }
-        indexfrom = 0;
+        indexFrom = 0;
       }
     }
   }
@@ -234,10 +241,11 @@ public class Lego {
     hz[0] = true;
 
     // Compute as far as possible. This will grind to a halt (unless b=w=1) much before MAX_BLOCKS is reached
-    for (n=1; n <= MAX_BLOCKS; n++) {
+    for (n = 1; n <= MAX_BLOCKS; n++) {
+      System.out.println("---- " + n + " ----");
       counter = 0;
       placed = 1;
-      count(0,0);
+      count(0, 0);
       // Every non-symmetric configuration will be counted 2n times if the bricks are non-square,
       // 4n if they are square. The symmetric ones will be counted fewer times as corrected by the
       // symmetryWeight() function.
@@ -266,7 +274,7 @@ public class Lego {
         } catch (Exception exc) { // take default
         }
       } else {
-        System.err.println("??? invalid option: \"" + opt + "\"");
+        System.out.println("??? invalid option: \"" + opt + "\"");
       }
     } // while args
     new Lego().process(w, b);

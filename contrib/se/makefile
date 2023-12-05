@@ -17,9 +17,12 @@ all:
 	grep -E "^[a-z]" makefile
 	# parameter S=seqno SLEEP=$(SLEEP) SHIFT=$(SHIFT) WIDTH=$(WIDTH)
 #================
-gpp:
-	g++ lego.cpp -o lego.o
-	g++ -o lego.o lego.exe
+lego:
+#	g++ lego.cpp -o lego.o
+#	g++ -o lego.o lego.exe
+	g++ -Ofast -c -o $@.o $@.cpp
+	g++ -o $@.exe $@.o
+	chmod 755 $@.exe
 jc:
-	javac lego.java
+	javac Lego.java
 #--------

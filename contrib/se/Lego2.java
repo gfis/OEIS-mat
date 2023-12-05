@@ -1,32 +1,29 @@
 //
-//  main.cpp
-//  plainvanillalego
+// main.cpp
+// plainvanillalego
 //
-//  Created by Søren Eilers on 17/09/2018.
-//  Copyright © 2018 Søren Eilers. All rights reserved.
+// Created by Søren Eilers on 17/09/2018.
+// Copyright © 2018 Søren Eilers. All rights reserved.
 //
 
-#include <iostream>
-using namespace std;
-
-
-// CONSTANTS
-const int oeis[10][10] = {{0,123762,123770,123778,123786,123794,123802,123810},
+public class Lego2 {
+  private static final int[][] oeis = { // provides links to all known counts in the OEIS
+    {0,123762,123770,123778,123786,123794,123802,123810},
     {0,123818,123824,112389},
     {0,0,123832},
     {0,0,0,123838},
-    {0,0,0,0,123844}}; // To provide link to all known counts in the OEIS
-const int MAX_BLOCKS = 100; //Maximal number of bricks (unattainable unless b=w=1)
+    {0,0,0,0,123844}
+    };
+  private static final int MAX_BLOCKS = 100;  //Maximal number of bricks (unattainable unless b=w=1)
 
-// GLOBAL VARIABLES
-public int b,w,options; // The size of the bricks studied, and the number of ways to attach one such under another
-int n,placed; // The total number of bricks to place, and the number placed this far
-int x[MAX_BLOCKS], y[MAX_BLOCKS], z[MAX_BLOCKS]; // Location of bricks placed (lower sw corner). The entry at index placed
-                                                 // is used as workspace.
-bool hz[MAX_BLOCKS]; // Direction of bricks placed in xy-plane. true means w x b, false means b x w
-int paired[MAX_BLOCKS]; // Used when checking symmetry
-long long unsigned int counter; // Total count of configurations. Overflow is unlikely, so no tests are done.
-
+  public static int b, w, options;  // The size of the bricks studied, and the number of ways to attach one such under another
+  private int n, placed;  // The total number of bricks to place, and the number placed this far
+  private int[] x = new int [MAX_BLOCKS];
+  private int[] y = new int [MAX_BLOCKS];
+  private int[] z = new int [MAX_BLOCKS];  // Location of bricks placed (lower sw corner). The entry at index placed is used as workspace.
+  private boolean[] hz = new boolean[MAX_BLOCKS];  // Direction of bricks placed in xy-plane. true means w x b, false means b x w
+  private int[] paired = new int[MAX_BLOCKS];  // Used when checking symmetry
+  private long counter;  // Total count of configurations. Overflow is unlikely, so no tests are done.
 
 // placeRelative(int at, int i)
 //
@@ -73,19 +70,19 @@ int ydim(int i) {
     return hz[i]?b:w;
 }
 
-// bool meetsxy(int i, int j)
+// boolean meetsxy(int i, int j)
 //
 // true when the xy-projections of bricks at i and j overlap
-bool meetsxy(int i, int j) {
+boolean meetsxy(int i, int j) {
     return(!(x[i]+xdim(i)<=x[j] ||y[i]+ydim(i)<=y[j] || x[i]>=x[j]+xdim(j) || y[i]>=y[j]+ydim(j)));
 }
 
-// bool placeable(int attachable)
+// boolean placeable(int attachable)
 //
 // true when the brick in workspace (i.e. at index placed) can be attached to building.
 // It must not collide with any other brick, nor could have been attached at an earlier time in the
 // computation.
-bool placeable(int attachable) {
+boolean placeable(int attachable) {
     int i;
     for(i=0; i<placed; i++) {
         if (meetsxy(i, placed)) {
@@ -100,7 +97,7 @@ bool placeable(int attachable) {
                         return false;
                     break;
                 default:
-                    cout << "default reached, attachable=" << attachable << endl;
+                    // System.out.println("default reached, attachable=" +  attachable);
                     break;
             }
         }
@@ -163,7 +160,7 @@ int symmetryweight()
     // the case we flag back to -1. For the rest we look for the brick which is a 90 degree rotation of the given one. If it
     // exists, it cannot be paired with itself, and all the four involved bricks are flagged with -1.
     // We return 2 if this process fails at any stage, indicated by a persisting non-negative index, and 4 if it doesn't.
-    cout << "xmax=" << xmax << ", xmin=" << xmin << ", ymax=" << ymax << ", ymin=" << ymin << endl;
+    // System.out.println("xmax=" + xmax + ", xmin=" + xmin + ", ymax=" + ymax + ", ymin=" + ymin);
     if((xmax-xmin)!=(ymax-ymin))
         return 2;
     for(i=0;i<placed;i++) {
@@ -174,7 +171,7 @@ int symmetryweight()
                 else
                     return 2;
             }
-            x0=-y[i]+(ymax+ymin+xmax+xmin)/2-ydim(i),
+            x0=-y[i]+(ymax+ymin+xmax+xmin)/2-ydim(i);
             y0=x[i]+(ymax+ymin-xmax-xmin)/2;
             for(j=i+1;j<placed;j++) {
                 if(x[j]==x0 && y[j]==y0 && z[j]==z[i] && (w==b || hz[j]==!hz[i]) ) {
@@ -197,21 +194,21 @@ int symmetryweight()
 // Counts configurations recursively adding bricks to index attachfrom. If indexfrom is positive the bricks added
 // to the brick at attachfrom must have index bigger than or equal to indexfrom, in the sense of the placerelative()
 // method. Several global variables are used for efficiency.
-void count(int attachfrom, int indexfrom) 
+void count(int attachfrom, int indexfrom)
 {
-    cout << "count(attachfrom=" << attachfrom << ", indexfrom=" << indexfrom << ", n=" << n << ", placed=" << placed << ")" << endl;
+    // System.out.println("count(attachfrom=" + attachfrom + ", indexfrom=" + indexfrom + ", n=" + n + ", placed=" + placed + ")");
     int buildon,i;
     if(n==placed) {
         // Configuration finished, compute and add weight
       int sw = symmetryweight();
-      cout << "  sw=" << sw << endl;
+      // System.out.println("  sw="  + sw);
       counter += sw;
     } else {
         // Go through all options for adding the next brick
         for(buildon=attachfrom; buildon<placed; buildon++) {
             for (i=indexfrom;i<2*options;i++) {
                 placerelative(buildon,i);
-                if (placeable(buildon)) {
+                if(placeable(buildon)) {
                     // Place brick and continue recursively
                     placed++;
                     count(buildon,i+1);
@@ -223,8 +220,20 @@ void count(int attachfrom, int indexfrom)
     }
 }
 
-int main(int argc, const char * argv[])
-    {
+
+  /**
+   * Process the parameters.
+   * @param w width
+   * @param b breadth
+   */
+  public void process() {
+    if (oeis[w-1][b-1]>0) {
+      System.out.println("[All known terms available at oeis.org/A" + oeis[w-1][b-1] + "]");
+    }
+    if (w!=b && oeis[b-1][w-1]>0) {
+      System.out.println("[All known terms available at oeis.org/A" + oeis[b-1][w-1] + "]");
+    }
+
         for (int k = 0; k < MAX_BLOCKS; k++) {
             x[k] = 0;
             y[k] = 0;
@@ -232,31 +241,48 @@ int main(int argc, const char * argv[])
             hz[k] = false;
             paired[k] = 0;
         }
-        cout << "Input width ";
-        cin >> w;
-        cout << "Input breadth ";
-        cin >> b;
-        if(oeis[w-1][b-1]>0)
-            cout << "[All known terms available at oeis.org/A" << oeis[w-1][b-1] << "]" <<endl;
-        if(w!=b && oeis[b-1][w-1]>0)
-            cout << "[All known terms available at oeis.org/A" << oeis[b-1][w-1] << "]" <<endl;
+    // Initialization
+    options = ((w == b) ? (w+b-1)*(w+b-1) : (w+b-1)*(w+b-1)+(2*w-1)*(2*b-1));
+    x[0] = 0;
+    y[0] = 0;
+    z[0] = 0;
+    hz[0] = true;
 
-        // Initialization
-        options = ((w==b)?(w+b-1)*(w+b-1):(w+b-1)*(w+b-1)+(2*w-1)*(2*b-1));
-        x[0] = y[0] = z[0] = 0;
-        hz[0] = true;
-
-        // Computes as far as possible. This will grind to a halt (unless b=w=1) much before MAX_BLOCKS is reached
-        for(n=1;n<=MAX_BLOCKS;n++)
-        {
-            cout <<"-------- " << n << " --------" << endl;
-            counter = 0;
-            placed = 1;
-            count(0,0);
-            // Every non-symmetric configuration will be counted 2n times if the bricks are non-square,
-            // 4n if they are square. The symmetric ones will be counted fewer times as corrected by the
-            // symmetryweight() function.
-            cout << n << ": " << counter/(n*((b==w)?4:2)) << endl;
-        }
+    // Compute as far as possible. This will grind to a halt (unless b=w=1) much before MAX_BLOCKS is reached
+    for (n = 1; n <= MAX_BLOCKS; n++) {
+      // System.out.println("---- " + n + " ----");
+      counter = 0;
+      placed = 1;
+      count(0, 0);
+      // Every non-symmetric configuration will be counted 2n times if the bricks are non-square,
+      // 4n if they are square. The symmetric ones will be counted fewer times as corrected by the
+      // symmetryWeight() function.
+      System.out.println(n + " " + (counter/(n*((b == w) ? 4 : 2))));
     }
+  }
 
+  /** Main method
+   * @param args command line arguments: w b
+   */
+  public static void main(String[] args) {
+    int iarg = 0;
+    while (iarg < args.length) { // consume all arguments
+      String opt = args[iarg ++];
+      if (false) {
+      } else if (opt.equals  ("-w")   ) {
+        try {
+          w = Integer.parseInt(args[iarg ++]);
+        } catch (Exception exc) { // take default
+        }
+      } else if (opt.equals  ("-b")   ) {
+        try {
+          b = Integer.parseInt(args[iarg ++]);
+        } catch (Exception exc) { // take default
+        }
+      } else {
+        System.out.println("??? invalid option: \"" + opt + "\"");
+      }
+    } // while args
+    new Lego2().process();
+  }
+}
