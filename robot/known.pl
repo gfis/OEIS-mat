@@ -171,6 +171,7 @@ A020338	knowna	5	{ String s = v.toString(); return new Z(s + s); }	Doublets: bas
 A020639	knowna	19	Jaguar.factor(v).leastPrimeFactor()	Lpf(n): least prime dividing n (when n > 1); a(1) = 1. Or, smallest prime factor of n, or smallest prime divisor of n.
 A032742	knowna	9	{ final Z[] divisors = Jaguar.factor(v).divisorsSorted(); return divisors[divisors.length - 2]; }	a(1) = 1; for n > 1, a(n) = largest proper divisor of n (that is, for n>1, maximum divisor d of n in range 1 <= d < n).
 A033879	knownd	0		x
+A033999	knownd	0	(((n & 1) == 1) ? Z.NEG_ONE : Z.ONE	(-1)^n
 A034444	knowna	0	Jaguar.factor(v).unitarySigma0()	usigma(n) = sum of unitary divisors of n (divisors d such that gcd(d, n/d)=1); also called UnitarySigma(n).
 A034448	knowna	7	Jaguar.factor(v).unitarySigma()	usigma(n) = sum of unitary divisors of n (divisors d such that gcd(d, n/d)=1); also called UnitarySigma(n).
 A046523	knowna	0	FactorUtils.leastPrimeSignature(v)
@@ -212,3 +213,4 @@ A289814	knownd	0	new Z(v.toString(3).replace('1', '0').replace('2', '1'), 2)
 A291770	knowna	0	new Z(v.toString(3).replace('0', '_').replaceAll("[12]", "0").replace('_', '1'), 2)
 A319356	knownd	0		x
 A319692	knownd	0		x
+A338754	knownd	0	new Z(String.valueOf(n).replaceAll("(\\d)", "$1$1"))	duplicate all digits

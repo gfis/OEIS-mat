@@ -6,7 +6,8 @@
 #
 #:# Usage:
 #:#   grep -E "^%|RecurrenceTable" $(COMMON)/jcat25.txt \
-#:#   | perl cordrectab.pl > output.cat25 with types [FO]
+#:#   | perl cordrectab.pl [-o] > output.cat25 with types [FO]
+#:#      -o with offset record
 #---------------------------------
 use strict;
 use integer;
@@ -14,11 +15,14 @@ use warnings;
 use English;
 
 my $debug  = 0;
+my $with_o = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug  = shift(@ARGV);
+    } elsif ($opt  =~ m{o}) {
+        $with_o = 1;
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -40,12 +44,12 @@ while (<>) {
             $rec = $1;
             $relev = 1;
             $rec = &prep($rec);
-            print join(" ", "%F", $aseqno, "$rec.") . "\n";
+            print join("\t", $aseqno, "tuptraf", 0, "$rec") . "\n";
         }
     #                          1    1  2      2
     } elsif ($line =~ m{\A\%O +(A\d+) +(\-?\d+(\,\-?\d+))}) {
         ($aseqno, $offset) = ($1, $2);
-        if ($relev == 1) {
+        if ($relev == 1 && $with_o == 1) {
             print join(" ", "%O", $aseqno, $offset) . "\n";
         } # else ignore %O
         $relev = 0;
@@ -66,7 +70,7 @@ sub prep {
     $rec =~ s{\bna\(}           {n\*a\(}g;  # )( -> )*(
     #                1        2          2 13       3
     while ($rec =~ m{(a\(\d+\)(\=a\(\d+\))+)(\=\-?\d+)}) {
-    	my ($rpre, $rpost) = ($PREMATCH, $POSTMATCH);
+        my ($rpre, $rpost) = ($PREMATCH, $POSTMATCH);
         my ($list, $val) = ($1, $3);
         my $list2 = "";
         foreach my $part(split(/\=/, $list)) {
@@ -75,8 +79,26 @@ sub prep {
         $list2 = substr($list2, 1); # remove leading ","
         # print STDERR "# $rec: $list, $val -> $list2\n";
         $rec = "$rpre$list2$rpost";
+    } # while
+    my $inits = "";
+    while ($rec =~ s{a\((\-?\d+)\)\=(\-?\d+)}{}) { # with inits
+        $inits .= ",$2";
     }
-    return $rec;
+    $rec =~ s{\A\,+}{};
+    $rec =~ s{\,+\Z}{};
+    my $old_rec = $rec;
+    $rec =~ s{a\(n\)\=}{\(n\, s\) \-\> };
+    $rec =~ s{a\(n\-(\d+)\)}{"s\[" . ($1 - 1) . "\]"}eg;
+    $rec =~ s{([^n])([\+\-\*\/\^])}{$1\.$2}g;
+    my $maxi = 0;
+    map { if ($_ > $maxi) { $maxi = $_; }
+        } $rec =~ m{\[(\d+)\]}g;
+    $inits =~ s{\A\,}{};
+    my $prevs = "PREVIOUS";
+    for (my $ind = 1; $ind <= $maxi; $ind ++) {
+    	$prevs .= ",PREVIOUS";
+    }
+    return "$rec\t\"$inits\"\t$prevs\t$old_rec";
 }
 __DATA__
 ->
