@@ -19,7 +19,7 @@ const int oeis[10][10] = {{0,123762,123770,123778,123786,123794,123802,123810},
 const int MAX_BLOCKS = 100; //Maximal number of bricks (unattainable unless b=w=1)
 
 // GLOBAL VARIABLES
-public int b,w,options; // The size of the bricks studied, and the number of ways to attach one such under another
+int b,w,options; // The size of the bricks studied, and the number of ways to attach one such under another
 int n,placed; // The total number of bricks to place, and the number placed this far
 int x[MAX_BLOCKS], y[MAX_BLOCKS], z[MAX_BLOCKS]; // Location of bricks placed (lower sw corner). The entry at index placed
                                                  // is used as workspace.

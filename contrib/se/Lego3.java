@@ -47,7 +47,7 @@ public class Lego {
   };
   private static final int MAX_BLOCKS = 100; //Maximal number of bricks (unattainable unless b=w=1)
 
-  private static int b, w, m, options; // The size of the bricks studied, and the number of ways to attach one such under another
+  private static int b, w, options; // The size of the bricks studied, and the number of ways to attach one such under another
   private int n; // The total number of bricks to place, and the number placed this far
   private int[] x = new int[MAX_BLOCKS];
   private int[] y = new int[MAX_BLOCKS];
@@ -231,8 +231,9 @@ public class Lego {
    * to the brick at attachFrom must have index bigger than or equal to indexFrom, in the sense of the placeRelative()
    * method. Several global variables are used for efficiency.
    * @param placed the total number of bricks placed this far
+   * @param m bitmask for symmetry modes
    */
-  private long count(int attachFrom, int indexFrom, int placed) {
+  private long count(int attachFrom, int indexFrom, int placed, final int m) {
     long result = 0;
     String key = String.valueOf(attachFrom) + "," + String.valueOf(indexFrom) + "," + String.valueOf(placed);
     Long value = countMap.get(key);
@@ -248,20 +249,7 @@ public class Lego {
       // 4 if it is invariant under a rotation of 90 degrees,
       // 2 if it is invariant under a rotation of 180 degrees but not 90,
       // 1 if it isn't invariant under a rotation of 180.
-/*
-      switch (sw) {
-        case 1:
-          counter += sw;
-          break;
-        case 2:
-          counter += sw;
-          break;
-        case 4:
-          counter += sw;
-          break;
-      }
-*/
-      if ((sw & m) != 0) {
+      if ((m & sw) != 0) {
         counter += sw;
       }
     } else {
@@ -272,7 +260,7 @@ public class Lego {
           if (placeable(buildOn, placed)) {
             // Place brick and continue recursively
             placed++;
-            count(buildOn, i + 1, placed);
+            count(buildOn, i + 1, placed, m);
             placed--;
           }
         }
@@ -289,15 +277,14 @@ public class Lego {
    * @param b breadth
    * @param m bitmask for options
    */
-  public void process(final int w, final int b) {
-/*
+  public void process(final int w, final int b, final int m) {
     if (oeis[w - 1][b - 1] > 0) {
       //** System.out.println("[All known terms available at oeis.org/A" + oeis[w - 1][b - 1] + "]");
     }
     if (w != b && oeis[b - 1][w - 1] > 0) {
       //** System.out.println("[All known terms available at oeis.org/A" + oeis[b - 1][w - 1] + "]");
     }
-*/
+
     // Initialization
     options = ((w == b) ? (w + b - 1) * (w + b - 1) : (w + b - 1) * (w + b - 1) + (2 * w - 1) * (2 * b - 1));
     x[0] = 0;
@@ -309,7 +296,7 @@ public class Lego {
     for (n = 1; n <= MAX_BLOCKS; n++) {
       //** System.out.println("---- " + n + " ----");
       counter = 0;
-      count(0, 0, 1);
+      count(0, 0, 1, m);
       // Every non-symmetric configuration will be counted 2n times if the bricks are non-square,
       // 4n if they are square. The symmetric ones will be counted fewer times as corrected by the
       // symmetryWeight() function.
@@ -324,9 +311,9 @@ public class Lego {
    */
   public static void main(String[] args) {
     int iarg = 0;
-    w = 1;
-    b = 2;
-    m = 7;
+    int w = 1;
+    int b = 1;
+    int m = 7;
     while (iarg < args.length) { // consume all arguments
       String opt = args[iarg++];
       try {
@@ -343,6 +330,6 @@ public class Lego {
       } catch (Exception exc) { // take default
       }
     } // while args
-    new Lego().process(w, b);
+    new Lego().process(w, b, m);
   }
 }

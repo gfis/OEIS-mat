@@ -1,53 +1,40 @@
-//
-// main.cpp
-// plainvanillalego
-//
-// Created by Søren Eilers on 17/09/2018.
-// Copyright © 2018 Søren Eilers. All rights reserved.
-//
+package irvine.oeis.a123;
 
-import java.util.HashMap;
+import irvine.math.z.Z;
+import irvine.oeis.AbstractSequence;
+import irvine.oeis.DirectSequence;
 
-public class Lego {
-  private static final int[][] oeis = { // provides links to all known counts in the OEIS
-    {
-      0,
-      123762,
-      123770,
-      123778,
-      123786,
-      123794,
-      123802,
-      123810
-    },
-    {
-      0,
-      123818,
-      123824,
-      112389
-    },
-    {
-      0,
-      0,
-      123832
-    },
-    {
-      0,
-      0,
-      0,
-      123838
-    },
-    {
-      0,
-      0,
-      0,
-      0,
-      123844
-    }
-  };
+/**
+ * A123762 Number of ways, counted up to symmetry, to build a contiguous building with n LEGO blocks of size 1 X 2.
+ * @author Georg Fischer
+ */
+public class A123762 extends AbstractSequence implements DirectSequence {
+
+  private int mN;
+  private int mW; // width
+  private int mB; // breadth
+
+  /** Construct the sequence. */
+  public A123762() {
+    this(1, 1, 2);
+  }
+
+  /**
+   * Generic constructor with parameters
+   * @param offset 
+   * @param w width
+   * @param b breadth
+   */
+  public A123762(final int offset, final int w, final int b) {
+    super(offset);
+    mN = offset - 1;
+    mW = w;
+    mB = b;
+  }
+
   private static final int MAX_BLOCKS = 100; //Maximal number of bricks (unattainable unless b=w=1)
 
-  private static int b, w, m, options; // The size of the bricks studied, and the number of ways to attach one such under another
+  private static int b, w, options; // The size of the bricks studied, and the number of ways to attach one such under another
   private int n; // The total number of bricks to place, and the number placed this far
   private int[] x = new int[MAX_BLOCKS];
   private int[] y = new int[MAX_BLOCKS];
@@ -223,47 +210,18 @@ public class Lego {
     return 4;
   }
 
-  /** Map for the results of <code>count</code>. */
-  private HashMap<String, Long> countMap = new HashMap<>(32);
-  
   /**
    * Count configurations recursively adding bricks to index attachFrom. If indexFrom is positive the bricks added
    * to the brick at attachFrom must have index bigger than or equal to indexFrom, in the sense of the placeRelative()
    * method. Several global variables are used for efficiency.
    * @param placed the total number of bricks placed this far
    */
-  private long count(int attachFrom, int indexFrom, int placed) {
-    long result = 0;
-    String key = String.valueOf(attachFrom) + "," + String.valueOf(indexFrom) + "," + String.valueOf(placed);
-    Long value = countMap.get(key);
-    if (false && value != null) {
-      result = (long) value;
-      return result;
-    }
+  private void count(int attachFrom, int indexFrom, int placed) {
     //** System.out.println("attachFrom=" + attachFrom + ", indexFrom=" + indexFrom + ", placed=" + placed);
     if (n == placed) { // Configuration finished, compute and add weight
       int sw = symmetryWeight(placed);
       //** System.out.println("  sw=" + sw);
-      
-      // 4 if it is invariant under a rotation of 90 degrees,
-      // 2 if it is invariant under a rotation of 180 degrees but not 90,
-      // 1 if it isn't invariant under a rotation of 180.
-/*
-      switch (sw) {
-        case 1:
-          counter += sw;
-          break;
-        case 2:
-          counter += sw;
-          break;
-        case 4:
-          counter += sw;
-          break;
-      }
-*/
-      if ((sw & m) != 0) {
-        counter += sw;
-      }
+      counter += sw;
     } else {
       // Go through all options for adding the next brick
       for (int buildOn = attachFrom; buildOn < placed; buildOn++) {
@@ -279,70 +237,30 @@ public class Lego {
         indexFrom = 0;
       }
     }
-    countMap.put(key, counter); 
-    return result;
   }
 
-  /**
-   * Process the parameters.
-   * @param w width
-   * @param b breadth
-   * @param m bitmask for options
-   */
-  public void process(final int w, final int b) {
-/*
-    if (oeis[w - 1][b - 1] > 0) {
-      //** System.out.println("[All known terms available at oeis.org/A" + oeis[w - 1][b - 1] + "]");
-    }
-    if (w != b && oeis[b - 1][w - 1] > 0) {
-      //** System.out.println("[All known terms available at oeis.org/A" + oeis[b - 1][w - 1] + "]");
-    }
-*/
-    // Initialization
+  @Override
+  public Z next() {
+    return a(++mN);
+  }
+
+  @Override
+  public Z a(final int n) {
+    return a(Z.valueOf(n));
+  }
+
+  @Override
+  public Z a(final Z nz) {
+    n = nz.intValueExact();
+    w = mW;
+    b = mB;
     options = ((w == b) ? (w + b - 1) * (w + b - 1) : (w + b - 1) * (w + b - 1) + (2 * w - 1) * (2 * b - 1));
     x[0] = 0;
     y[0] = 0;
     z[0] = 0;
     hz[0] = true;
-
-    // Compute as far as possible. This will grind to a halt (unless b=w=1) much before MAX_BLOCKS is reached
-    for (n = 1; n <= MAX_BLOCKS; n++) {
-      //** System.out.println("---- " + n + " ----");
-      counter = 0;
-      count(0, 0, 1);
-      // Every non-symmetric configuration will be counted 2n times if the bricks are non-square,
-      // 4n if they are square. The symmetric ones will be counted fewer times as corrected by the
-      // symmetryWeight() function.
-      // System.out.println(n + " " + (counter / (n * ((b == w) ? 4 : 2))));
-      System.out.print((counter / (n * ((b == w) ? 4 : 2))) + ", ");
-    }
-  }
-
-  /** Main method
-   * @param args command line arguments: 
-   * -w width -b breadth
-   */
-  public static void main(String[] args) {
-    int iarg = 0;
-    w = 1;
-    b = 2;
-    m = 7;
-    while (iarg < args.length) { // consume all arguments
-      String opt = args[iarg++];
-      try {
-        if (false) {
-        } else if (opt.equals("-b")) {
-          b = Integer.parseInt(args[iarg++]);
-        } else if (opt.equals("-m")) {
-          m = Integer.parseInt(args[iarg++]);
-        } else if (opt.equals("-w")) {
-          w = Integer.parseInt(args[iarg++]);
-        } else {
-          System.out.println("??? invalid option: \"" + opt + "\"");
-        }
-      } catch (Exception exc) { // take default
-      }
-    } // while args
-    new Lego().process(w, b);
+    counter = 0;
+    count(0, 0, 1);
+    return Z.valueOf((counter / (n * ((b == w) ? 4 : 2))));
   }
 }

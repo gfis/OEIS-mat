@@ -1,0 +1,21 @@
+#!Maple
+# Determine a recurrence from a (e.)g.f.
+# 2023-12-13, Georg Fischer
+with(FormalPowerSeries): # requires Maple 2022
+with(LREtools): with(StringTools):
+toString:= proc(expr) DeleteSpace(convert(expr, string)) end:
+C:= proc(x)      (1 - sqrt(1 - 4*x)) / (2*x) end: # A000108 Catalan's g.f.
+Catlan:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end:
+findrec:= proc(aseqno, ogf) local req1;
+  try
+    req1:= FindRE(ogf, x, a(n),'specialfunctions');
+    printf("%a\t%a\t%a\t%a\t%a\t%a\t%s\t%a\n", aseqno, rec, 0, req1, 1, 0, "OGF", ogf);
+  catch:
+    printf("# %a failed: %q\n", aseqno, lastexception):
+    error
+  end try
+end;
+# trace(findrec);
+# findrec(A367243, (exp(x)-1)^2*(46*exp(x)-1)/6);
+
+timelimit($(TIMEOUT), findrec($(PARM0), $(PARM1)));

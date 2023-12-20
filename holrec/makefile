@@ -69,6 +69,30 @@ overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC
 	sort $@.tn.tmp $(SRC) > $(TAR)
 	wc -l $(TAR)
 #----
+finde: findegf findsqrt findbessel recegf
+findbessel: # convert function into recurrence with Maple's FindRE
+	perl $(COMMON)/callmap22.pl -t 4 -n 8 -p findrec.mpat  bessel.txt \
+	| sed -e "s/\tOGF/\tEGF/" \
+	| tee      $@.tmp
+	wc -l      $@.tmp
+findegf: # convert function into recurrence with Maple's FindRE
+	perl $(COMMON)/callmap22.pl -t 30 -n 8 -p findrec.mpat  egf.txt \
+	| sed -e "s/\tOGF/\tEGF/" \
+	| tee      $@.tmp
+	wc -l      $@.tmp
+findsqrt:
+	perl $(COMMON)/callmap22.pl -t 30 -n 8 -p findrec.mpat sqrt.txt \
+	| tee      $@.tmp
+	wc -l      $@.tmp
+recegf:
+	sort findbessel.tmp | grep -E "^A[0-9]" | grep -v FAIL \
+	| $(JPREP) -cc bva -f - \
+	>          $@.tmp
+	head -n4   $@.tmp
+	wc -l      $@.tmp
+#	| perl -e "my @parms = split(/\t/); $$parms[1] = "bva"; print join("\t", @parms);'\
+#
+#----
 setofs: # LIST= ; update $(OFFSET)
 	#==== $@ LIST=$(LIST)
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
