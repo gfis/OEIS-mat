@@ -2,12 +2,13 @@
 
 # Extract fields for database tables from a cat25 file
 # @(#) $Id$
+# 2023-12-21: remove spaces in asdata
 # 2023-05-08: asdata
 # 2023-05-05: Georg Fischer, modified from common/extract_info.pl
 #
 #:# Usage:
 #:#   perl catex_info.pl [-d debug] ../common/jcat25.txt 
-#:#     writes asinfo.txt, asname.txt, bfinfo.txt
+#:#     writes asinfo.txt, asname.txt, bfinfo.txt or asdata.txt
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -166,7 +167,8 @@ while (<>) {
             if (length($term8) > $terms_width) {
                 $term8 = "";
             }
-        }
+        } # first
+        $terms =~ s{ }{}g;
 
     } else { # ignore unknown code
     } # switch over $code

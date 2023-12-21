@@ -12,6 +12,7 @@ JOEIS=$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 OFFSET=0
+M=7
 W=1
 B=2
 #----------------
@@ -28,7 +29,7 @@ lego:
 jc:
 	javac Lego.java
 run:
-	java Lego -w $(W) -b $(B)
+	java Lego -m $(M) -w $(W) -b $(B)
 gen:
 	perl prep_lego.pl selist.txt \
 	| tee $(FISCHER)/aman/A123762.man
