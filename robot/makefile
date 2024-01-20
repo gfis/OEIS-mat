@@ -152,12 +152,24 @@ dirichcon: # Dirichlet convolution or inverse
 	' $$name =~ s{(A\d+)(\(n\))? with itself}{$$1 with $$1};'\
 	' if ($$name =~ m{(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2) = ($$1, $$2);'\
 	' print join("\t", $$aseqno, "dirichcon2", $$offset, "new $$rn1()", 1, "new $$rn2()", 1, $$name); }'\
+	| grep -vE "A366803" \
 	>        $@.gen
 	grep -P "Dirichlet inverse of " $(CAT) | grep -P "^\%[NF]" | $(NYI) dirichinv \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
 	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
 	' print join("\t", $$aseqno, $$callcode, $$offset, "new $$rn1()", 1, $$name); }'\
+	| grep -vE "A359777|A359784|A364953|A366875|A366879|A368694" \
 	>>       $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+dirisqrt:
+	grep -P "Dirichlet" $(CAT) | grep -P "^\%[NF]" | grep "itself yields" | $(NYI) dirisqrt \
+	| grep -vE "A159046" \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{(Numerator|Denominator)}i) { my $$mode = uc(substr($$1, 0, 3)); '\
+	' if ($$name =~ m{itself yields[^A]*(A\d+)}) { my $$rseqno = $$1; '\
+	' print join("\t", $$aseqno, "dirisqrt", $$offset, "new $$rseqno()", $$mode, $$name); }} '\
+	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
 #----
@@ -221,7 +233,7 @@ nest3c:
 	| tee    $@.txt
 	wc -l    $@.txt
 nest3d:
-	$(DBAT) -x "SELECT s2.aseqno, direct.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
+	$(DBAT) -x "SELECT s2.aseqno, s4.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
 	| tee    $@.txt
 	wc -l    $@.txt
 #--------
@@ -238,6 +250,7 @@ ogf2: # use JPREP to generate (num, den) tuples for rational o.g.f.s
 	>        $@.tmp
 	grep -E "fract1" $@.tmp | sed -e "s/fract1/lingf/" \
 	| perl -ne 'my @f = split(/\t/); print if length($$f[4]) < 2048;' \
+	| grep -vE "A097097" \
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
@@ -616,6 +629,7 @@ triprod:
 	' $$name =~ s{A007318(\^\(\-1\)| *\(signed)}{A130595}g;'\
 	' if ($$name =~ m{(A\d+)[^A]+(A\d+)}) { my ($$rn1, $$rn2) = ($$1, $$2);'\
 	' print join("\t", $$aseqno, "triprod", $$offset, $$rn1, $$rn2, $$name); }'\
+	| grep -vE "A113139" \
 	| tee    $@.gen
 	wc -l    $@.gen
 	# tripro3: # Triangles that are products of 3 other triangles
@@ -640,7 +654,7 @@ union:
 	grep -E "^%[NCFY]" $(CAT) | grep -iP "Union of" | $(NYI) union2 \
 	| perl union.pl \
 	2>       $@.rest.tmp \
-	| grep -vE "A177457|A274994|A277334|A281265|A331669|A343222|A356301" \
+	| grep -vE "A091898|A177457|A274994|A277334|A281265|A331669|A343222|A356301" \
 	| tee    $@.gen
 	wc -l    $@.*
 #----

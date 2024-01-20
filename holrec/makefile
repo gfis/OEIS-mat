@@ -90,7 +90,16 @@ recegf:
 	>          $@.tmp
 	head -n4   $@.tmp
 	wc -l      $@.tmp
-#	| perl -e "my @parms = split(/\t/); $$parms[1] = "bva"; print join("\t", @parms);'\
+recogf:
+	perl $(COMMON)/callmap22.pl -t 8 -n 8 -p findrec.mpat recogf.man \
+	| tee      $@.tmp
+	wc -l      $@.tmp
+recogf2:
+	sort findrec.1227.man | grep -E "^A[0-9]" | grep -v FAIL \
+	| $(JPREP) -cc bva -f - \
+	>          $@.tmp
+	head -n4   $@.tmp
+	wc -l      $@.tmp
 #
 #----
 setofs: # LIST= ; update $(OFFSET)

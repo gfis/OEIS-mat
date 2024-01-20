@@ -33,8 +33,13 @@ urlist1:
 	| grep -vP "a\(" \
 	| tee -a       $@.tmp
 	echo ";"   >>  $@.tmp
-urlprep:
+urlprep1:
 	perl preplong.pl urlist.man \
+	>         $@.tmp
+	head -n2  $@.tmp
+	wc -l     $@.tmp
+urlprep:
+	perl preplong.pl longogf.man \
 	>         $@.tmp
 	head -n2  $@.tmp
 	wc -l     $@.tmp
@@ -59,3 +64,8 @@ greplong:
 	| grep -viP "\.\.|sum|prod|gcd|reversion" \
 	| tee $@.tmp
 	wc -l $@.tmp
+grepconj:
+	grep -P "a\(n *[\+\-] *\d\)" jcat25.txt | grep -vP "G\.f\." | grep -P "^\?[NFC]" | less
+	grep -P "G\.f\." jcat25.txt | grep -P "^\?[NFC]" | less
+	grep -P "([0-9 \+\-n\*\^\(\)]+a\(n *[\-] *\d\)){3}" jcat25.txt | grep -P "^\%[NF]" | less
+	

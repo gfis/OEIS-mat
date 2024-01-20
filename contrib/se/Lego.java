@@ -8,9 +8,10 @@
 
 public class Lego {
   private static final int MAX_BLOCKS = 100; //Maximal number of bricks (unattainable unless b=w=1)
-
-  private static int b, w, options; // The size of the bricks studied, and the number of ways to attach one such under another
-  private static int mMask; // bit mask for optional features
+  private int b; // The size of the bricks studied
+  private int w;
+  private int options; // The number of ways to attach one such under another
+  private int mMask; // bit mask for optional features
   private int n; // The total number of bricks to place, and the number placed this far
   private int[] x = new int[MAX_BLOCKS];
   private int[] y = new int[MAX_BLOCKS];
@@ -18,13 +19,25 @@ public class Lego {
   private boolean[] hz = new boolean[MAX_BLOCKS]; // Direction of bricks placed in xy-plane. true means w x b, false means b x w
   private long counter; // Total count of configurations. Overflow is unlikely, so no tests are done.
   private int[] paired = new int[MAX_BLOCKS]; // Used when checking symmetry
+  private int placed = 0;
 
   /**
-   * Computes a brick position which is attachable to the brick at entry given by at, using i as an index.
+   * Constructor with parameters
+   * @param w width
+   * @param b breadth
+   * @param mask bit mask for optional features
+   */
+  public Lego(final int mask, final int w, final int b) {
+    this.mMask = mask;
+    this.b = b;
+    this.w = w;
+  }
+  /**
+   * Computes a brick position which is attachable to the brick at entry given by <code>at</code>, using i as an index.
    * i must be between 0 and 2*options-1. As i increases, we go over first bricks over and then under the given one.
    * When the brick size is not square, the instances where the two bricks are parallel are taken first.
    */
-  private void placeRelative(int at, int i, int placed) {
+  private void placeRelative(int at, int i) {
     int b0 = 0;
     int w0 = 0;
     if (i >= options) { // Downwards
@@ -33,27 +46,16 @@ public class Lego {
     } else { // Upwards
       z[placed] = z[at] + 1;
     }
-
-    if (true) {
-      if (i >= (2 * w - 1) * (2 * b - 1)) { // Perpendicularly (not square)
-        i -= (2 * w - 1) * (2 * b - 1);
-        hz[placed] = !hz[at];
-        w0 = i / (b + w - 1);
-        b0 = i % (b + w - 1);
-      } else { // Parallely (or square)
-        b0 = i / (2 * w - 1);
-        w0 = i % (2 * w - 1);
-        hz[placed] = hz[at];
-      }
-    } else {
-      if (i >= (2 * w - 1) * (2 * b - 1)) { // Perpendicularly (not square)
-        i -= (2 * w - 1) * (2 * b - 1);
-        hz[placed] = !hz[at];
-        w0 = i / (b + w - 1);
-        b0 = i % (b + w - 1);
-      }
+    if (i >= (2 * w - 1) * (2 * b - 1)) { // Perpendicularly (not square)
+      i -= (2 * w - 1) * (2 * b - 1);
+      hz[placed] = !hz[at];
+      w0 = i / (b + w - 1);
+      b0 = i % (b + w - 1);
+    } else { // Parallely (or square)
+      b0 = i / (2 * w - 1);
+      w0 = i % (2 * w - 1);
+      hz[placed] = hz[at];
     }
-    
     if (hz[placed]) {
       x[placed] = x[at] + w0 - w + 1;
       y[placed] = y[at] + b0 - b + 1;
@@ -79,7 +81,7 @@ public class Lego {
   // true when the brick in workspace (i.e. at index placed) can be attached to building.
   // It must not collide with any other brick, nor could have been attached at an earlier time in the
   // computation.
-  private boolean placeable(int attachable, int placed) {
+  private boolean placeable(int attachable) {
     for (int i = 0; i < placed; i++) {
       if (meetsXY(i, placed)) {
         switch (z[i] - z[placed]) {
@@ -97,7 +99,10 @@ public class Lego {
         }
       }
     }
-    return ((mMask & 8) == 0) ? true : hz[placed];
+    if ((mMask & 16) != 0 && z[placed] <= z[0]) {
+      return false;
+    }
+    return ((mMask & 8) == 0) ? true : hz[placed]; // this forces the orientation in one direction
   }
 
   /**
@@ -106,7 +111,7 @@ public class Lego {
    * 2 if it is invariant under a rotation of 180 degrees but not 90,
    * 1 if it isn't invariant under a rotation of 180.
    */
-  private int symmetryWeight(int placed) {
+  private int symmetryWeight() {
     int i, j, xmax, xmin, ymax, ymin, x0, y0;
     // Initialization: Compute the smallest box containing all bricks at the same z-level as the first one placed,
     // and set all values of paired[i] to -1
@@ -200,25 +205,24 @@ public class Lego {
    * Count configurations recursively adding bricks to index attachFrom. If indexFrom is positive the bricks added
    * to the brick at attachFrom must have index bigger than or equal to indexFrom, in the sense of the placeRelative()
    * method. Several global variables are used for efficiency.
-   * @param placed the total number of bricks placed this far
    */
-  private void count(int attachFrom, int indexFrom, int placed) {
+  private void count(int attachFrom, int indexFrom) {
     //** System.out.println("attachFrom=" + attachFrom + ", indexFrom=" + indexFrom + ", placed=" + placed);
     if (n == placed) { // Configuration finished, compute and add weight
-      int sw = symmetryWeight(placed);
+      int sw = symmetryWeight();
       //** System.out.println("  sw=" + sw);
-      if ((sw & mMask) != 0) {
+      if ((sw & mMask) != 0) { // 1, 2, 4
         counter += sw;
       }
     } else {
       // Go through all options for adding the next brick
       for (int buildOn = attachFrom; buildOn < placed; buildOn++) {
         for (int i = indexFrom; i < 2 * options; i++) {
-          placeRelative(buildOn, i, placed);
-          if (placeable(buildOn, placed)) {
+          placeRelative(buildOn, i);
+          if (placeable(buildOn)) {
             // Place brick and continue recursively
             placed++;
-            count(buildOn, i + 1, placed);
+            count(buildOn, i + 1);
             placed--;
           }
         }
@@ -243,12 +247,15 @@ public class Lego {
     for (n = 1; n <= MAX_BLOCKS; n++) {
       //** System.out.println("---- " + n + " ----");
       counter = 0;
-      count(0, 0, 1);
+      placed = 1;
+      count(0, 0);
       // Every non-symmetric configuration will be counted 2n times if the bricks are non-square,
       // 4n if they are square. The symmetric ones will be counted fewer times as corrected by the
       // symmetryWeight() function.
       // System.out.println(n + " " + (counter / (n * ((b == w) ? 4 : 2))));
-      System.out.print((counter / (n * ((b == w) ? 4 : 2))) + ", ");
+      // int nf = ((mMask & 16) != 0) && n > 1 ? n - 1 : n;
+      int nf = n;
+      System.out.print((counter / (nf * ((b == w) ? 4 : 2))) + ", ");
     }
   }
 
@@ -258,9 +265,9 @@ public class Lego {
    */
   public static void main(String[] args) {
     int iarg = 0;
-    w = 1;
-    b = 2;
-    mMask = 7;
+    int w = 1;
+    int b = 2;
+    int mask = 7;
     while (iarg < args.length) { // consume all arguments
       String opt = args[iarg++];
       try {
@@ -268,7 +275,7 @@ public class Lego {
         } else if (opt.equals("-b")) {
           b = Integer.parseInt(args[iarg++]);
         } else if (opt.equals("-m")) {
-          mMask = Integer.parseInt(args[iarg++]);
+          mask = Integer.parseInt(args[iarg++]);
         } else if (opt.equals("-w")) {
           w = Integer.parseInt(args[iarg++]);
         } else {
@@ -277,6 +284,6 @@ public class Lego {
       } catch (Exception exc) { // take default
       }
     } // while args
-    new Lego().process();
+    new Lego(mask, w, b).process();
   }
 }

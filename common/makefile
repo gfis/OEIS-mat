@@ -948,3 +948,19 @@ signature:
 	' if (length($$sig) < 256 && $$order >= 3 && $$order < 64 && ($$sig !~ m{(0\,){7}})) { print join("\t", substr($$_, 0, 7), "ixsig", 0, $$sig, $$order) . "\n"; }}}'\
 	| tee    $@.gen
 	wc -l    $@.gen
+#----
+mathconj:
+	grep -Pi "Conjectur|Empirical|Apparent|seem" jcat25.txt | grep -P "^.[NFC]" | grep -P "Mathar" \
+	>        $@.0.tmp
+	cut -b4-11 $@.0.tmp | uniq \
+	>        $@.1.tmp
+	wc -l    $@.1.tmp
+	cut -b1-7 joeis_list.txt  > $@.2.tmp
+	wc -l    $@.2.tmp
+	grep -vf $@.2.tmp $@.1.tmp > $@.3.tmp
+	wc -l    $@.3.tmp
+	grep -f  $@.3.tmp jcat25.txt \
+	| sed -e "s/^\%I/\n\%I/" \
+	>        $@.man
+	uedit64  $@.man
+	

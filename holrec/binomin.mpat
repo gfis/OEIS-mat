@@ -18,3 +18,5 @@ binomin := proc(aseqno, offset, expr, inits); local fract, num, den, matrix, j, 
 end;
 # binomin(A123, 0, proc(n) binomial(4,n) end, [1,4]);
 timelimit($(TIMEOUT), binomin($(PARM0), $(PARM2), proc(n) $(PARM3) end, $(PARM4)));
+binomin(A,0, proc(n) n * (n-1)! * ((n-2)*(n-1)! - 1)/2 end, [1]);
+

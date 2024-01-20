@@ -115,7 +115,7 @@ A001951	knownd	7		A Beatty sequence: a(n) = floor(n*sqrt(2)).
 A001952	knownd	7		A Beatty sequence: a(n) = floor(n*(2 + sqrt(2))).
 A002110	knowna	17	ZUtils.primorial(v.longValueExact())	Primorial numbers (first definition): product of first n primes. Sometimes written prime(n)#.
 A002182	knowna	6		Highly composite numbers, definition (1): numbers n where d(n), the number of divisors of n (A000005), increases to a record.
-A002322	knowna	7	Carmichael.lambda(v)	Reduced totient function psi(n): least k such that x^k == 1 (mod n) for all x prime to n; also known as the Carmichael lambda function (exponent of unit group mod n); also called the universal exponent of n.
+A002322	knownd	7	Carmichael.lambda(v)	Reduced totient function psi(n): least k such that x^k == 1 (mod n) for all x prime to n; also known as the Carmichael lambda function (exponent of unit group mod n); also called the universal exponent of n.
 A002326	knowna	7	IntegersMod(v).ord(Z.TWO.mod(v))	Multiplicative order of 2 mod 2n+1.
 A002487	knowna	19	{ final int n = v.intValueExact(); return Integers.SINGLETON.sum(0, n - 1, k -> Binomial.binomial(k, n - k - 1).testBit(0) ? Z.ONE : Z.ZERO); }	Stern''s diatomic series (or Stern-Brocot sequence): a(0) = 0, a(1) = 1; for n > 0: a(2*n) = a(n), a(2*n+1) = a(n) + a(n+1).
 A002808	knowna	8		The composite numbers: numbers n of the form x*y for x > 1 and y > 1.
@@ -143,6 +143,7 @@ A006882	knowna	5	MemoryFactorial.SINGLETON.doubleFactorial(v.intValueExact())	Do
 A007088	knowna	6	new Z(Z.toString(2))		The binary numbers (or binary words, or binary vectors, or binary expansion of n): numbers written in base 2.
 A007504	knownd	16		Sum of the first n primes.
 A007539	knowna	5		a(n) = first n-fold perfect (or n-multiperfect) number.
+A007623	knownd	0		factorial base representation
 A007814	knowna	44	Z.valueOf(ZUtils.valuation(v, Z.TWO))	Exponent of highest power of 2 dividing n, a.k.a. the binary carry sequence, the ruler sequence, or the 2-adic valuation of n.
 A007895	knowna	6		Number of terms in the Zeckendorf representation of n (write n as a sum of non-consecutive distinct Fibonacci numbers).
 A007913	knowna	5	Jaguar.factor(v).core()	Squarefree part of n: a(n) is the smallest positive number m such that n/m is a square.
@@ -157,6 +158,7 @@ A008472	knowna	11	Jaguar.factor(v).sopf()	Sum of the distinct primes dividing n.
 A008475	knownd	5		If n = Product (p_j^k_j) then a(n) = Sum (p_j^k_j) (a(1) = 0 by convention).
 A008578	knowna	6	{ final int n = v.intValueExact(); return (n == 1) ? Z.ONE : Puma.primeZ(n + 1); }	Prime numbers at the beginning of the 20th century (today 1 is no longer regarded as a prime).
 A008683	knowna	1	Z.valueOf(Jaguar.factor(v).mobius())	Moebius mu function
+A00836	knownd	0		Liouville lambda
 A008908	knowna	6		(1 + number of halving and tripling steps to reach 1 in the Collatz (3x+1) problem), or -1 if 1 is never reached.
 A008966	knownd	0	Jaguar.factor(v).isSquareFree() ? Z.ONE : Z.ZERO
 A010051	knowna	8	v.isProbablePrime() ? Z.ONE : Z.ZERO	Characteristic function of primes: 1 if n is prime, else 0.
@@ -179,6 +181,7 @@ A048385	knownd	5		In base-10 notation replace digits of n with their squared val
 A048673	knowna	6		Permutation of natural numbers: a(n) = (A003961(n)+1) / 2 [where A003961(n) shifts the prime factorization of n one step towards larger primes].
 A048675	knownd	12		If n = p_i^e_i * ... * p_k^e_k, p_i < ... < p_k primes (with p_i = prime(i)), then a(n) = (1/2) * (e_i * 2^i + ... + e_k * 2^k).
 A049084	knowna	8	Z.valueOf(Puma.primePi(v)).isProbablePrime() ? Z.ONE : Z.ZERO	a(n) = pi(n) if n is prime, otherwise 0.
+# A049345	knownd	9		n written in primorial base.
 A049501	knownd	9		Major index of n, first definition.
 A049502	knownd	9		Major index of n, 2nd definition.
 A051903	knowna	9	Z.valueOf(Jaguar.factor(v).maxExponent())	Maximal exponent in prime factorization of n.
@@ -200,6 +203,7 @@ A079216	knowna	5		Square array A(n>=0,k>=1) (listed antidiagonally: A(0,1)=1, A(
 A091137	knowna	5		Largest number m such that number of times m divides k! is almost k/n for large k, i.e., largest m with A090624(m)=n.
 A121548	knowna	10		Triangle read by rows: T(n,k) is the number of compositions of n into k Fibonacci numbers (1 <= k <= n; only one 1 is considered as a Fibonacci number).
 A142458	knowna	6		Triangle T(n,k) read by rows: T(n,k) = 1 if k=1 or k=n, otherwise T(n,k) = (3*n-3*k+1)*T(n-1,k-1) + (3*k-2)*T(n-1,k).
+A146075	knownd	7		Sum of even divisors of n.
 A151799	knowna	8	Puma.primeZ(Puma.primePi(v) - 1)	Version 2 of the "previous prime" function: largest prime < n.
 A151800	knowna	17	Puma.primeZ(Puma.primePi(v) + 1)	Least prime > n (version 2 of the "next prime" function).
 A151899	knowna	0	Z.valueOf((new int[] {0,0,1,1,1,2})[v.mod(6)])
