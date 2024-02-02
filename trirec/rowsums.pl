@@ -5,9 +5,10 @@
 # 2021-10-29, Georg Fischer
 #
 #:# Usage:
-#:#   perl rowsums.pl [-d debug] [-f ofter_file] [-r|-c] jcat25.txt > outfile
+#:#   perl rowsums.pl [-d debug] [-f ofter_file] [-r|-c|-s] jcat25.txt > outfile
 #:#       -r      extract row sums
 #:#       -c      extract columns k
+#:#       -s      extract selection (column k, diagonal k)
 #:#       -f file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
 #--------------------------------------------------------
 use strict;
@@ -37,6 +38,9 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     } elsif ($opt   =~ m{r}) {
         $mode       = "r";
         $callcode   = "rowsums";
+    } elsif ($opt   =~ m{s}) {
+        $mode       = "s";
+        $callcode   = "triselect";
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -59,7 +63,20 @@ while (<OFT>) {
 close(OFT);
 print STDERR "# $0: " . scalar(%ofters) . " jOEIS offsets and some terms read from $ofter_file\n";
 #----------------
-
+my %ordinals = qw(
+    first     1 main 1 
+    second    2 
+    third     3 
+    fourth    4 
+    fifth     5 
+    sixth     6 
+    seventh   7 
+    eighth    8 
+    ninth     9 
+    tenth    10 
+    eleventh 11 
+    twelfth  12
+    );
 
 # while (<DATA>) {
 while (<>) {
@@ -73,7 +90,7 @@ while (<>) {
         my $rseqno = "";
         my $colno  = -1;
         if (0) {
-        } elsif ($mode eq "r" && m{row sum}i) {
+        } elsif ($mode eq "r" && $name =~ m{row sum}i) {
             if (0) {
             } elsif ($name =~ m{[Rr]ow sums? (of|for)[^A\.\,]*(A\d+)}) {
                 $rseqno = $2;
@@ -94,16 +111,36 @@ while (<>) {
                 $choice = 5;
             }
             # contained "row sum"
-        } elsif ($mode eq "c" && m{column}i) {
+        } elsif ($mode eq "c" && $name =~ m{column}i) {
             if (0) {
             } elsif ($name =~ m{[Cc]olumn (k *\= *)?(\d+) of[^A\.\,]*(A\d+)}) {
-            	$colno  = $2;
+                $colno  = $2;
                 $rseqno = $3;
                 $choice = 7;
             } elsif ($name =~ m{[Cc]olumn (k *\= *)?(\d+) is[^A\.\,]*(A\d+)}) {
-            	$colno  = $2;
+                $colno  = $2;
                 $rseqno = $3; my $temp = $aseqno; $aseqno= $rseqno; $rseqno = $temp;
                 $choice = 8;
+            }
+            # contained "column"
+        } elsif ($mode eq "s") && $name =~ m{column|diagonal}i) {
+            if (0) {
+            } elsif ($name =~ m{[Cc]olumn (k *\= *)?(\d+) of[^A\.\,]*(A\d+)}) {
+                $colno  = $2;
+                $rseqno = $3;
+                $choice = 7;
+            } elsif ($name =~ m{[Cc]olumn (k *\= *)?(\d+) is[^A\.\,]*(A\d+)}) {
+                $colno  = $2;
+                $rseqno = $3; my $temp = $aseqno; $aseqno= $rseqno; $rseqno = $temp;
+                $choice = 8;
+            } elsif ($name =~ m{(Main|First|Second|Third) +diagonal +of[^A\.\,]*(A\d+)}i) {
+                $colno  = $ordinals{lc($1) - 1};
+                $rseqno = $2;
+                $choice = 9;
+            } elsif ($name =~ m{(Main|First|Second|Third) +diagonal +is[^A\.\,]*(A\d+)}i) {
+                $colno  = $ordinals{lc($1)};
+                $rseqno = $3; my $temp = $aseqno; $aseqno= $rseqno; $rseqno = $temp;
+                $choice = 10;
             }
             # contained "column"
         } 

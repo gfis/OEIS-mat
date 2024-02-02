@@ -798,10 +798,9 @@ fiboluca:
 	wc -l $@.tmp
 #----
 selfconv:
-	grep -Pi "self[\- ]convol|convolved with" jcat25.txt | grep -E "^\%[NFC]" | cut -b4- \
-	| perl nyi.pl -p \
-	| grep "{{" \
-	>        $@.tmp
+	grep -Pi "self[\- ]convol|convolved with" jcat25.txt | grep -P "^\%[NFC]" | cut -b4- \
+	| grep -v "€" \
+	| tee    $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 convinv:

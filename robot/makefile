@@ -172,6 +172,17 @@ dirisqrt:
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#--------
+dirtraf:
+	perl cuteqs.pl $(CAT) \
+	2>       $@.restcut.tmp \
+	>        $@.cut.tmp
+	perl dirtraf.pl $@.cut.tmp \
+	2>       $@.rest.tmp \
+	| sort | uniq -w7 > $@.gen
+	head -n2 $@.gen
+	sort -k4,4 $@.rest.tmp | cut -f5 | sort | uniq -c | sort -nr > $@.ndir.tmp
+	wc -l    $@.*
 #----
 inverse:
 	grep -E "^%" $(CAT) | grep -P "Inverse +(permutation +)?(of|to) +A" \
@@ -274,7 +285,6 @@ fract2:
 	>        $@.gen
 	tail -n2 $@.gen
 	wc -l    $@.gen
-#--------
 #--------
 ANCHOR=anch
 morfix:

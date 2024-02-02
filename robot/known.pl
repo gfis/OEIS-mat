@@ -189,7 +189,7 @@ A053735	knowna	7	Z.valueOf(ZUtils.digitSum(v, 3))	Sum of digits of (n written in
 A054429	knowna	6		Simple self-inverse permutation of natural numbers: List each block of 2^n numbers (from 2^n to 2^(n+1) - 1) in reverse order.
 A055396	knowna	5		Smallest prime dividing n is a(n)-th prime (a(1)=0).
 A055642	knowna	27	Z.valueOf(v.toString().length())	Number of digits in the decimal expansion of n.
-A055881	knowna	6		a(n) = largest m such that m! divides n.
+A055881	knownd	6		a(n) = largest m such that m! divides n.
 A056239	knownd	9		If n = Product_{k >= 1} (p_k)^(c_k) where p_k is k-th prime and c_k >= 0 then a(n) = Sum_{k >= 1} k*c_k.
 A056737	knowna	7		Minimum nonnegative integer m such that n = k*(k+m) for some positive integer k.
 A060854	knowna	7		Array T(m,n) read by antidiagonals: T(m,n) (m >= 1, n >= 1) = number of ways to arrange the numbers 1,2,...,m*n in an m X n matrix so that each row and each column is increasing.

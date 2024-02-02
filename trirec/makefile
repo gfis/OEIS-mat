@@ -97,7 +97,7 @@ tasin: # "array T as in A-number"
 cdrof: # (column|diagonal|row) of"
 	cat $(COMMON)/joeis_names.txt \
 	| perl -ne 'my ($$aseqno, $$superclass, $$name, @rest) = split(/\t/);'\
-	'if ($$name =~ m{(column|diagonal|row) of *(A\d+)}) { my $$rseqno = $$2;'\
+	'if ($$name =~ m{(column|diagonal|row) of *(A\d+)}i) { my $$rseqno = $$2;'\
 	' print join("\t", $$aseqno, "$@", 0, $$rseqno, $$superclass, $$name) . "\n"; }'\
 	>        $@.tmp
 	head -n4 $@.tmp
