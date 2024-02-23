@@ -45,7 +45,7 @@ foreach my $line (split(/\r?\n/, `grep -P \"$pattern\" $CAT`)) {
             $eq1 =~ s{(\..*|\;.*)}    {};
             $eq1 =~ s{(\,.*)}         {\t$1};
             if (0) {
-            } elsif ($eq1 =~ m{\AA\d+\(A\d+\(n\)\)(\t.*|\Z)}) {
+            } elsif ($eq1 =~ m{\AA\d+\(A\d+\(n\)\)}) {
                 print        join("\t", $aseqno, "cuteqs", 0, "$eq1") ."\n";
             } elsif ($eq1 =~ m{\AA\d+\(A\d+\(n\)\)}) {
                 print STDERR join("\t", $aseqno, "cut"   , 0, "$eq1") ."\n";

@@ -1,0 +1,28 @@
+#!Maple
+# 2024-02-09, Georg Fischer: simplification of holalg.mat
+interface(prettyprint=0):
+with(gfun):
+with(LREtools): with(StringTools): 
+with(FormalPowerSeries): # requires Maple 2022
+toString:= proc(expr) DeleteSpace(convert(expr, string)) end:
+C:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end: # A000108 Catalan's g.f.
+Catlan:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end:
+holalgeq:= proc(aseqno, cc, offset, alg) local rec1, alg1, alg2;
+  try
+    alg1 := numer(alg);
+    alg2 := AlgtoHolonomicDE(alg1, A(x));
+    rec1 := gfun:-diffeqtorec(alg2, A(x), a(n));
+    printf("# numer(alg)=%a, rec1=%a\n", alg1, rec1);
+    #                                                              mat ini di gf  parm5  
+# Convert an algebraic equation into a matrix for HolonomicRecurrence
+    printf("%a\t%a\t%a\t%a\t%a\t%a\t%a\t%s\n", aseqno, cc, offset, rec1, 1, 0, 0, cat("G.f. A(x) satisfies ", toString(alg), "=0"));
+  catch:
+    printf("# %a failed: %q\n", aseqno, lastexception):
+    error
+  end try
+end;
+trace(holalgeq);
+# A352413 G.f. A(x) satisfies: A(x)^4 = (1-x) * (A(x) + x)^3.
+# holalgeq(A352413, holos, 0, -A^4+(1-x)*(A+x)^3);
+
+timelimit($(TIMEOUT), holalgeq($(PARM0), holos, $(PARM2), $(PARM3)));

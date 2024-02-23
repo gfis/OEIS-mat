@@ -113,6 +113,12 @@ complem: # Complement of Annnnnn
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#----
+compound0: # prepare for CompoundSequence
+	grep -P "^\%[NF] A\d+ +a\(n\) *\=[n0-9\(\)\+\-\^\*\!\/ ]*a[n0-9\(\)\+\-\^\*\!\/ ]*[\.fw\,\;]" $(CAT) \
+	| grep -viP "\.\.\.|floor|ceil|mod|sum|a\(2" \
+	| tee   $@.tmp
+	wc -l   $@.tmp
 #--------
 convol: # convolution, convolved with or inverse
 	grep -iP "convol" $(CAT) | grep -P "^\%[NFCY]" | grep -viP "Dirichlet|Exponential" | $(NYI) convprod \
@@ -181,167 +187,78 @@ dirtraf:
 	2>       $@.rest.tmp \
 	| sort | uniq -w7 > $@.gen
 	head -n2 $@.gen
-	sort -k4,4 $@.rest.tmp | cut -f5 | sort | uniq -c | sort -nr > $@.ndir.tmp
 	wc -l    $@.*
+	make dirtraf_eval
+dirtraf_eval:
+	sort -k4,4 dirtraf.rest.tmp | cut -f4 | sort | uniq -c | sort -nr > $@.tmp
 #----
-inverse:
-	grep -E "^%" $(CAT) | grep -P "Inverse +(permutation +)?(of|to) +A" \
-	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{(of|to) (A\d+)}) { my $$rn = $$2; '\
-	' print join("\t", $$an, inverse, 0, "new $$rn()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
-	| grep -vE "A112846" \
-	| tee    $@.gen
-rinverse:
-	grep -E "^#" $(CAT) | grep -Pi "Inverse (of|is|is in|in) +€" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{Inverse (of|is|is in|in) +€(\d+)}i) { my $$rn = "A$$2"; '\
-	' print join("\t", $$rn, inverse, 0, "new $$an()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
-	| grep -vE "A112846" \
-	| tee -a $@.gen
-	wc -l    $@.gen
-#--------
-m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
-	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(CAT) | $(NYI) m1pow \
-	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
-	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
-	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
-	>        $@.gen
-	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-1\)\^n *\* *A\d+\(n\)[ \.\,]" $(CAT) | $(NYI) m1mul \
-	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
-	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
-	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
-	>>       $@.gen
-	head -n2 $@.gen
-	wc -l    $@.gen
-#--------
-nest3:
-#                                                                                1              | (               )          1
-	grep -P "^\%[NF] A\d+ +a\(n\) *\=" $(CAT) | grep -vP "€" | grep -P "A\d{6}\(([0-9\+\-\* n]+|\([0-9\+\-\* n]+\)[\*\+\- ]*)?A\d{6}\(n" \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-nest3a:
-	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
-	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
-	' print join("\t", $$ano, "nest3b", 0, $$rno, $$qno) ."\n";'\
-	| sort -k4,4 -k5,5 \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-nest3b:
-	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
-	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
-	' print join("\t", $$ano, "dirtraf", 0, "new $$rno()", "new $$qno()") ."\n";'\
-	| sort -k4,4 -k5,5 \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-nest3c:
-	cut -f1,4 nest3b.tmp | sort | uniq -w7 \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-	cd ../common ; make seq2 LIST=../robot/nest3c.tmp
-	$(DBAT) -x "SELECT s2.aseqno, s4.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
-	| tee    $@.txt
-	wc -l    $@.txt
-nest3d:
-	$(DBAT) -x "SELECT s2.aseqno, s4.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
-	| tee    $@.txt
-	wc -l    $@.txt
-#--------
-# Robot#1: Ordinary (rational) generating functions
-ogf: ogf1 ogf2
-ogf1: # extract
-	grep -E "%[SOFN]" $(CAT) \
-	| perl catex_gf.pl -d 0 \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-ogf2: # use JPREP to generate (num, den) tuples for rational o.g.f.s
-	$(JPREP) -f ogf1.tmp \
-	>        $@.tmp
-	grep -E "fract1" $@.tmp | sed -e "s/fract1/lingf/" \
-	| perl -ne 'my @f = split(/\t/); print if length($$f[4]) < 2048;' \
-	| grep -vE "A097097" \
-	>        $@.gen
-	head -n2 $@.gen
-	wc -l    $@.gen
-	mv -v    $@.gen ogf.gen
-	cp -v    ogf.gen ogf.`date +%Y-%m-%d`.gen
-fract21:
-	grep -E  "fract21" ogf2.tmp \
-	| sed -e "s/fract21/trigf/" \
-	>        $@.gen
-	tail -n2 $@.gen
-	wc -l    $@.gen
-fract22:
-	grep -E  "fract22" ogf2.tmp \
-	| sed -e "s/fract22/trigf/" \
-	>        $@.gen
-	tail -n2 $@.gen
-	wc -l    $@.gen
-fract2:
-	grep -P "^\%[NF]" ../../OEIS-mat/common/jcat25.txt | grep -P "[Gg]\.f\.\:? *[xy\(\)\/\*\^\+\-0-9 ]+\." | grep -vP "\.\.\." \
-	| sed -e "s/Expansion of //" -e "s/O\.g/G/" -e "s/\. - .*//" \
-	>        $@.gen
-	tail -n2 $@.gen
-	wc -l    $@.gen
-#--------
-ANCHOR=anch
-morfix:
-	grep -iP "(\d+) *\-\> *{ *\d" $(CAT) | grep -P "^\%[NFC]" | $(NYI) $@ \
-	| perl $@.pl -d $(D) -a $(ANCHOR) \
+expr: expr_pari subst_list expr_trans expr_post expr_gen
+expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
+	grep -P "^\%o" $(CAT) | cut -b4- \
+	| sed -e "s/ /\tlambda\t0\t/" \
+	| grep -P "^(A\d{6})\t\w+\t\S+\t *(PARI[^\)]*\))? *\{? *($$1\w*|a)\(n\) *\=" \
+	| perl   expr_pari.pl -d $(D) \
 	2>       $@.rest.tmp \
-	>        $@.gen
-	grep morfix $@.man >> $@.gen
-	head -n2 $@.gen
+	>        $@.txt
+	tail -n4 $@.txt $@.rest.tmp
+	# grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp || :
+	# grep -vP "binomial|stirling" $@.tmp >  $@.txt || :
+	cut -f3  $@.rest.tmp | sort | uniq -c | sort -n | tail -32
 	wc -l    $@*
-#--------
-ordtraf: # Ordinal transform of Annnnnn
-	grep -iP "Ordinal transform" $(CAT) | grep -P "^\%[NFY]" | $(NYI) $@ \
-	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
-	' if ($$name =~ m{[Oo]rdinal +transform +of[^A]+(A\d{6})}) { my $$rn1 = $$1;'\
-	' print        join("\t", $$aseqno, "$@" , 1, "new $$rn1()", "", $$name); } else {'\
-	' print STDERR "# $$aseqno $$name"; }' \
-	2>       $@.rest.tmp \
-	>        $@.gen
-	head -n2 $@.gen
-	wc -l    $@.gen $@.rest.tmp
-#----
-parity:
-	grep -iP "Parity of A\d+" $(CAT) | grep -P "^\%[NFCY]" | $(NYI) parity \
-	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
-	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
-	' print join("\t", $$aseqno, $$callcode, $$offset, "$$rn1", 1, $$name); }'\
-	>        $@.gen
-	head -n2 $@.gen
-	wc -l    $@.gen
-#----
-partprod:
-	grep -E "^%" $(CAT) | grep -P "Partial products of A" \
-	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, partprod, 0, "", "", "new $$rn()", $$line); } else { print "# $$line"; }}'\
-	| tee    $@.gen
-	wc -l    $@.gen
-#----
-partsum:
-	grep -E "^%" $(CAT) | grep -P "Partial sums of A" \
-	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, partsum, 0, $$rn, "", "", $$line); } else { print "# $$line"; }}'\
-	| grep -vE "A112846" \
-	| tee    $@.gen
-	wc -l    $@.gen
-#----
-reconcat: # extract recurrent concatenations from asdata
-	$(DBAT) -x "SELECT d.aseqno, d.termno, d.data, SUBSTR(n.name, 1, 96) FROM asdata d, asname n WHERE d.aseqno = n.aseqno \
-	  AND d.aseqno NOT IN (SELECT aseqno FROM joeis) \
-	  AND UPPER(n.name) LIKE '%CONCATENAT%';"\
-	| perl reconcat.pl \
-	| tee    $@.tmp
+subst_list: # print a sorted list of all values to be substituted
+	perl $@.pl expr_pari.txt \
+	| sort | uniq -c \
+	>        $@.tmp
+	# grep -P "Z\." $@.tmp || :
 	wc -l    $@.tmp
+expr_trans: # translate into jOEIS Z language
+	$(JPREP) -p expr.ttab -f expr_pari.txt -cc postrans \
+	>        $@.1.tmp
+	tail -n4 $@.1.tmp
+	grep -P  "\<\?" $@.1.tmp > $@.rest.tmp || :
+	grep -vP "\<\?" $@.1.tmp > $@.tmp || :
+	tail -n4 $@.tmp $@.rest.tmp
+	wc -l    $@*.tmp
+expr_post: # postprocess: substitute variables in expression
+	perl $@.pl -d 1 expr_trans.tmp \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+expr_gen:
+	grep -E "^A[0-9]" expr_post.tmp | sort | uniq -w7 \
+	>        $@.gen
+	tail -n4 $@.gen
+	wc -l    $@.gen
+#--
+expr_mma: # Mathematica; uniq -w takes first row only
+	grep -P "^\%t " $(CAT) | cut -b4- | uniq -w7 \
+	| grep -iP "^A\d+ +Table\[" \
+	| sed -e "s/ /\tlambda\t0\t/" \
+	| perl expr_mma.pl -d $(D) \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@*.tmp
+	cut -f1  $@.rest.tmp | sort | uniq -c | sort -n | tail -n64
+	perl expr_pari.pl $@.tmp \
+	2>       expr_pari.rest.tmp \
+	>        expr_pari.txt
+	wc -l    expr_pari*.t*
+	make expr_trans expr_post expr_gen
+expr_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) * binomial(n+2*k-1,n-k)/k!.
+	grep -P "^\%[NF]" $(CAT) | cut -b4- \
+	| sed -e "s/ /\tlambda\t0\t/" \
+	| perl expr_oeis.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	tail -n4 $@.tmp $@.rest.tmp
+	wc -l    $@.tmp
+	perl expr_pari.pl $@.tmp \
+	2>       expr_pari.rest.tmp \
+	>        expr_pari.txt
+	tail -n4 expr_pari.txt expr_pari.rest.tmp
+	wc -l    expr_pari*.t*
+	make expr_trans expr_post expr_gen
 #----
 filter: # selects only " in ", does not work
 	grep -P "([A-Z]\w+ )([^i]\w+ )*in A\d{6}" $(CAT) | grep -P "^\%[NF]" | $(NYI) $@ \
@@ -371,6 +288,34 @@ filtpospri:
 	' print join("\t", $$aseqno, "filtpos", $$offset, 1, "new $$rn1()", "PRIME", $$name); }'\
 	>        $@.gen
 	head -n2 $@.gen
+	wc -l    $@.gen
+#----
+form_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
+	grep -P "^\%o" $(CAT) | cut -b4- \
+	| sed -e "s/ /\tlambda\t0\t/" \
+	| grep -P "^(A\d{6})\t\w+\t\S+\t *(PARI[^\)]*\))? *\{? *(\w\d{6}\w*|a)\(n\) *\=" \
+	| grep -vP "\bmy\b" \
+	| perl   form_pari.pl -d $(D) \
+	2>       $@.rest.tmp \
+	>        $@.txt
+	tail -n4 $@.txt $@.rest.tmp
+	wc -l    $@*.t*
+#----
+inverse:
+	grep -E "^%" $(CAT) | grep -P "Inverse +(permutation +)?(of|to) +A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{(of|to) (A\d+)}) { my $$rn = $$2; '\
+	' print join("\t", $$an, inverse, 0, "new $$rn()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A112846" \
+	| tee    $@.gen
+rinverse:
+	grep -E "^#" $(CAT) | grep -Pi "Inverse (of|is|is in|in) +€" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{Inverse (of|is|is in|in) +€(\d+)}i) { my $$rn = "A$$2"; '\
+	' print join("\t", $$rn, inverse, 0, "new $$an()", 1, 1, "", $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A112846" \
+	| tee -a $@.gen
 	wc -l    $@.gen
 #----
 # grep A-numbers of known functions
@@ -458,6 +403,145 @@ knownf3: # select "pure" applications
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+#--------
+m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
+	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(CAT) | $(NYI) m1pow \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/);'\
+	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
+	>        $@.gen
+	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-1\)\^n *\* *A\d+\(n\)[ \.\,]" $(CAT) | $(NYI) m1mul \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{(A\d+)}) { my $$rn = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, $$rn, $$name); }'\
+	>>       $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+#--------
+ANCHOR=anch
+morfix:
+	grep -iP "(\d+) *\-\> *{ *\d" $(CAT) | grep -P "^\%[NFC]" | $(NYI) $@ \
+	| perl $@.pl -d $(D) -a $(ANCHOR) \
+	2>       $@.rest.tmp \
+	>        $@.gen
+	grep morfix $@.man >> $@.gen
+	head -n2 $@.gen
+	wc -l    $@*
+#--------
+nest3:
+#                                                                                1              | (               )          1
+	grep -P "^\%[NF] A\d+ +a\(n\) *\=" $(CAT) | grep -vP "€" | grep -P "A\d{6}\(([0-9\+\-\* n]+|\([0-9\+\-\* n]+\)[\*\+\- ]*)?A\d{6}\(n" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+nest3a:
+	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
+	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
+	' print join("\t", $$ano, "nest3b", 0, $$rno, $$qno) ."\n";'\
+	| sort -k4,4 -k5,5 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+nest3b:
+	grep -P "a\(n\) *\= *A\d{6}\(A\d{6}\(n\)\)\." nest3.tmp \
+	| perl -ne 'm{(A\d+) *a\(n\) *\= *(A\d{6})\((A\d{6})}; my ($$ano, $$rno, $$qno) = ($$1, $$2, $$3);'\
+	' print join("\t", $$ano, "dirtraf", 0, "new $$rno()", "new $$qno()") ."\n";'\
+	| sort -k4,4 -k5,5 \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+nest3c:
+	cut -f1,4 nest3b.tmp | sort | uniq -w7 \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	cd ../common ; make seq2 LIST=../robot/nest3c.tmp
+	$(DBAT) -x "SELECT s2.aseqno, s4.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
+	| tee    $@.txt
+	wc -l    $@.txt
+nest3d:
+	$(DBAT) -x "SELECT s2.aseqno, s4.aseqno FROM seq2 s2, seq4 s4 WHERE s2.info = s4.aseqno ORDER BY 1" \
+	| tee    $@.txt
+	wc -l    $@.txt
+#--------
+# Robot#1: Ordinary (rational) generating functions
+ogf: ogf1 ogf2
+ogf1: # extract
+	grep -E "%[SOFN]" $(CAT) \
+	| perl catex_gf.pl -d 0 \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+ogf2: # use JPREP to generate (num, den) tuples for rational o.g.f.s
+	$(JPREP) -f ogf1.tmp \
+	>        $@.tmp
+	grep -E "fract1" $@.tmp | sed -e "s/fract1/lingf/" \
+	| perl -ne 'my @f = split(/\t/); print if length($$f[4]) < 2048;' \
+	| grep -vE "A097097" \
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+	mv -v    $@.gen ogf.gen
+	cp -v    ogf.gen ogf.`date +%Y-%m-%d`.gen
+fract21:
+	grep -E  "fract21" ogf2.tmp \
+	| sed -e "s/fract21/trigf/" \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
+fract22:
+	grep -E  "fract22" ogf2.tmp \
+	| sed -e "s/fract22/trigf/" \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
+fract2:
+	grep -P "^\%[NF]" ../../OEIS-mat/common/jcat25.txt | grep -P "[Gg]\.f\.\:? *[xy\(\)\/\*\^\+\-0-9 ]+\." | grep -vP "\.\.\." \
+	| sed -e "s/Expansion of //" -e "s/O\.g/G/" -e "s/\. - .*//" \
+	>        $@.gen
+	tail -n2 $@.gen
+	wc -l    $@.gen
+#--------
+ordtraf: # Ordinal transform of Annnnnn
+	grep -iP "Ordinal transform" $(CAT) | grep -P "^\%[NFY]" | $(NYI) $@ \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{[Oo]rdinal +transform +of[^A]+(A\d{6})}) { my $$rn1 = $$1;'\
+	' print        join("\t", $$aseqno, "$@" , 1, "new $$rn1()", "", $$name); } else {'\
+	' print STDERR "# $$aseqno $$name"; }' \
+	2>       $@.rest.tmp \
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen $@.rest.tmp
+#----
+parity:
+	grep -iP "Parity of A\d+" $(CAT) | grep -P "^\%[NFCY]" | $(NYI) parity \
+	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
+	' if ($$name =~ m{(A\d+)}) { my $$rn1 = $$1;'\
+	' print join("\t", $$aseqno, $$callcode, $$offset, "new $$rn1()", 1, $$name); }'\
+	>        $@.gen
+	head -n2 $@.gen
+	wc -l    $@.gen
+#----
+partprod:
+	grep -E "^%" $(CAT) | grep -P "Partial products of A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, partprod, 0, "", "", "new $$rn()", $$line); } else { print "# $$line"; }}'\
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+partsum:
+	grep -E "^%" $(CAT) | grep -P "Partial sums of A" \
+	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
+	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
+	' print join("\t", $$an, partsum, 0, $$rn, "", "", $$line); } else { print "# $$line"; }}'\
+	| grep -vE "A112846" \
+	| tee    $@.gen
+	wc -l    $@.gen
+#----
+prepend: # Simple skip/prepending
+	grep -iP "^\%[NFC] +(a\(n\) *\= *)?(\{ *\-?\d+(\, *\-?\d+)* *\} *U *)?A\d+ A\d{6}( *[U\\\\] *\{ *\-?\d+(\, *\-?\d+)* *\} *)?[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
+	| tee    $@.gen
+	wc -l    $@.gen
 #----
 primpos:
 	grep -P "Indices of primes " $(CAT) | grep -P "^\%" | $(NYI) filtpos \
@@ -466,6 +550,14 @@ primpos:
 	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#----
+reconcat: # extract recurrent concatenations from asdata
+	$(DBAT) -x "SELECT d.aseqno, d.termno, d.data, SUBSTR(n.name, 1, 96) FROM asdata d, asname n WHERE d.aseqno = n.aseqno \
+	  AND d.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  AND UPPER(n.name) LIKE '%CONCATENAT%';"\
+	| perl reconcat.pl \
+	| tee    $@.tmp
+	wc -l    $@.tmp
 #----
 recval:
 	grep -P                    "\ (Records|Record values|Record high values|Numbers that set new records) (in|of) (A\d{6})" $(CAT) | grep -P "^\%" | $(NYI) $@ \
@@ -512,69 +604,6 @@ simtraf:
 	grep -iP "^\%[NFC] +(a\(n\) *\= *)?([\-\+]? *\d+ *[\+\-\*] *)?A\d+ A\d{6}(\(n([\+\-]\d+)?\))? *([\+\-\*\/\!\^] *\d+| +mod +\d+)[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
 	| tee    $@.gen
 	wc -l    $@.gen
-prepend: # Simple skip/prepending
-	grep -iP "^\%[NFC] +(a\(n\) *\= *)?(\{ *\-?\d+(\, *\-?\d+)* *\} *U *)?A\d+ A\d{6}( *[U\\\\] *\{ *\-?\d+(\, *\-?\d+)* *\} *)?[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
-	| tee    $@.gen
-	wc -l    $@.gen
-#----
-tuptraf: # tuple transformations
-	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?(\d+ *[\*\+\-])? *A\d+\(n\) *([\+\-\*\/\^] *(A\d+\(n\)|n|\d+))+ *[fiw\.\:\,\=\;]" $(CAT) | grep -P "^%[NF]" | grep -vP "€" \
-	| tee    $@.man
-	wc       $@.man
-#
-#	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?" $(CAT) | cut -b4- \
-#	| perl tuptraf.pl \
-#	| tee    $@.gen
-#	wc       $@.gen
-#----
-expr: expr_pari subst_list expr_trans expr_post expr_gen
-expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
-	grep -P "^\%o" $(CAT) | cut -b4- \
-	| sed -e "s/ /\tlambda\t0\t/" \
-	| grep -P "^(A\d{6})\t\w+\t\S+\t *(PARI[^\)]*\))? *\{? *($$1\w*|a)\(n\) *\=" \
-	| perl   expr_pari.pl -d $(D) \
-	2>       $@.rest.tmp \
-	>        $@.txt
-	tail -n4 $@.txt $@.rest.tmp
-	# grep  -P "binomial|stirling" $@.tmp >> $@.rest.tmp || :
-	# grep -vP "binomial|stirling" $@.tmp >  $@.txt || :
-	cut -f3  $@.rest.tmp | sort | uniq -c | sort -n | tail -32
-	wc -l    $@*
-subst_list: # print a sorted list of all values to be substituted
-	perl $@.pl expr_pari.txt \
-	| sort | uniq -c \
-	>        $@.tmp
-	# grep -P "Z\." $@.tmp || :
-	wc -l    $@.tmp
-expr_trans: # translate into jOEIS Z language
-	$(JPREP) -p expr.ttab -f expr_pari.txt -cc postrans \
-	>        $@.1.tmp
-	tail -n4 $@.1.tmp
-	grep -P  "\<\?" $@.1.tmp > $@.rest.tmp || :
-	grep -vP "\<\?" $@.1.tmp > $@.tmp || :
-	tail -n4 $@.tmp $@.rest.tmp
-	wc -l    $@*.tmp
-expr_post: # postprocess: substitute variables in expression
-	perl $@.pl -d 1 expr_trans.tmp \
-	>        $@.tmp
-	tail -n4 $@.tmp
-	wc -l    $@.tmp
-expr_gen:
-	grep -E "^A[0-9]" expr_post.tmp | sort | uniq -w7 \
-	>        $@.gen
-	tail -n4 $@.gen
-	wc -l    $@.gen
-#----
-form_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
-	grep -P "^\%o" $(CAT) | cut -b4- \
-	| sed -e "s/ /\tlambda\t0\t/" \
-	| grep -P "^(A\d{6})\t\w+\t\S+\t *(PARI[^\)]*\))? *\{? *(\w\d{6}\w*|a)\(n\) *\=" \
-	| grep -vP "\bmy\b" \
-	| perl   form_pari.pl -d $(D) \
-	2>       $@.rest.tmp \
-	>        $@.txt
-	tail -n4 $@.txt $@.rest.tmp
-	wc -l    $@*.t*
 #----
 sum_prog: sum_pari sum_list sum_oeis sum_maple sum_mma sum_mma0
 sum_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
@@ -593,35 +622,6 @@ sum_list: # get the A-numbers of sumbingp
 	cut -f1  sum_pari.txt | sort | uniq -w7 \
 	>        $@.tmp
 	wc -l    $@.tmp
-expr_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) * binomial(n+2*k-1,n-k)/k!.
-	grep -P "^\%[NF]" $(CAT) | cut -b4- \
-	| sed -e "s/ /\tlambda\t0\t/" \
-	| perl expr_oeis.pl \
-	2>       $@.rest.tmp \
-	>        $@.tmp
-	tail -n4 $@.tmp $@.rest.tmp
-	wc -l    $@.tmp
-	perl expr_pari.pl $@.tmp \
-	2>       expr_pari.rest.tmp \
-	>        expr_pari.txt
-	tail -n4 expr_pari.txt expr_pari.rest.tmp
-	wc -l    expr_pari*.t*
-	make expr_trans expr_post expr_gen
-expr_mma: # Mathematica; uniq -w takes first row only
-	grep -P "^\%t " $(CAT) | cut -b4- | uniq -w7 \
-	| grep -iP "^A\d+ +Table\[" \
-	| sed -e "s/ /\tlambda\t0\t/" \
-	| perl expr_mma.pl -d $(D) \
-	2>       $@.rest.tmp \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@*.tmp
-	cut -f1  $@.rest.tmp | sort | uniq -c | sort -n | tail -n64
-	perl expr_pari.pl $@.tmp \
-	2>       expr_pari.rest.tmp \
-	>        expr_pari.txt
-	wc -l    expr_pari*.t*
-	make expr_trans expr_post expr_gen
 #--
 sum_maple: # Maple
 	grep -P "^\%p" $(CAT) | cut -b4- \
@@ -659,6 +659,16 @@ trisum:
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
+tuptraf: # tuple transformations
+	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?(\d+ *[\*\+\-])? *A\d+\(n\) *([\+\-\*\/\^] *(A\d+\(n\)|n|\d+))+ *[fiw\.\:\,\=\;]" $(CAT) | grep -P "^%[NF]" | grep -vP "€" \
+	| tee    $@.man
+	wc       $@.man
+#
+#	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?" $(CAT) | cut -b4- \
+#	| perl tuptraf.pl \
+#	| tee    $@.gen
+#	wc       $@.gen
+#----
 union:
 	# Union of 2 or 3 sequences (sorted, without duplicates)
 	grep -E "^%[NCFY]" $(CAT) | grep -iP "Union of" | $(NYI) union2 \
@@ -667,10 +677,4 @@ union:
 	| grep -vE "A091898|A177457|A274994|A277334|A281265|A331669|A343222|A356301" \
 	| tee    $@.gen
 	wc -l    $@.*
-#----
-compound0: # prepare for CompoundSequence
-	grep -P "^\%[NF] A\d+ +a\(n\) *\=[n0-9\(\)\+\-\^\*\!\/ ]*a[n0-9\(\)\+\-\^\*\!\/ ]*[\.fw\,\;]" $(CAT) \
-	| grep -viP "\.\.\.|floor|ceil|mod|sum|a\(2" \
-	| tee   $@.tmp
-	wc -l   $@.tmp
-	
+#----	

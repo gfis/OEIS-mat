@@ -20,7 +20,7 @@ use integer;
 use warnings;
 use POSIX;
 
-my $version = "V1.2";
+my $version = "V1.3";
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time);
 my $timestamp = sprintf("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
@@ -28,6 +28,7 @@ my @parts = split(/\s+/, asctime(localtime(time)));  #  "Fri Jun  2 18:22:13 200
 #                                             0   1    2 3        4
 my $sigtime = sprintf("%s %02d %04d", $parts[1], $parts[2], $parts[4]);
 #----
+my $debug   = 0;
 my $mapnum  = 256;
 my $timeout = 32;
 my $maple   = "\"C:/Program Files/Maple 2022/bin.X86_64_WINDOWS/cmaple.exe\"";
@@ -42,6 +43,8 @@ Gfis
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
+    } elsif ($opt  =~ m{d}) {
+        $debug   = shift(@ARGV);
     } elsif ($opt  =~ m{n}) {
         $mapnum  = shift(@ARGV);
     } elsif ($opt  =~ m{p}) {
@@ -57,15 +60,15 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
             }
         } # while <PAT>
         close(PAT);
-        if (0 and $empty_line == 0) { # no empty line => prefix with header
-            my $header = <<'GFis';
-read "C:\\Program Files\\Maple 2019\\FPS.mpl":
-interface(prettyprint=0):
-with(gfun):
-
-GFis
-            $pattern = $header . $pattern;
-        }
+#         if (0 and $empty_line == 0) { # no empty line => prefix with header
+#             my $header = <<'GFis';
+# read "C:\\Program Files\\Maple 2019\\FPS.mpl":
+# interface(prettyprint=0):
+# with(gfun):
+# 
+# GFis
+#            $pattern = $header . $pattern;
+#         }
     } elsif ($opt  =~ m{t}) {
         $timeout = shift(@ARGV);
     } else {
@@ -74,6 +77,9 @@ GFis
 } # while $opt
 #----
 my ($pat1, $pat5) = split(/\n\n/, $pattern);
+if ($debug >= 2) {
+    print "# pat1=$pat1\n\n#pat5=$pat5\n\n";
+}
 #----
 my $buffer = ""; # for $mapnum input lines
 my $count = 0;
@@ -82,10 +88,13 @@ while (<>) {
     my $line = $_;
     $line =~ s{\s+\Z}{}; # chompr
     my @parms = split(/\t/, $line);
+    if ($debug >= 1) {
+        print "# @parms=" . join("\t", @parms) . "\n";
+    }
     my $copy = $pat5;
     $copy =~ s{\$\(TIMEOUT\)} {$timeout}g;
     for (my $iparm = 0; $iparm < scalar(@parms); $iparm ++) {
-    	$copy =~ s{\$\(PARM$iparm\)}  {$parms[$iparm]}g;
+        $copy =~ s{\$\(PARM$iparm\)}  {$parms[$iparm]}g;
     }
     $buffer .= "$copy";
     $count ++;

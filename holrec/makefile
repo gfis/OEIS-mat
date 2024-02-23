@@ -100,7 +100,13 @@ recogf2:
 	>          $@.tmp
 	head -n4   $@.tmp
 	wc -l      $@.tmp
-#
+#----
+findre:
+	grep -E "^A[0-9]" holalgeq.man | grep -v FAIL \
+	| $(JPREP) -cc bva -f - \
+	>          $@.tmp
+	head -n4   $@.tmp
+	wc -l      $@.tmp
 #----
 setofs: # LIST= ; update $(OFFSET)
 	#==== $@ LIST=$(LIST)
@@ -814,18 +820,18 @@ hologfm: # use hologf.mpat for manual subset of RM's conjectures
 	grep -E "^A[0-9]" $@.man | grep hologf > hologf2.tmp
 	make hologf3 hologf4
 #--------
-satis:
+satis: satis1 satis3 satis4
+satis1:
 	grep -Ei "satisfies" $(COMMON)/jcat25.txt \
-	| grep -E "^\%" \
-	| grep -vE "Decimal expansion|E\.\g\.\f\.|adic integer" \
+	| grep -P "^\%" \
+	| grep -vP "Decimal expansion|E\.\g\.\f\.|adic integer" \
 	| perl satis.pl \
-	>        $@.tmp
-	grep -E  "\?\?" $@.tmp > $@.rest.tmp
-	grep -vE "\?\?" $@.tmp \
-	| sort | uniq -w7 \
-	> $@.gen
-	head -n4 $@.gen
-	wc -l    $@.gen $@.*tmp
+	>               satis.tmp
+	grep -P  "\?\?" satis.tmp > satis.rest.tmp
+	grep -vP "\?\?" satis.tmp | sort | uniq -w7 \
+	>        satis.gen
+	head -n4 satis.gen
+	wc -l    satis.gen satis.*tmp
 satis3: # attach the initial values
 	sort satis.gen | uniq -w7 \
 	| sed -e "s/\t0\t/\tx\t/" > $@.tmp
@@ -837,14 +843,23 @@ satis3: # attach the initial values
 	head -n4 $@.tmp
 	wc       $@*.tmp
 satis4:
-	cat satis3.tmp \
-	| sed -e "s/satis/holalg/" \
-	| perl $(COMMON)/callmap22.pl -t 8 -n 16 -p holalg.mpat \
+	cat satis.gen \
+	| sed -e "s/satis/alghol/" \
+	| perl $(COMMON)/callmap22.pl -t 8 -n 8 -p alg_hol.mpat \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	grep -E "^A[0-9]*" $@.tmp | wc -l
 	
+holalg: # manual
+	cat $(FISCHER)/aman/holalg.man \
+	| sed -e "s/holalg/alghol/" \
+	| perl $(COMMON)/callmap22.pl -t 8 -n 8 -p alg_hol.mpat \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+	grep -E "^A[0-9]*" $@.tmp | wc -l
+
 #----
 sq1:
 	perl -ne "print if m{\A\%\w\s+(A\d+)\s+(([EO]\.)?G\.f\.\:?|Expansion of)\s*(\d+)\s*\/\s*sqrt\(1\s*[\+\-]\s*(\d*)\s*\*?\s*x\)\s*\.}i" $(COMMON)/jcat25.txt \

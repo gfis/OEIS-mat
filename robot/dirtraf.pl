@@ -51,16 +51,29 @@ print STDERR "# $count DirectSequences read\n";
 while (<>) {
     next if ! m{\AA\d\d+};
     s{\s+\Z}{}; # chompr
-    my ($aseqno, $callcode, $offset, $expr, @rest) = split(/\t/);
-    #              1    1  2    2
-    if ($expr =~ m{(A\d+)\((A\d+)\(n\)\)}) {
-        my ($dseqno, $rseqno ) = ($1, $2);
+    my ($aseqno, $callcode, $offset, $nest, @rest) = split(/\t/);
+    $callcode = "dirtraf";
+    my $parm3 = "";
+    my $parm4 = "";
+    #              1    1  2    2       3  3
+    if ($nest =~ m{(A\d+)\((A\d+)\(n\)\)(.*)}) {
+        my ($dseqno, $rseqno, $expr) = ($1, $2, $3);
+        $expr =~ s{ }{}g;
+        if (length($expr) > 0) {
+            if(0) {
+            } elsif ($expr =~ m{\A([\+\-\*\/])(\d+|n)}) {
+                $parm3 = "(n, v) -> v.$1($2)";
+                $callcode = "dirtral";
+                $parm3 = "";
+            }
+        }
+        my $seq4 = join("\t", $aseqno, $callcode, 0, "new $dseqno()", "new $rseqno()", $parm3, $parm4, $nest, @rest) ."\n";
         if (0) {
-        } elsif (defined($dirs{$dseqno})) {
+        } elsif (defined( $dirs{$dseqno})) {
             my $offset1 = $dirs{$dseqno};
-            print        join("\t", $aseqno, "dirtraf", 0, "new $dseqno()", "new $rseqno()", "", "") ."\n";
+            print        $seq4;
         } else {
-            print STDERR join("\t", $aseqno, "nodir"  , 0, "new $dseqno()", "new $rseqno()", "", "$expr") ."\n";
+            print STDERR $seq4;
         }
     } # foreach
 } # foreach $line

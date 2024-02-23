@@ -192,6 +192,7 @@ A055642	knowna	27	Z.valueOf(v.toString().length())	Number of digits in the decim
 A055881	knownd	6		a(n) = largest m such that m! divides n.
 A056239	knownd	9		If n = Product_{k >= 1} (p_k)^(c_k) where p_k is k-th prime and c_k >= 0 then a(n) = Sum_{k >= 1} k*c_k.
 A056737	knowna	7		Minimum nonnegative integer m such that n = k*(k+m) for some positive integer k.
+A057427	knowna	0	(n == 0) ? Z.ZERO : Z.ONE
 A060854	knowna	7		Array T(m,n) read by antidiagonals: T(m,n) (m >= 1, n >= 1) = number of ways to arrange the numbers 1,2,...,m*n in an m X n matrix so that each row and each column is increasing.
 A061395	knowna	5	v.equals(Z.ONE) ? Z.ZERO : Puma.primePiZ(Jaguar.factor(v).largestPrimeFactor())	Let p be the largest prime factor of n; if p is the k-th prime then set a(n) = k; a(1) = 0 by convention.
 A062731	knowna	0	Jaguar.factor(v.multiply2()).sigma()	sigma(2*n)
