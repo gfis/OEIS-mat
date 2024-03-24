@@ -1,7 +1,8 @@
 #!perl
 
-# Extract formulas for sums of triangles (G.A.)
+# Extract formulas for sums of sequences
 # @(#) $Id$
+# 2024-02-28: reattempt; *HHS=78
 # 2023-06-13, Georg Fischer
 #
 #:# Usage:
@@ -73,7 +74,7 @@ sub norm_output {
             } elsif ($part =~ m{\A[\+\-]\Z}) { # ignore delimiter
             #                     1    2       2 13         3
             } elsif ($part =~ s{\A(A\d+(\@_?\d+)?)([\*\/\d]+)\Z}{$3\*$1}) { # Axxxxxx [*/] factor: put factor at the front
-            } elsif ($part =~ m{\A[\d\*\/]*A\d+(\@_?\d+)?\Z}) { # factor * Axxxxx ok
+            } elsif ($part =~ m{\A[\d\*\/]*A\d+(\@_?\d+)?\Z}) { # factor * Axxxxxx ok
             } elsif ($part =~ m{\A\d+\Z}) { # constant: leave it
             } else { 
                 $nok = $ip + 1; # > 0: syntax error
@@ -82,7 +83,7 @@ sub norm_output {
             $ip ++;
         } # while
         if (scalar(@parts) < 2) { 
-        	$nok = -1;
+            $nok = -1;
         }
         if ($nok == 0) {
             $summands = join(" ", @parts);

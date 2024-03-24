@@ -90,7 +90,7 @@ while (<>) {
         my $rseqno = "";
         my $colno  = -1;
         if (0) {
-        } elsif ($mode eq "r" && $name =~ m{row sum}i) {
+        } elsif ($mode eq "r" && ($name =~ m{row sum}i)) {
             if (0) {
             } elsif ($name =~ m{[Rr]ow sums? (of|for)[^A\.\,]*(A\d+)}) {
                 $rseqno = $2;
@@ -111,7 +111,7 @@ while (<>) {
                 $choice = 5;
             }
             # contained "row sum"
-        } elsif ($mode eq "c" && $name =~ m{column}i) {
+        } elsif ($mode eq "c" && ($name =~ m{column}i)) {
             if (0) {
             } elsif ($name =~ m{[Cc]olumn (k *\= *)?(\d+) of[^A\.\,]*(A\d+)}) {
                 $colno  = $2;
@@ -123,7 +123,7 @@ while (<>) {
                 $choice = 8;
             }
             # contained "column"
-        } elsif ($mode eq "s") && $name =~ m{column|diagonal}i) {
+        } elsif ($mode eq "s" && ($name =~ m{column|diagonal}i)) {
             if (0) {
             } elsif ($name =~ m{[Cc]olumn (k *\= *)?(\d+) of[^A\.\,]*(A\d+)}) {
                 $colno  = $2;

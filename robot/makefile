@@ -192,6 +192,9 @@ dirtraf:
 dirtraf_eval:
 	sort -k4,4 dirtraf.rest.tmp | cut -f4 | sort | uniq -c | sort -nr > $@.tmp
 #----
+egfbin: # Seichii's e.g.f.s
+	grep -P "^\%o A3\d+ +\(PARI\) *a\(n\) *\= *" $(CAT) | cut -b4- | grep -viP "\{|my|for|vec|pol|subst|ser|mat|\Sa\(|lift|truncate|fromdigits"
+#----
 expr: expr_pari subst_list expr_trans expr_post expr_gen
 expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
 	grep -P "^\%o" $(CAT) | cut -b4- \
@@ -520,23 +523,30 @@ parity:
 	wc -l    $@.gen
 #----
 partprod:
-	grep -E "^%" $(CAT) | grep -P "Partial products of A" \
-	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, partprod, 0, "", "", "new $$rn()", $$line); } else { print "# $$line"; }}'\
+	grep -P "Partial products of " $(CAT) | grep -E "^%" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A\%\w (A\d+) *}{}) { my $$an = $$1; my $$rn = "A00____"; '\
+	' if ($$line =~ m{products of (A\d+)}) { $$rn = $$1; '\
+	' print        join("\t", $$an, partprod, 0, "new $$rn()", "", "", $$line); } elsif ($$line !~ m{€}) { '\
+	' print STDERR join("\t", $$an, partprod, 0, "new $$rn()", "", "", $$line); }}' \
+	>        $@.tmp \
+	2>       $@.rest.tmp
+	grep -vE "A112846" $@.tmp \
+	| sort | uniq -w7 \
 	| tee    $@.gen
-	wc -l    $@.gen
+	wc -l    $@.gen $@.rest.tmp
 #----
 partsum:
-	grep -E "^%" $(CAT) | grep -P "Partial sums of A" \
-	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
-	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
-	' if ($$line =~ m{of (A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, partsum, 0, $$rn, "", "", $$line); } else { print "# $$line"; }}'\
-	| grep -vE "A112846" \
+	grep -P "Partial sums of " $(CAT) | grep -E "^%" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A\%\w (A\d+) *}{}) { my $$an = $$1; my $$rn = "A00____"; '\
+	' if ($$line =~ m{sums of (A\d+)}) { $$rn = $$1; '\
+	' print        join("\t", $$an, partsun, 0, "new $$rn()", "", "", $$line); } elsif ($$line !~ m{€}) { '\
+	' print STDERR join("\t", $$an, partsun, 0, "new $$rn()", "", "", $$line); }}' \
+	>        $@.tmp \
+	2>       $@.rest.tmp
+	grep -vE "A112846" $@.tmp \
+	| sort | uniq -w7 \
 	| tee    $@.gen
-	wc -l    $@.gen
+	wc -l    $@.gen $@.rest.tmp
 #----
 prepend: # Simple skip/prepending
 	grep -iP "^\%[NFC] +(a\(n\) *\= *)?(\{ *\-?\d+(\, *\-?\d+)* *\} *U *)?A\d+ A\d{6}( *[U\\\\] *\{ *\-?\d+(\, *\-?\d+)* *\} *)?[\.\,\;\:\!a-z]" $(CAT) | $(NYI) simtraf \
@@ -663,11 +673,11 @@ tuptraf: # tuple transformations
 	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?(\d+ *[\*\+\-])? *A\d+\(n\) *([\+\-\*\/\^] *(A\d+\(n\)|n|\d+))+ *[fiw\.\:\,\=\;]" $(CAT) | grep -P "^%[NF]" | grep -vP "€" \
 	| tee    $@.man
 	wc       $@.man
-#
-#	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?" $(CAT) | cut -b4- \
-#	| perl tuptraf.pl \
-#	| tee    $@.gen
-#	wc       $@.gen
+tt2:
+	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?" $(CAT) | cut -b4- \
+	| perl tuptraf.pl \
+	| tee    $@.gen
+	wc       $@.gen
 #----
 union:
 	# Union of 2 or 3 sequences (sorted, without duplicates)

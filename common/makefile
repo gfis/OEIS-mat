@@ -976,4 +976,31 @@ mathconi: # implemented conjectures of RM
 	| sed -e "s/^\%I/\n\%I/" \
 	>        $@.man
 	uedit64  $@.man
-	
+pari_tnk:
+	grep -P "^%o A\d+ +\(PARI\) +\w\(n\, *[i-n]\) \=" jcat25.txt | sed -e "s/ //g" | cut -b3- \
+	| sed -e "s/(PARI)/\ttrilamb\t0\t/" -e "s/\=/ -> /" | sort -k4,4 -k6,6 \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----
+tabfnyi: # nyi tabf
+	grep -Pi "^%K.*\btabf\b" jcat25.txt  \
+	>        $@.0.tmp
+	cut -b4-11 $@.0.tmp | uniq \
+	>        $@.1.tmp
+	wc -l    $@.1.tmp
+	grep -f  $@.1.tmp jcat25.txt \
+	| sed -e "s/^\%I/\n\%I/" \
+	>        $@.man
+	uedit64  $@.man
+#----
+dyck: # nyi tabf
+	grep -Pi "Dyck" joeis_names.txt  \
+	| cut -b1-7 | uniq \
+	>        $@.1.tmp
+	wc -l    $@.1.tmp
+	grep -f  $@.1.tmp jcat25.txt \
+	| grep -P "^%[Np]" \
+	| sed -e "s/^%N/\n%N/" -e "s/^\%p A[0-9]* //" \
+	>        $@.man
+	uedit64  $@.man
+
