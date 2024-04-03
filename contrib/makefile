@@ -224,6 +224,7 @@ NYI="#\?"
 subdir:
 	mkdir $(DIR) || :
 	grep -P "$(NAME)" $(COMMON)/joeis_names.txt \
+	| perl -ne 'use strict; my @f = split(/\t/); $$f[1] =~ s/ /_/g; $$f[1] = substr($$f[1] . "________", 0, 8); print join("\t", @f);' \
 	| perl ../common/nyi.pl -p | cut -b1- \
 	> $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
@@ -244,6 +245,9 @@ iglist:
 	make subdir DIR=ig  NAME="Gutkovskiy"
 jvplist:
 	make subdir DIR=jvp NAME="Vos Post"
+lelist:
+	make subdir DIR=le  NAME=Elemer
+	sort -k3 le/lelist.txt > le/lesort.txt
 oglist:
 	make subdir DIR=og  NAME=Olivier
 oplist:                 
