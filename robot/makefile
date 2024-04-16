@@ -430,6 +430,23 @@ morfix:
 	grep morfix $@.man >> $@.gen
 	head -n2 $@.gen
 	wc -l    $@*
+#----
+multraf: multraf1 multraf2 multraf3
+multraf1:
+	grep -P "^%[NF] +A\d+ +a\(n\) *\=" $(CAT) \
+	| perl cutuple.pl \
+	| grep -vE "€" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+multraf2:
+	perl multraf_prep.pl multraf1.tmp \
+	| sort -k4 | uniq \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+multraf3:
+
 #--------
 nest3:
 #                                                                                1              | (               )          1
@@ -669,7 +686,26 @@ trisum:
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
-tuptraf: # tuple transformations
+tuptraf0:
+	grep -P "^%[NF] +A\d+ +a\(n\) *\=" $(CAT) \
+	| perl cutuple.pl \
+	| grep -vE "€" \
+	| sort -k4 \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+tuptrafd:
+	grep -P "^%[NF] +A\d+ +a\(n\) *\=" $(CAT) \
+	| perl cutuple.pl -d 1 | less
+tuptraf:
+	cat tuptraf0.tmp \
+	| grep -P "^%[NF] +A\d+ +a\(n\) *\=[a-z0-9 \+\-\/\*\(\)\^]*A\d+\(n\) *([\+\-\*\/\^]|mod|and|or|xor) *A\d+\(n\)[a-z0-9 \+\-\/\*\(\)\^]*[\;\,\:\.\=]" \
+	| cut -b4- \
+	| sed -e "s/ *a(n) *\= */\t/" -e "s/[\;\,\:\.\=].*//" -e "s/ of //g" -e "s/numerator/num/" -e "s/denominator/den/" -e "s/ //g" \
+	| sort -k2 \
+	| tee $@.tmp
+#----
+tuptraf9: # tuple transformations
 	grep -P "^%[NF] A\d+ *a\(n\) *\= *(\-)?(\d+ *[\*\+\-])? *A\d+\(n\) *([\+\-\*\/\^] *(A\d+\(n\)|n|\d+))+ *[fiw\.\:\,\=\;]" $(CAT) | grep -P "^%[NF]" | grep -vP "€" \
 	| tee    $@.man
 	wc       $@.man

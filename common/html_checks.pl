@@ -51,7 +51,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 my $oeis_url   = "https://oeis.org/";
 # $oeis_url      = "http://localhost/cgi-bin/oeis.pl?&aseqno=";
 if ($edit > 0) {
-	$oeis_url .= "edit?&internal=1&seq=";
+    $oeis_url .= "edit?&internal=1&seq=";
 }
 
 my $target = "Check";
@@ -98,9 +98,9 @@ while (<INF>) {
     if (0) {
     } elsif ($mode =~ m{var}   ) {
         my @rest = map {
-        	s{(A\d\d\d\d+)}{\<a href\=\"$oeis_url$1\" target\=\"_blank\"\>$1\<\/a\>}g;
-        	$_
-        	} split(/\t/, $line);
+            s{(A\d\d\d\d+)}{\<a href\=\"$oeis_url$1\" target\=\"_blank\"\>$1\<\/a\>}g;
+            $_
+            } split(/\t/, $line);
         # my $aseqno = shift(@rest);
         print "<tr>"
             . "<td class=\"bor\">" . join("</td><td class=\"bor\">", @rest) . "</td></tr>\n";
