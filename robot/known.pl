@@ -115,6 +115,7 @@ A001951	knownd	7		A Beatty sequence: a(n) = floor(n*sqrt(2)).
 A001952	knownd	7		A Beatty sequence: a(n) = floor(n*(2 + sqrt(2))).
 A002110	knowna	17	ZUtils.primorial(v.longValueExact())	Primorial numbers (first definition): product of first n primes. Sometimes written prime(n)#.
 A002182	knowna	6		Highly composite numbers, definition (1): numbers n where d(n), the number of divisors of n (A000005), increases to a record.
+A002275	known	0	(10^n-1)/9
 A002322	knownd	7	Carmichael.lambda(v)	Reduced totient function psi(n): least k such that x^k == 1 (mod n) for all x prime to n; also known as the Carmichael lambda function (exponent of unit group mod n); also called the universal exponent of n.
 A002326	knowna	7	IntegersMod(v).ord(Z.TWO.mod(v))	Multiplicative order of 2 mod 2n+1.
 A002487	knowna	19	{ final int n = v.intValueExact(); return Integers.SINGLETON.sum(0, n - 1, k -> Binomial.binomial(k, n - k - 1).testBit(0) ? Z.ONE : Z.ZERO); }	Stern''s diatomic series (or Stern-Brocot sequence): a(0) = 0, a(1) = 1; for n > 0: a(2*n) = a(n), a(2*n+1) = a(n) + a(n+1).
@@ -130,6 +131,8 @@ A003963	knowna	5		Fully multiplicative with a(p) = k if p is the k-th prime.
 A003987	knowna	6		Table of n XOR m (or Nim-sum of n and m) read by antidiagonals with m>=0, n>=0.
 A004001	knownm	12		Hofstadter-Conway $10000 sequence: a(n) = a(a(n-1)) + a(n-a(n-1)) with a(1) = a(2) = 1.
 A004086	knowna	10	ZUtils.reverse(v)	Read n backwards (referred to as R(n) in many sequences).
+A004186	known	0	Functions.DIGIT_SORT_DESCENDING.z
+A004185	known	0	Functions.DIGIT_SORT_ASCENDING.z
 A005117	knowna	7		Squarefree numbers: numbers that are not divisible by a square greater than 1.
 A005179	knowna	5		Smallest number with exactly n divisors.
 A005259	knowna	7	{ final int n = v.intValueExact(); return Integers.SINGLETON.sum(0, n, k -> Binomial.binomial(n, k).multiply(Binomial.binomial(n + k, k)).square()); }	Apery (Ap√©ry) numbers: Sum_{k=0..n} (binomial(n,k)*binomial(n+k,k))^2.

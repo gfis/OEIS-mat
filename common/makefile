@@ -1003,4 +1003,8 @@ dyck: # nyi tabf
 	| sed -e "s/^%N/\n%N/" -e "s/^\%p A[0-9]* //" \
 	>        $@.man
 	uedit64  $@.man
-
+#----
+lpf_gpf:
+	grep -P "(largest|least|smallest|greatest) prime factor|\b(lpf|spf|gpf|A020639|A009190)\b" jcat25.txt \
+	| grep -P "^%[NFC] A\d+ +a\(n\) *\=" | grep -v "€" \
+	

@@ -56,7 +56,30 @@ evalsame:
 	>          $@.tmp
 	head -n2   $@.tmp
 	wc -l      $@.tmp
+endirsame:
+	perl endirect.pl evalsame.tmp \
+	| grep -P "^\%" | cut -f3- \
+	| grep -P "^A\d+\s*a\(n\) *\=" \
+	| grep -P "D\d+" \
+	| grep -vP "\tA\d+" \
+	>          $@.tmp
+	head -n2   $@.tmp
+	wc -l      $@.tmp
+	# | grep -P "^A\d+ *a\(n\) *\= *" \
+
 #----
+evalndir: # extract and count non-DirectSequences in evalsame
+	cut -f6 evalsame.tmp | grep A \
+	| perl -ne 's/\s+\Z//; foreach my $$aseqno(split(/\,/)) { print "$$aseqno\n"; } ' \
+	| sort | uniq -c \
+	| perl -ne 's/\s+\Z//; s/\A\s*//; my ($$a, $$b) = split(/\s+/); print "$$b\t$$a\n"; ' \
+	>          $@.tmp
+	head -n2   $@.tmp
+	wc -l      $@.tmp
+	cd ../common ; make seq2 LIST=../arti/$@.tmp
+	$(DBAT) -x "SELECT s2.aseqno, CAST(s2.info AS INT) FROM seq2 s2 WHERE s2.aseqno NOT IN (SELECT aseqno FROM DIRECT) ORDER BY 2, 1 DESC ;" \
+	| tee      $@.tmp
+	wc -l      $@.tmp
 joeis_ccan:
 #----------------------------
 maple_lines:

@@ -93,9 +93,28 @@ binomx:
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{transform of [^A]*(A\d+)}) { my $$rn = $$1; '\
-	' print join("\t", $$an, binomx, 0, "$$rn", ",0", (($$line =~ m{Inverse binomial}i) ? ", true" : ", false"), $$line); } else { print "# $$line"; }}'\
+	' print join("\t", $$an, binomx, 0, "$$rn", ",0", (($$line =~ m{Inverse binomial}i) ? ", true" : ", false"), $$line);'\
+	' } else { print "# $$line"; }}'\
 	| tee    $@.gen
 	wc -l    $@.gen
+#----
+cent1:
+	grep -P  "Central (terms|coefficients|elements) of " $(COMMON)/joeis_names.txt | grep -E "nyi" | less
+central:
+	grep -P "Central (terms|coefficients|elements|values) of " $(CAT) | grep -v "€" | grep -P "^%[NF]" \
+	| perl rseqnos.pl -cc "central" \
+	2>       $@.rest.tmp \
+	| tee    $@.gen
+	wc -l    $@.*
+cent_old:
+	grep -P "Central (terms|coefficients|elements|values) of " $(CAT) | grep -v "€" | grep -P "^%[NF]" \
+	| perl -ne 'my $$line = $$_; if ($$line =~ m{\A\%. (A\d+)\s*(\S.*)}) {'\
+	' my ($$an, $$rest) = ($$1, $$2); if ($$rest =~ m{\b(A\d+)}) {'\
+	' my $$rno = $$1; print join("\t", $$an, "$@", 0, "new $$rno()", $$line);'\
+	' } else { print STDERR "# $$line"; }}' \
+	2>       $@.rest.tmp \
+	| tee    $@.gen
+	wc -l    $@.*
 #----
 charfun:
 	grep -E "^%" $(CAT) | grep -P "Characteristic function (for|of) A" \
@@ -304,6 +323,11 @@ form_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1))
 	tail -n4 $@.txt $@.rest.tmp
 	wc -l    $@*.t*
 #----
+gcd: # gcd(A1(n), A2(n)), lcm, min, max
+	perl gcd.rob.pl > $@.gen 2> $@.rest.gen
+	head -n2 $@.gen
+	wc -l    $@.*
+#----
 inverse:
 	grep -E "^%" $(CAT) | grep -P "Inverse +(permutation +)?(of|to) +A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
@@ -320,6 +344,13 @@ rinverse:
 	| grep -vE "A112846" \
 	| tee -a $@.gen
 	wc -l    $@.gen
+#----
+invtraf:
+	grep -Pi "INVERT transform of " $(CAT) | grep -v "€" | grep -P "^%[NFC]" \
+	| perl rseqnos.pl -cc "invtraf" \
+	2>       $@.rest.tmp \
+	| tee    $@.gen
+	wc -l    $@.*
 #----
 # grep A-numbers of known functions
 knowna: knowna0 knowna1 knowna2 knowna3 knowna4 
@@ -420,6 +451,13 @@ m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 	>>       $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen
+#----
+maindia:
+	grep -P "Main diagonal of" $(CAT) | grep -v "€" | grep -P "^%[NFC]" \
+	| perl rseqnos.pl -cc "maindia" \
+	2>       $@.rest.tmp \
+	| tee    $@.gen
+	wc -l    $@.*
 #--------
 ANCHOR=anch
 morfix:
