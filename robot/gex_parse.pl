@@ -31,59 +31,137 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
-my ($line, $aseqno, $callcode, $offset1, $name, $orig_name, $expr, $var, $lo, $hi, $n, $d);
-# while (<DATA>) {
-while (<>) {
+my ($line, $aseqno, $callcode, $offset1, $name);
+my @rest;
+my $source; # text to be replaced
+my $qsource; # quatemeta($source);
+my $target; # replacement text
+my @list = ();
+my $ilist = 0; # next index for list elements
+my $list_len = scalar(@list) - 1;
+my $loop_check = 32;
+
+while (<DATA>) {
+# while (<>) {
     next if !m{\AA\d+}; # must start with A-number
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
     my $nok = 0;
-    ($aseqno, $callcode, $offset1, $name, $orig_name) = split(/\t/, $line);
+    ($aseqno, $callcode, $offset1, $name, @rest) = split(/\t/, $line);
     if ($debug >= 2) {
-        print "# aseqno=$aseqno, name=$name, $orig_name\n";
+        print "#----------------\n# ";
+        print join("\t", $aseqno, $callcode, $offset1, $name, join("\t", @rest)) . "\n";
     }
-    $orig_name = $name;
+    $name =~ s{ }{}g; # remove all spaces
 
-    my @list = ();
-    my $ilist = 0; # next index for list elements
-    my $list_len = scalar(@list) - 1;
-    my $source; # text to be replaced
-    my $target; # replacement text
-    my $loop_check = 64;
+    @list = ();
+    $ilist = 0; # next index for list elements
+    $list_len = scalar(@list) - 1;
+    $loop_check = 64;
     while (--$loop_check >= 0 && $list_len < scalar(@list)) { # at the start, or something has still been added
-        if ($debug >= 1) { print "#   name=$name, ilist=$ilist, list=" . join(";", @list) . "\n"; }
         $list_len = scalar(@list);
-        if (0) {
-        #                   12           2  3   3  1
-        } elsif ($name =~ m{(([ADFK]\d{6})\((\w+)\))}) {
-            $source = $1;
-            my $ano = $2;
-            my $index = $3;
-            if ($index =~ m{[i-n]|_i\d+}) {
-                $target = "_z$ilist";
-                push(@list, "$target=$source"); $ilist = scalar(@list); 
-                $name =~ s{$ano\($index\)}{$target}g;
-            }
+        #---- (A)-number call, with 6 digits and no comma
+        #               12           2  3   3  1
+        if (index($name, "(") >= 0) { # with "("
+        #               12           2  3   3  1
+        if (($name =~ m{(([ADFK]\d{6})\((\w+)\))})) {
+            &extract($1, "A");
         }
+        #---- (C)all of a function, with optional commata
+        #               12                    2  3   34     4   1
+        if (($name =~ m{(([A-Za-z][A-Za-z0-9]*)\((\w+)(\,\w+)*\))})) {
+            &extract($1, "C");
+        }
+        #---- (B)rackets (no commata; must be tested after function calls)
+        #               1   1
+        if (($name =~ m{(\w+)})) {
+            &extract($1, "C");
+        }
+        } # with "("
+
+        #---- (E)ponentiation: list separated by "^"
+        #                                         1   2     2 1
+        if (index($name, "^") >= 0 && ($name =~ m{(\w+(\^\w+)+)})) {
+            &extract($1, "E");
+        }
+        #---- (F)actorial with one or more "!"
+        #                                         1   2   21
+        if (index($name, "!") >= 0 && ($name =~ m{(\w+(\!+))})) {
+            &extract($1, "F");
+        }
+        #---- (P)roduct: list separated by "*"
+        #                                         1   2     2 1
+        if (index($name, "*") >= 0 && ($name =~ m{(\w+(\*\w+)+)})) {
+            &extract($1, "P");
+        }
+        #---- (Q)uotient: list separated by "/"
+        #                                         1   2     2 1
+        if (index($name, "/") >= 0 && ($name =~ m{(\w+(\/\w+)+)})) {
+            &extract($1, "Q");
+        }
+        #---- (S)um: list separated by "+" and/or "-"
+        #               1      2         2 1
+        if (($name =~ m{(\-?\w+([\+\-]\w+)+)})) {
+            &extract($1, "S");
+        } # with "*"
     } # main substitution loop
+
     if ($loop_check <= 0) {
         $nok = "1loop";
     }
-    if ($name =~ m{\A_z\d+\Z}) { # all substituted
+    if ($name =~ m{\A_[A-Za-z]\d+\Z}) { # all substituted
     } else { # some unparsed rest remained
         $nok = "2npar";
     }
 
     if ($nok eq "0") {
-        print        join("\t", $aseqno, "lambda", 0, "$name", join(";", @list), "\\\\", $orig_name) . "\n";
+        print        join("\t", $aseqno, "$callcode"  , 0, "$name", join(";", @list), join("\t", @rest)) . "\n";
     } else {
-        print STDERR join("\t", $aseqno, "$nok"  , 0, "$name", join(";", @list), "\\\\", $orig_name) . "\n";
+        print STDERR join("\t", $aseqno, "#not=$nok"  , 0, "$name", join(";", @list), join("\t", @rest)) . "\n";
     }
 } # while <>
+#----
+sub extract {
+    my ($source, $code) = @_;
+    $target = "_$code$ilist";
+    push(@list, "$target=$source");
+    $ilist = scalar(@list);
+    my $qsource = quotemeta($1);
+    $name =~ s{$qsource}{$target}g;
+    if ($debug >= 1) {
+        print "#   name=$name -> " . join(";", @list) . " [$ilist]\n";
+    }
+
+} # extract
 #--------------------------------------------
 __DATA__
-A364980	lambda	0	a(n) = n! * Sum_{k=0..n} k^(n-k) * binomial(2*n-k+1,k)/( (2*n-k+1)*(n-k)! ).
-A364981	lambda	0	a(n) = n! * Sum_{k=0..n} k^(n-k) * binomial(3*n-2*k+1,k)/( (3*n-2*k+1)*(n-k)! ).
-A364982	lambda	0	a(n) = (n!/(2*n+1)) * Sum_{k=0..n} k^(n-k) * binomial(2*n+1,k)/(n-k)!.
-A364983	lambda	0	a(n) = n! * Sum_{k=0..n} k^(n-k) * binomial(3*k+1,k)/( (3*k+1)*(n-k)! ) = n! * Sum_{k=0..n} k^(n-k) * A001764(k)/(n-k)!.
-A364984	lambda	0	a(n) = n! * Sum_{k=0..n} k^(n-k) * binomial(n+2*k+1,k)/( (n+2*k+1)*(n-k)! ).
+A900001	lambda	0	n*k
+A900002	lambda	0	n*k*i*j
+A900003	lambda	0	n+k-i+j
+A900003	lambda	0	-n+k-i+j
+A900004	lambda	0	n^2
+A900005	lambda	0	n^n^n
+A900006	lambda	0	n!
+A900007	lambda	0	n!!!
+A900008	lambda	0	n/k
+A900009	lambda	0	n/i/j
+A900010	lambda	0	sin(x)
+A900011	lambda	0	valuation(n,17)
+A900012	lambda	0	binomial(n,k)
+A900013	lambda	0	A123456(n)	\\	any A-number
+A900014	lambda	0	A000005(n)	\\	Functions.TAU.z
+A900015	lambda	0	(n + 1)	\\	brackets
+
+A076090	lambda	0	A072408(n)	\\	a(n)=A072408(n), n>1. [From _R. J. Mathar_, Sep 23 2008]
+A072241	lambda	0	A000009(A000045(n))	\\	a(n) = A000009(A000045(n)).
+A123456	lambda	0	n*A900001(n)
+A076276	lambda	0	A006128(n-1) + A182699(n)	\\	a(n) = A006128(n-1) + A182699(n), n >= 1. - _Omar E. Pol_, Oct 30 2011
+A076277	lambda	0	A066637(n) - A001055(n)	\\	a(n) = A066637(n) - A001055(n) for n > 1. - _Henry Bottomley_, Oct 10 2002
+A076304	lambda	0	sqrt(prime(i) + prime(i+1) + prime(i+2)) 	\\	a(n) = sqrt(prime(i) + prime(i+1) + prime(i+2)) where i = €076305(n). [Corrected by _M. F. Hasler_, Jan 03 2020]
+A076357	lambda	0	floor(t^n) 	\\	a(n) = floor(t^n) where n=39661481813^(1/10) (approximately 11.4772). a(n) is prime for n<=10.
+A076360	lambda	0	d0(d1(w)) - d1(d0(w))	\\	a(n) = d0(d1(w)) - d1(d0(w)), where d0()=number of divisors, d1()=sum of divisors.
+A076448	lambda	0	2^(2^(n-2)+n-1)+1	\\	a(n) =2^(2^(n-2)+n-1)+1 = A000051(A005126(n-2)).
+A076530	lambda	0	A065900(n) - 1 = A104149(n) + 1	\\	a(n) = A065900(n) - 1 = A104149(n) + 1. - _Alex Ratushnyak_, Jul 06 2013
+A076544	lambda	0	mu(n) + -1^(1+abs(mu(n)))	\\	a(n) = mu(n) + -1^(1+abs(mu(n))), where mu(n) = A008683(n). - _Antti Karttunen_, Jul 26 2017
+
+
