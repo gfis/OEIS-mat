@@ -59,9 +59,9 @@ V29V	name	0	V29V	0
 !	func	1	MemoryFactorial.SINGLETON.factorial(op1)	0
 
 abs)	func	1	op1.abs()	0
-bell)	func	1	BellNumbers.bell(op1)	0
+bell)	func	1	FunctBellNumbers.bell(op1)	0
 bigomega)	func	1	Z.valueOf(Jaguar.factor(op1).bigOmega())	0
-BIN)	func	2	Binomial.binomial(op1, op2)	0
+BIN)	func	2	BI(op1, op2)	0
 bitxor)	func	2	op1.xor(op2)	0
 bitand)	func	2	op1.and(op2)	0
 core)	func	1	Jaguar.factor(op1).core()	0

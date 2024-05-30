@@ -239,24 +239,13 @@ correct: # CC= ; generate term list for manual correction
 	perl correct.pl $(HTML) -f $(CC)4.txt -l $(FISCHER)/$(CC).fail.log -o $(CC).corr.tmp
 	wc -l    $(CC).corr.tmp
 #-------
-post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
-	#==== $@ LIST=$(LIST)
-	$(JPREP) -cc post  -f $(LIST) | sed -e "s/\r//" \
-	| perl -pe 's{\~\~\;?}{}g; '\
-	>        $@.tmp
-	wc -l    $@.tmp
-	$(JPREP) -cc infix -p $(FISCHER)/CR.xpat -f $@.tmp | sed -e "s/\r//" \
-	>        $@.1.tmp \
-	2>       $@.rest.tmp
-	perl $(FISCHER)/cr_polish.pl $@.1.tmp \
-	>        $(LIST)
-	wc -l    $@*.tmp $(LIST)
+# post_cr came here, now below under decexp
 #--
 load: # LIST= ; update $(OFFSET1)
 	#==== $@ LIST=$(LIST)
 	cd $(FISCHER) ; make seq4 LIST=$(HERE)/$(LIST)
-	$(DBAT)  "UPDATE seq4 s SET offset1 = (SELECT i.offset1 FROM asinfo i WHERE i.aseqno = s.aseqno)\
-	    , parm3 = (SELECT SUBSTR(d.data, 1, 17)             FROM asdata d WHERE d.aseqno = s.aseqno)";
+	# $(DBAT)  "UPDATE seq4 s SET offset1 = (SELECT COALESCE(i.offset1, -1) FROM asinfo i WHERE i.aseqno = s.aseqno)\
+	#    , parm3 = (SELECT COALESCE(SUBSTR(d.data, 1, 17), '0,0,0,0')      FROM asdata d WHERE d.aseqno = s.aseqno)";
 #--
 interval: # LIST= WIDTH= ; unload and set low, high into $(PARM3), $(PARm4)
 	#==== $@ LIST=$(LIST)
@@ -440,13 +429,29 @@ solvepari: # intervals from GP/PARI solve()
 	  >      $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
+	#==== $@ LIST=$(LIST)
+	grep -v "€" $(LIST) \
+	| $(JPREP) -cc post  -f - | sed -e "s/\r//" \
+	| perl -pe 's{\~\~\;?}{}g; '\
+	>        $@.1.tmp \
+	2>       $@.1.rest.tmp
+	wc -l    $@.1*.tmp
+	$(JPREP) -d 2 -cc infix -p $(FISCHER)/CR.xpat -f $@.1.tmp | sed -e "s/\r//" \
+	>        $@.2.tmp \
+	2>       $@.2.rest.tmp
+	perl $(FISCHER)/cr_polish.pl $@.2.tmp \
+	>        $(LIST) \
+	2>       $@.3.rest.tmp
+	wc -l    $@*.tmp $(LIST)
 #----------------
 decexp: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
 	cp -v decexp4.tmp $@.gen
 	head -n4 $@.gen
 	cut -f2  $@.gen | sort | uniq -c
 decexp1:
-	grep -E "^[\%][N] A[0-9][0-9]* Decimal expansion" $(COMMON)/jcat25.txt \
+	grep -P "^\%[NFC] A\d+\s+Decimal expansion" $(COMMON)/jcat25.txt \
 	| cut -b4- | grep -vP '\, *where' \
 	| perl -ne 's/ Decimal expansion (for|of) /\tdecexp\t0\t~~/; '\
 	' s{([\.\;\,\:\=]|\(gamma is|where ).*}{}; s{ }{}g; s{(.)A001620}{$$1}g; s{goldenratio}{phi}; '\

@@ -1,6 +1,6 @@
 #!perl
 
-# Extract A-numbers and natural number for transform.MUltiTransformationSequence
+# Extract A-numbers and natural numbers for transform.MultiTransformationSequence
 # @(#) $Id$
 # 2024-04-15, Georg Fischer
 #

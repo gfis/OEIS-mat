@@ -26,8 +26,8 @@ refresh:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -innn make refresh1 S=nnn
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
-	make SLEEP=2 wgeto
-	make distrio
+	make SLEEP=0 wgeto
+	cp -v oeis.org/b$(S).txt                              $(COMMON)/bfile/
 #--
 refresh_atair:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
@@ -235,6 +235,8 @@ aklist:
 	make subdir DIR=ak  NAME=Karttunen
 amlist:                 
 	make subdir DIR=am  NAME=Murthy
+czlist:
+	make subdir DIR=cz  NAME=Zizka
 edlist:                 
 	make subdir DIR=ed  NAME=Deutsch
 grlist:                 

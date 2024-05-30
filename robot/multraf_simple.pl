@@ -1,6 +1,6 @@
 #!perl
 
-# Extract simple formulas for MUltiTransformationSequence
+# Extract simple formulas for MultiTransformationSequence
 # @(#) $Id$
 # 2024-04-15, Georg Fischer
 #

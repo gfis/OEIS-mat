@@ -630,7 +630,7 @@ trecpas:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	cp -v    $@.tmp $(FISCHER)/$@.tmp
+	# cp -v    $@.tmp $(FISCHER)/$@.tmp
 #---------------------------
 # "more" triangles
 trimore: trimore1 trimore2 trimore3

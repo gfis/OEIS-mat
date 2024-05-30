@@ -73,9 +73,9 @@ A000002	knowna	5		Kolakoski sequence: a(n) is length of n-th run; a(1) = 1; sequ
 A000005	knowna	47	Jaguar.factor(v).sigma0()	d(n) (also called tau(n) or sigma_0(n)), the number of divisors of n.
 A000009	knowna	11		Expansion of Product_{m >= 1} (1 + x^m); number of partitions of n into distinct parts; number of partitions of n into odd parts.
 A000010	knowna	23	Euler.phi(v)	Euler totient function phi(n): count numbers <= n and prime to n.
-A000030	knowna	19	Z.valueOf(v.toString().charAt(0) - '0')	Initial digit of n.
+A000030	knownf	19	Z.valueOf((@).toString().charAt(0) - '0')	Integer.toString(@).charAt(0) - '0'	Initial digit of n.
 A000032	knowna	10	Fibonacci.lucas(v.intValueExact())	Lucas numbers beginning at 2: L(n) = L(n-1) + L(n-2), L(0) = 2, L(1) = 1.
-A000035	knowna	13	v.testBit(0) ? Z.ONE : Z.ZERO	Period 2: repeat [0, 1]; a(n) = n mod 2; parity of n.
+A000035	knownf	13	(@).testBit(0) ? Z.ONE : Z.ZERO	((@) & 1)	Period 2: repeat [0, 1]; a(n) = n mod 2; parity of n.
 A000040	knowna	54	Puma.primeZ(v.intValueExact())	The prime numbers.
 A000041	knowna	55	IntegerPartition.partitions(v.intValueExact())	a(n) is the number of partitions of n (the partition numbers).
 A000045	knowna	14	Fibonacci.fibonacci(v.intValueExact())	Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
@@ -85,18 +85,18 @@ A000110	knowna	32	Bell.bell(v.intValueExact())	Bell or exponential numbers: numb
 A000120	knowna	13	Z.valueOf(v.bitCount())	1''s-counting sequence: number of 1''s in binary expansion of n (or the binary weight of n).
 A000142	knowna	21	MemoryFactorial.SINGLETON.factorial(v.intValueExact())	Factorial numbers: n! = 1*2*3*4*...*n (order of symmetric group S_n, number of permutations of n letters).
 A000188	knownd	8		(1) Number of solutions to x^2 == 0 (mod n). (2) Also square root of largest square dividing n. (3) Also max_{ d divides n } gcd(d, n/d).
-A000196	knowna	11	v.sqrt()	Integer part of square root of n. Or, number of positive squares <= n. Or, n appears 2n+1 times.
+A000196	knownf	11	(@).sqrt()	IntegerUtils.sqrt(@)	part of square root of n. Or, number of positive squares <= n. Or, n appears 2n+1 times.
 A000201	knowna	7		Lower Wythoff sequence (a Beatty sequence): a(n) = floor(n*phi), where phi = (1+sqrt(5))/2 = A001622.
 A000203	knowna	24	Jaguar.factor(v).sigma()	a(n) = sigma(n), the sum of the divisors of n. Also called sigma_1(n).
 A000217	knowna	29	v.multiply(v.add(1)).divide(2)	Triangular numbers: a(n) = binomial(n+1,2) = n*(n+1)/2 = 0 + 1 + 2 + ... + n.
-A000225	knowna	5	Z.TWO.pow(v.intValueExact()).subtract(1)	a(n) = 2^n - 1. (Sometimes called Mersenne numbers, although that name is usually reserved for A001348.)
-A000265	knowna	29	v.makeOdd()	Remove all factors of 2 from n; or largest odd divisor of n; or odd part of n.
-A000290	knowna	7	v.square()		The squares: a(n) = n^2.
+A000225	knowna	5	Z.TWO.pow(v).subtract(1)	(1 << (@)) - 1	a(n) = 2^n - 1. (Sometimes called Mersenne numbers, although that name is usually reserved for A001348.)
+A000265	knowna	29	(@).makeOdd()		Remove all factors of 2 from n; or largest odd divisor of n; or odd part of n.
+A000290	knowna	7	(@).square()		The squares: a(n) = n^2.
 A000593	knownd	7		Sum of odd divisors of n.
 A000688	knowna	7		Number of Abelian groups of order n; number of factorizations of n into prime powers.
 A000720	knowna	78	Puma.primePiZ(v)		pi(n), the number of primes <= n. Sometimes called PrimePi(n) to distinguish it from the number 3.14159...
 A000796	knowna	8		Decimal expansion of Pi (or digits of Pi).
-A001045	knowna	0	new Q(Z.TWO.pow(v.intValueExact()), Z.THREE).round()
+A001045	knowna	0	Z.TWO.pow(@).subtract((@).testBit(0) ? Z.NEG_ONE : Z.ONE).divide(3)		Jacobsthal seq((2^n - (-1)^n)/3,n=0..20);
 A001055	knowna	9		The multiplicative partition function: number of ways of factoring n with all factors greater than 1 (a(1) = 1 by convention).
 A001065	knowna	11	Jaguar.factor(v).sigma().subtract(v)	Sum of proper divisors (or aliquot parts) of n: sum of divisors of n that are less than n.
 A001157	knowna	4	Jaguar.factor(v).sigma(2)	
@@ -118,7 +118,7 @@ A002182	knowna	6		Highly composite numbers, definition (1): numbers n where d(n)
 A002275	known	0	(10^n-1)/9
 A002322	knownd	7	Carmichael.lambda(v)	Reduced totient function psi(n): least k such that x^k == 1 (mod n) for all x prime to n; also known as the Carmichael lambda function (exponent of unit group mod n); also called the universal exponent of n.
 A002326	knowna	7	IntegersMod(v).ord(Z.TWO.mod(v))	Multiplicative order of 2 mod 2n+1.
-A002487	knowna	19	{ final int n = v.intValueExact(); return Integers.SINGLETON.sum(0, n - 1, k -> Binomial.binomial(k, n - k - 1).testBit(0) ? Z.ONE : Z.ZERO); }	Stern''s diatomic series (or Stern-Brocot sequence): a(0) = 0, a(1) = 1; for n > 0: a(2*n) = a(n), a(2*n+1) = a(n) + a(n+1).
+A002487	knowna	19	{ final int n = v.intValueExact(); return Integers.SINGLETON.sum(0, n - 1, k -> Binomial.binomial(k, n - k - 1).testBit(0) ? Z.ONE : Z.ZERO); }	Stern''s diatomic series (or Stern-Brocot sequence): a(0) = 0, a(1) = 1; for n > 0: a(2*n) = a(n), a(2*n+1) = a(n) + a(n+1). 
 A002808	knowna	8		The composite numbers: numbers n of the form x*y for x > 1 and y > 1.
 A003188	knowna	7	v.xor(v.divide2())	Decimal equivalent of Gray code for n.
 A003285	knownd	6		Period of continued fraction for square root of n (or 0 if n is a square).
