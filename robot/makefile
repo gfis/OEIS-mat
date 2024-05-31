@@ -334,21 +334,26 @@ gex_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) *
 	| perl gex_oeis.pl -d $(D) \
 	2>       $@.rest.tmp \
 	>        $@.tmp
-	tail -n4 $@.tmp $@.rest.tmp
+	head -n8 $@.tmp $@.rest.tmp
 	wc -l    $@.tmp $@.rest.tmp
 gex_parse: # parse general expressions
 	perl gex_parse.pl -d $(D) gex_oeis.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
-	tail -n4 $@.tmp $@.rest.tmp
+	head -n8 $@.tmp $@.rest.tmp
 	wc -l    $@.tmp $@.rest.tmp
 gex_code0: # without translation
-	perl gex_code.pl -d $(D) -l OEIS gex_parse.tmp \
+	perl gex_code.pl -d $(D) -l oeis gex_parse.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
-	tail -n4 $@.tmp $@.rest.tmp
+	head -n8 $@.tmp $@.rest.tmp
 	wc -l    $@.tmp $@.rest.tmp
-
+gex_code: # without translation
+	perl gex_code.pl -d $(D) -l java gex_parse.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp $@.rest.tmp
+	wc -l    $@.tmp $@.rest.tmp
 #----
 inverse:
 	grep -E "^%" $(CAT) | grep -P "Inverse +(permutation +)?(of|to) +A" \

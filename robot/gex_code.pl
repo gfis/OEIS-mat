@@ -38,12 +38,13 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my ($line, $aseqno, $callcode, $offset1, $name, @rest);
 my @list;
 my %hash; # map placeholder -> text
+my $nok;
 # while (<DATA>) {
 while (<>) {
     next if !m{\AA\d+}; # must start with A-number
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
-    my $nok = 0;
+    $nok = 0;
     ($aseqno, $callcode, $offset1, $name, @rest) = split(/\t/, $line);
     if ($debug >= 2) {
         print "#----------------\n# $line\n";
@@ -56,10 +57,12 @@ while (<>) {
         $hash{$placeholder} = $text;
     } # for $ilist
     my $expression = $placeholder; # start with the last list element
-    for (my $ilist = scalar(@list) - 1; $ilist >= 0; $ilist --) { # process from the end
+    my $ilist = scalar(@list); 
+    while ($nok eq 0 && $ilist > 0) {
+        $ilist --; # process from the end
         ($placeholder, $text) = split(/\=/, $list[$ilist], 2);
         if (0) {
-        } elsif ($lang =~ m{\Aoeis}i) {
+        } elsif ($lang =~ m{oeis}i) {
             $text = &translate_oeis($placeholder, $text);
         } elsif ($lang =~ m{java}i) {
             $text = &translate_java($placeholder, $text);
@@ -75,9 +78,9 @@ while (<>) {
 #   }
 
     if ($nok eq "0") {
-        print        join("\t", $aseqno, "lambda"     , 0, "$expression", join(";", @list), join("\t", @rest)) . "\n";
+        print        join("\t", $aseqno, "lambda"     , 0, "$expression", join(";", @list), @rest) . "\n";
     } else {
-        print STDERR join("\t", $aseqno, "#not=$nok"  , 0, "$expression", $name, join("\t", @rest)) . "\n";
+        print STDERR join("\t", $aseqno, "#not=$nok"  , 0, "$expression", $name,            @rest) . "\n";
     }
 } # while <>
 #----
@@ -87,22 +90,35 @@ sub translate_java {
     my $code = substr($placeholder, 2, 1); # 3rd character
     if (0) {
     } elsif ($code eq "A") { # addition, list of summands
-        $text =~ s{\,}{\+};
-    } elsif ($code eq "F") { # Factorial
-        $text =~ s{(\!+)}{};
-        $text = &declose($text);
-        my $noex = length($1);
-        if ($noex == 1) {
-            $text = "FA($text)";
-        } else {
-            $text = "FM($noex, $text)";
-        }
+        $text =~ s{\,}  {\.\+\(};
+        $text =~ s{\,}{\)\.\+\(}g;
+        $text .= ")";
+    } elsif ($code eq "B") { # brackets
+        $text = "($text)";
+    } elsif ($code eq "C") { # call
+        $text =~ s{\,}{\(};
+        $text = "$text)";
     } elsif ($code eq "D") { # division
-        $text =~ s{\,}{\/}g;
+        $text =~ s{\,}  {\.\/\(};
+        $text =~ s{\,}{\)\.\/\(}g;
+        $text .= ")";
     } elsif ($code eq "E") { # exponentiation
-        $text =~ s{\,}{\^}g;
+        $text =~ s{\,}  {\.\^\(};
+        $text =~ s{\,}{\)\.\^\(}g;
+        $text .= ")";
+    } elsif ($code eq "F") { # Factorial
+        my ($parm1, $parm2) = split(/\,/, $text, 2);
+        $parm1 = &declose($parm1);
+        $text = ($parm2 == 1) ? "FA($parm1)" : "Functions.MULTIFACTORIAL($parm2, $parm1)";
     } elsif ($code eq "M") { # multiplication
-        $text =~ s{\,}{\*}g;
+        $text =~ s{\,}  {\.\*\(};
+        $text =~ s{\,}{\)\.\*\(}g;
+        $text .= ")";
+    } elsif ($code eq "N") { # negation
+        $nok = "3un=$code";
+        $text = "(-$text)";
+    } else {
+        # $nok = "3un=$code";
     }
     return $text;
 } # translate_java
@@ -116,6 +132,9 @@ sub translate_oeis {
         $text =~ s{\,}{\+}g;
     } elsif ($code eq "B") { # brackets
         $text = "($text)";
+    } elsif ($code eq "C") { # call
+        $text =~ s{\,}{\(};
+        $text = "$text)";
     } elsif ($code eq "D") { # division
         $text =~ s{\,}{\/}g;
     } elsif ($code eq "E") { # exponentiation
@@ -125,6 +144,11 @@ sub translate_oeis {
         $text = $parm1 . ("!" x $parm2);
     } elsif ($code eq "M") { # multiplication
         $text =~ s{\,}{\*}g;
+    } elsif ($code eq "N") { # negation
+        $nok = "3un=$code";
+        $text = "(-$text)";
+    } else {
+        # $nok = "3un=$code";
     }
     return $text;
 } # translate_oeis

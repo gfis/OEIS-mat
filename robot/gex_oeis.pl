@@ -107,7 +107,7 @@ while (<>) {
     }
 
     if ($nok eq "0") {
-        print join("\t", $aseqno, "lambda", 0, "$name", $cond, "\\\\", $orig_name) . "\n";
+        print join("\t", $aseqno, "lambda", 0, "$name", $cond, $orig_name) . "\n";
     } else {
         print STDERR "# $nok: $line\n";
     }

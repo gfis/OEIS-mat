@@ -78,8 +78,8 @@ my $tuple;
 my $type;
 my $nok;
 
-while (<DATA>) {
-#while (<>) {
+# while (<DATA>) {
+while (<>) {
     next if !m{\AA\d+}; # must start with A-number
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
@@ -197,9 +197,9 @@ while (<DATA>) {
         $nok = "1loop";
     }
     if ($nok eq "0") {
-        print        join("\t", $aseqno, "$callcode"  , 0, join(";", @list), join("\t", @rest)) . "\n";
+        print        join("\t", $aseqno, "$callcode"  , 0, join(";", @list), $name, @rest) . "\n";
     } else {
-        print STDERR join("\t", $aseqno, "#not=$nok"  , 0, join(";", @list), join("\t", @rest)) . "\n";
+        print STDERR join("\t", $aseqno, "#nok=$nok"  , 0, join(";", @list), $name, @rest) . "\n";
     }
 } # while <>
 #----
@@ -225,9 +225,9 @@ sub typify {
                 $placeholder = "_CV$ilist";
                 $elem = uc($elem);
                 if (defined($known_constants{lc($elem)})) {
-                	$elem = $known_constants{lc($elem)};
+                    $elem = $known_constants{lc($elem)};
                 } else {
-                	$nok = "4un=$elem";
+                    $nok = "4un=$elem";
                 }
                 push(@list, "$placeholder=$elem"); $ilist = scalar(@list);
                 $elem = $placeholder;
@@ -264,7 +264,7 @@ sub insert_placeholder {
     push(@list, "$placeholder=$tuple"); $ilist = scalar(@list);
     my $qsource = quotemeta($source);
     $name =~ s{$qsource}{$placeholder}g;
-    if ($debug >= 1) {
+    if ($debug >= 2) {
         print "#   name=\"$name\" list=\"" . join(";", @list) . "\" [$ilist]\n";
     }
     return $name;
@@ -286,12 +286,12 @@ sub insert_negations {
             my $placeholder = "_$type" . "N$ilist"; # (N)egation
             push(@list, "$placeholder=$elems[$ielem]"); $ilist = scalar(@list); 
             $tuple .= ",$placeholder";
-        } else { # summand - typify later
+        } else { # +summand - typify later
             $tuple .= ",$elem";
         }
         $ielem ++;
     } # while $ielem
-    if ($debug >= 1) {
+    if ($debug >= 2) {
         print "#   insert_negations: old_tuple=$old_tuple, tuple=$tuple, list: " . join(";", @list) . " [$ilist]\n";
     }
     return substr($tuple, 1); # remove leading ","
@@ -303,50 +303,56 @@ sub create_function_call {
 #    push(@list, "$placeholder=$tuple"); $ilist = scalar(@list);
 #    my $qsource = quotemeta($source);
 #    $name =~ s{$qsource}{$placeholder}g;
-#    if ($debug >= 1) {
+#    if ($debug >= 2) {
 #        print "#   name=\"$name\" list=\"" . join(";", @list) . "\" [$ilist]\n";
 #    }
     return ($type, $tuple);
 } # create_function_call
 #--------------------------------------------
 __DATA__
-A900001	lambda	0	n*k
-A900002	lambda	0	n*k*i*j
-A900013	lambda	0	n+k-i+j
-A900013	lambda	0	-n+k-i+j
-A900024	lambda	0	n^2
-A900025	lambda	0	n^n^n
-A900034	lambda	0	34!
-A900035	lambda	0	35!!!!
-A900036	lambda	0	n!
-A900037	lambda	0	n!!!
-A900038	lambda	0	(n+1)!
-A900039	lambda	0	((n+1)!)!
-A900041	lambda	0	n/k
-A900042	lambda	0	n/i/j
+A900001	lambda	0	n*k                  	n>= 0	n*k                  	
+A900002	lambda	0	n*k*i*j              	n>= 0	n*k*i*j              	
 
-A900050	lambda	0	sin(x)
-A900051	lambda	0	valuation(n,17)
-A900052	lambda	0	binomial(n,k)
-A900053	lambda	0	A123456(n)    	\\	any A-number
-A900054	lambda	0	A000005(n)    	\\	Functions.TAU.z
-A900055	lambda	0	D006519(n + 2)	\\	DirectSequence
+A900011	lambda	0	n+k-i+j              	n>= 0	n+k-i+j              	
+A900012	lambda	0	-n+k-i+j             	n>= 0	-n+k-i+j             	
+A900013	lambda	0	n+k-(i+j)            	n>= 0	n+k-(i+j)            	
+A900014	lambda	0	(-n+k)-(i-j          	n>= 0	(-n+k)-(i-j          	
+A900015	lambda	0	-(n+k)-(i+j)         	n>= 0	-(n+k)-(i+j)         	
+A900016	lambda	0	-n-(i-j-k)           	n>= 0	-n-(i-j-k)           	
 
-A900061	lambda	0	12345678           	\\	int
-A900062	lambda	0	123456789          	\\	long
-A900063	lambda	0	1234567890         	\\	long
-A900064	lambda	0	12345678901234567	\\	long
-A900065	lambda	0	123456789012345678	\\	Z
-A900066	lambda	0	1234567890123456789	\\	Z
-A900067	lambda	0	12345678901234567.0	\\	CR
-A900071	lambda	0	n	\\	iV
-A900072	lambda	0	e	\\	CR.e
-A900073	lambda	0	Pi	\\	CR.PI
-A900074	lambda	0	EulerGamma	\\	CR.GAMMA
+A900024	lambda	0	n^2                  	n>= 0	n^2                  	
+A900025	lambda	0	i^j^k                	n>= 0	i^j^k                	
+A900034	lambda	0	34!                  	n>= 0	34!                  	
+A900035	lambda	0	35!!!!               	n>= 0	35!!!!               	
+A900036	lambda	0	n!                   	n>= 0	n!                   	
+A900037	lambda	0	n!!!                 	n>= 0	n!!!                 	
+A900038	lambda	0	(n+1)!               	n>= 0	(n+1)!               	
+A900039	lambda	0	((n+1)!)!            	n>= 0	((n+1)!)!            	
+A900041	lambda	0	n/k                  	n>= 0	n/k                  	
+A900042	lambda	0	n/i/j                	n>= 0	n/i/j                	
 
-A900081	lambda	0	(n + 1)	\\	brackets
-A900082	lambda	0	(n + 1)*(n+2)	\\	brackets
-A900083	lambda	0	((n + 1)*3)*(n+2)	\\	brackets
+A900050	lambda	0	sin(x)               	n>= 0	sin(x)               	
+A900051	lambda	0	valuation(n,17)      	n>= 0	valuation(n,17)      	
+A900052	lambda	0	binomial(n,k)        	n>= 0	binomial(n,k)        	
+A900053	lambda	0	A123456(n)           	n>= 0	A123456(n)           			any A-number
+A900054	lambda	0	A000005(n)           	n>= 0	A000005(n)           	Functions.TAU.z
+A900055	lambda	0	D006519(n + 2)       	n>= 0	D006519(n + 2)       	DirectSequence
+
+A900061	lambda	0	12345678             	n>= 0	12345678             	int
+A900062	lambda	0	123456789            	n>= 0	123456789            	long
+A900063	lambda	0	1234567890           	n>= 0	1234567890           	long
+A900064	lambda	0	12345678901234567    	n>= 0	12345678901234567    	long
+A900065	lambda	0	123456789012345678   	n>= 0	123456789012345678   	Z
+A900066	lambda	0	1234567890123456789  	n>= 0	1234567890123456789  	Z
+A900067	lambda	0	12345678901234567.0  	n>= 0	12345678901234567.0  	CR
+A900071	lambda	0	n                    	n>= 0	n                    	
+A900072	lambda	0	e                    	n>= 0	e                    	
+A900073	lambda	0	Pi                   	n>= 0	Pi                   	
+A900074	lambda	0	EulerGamma           	n>= 0	EulerGamma           	
+
+A900081	lambda	0	(n + 1)              	n>= 0	(n + 1)              	brackets
+A900082	lambda	0	(n + 1)*(n+2)        	n>= 0	(n + 1)*(n+2)        	brackets
+A900083	lambda	0	((n + 1)*3)*(n+2)    	n>= 0	((n + 1)*3)*(n+2)    	brackets
 
 A076090	lambda	0	A072408(n)	\\	a(n)=A072408(n), n>1. [From _R. J. Mathar_, Sep 23 2008]
 A072241	lambda	0	A000009(A000045(n))	\\	a(n) = A000009(A000045(n)).
