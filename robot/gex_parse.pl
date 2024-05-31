@@ -60,6 +60,13 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
+my %known_constants = qw(
+e           CR.E
+pi          CR.PI
+phi         CR.PHI
+eulergamma  CR.GAMMA
+googol      Z.TEN.pow(100)
+);
 my ($line, $aseqno, $callcode, $offset1, $name);
 my @rest;
 my @list = ();
@@ -68,13 +75,15 @@ my $old_list_len = scalar(@list) - 1;
 my $loop_check = 32;
 my $source;
 my $tuple;
+my $type;
+my $nok;
 
 while (<DATA>) {
 #while (<>) {
     next if !m{\AA\d+}; # must start with A-number
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
-    my $nok = 0;
+    $nok = 0;
     ($aseqno, $callcode, $offset1, $name, @rest) = split(/\t/, $line);
     if ($debug >= 1) {
         if ($debug >= 2) {
@@ -94,71 +103,88 @@ while (<DATA>) {
         #                  1      2         2 1
         while (($name =~ m{(\-?\w+([\+\-]\w+)+)})) {
             $source = $1;
-            $tuple = &insert_negations($source);
-            $name = &insert_placeholder($name, $source, $tuple, "A");
+            ($type, $tuple) = &typify(&insert_negations($source), ",", 1); # separators replaced by insert_negations
+            $name = &insert_placeholder($name, $source, $type, $tuple, "A");
         }
         #---- (C)all of a function, with optional commata
         #                                            12                    2  34   45     5 3  1
         while (index($name, "(") >= 0 && ($name =~ m{(([A-Za-z][A-Za-z0-9]*)\(((\w+)(\,\w+)*)\))})) {
             $source = $1;
-            $tuple = "$2,$3";
-            $name = &insert_placeholder($name, $source, $tuple, "C");
+            my $fname = $2;
+            ($type, $tuple) = &typify($3, ",", 0);
+            ($type, $tuple) = &create_function_call($type, $fname, $tuple);
+            $name = &insert_placeholder($name, $source, $type, $tuple, "C");
         }
         #---- (B)rackets (no commata; must be tested after "C" function calls)
         #                                            1  2   2  1
         while (index($name, "(") >= 0 && ($name =~ m{(\((\w+)\))})) {
             $source = $1;
-            $tuple = $2;
-            $name = &insert_placeholder($name, $source, $tuple, "B");
+            ($type, $tuple) = &typify($2 , ",", 0);
+            $name = &insert_placeholder($name, $source, $type, $tuple, "B");
         }
         #---- (D)ivision list separated by "/"
         #                                            1   2     2 1
         while (index($name, "/") >= 0 && ($name =~ m{(\w+(\/\w+)+)})) {
             $source = $1;
-            $tuple = $1;
-            $tuple =~ s{\/}{\,}g;
-            $name = &insert_placeholder($name, $source, $tuple, "D");
+            ($type, $tuple) = &typify($source , "/", 0);
+            if ($type =~ m[ln]) { # (int|long)/n yields "Q"
+                $type = "Q";
+            }
+            $name = &insert_placeholder($name, $source, $type, $tuple, "D");
         }
         #---- (E)ponentiation: list separated by "^"
         #                                            1   2     2 1
         while (index($name, "^") >= 0 && ($name =~ m{(\w+(\^\w+)+)})) {
             $source = $1;
-            $tuple = $1;
-            $tuple =~ s{\^}{\,}g;
-            $name = &insert_placeholder($name, $source, $tuple, "E");
+            ($type, $tuple) = &typify($source , "^", 0);
+            if ($type =~ m[ln]) { # (int|long)^n yields "Z"
+                $type = "Z";
+            }
+            $name = &insert_placeholder($name, $source, $type, $tuple, "E");
         }
         #---- (F)actorial followed by one or more "!" signs
         #                                            12   23   31
         while (index($name, "!") >= 0 && ($name =~ m{((\w+)(\!+))})) {
             $source = $1;
-            $tuple = $2 . "," . length($3);
-            $name = &insert_placeholder($name, $source, $tuple, "F");
+            my $expon = length($3);
+            ($type, $tuple) = &typify($2, ",", 0);
+            $name = &insert_placeholder($name, $source, "Z", "$tuple,$expon", "F"); # Factorial always yields Z
         }
         #---- (M)ultiplication list separated by "*"
         #                                            1   2     2 1
         while (index($name, "*") >= 0 && ($name =~ m{(\w+(\*\w+)+)})) {
             $source = $1;
-            $tuple = $1;
-            $tuple =~ s{\*}{\,}g;
-            $name = &insert_placeholder($name, $source, $tuple, "M");
+            ($type, $tuple)  = &typify($source, "*", 1);
+            $name = &insert_placeholder($name, $source, $type, $tuple, "M");
         }
         #---- (P)roduct: list separated by "*"
         # nyi                                        1   2     2 1
         while (0 && index($name, "*") >= 0 && ($name =~ m{(\w+(\*\w+)+)})) {
-            $source = $1;
-            $tuple = $1;
-            $name = &insert_placeholder($name, $source, $tuple, "P");
+            $name = &insert_placeholder($name, $source, $type, $tuple, "P");
         }
         #---- (S)um: 
         # nyi              1      2         2 1
         while (0 && ($name =~ m{(\-?\w+([\+\-]\w+)+)})) {
+            $name = &insert_placeholder($name, $source, $type, $tuple, "S");
+        }
+        #-------- (I) single number
+        #                1   2     21
+        if ($name =~ m{\A(\d+|\d*(\.\d+))\Z}) {
             $source = $1;
-            $tuple = $1;
-            $name = &insert_placeholder($name, $source, $tuple, "S");
+            ($type, $tuple) = &typify($source , ",", 0);
+            $name = &insert_placeholder($name, $source, $type, $tuple, "I");
         }
-        if ($debug >= 3) {
-            print "#      old_list_len=$old_list_len, scalar(\@list)=" . scalar(@list) . "\n";
+        #-------- (V) single variable name
+        #                1                    1
+        if ($name =~ m{\A([A-Za-z][A-Za-z0-9]*)\Z}) {
+            $source = $1;
+            ($type, $tuple) = &typify($source , ",", 0);
+            $name = &insert_placeholder($name, $source, $type, $tuple, "V");
         }
+        #--------
+    #   if ($debug >= 3) {
+    #       print "#      old_list_len=$old_list_len, scalar(\@list)=" . scalar(@list) . "\n";
+    #   }
     } # main substitution loop
 
     # In the end, the name will be reduced to a single placeholder
@@ -183,47 +209,58 @@ sub typify {
     # return the placeholder with the lowest type and the tuple
     # optionally order by ascending types
     # replace the separator by comma
+    $sep = quotemeta($sep);
     my $min_type = "zz"; # very high
     my $placeholder;
     my $type;
-    my @elems = map {
-            my $elem = $_;
-            if (substr($elem, 0, 1) ne "_") { # no placeholder yet
-                if (0) {
-                } else if ($elem =~ m{\A[i-n]\Z) { # simple integer variable
-                    $placeholder = "_nV$ilist";
-                    push(@list, "$placeholder=$elem"); $ilist = scalar(@list);
-                    $elem = $placeholder
-                } else if ($elem =~ m{\A\d+\Z) { # natural number
-                    my $len = length($elem);
-                    if (0) {
-                    } elsif ($elem =~ m{\.}) { # decimal point
-                        $type = "C"; # ComputableReal
-                    } elsif ($len >= 18) {
-                        $type = "Z";
-                    } elsif ($len >= 9) {
-                        $type = "l";
-                    } else {
-                        $type = "n";
-                    }
-                    $placeholder = "_$typeI$ilist";
-                    push(@list, "$placeholder=$elem"); $ilist = scalar(@list);
-                    $elem = $placeholder
-                } else { # unknown elementary primary
-                    $nok = "2un=$elem";
+    my @elems = ();
+    foreach my $elem (split(/$sep/, $tuple)) {
+        if (substr($elem, 0, 1) ne "_") { # no placeholder yet
+            if (0) {
+            } elsif ($elem =~ m{\A[i-n]\Z}) { # simple variable for int
+                $placeholder = "_nV$ilist";
+                push(@list, "$placeholder=$elem"); $ilist = scalar(@list);
+                $elem = $placeholder
+            } elsif ($elem =~ m{\A[A-Za-z][A-Za-z0-9]*\Z}) { # simple known real variable
+                $placeholder = "_CV$ilist";
+                $elem = uc($elem);
+                if (defined($known_constants{lc($elem)})) {
+                	$elem = $known_constants{lc($elem)};
+                } else {
+                	$nok = "4un=$elem";
                 }
+                push(@list, "$placeholder=$elem"); $ilist = scalar(@list);
+                $elem = $placeholder;
+            } elsif ($elem =~ m{\A[0-9\.]+\Z}) { # natural or decimal number
+                my $len = length($elem);
+                if (0) {
+                } elsif ($elem =~ m{\.}) { # decimal point
+                    $type = "C"; # ComputableReal
+                } elsif ($len >= 18) {
+                    $type = "Z"; # Integers
+                } elsif ($len >= 9) {
+                    $type = "l"; # long
+                } else {
+                    $type = "n"; # int
+                }
+                $placeholder = "_$type" ."I$ilist";
+                push(@list, "$placeholder=$elem"); $ilist = scalar(@list);
+                $elem = $placeholder
+            } else { # unknown elementary primary
+                $nok = "2un=$elem";
             }
-            if ($elem lt $min_type) { # lower
-                $min_type = $elem;
-            }
-            $elem # result for list
-        } (split(/$sep/, $tuple));
-    return (substr($min_type, 1, 1), join(",", ($order != 0) ? sort(@elems) : @elems));
+        }
+        if ($elem lt $min_type) { # lower
+            $min_type = $elem;
+        }
+        push(@elems, $elem);
+    } # for @elems
+    return (substr($min_type, 1, 1), join(",", ($order != 0) ? sort(@elems) : @elems)); # always comma separated
 } # typify
 #----
 sub insert_placeholder {
-    my ($name, $source, $tuple, $code) = @_;
-    my $placeholder = "_$code$ilist";
+    my ($name, $source, $type, $tuple, $code) = @_;
+    my $placeholder = "_$type$code$ilist";
     push(@list, "$placeholder=$tuple"); $ilist = scalar(@list);
     my $qsource = quotemeta($source);
     $name =~ s{$qsource}{$placeholder}g;
@@ -236,19 +273,20 @@ sub insert_placeholder {
 sub insert_negations {
     my ($tuple) = @_;
     my $old_tuple = $tuple;
-    my @elems = split(/([\+\-])/, $tuple); # yields the delimiters, too
+    my @elems = split(/([\+\-])/, $tuple); # "/(..)/" yields the delimiters, too!
     $tuple = "";
     my $ielem = 0; 
     while ($ielem < scalar(@elems)) {
         my $elem = $elems[$ielem];
         if (0) {
         } elsif ($elem eq "+") { # ignore
-        } elsif ($elem eq "-") { # replace next by its negation
+        } elsif ($elem eq "-") { # replace next element by its negation
             $ielem ++;
-            my $placeholder = "_N$ilist";
+            my ($type, $tuple1) = &typify($elems[$ielem], ",", 0);
+            my $placeholder = "_$type" . "N$ilist"; # (N)egation
             push(@list, "$placeholder=$elems[$ielem]"); $ilist = scalar(@list); 
             $tuple .= ",$placeholder";
-        } else { # summand
+        } else { # summand - typify later
             $tuple .= ",$elem";
         }
         $ielem ++;
@@ -258,24 +296,57 @@ sub insert_negations {
     }
     return substr($tuple, 1); # remove leading ","
 } # insert_negations
+#----
+sub create_function_call {
+    my ($type, $fname, $tuple) = @_;
+#    my $placeholder = "_$type$code$ilist";
+#    push(@list, "$placeholder=$tuple"); $ilist = scalar(@list);
+#    my $qsource = quotemeta($source);
+#    $name =~ s{$qsource}{$placeholder}g;
+#    if ($debug >= 1) {
+#        print "#   name=\"$name\" list=\"" . join(";", @list) . "\" [$ilist]\n";
+#    }
+    return ($type, $tuple);
+} # create_function_call
 #--------------------------------------------
 __DATA__
 A900001	lambda	0	n*k
 A900002	lambda	0	n*k*i*j
-A900003	lambda	0	n+k-i+j
-A900003	lambda	0	-n+k-i+j
-A900004	lambda	0	n^2
-A900005	lambda	0	n^n^n
-A900006	lambda	0	n!
-A900007	lambda	0	n!!!
-A900008	lambda	0	n/k
-A900009	lambda	0	n/i/j
-A900010	lambda	0	sin(x)
-A900011	lambda	0	valuation(n,17)
-A900012	lambda	0	binomial(n,k)
-A900013	lambda	0	A123456(n)	\\	any A-number
-A900014	lambda	0	A000005(n)	\\	Functions.TAU.z
-A900015	lambda	0	(n + 1)	\\	brackets
+A900013	lambda	0	n+k-i+j
+A900013	lambda	0	-n+k-i+j
+A900024	lambda	0	n^2
+A900025	lambda	0	n^n^n
+A900034	lambda	0	34!
+A900035	lambda	0	35!!!!
+A900036	lambda	0	n!
+A900037	lambda	0	n!!!
+A900038	lambda	0	(n+1)!
+A900039	lambda	0	((n+1)!)!
+A900041	lambda	0	n/k
+A900042	lambda	0	n/i/j
+
+A900050	lambda	0	sin(x)
+A900051	lambda	0	valuation(n,17)
+A900052	lambda	0	binomial(n,k)
+A900053	lambda	0	A123456(n)    	\\	any A-number
+A900054	lambda	0	A000005(n)    	\\	Functions.TAU.z
+A900055	lambda	0	D006519(n + 2)	\\	DirectSequence
+
+A900061	lambda	0	12345678           	\\	int
+A900062	lambda	0	123456789          	\\	long
+A900063	lambda	0	1234567890         	\\	long
+A900064	lambda	0	12345678901234567	\\	long
+A900065	lambda	0	123456789012345678	\\	Z
+A900066	lambda	0	1234567890123456789	\\	Z
+A900067	lambda	0	12345678901234567.0	\\	CR
+A900071	lambda	0	n	\\	iV
+A900072	lambda	0	e	\\	CR.e
+A900073	lambda	0	Pi	\\	CR.PI
+A900074	lambda	0	EulerGamma	\\	CR.GAMMA
+
+A900081	lambda	0	(n + 1)	\\	brackets
+A900082	lambda	0	(n + 1)*(n+2)	\\	brackets
+A900083	lambda	0	((n + 1)*3)*(n+2)	\\	brackets
 
 A076090	lambda	0	A072408(n)	\\	a(n)=A072408(n), n>1. [From _R. J. Mathar_, Sep 23 2008]
 A072241	lambda	0	A000009(A000045(n))	\\	a(n) = A000009(A000045(n)).

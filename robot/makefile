@@ -342,6 +342,12 @@ gex_parse: # parse general expressions
 	>        $@.tmp
 	tail -n4 $@.tmp $@.rest.tmp
 	wc -l    $@.tmp $@.rest.tmp
+gex_code0: # without translation
+	perl gex_code.pl -d $(D) -l OEIS gex_parse.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	tail -n4 $@.tmp $@.rest.tmp
+	wc -l    $@.tmp $@.rest.tmp
 
 #----
 inverse:
