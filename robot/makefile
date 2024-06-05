@@ -331,6 +331,7 @@ gcd: # gcd(A1(n), A2(n)), lcm, min, max
 gex_oeis: # OEIS Formula section: A364940 a(n) = n! * Sum_{k=0..n} (n+1)^(k-1) * binomial(n+2*k-1,n-k)/k!.
 	grep -P "^\%[NF] A\d+ +a\(n\) *\=" $(CAT) | cut -b4- \
 	| sed -e "s/ /\tgex_oeis\t0\t/" \
+	| uniq \
 	| perl gex_oeis.pl -d $(D) \
 	2>       $@.rest.tmp \
 	>        $@.tmp

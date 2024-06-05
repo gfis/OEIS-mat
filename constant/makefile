@@ -34,6 +34,80 @@ check:
 	$(DBAT) "SELECT COUNT(*) FROM asinfo WHERE keyword LIKE '%cons%' AND aseqno NOT IN (SELECT aseqno FROM joeis)"
 	$(DBAT) "SELECT COUNT(*) FROM asinfo WHERE keyword LIKE '%cofr%'"
 	$(DBAT) "SELECT COUNT(*) FROM asinfo WHERE keyword LIKE '%cofr%' AND aseqno NOT IN (SELECT aseqno FROM joeis)"
+#--------
+equals: equals_grep equals_pack equals_super equals_classify equals_split equals_prepare equals_post
+equals_grep:
+	grep -P "Equals[^A]+A\d{6}" $(COMMON)/jcat25.txt | grep -P "^%[NF]" \
+	| grep -vPi "€|lim|sum|intersect|integral|product|triang|union|matri" \
+	| grep -vP  "A\d+\(n" \
+	| perl -pe 's/^\%. //; s/ +Equals +/\t/; s/\..*//; s/ //g; s/(\,)?where.*//;' \
+	| tee   $@.tmp
+	wc -l   $@.tmp
+GREP=DecimalExpansionSequence
+equals_pack: # GREP= pack all extending $(GREP)
+	grep -P "\t$(GREP)\t" $(COMMON)/joeis_names.txt \
+	| cut -f1-2 \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/reflect
+	cd $(FISCHER)/reflect ; perl queue.pl -p $@.tmp > $@.pack
+	cp -v    $(FISCHER)/reflect/$@.pack .
+equals_super: # extract lines with "public class" or "super("
+	grep -P "^(public class |    super\()" equals_pack.pack \
+	| perl equals_super.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.*tmp
+equals_classify: # mark known A-numbers
+	perl classify.pl -m X -f equals_super.tmp equals_grep.tmp \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.*tmp
+equals_split: # split equations; keep only formulas with "Xnnnnnn"; make seq4 format
+	perl split_equations.pl equals_classify.tmp \
+	| grep -P "X\d+" | grep -P "\AA\d+[^A]+\Z" \
+	| sed -e "s/X001620/gamma/" \
+	| grep -vi "inthesense|Coffey|Catalan" \
+	| sed -e "s/\t/\tdecexp\t0\t() -> /" \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.*tmp
+equals_prepare: # extract X-numbers from parm1 into parm2
+	perl equals_prepare.pl equals_split.tmp \
+	| sort -k4,4 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.*tmp
+equals_post: # split equations; keep only formulas with "Xnnnnnn"; make seq4 format
+	cp equals_prepare.tmp $@.tmp
+	grep -v "€" $@.tmp \
+	| $(JPREP) -cc post  -f - | sed -e "s/\r//" \
+	>        $@.1.tmp \
+	2>       $@.1.rest.tmp
+	head -n8 $@.1.tmp
+	wc -l    $@.1*.tmp
+	$(JPREP) -d 2 -cc infix -p $(FISCHER)/CR.xpat -f $@.1.tmp | sed -e "s/\r//" \
+	>        $@.2.tmp \
+	2>       $@.2.rest.tmp
+	head -n8 $@.2.tmp
+	perl $(FISCHER)/cr_polish.pl $@.2.tmp \
+	>        $@.3.tmp \
+	2>       $@.3.rest.tmp
+	head -n8 $@.3.tmp
+	wc -l    $@.*
+equals9: equals_merge equals_replace
+equals_merge: # replace the plcaeholders again
+	perl merge.pl -c 4 equals_prepare.man \
+	| tee    $@.tmp
+	wc -l    $@.*tmp
+equals_replace: # replace the X-numbers by their formulas
+	perl replace_known.pl -d $(D) -f equals_super.tmp equals_merge.tmp \
+	2> $@.rest.tmp \
+	| tee    $@.gen
+	wc -l    $@*
+#--------
 exact: exact1 exact2 exact3
 exact1:
 	$(DBAT) -x "SELECT i.aseqno, i.keyword, n.name \
@@ -62,7 +136,7 @@ exact3:
 	head -n4 $@.tmp
 	wc -l    $@*.tmp
 #================
-cons:
+cons: # all with keyword "cons"
 	$(DBAT) -x "SELECT i.aseqno, i.offset1, SUBSTR(d.data, 1, 31), COALESCE(j.superclass, 'null'), n.name \
 	  FROM asinfo i, asdata d, asname n LEFT JOIN joeis j ON j.aseqno = n.aseqno \
 	  WHERE i.aseqno = d.aseqno \
@@ -75,9 +149,7 @@ cons:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-	zip $@.zip $@.tmp
-	#    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
-	#
+#----
 conjs:
 	grep -P '\tnull\t' cons.tmp \
 	>        $@.tmp

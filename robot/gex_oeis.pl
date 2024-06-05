@@ -85,7 +85,7 @@ while (<>) {
     $name =~ s{\bprimePi\(|prime\#\(}                   {primepi\(}ig;
     #                            1  1                   
     $name =~ s{Stirling[a-zA-Z_]*(\d)\(}                {stirling$1\(}g;
-    $name =~ s{(log|sigma|tau)_?(\w+)\(}                {$1$2\(}ig;   
+    $name =~ s{(log|sigma|tau)\_?(\d+)\(}               {$1$2\(}ig;   
     #          1                                       1                    2      2
     $name =~ s{(Sumdiv|sum|product|prod|min|max|gcd|lcm)_?\{([^\}]+)\}}     {$1\($2\)}ig;
     $name =~ s{\bx\_(\d)}                               {x$1}g; # "x_i" -> "xi"

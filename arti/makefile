@@ -66,7 +66,6 @@ endirsame:
 	head -n2   $@.tmp
 	wc -l      $@.tmp
 	# | grep -P "^A\d+ *a\(n\) *\= *" \
-
 #----
 evalndir: # extract and count non-DirectSequences in evalsame
 	cut -f6 evalsame.tmp | grep A \
