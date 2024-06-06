@@ -51,13 +51,20 @@ while (<IN1>) {
 } # while <IN1>
 close(IN1);
 
+my $undef_marker = "Y"; # must be different from $marker
 while (<>) {
+    next if ! m{\AA\d+};
+    s/\s+\Z//; # chompr
     my $line = $_;
     my ($aseqno, $callcode, $offset, $expr, @rest) = split(/\t/, $line);
     #                 1       2     21
-    while ($expr =~ s{($marker(\d{6}))}{$hash{$1}}g) {
+    while ($expr =~ s{($marker(\d{6}))}{defined($hash{$1}) ? $hash{$1} : "$undef_marker$2"}eg) {
     } # while
-    print join("\t", $aseqno, $callcode, $offset, $expr, @rest) . "\n";
+    if ($expr !~ m{$undef_marker\d{6}}) {
+        print        join("\t", $aseqno, $callcode, $offset, $expr, @rest) . "\n";
+    } else {
+        print STDERR join("\t", $aseqno, $callcode, $offset, $expr, @rest) . "\n";
+    }
 } # while
 __DATA__
 A098459	decexp	0	CR.HALF.*(X006752).+(X102886)	u=X006752,v=X102886	(1/2)*X006752+X102886

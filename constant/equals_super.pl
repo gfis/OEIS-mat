@@ -45,7 +45,7 @@ while (<>) {
         if ($expr =~ s{\, *(\d+)\)\;\Z}{}) {
             $base = $1;
         }
-        if ($expr =~ s{ *(\-?\d+) *\, *}{}) {
+        if ($expr =~ s{\A *(\-?\d+|offset)\, *}{}) {
             $offset = $1;
         }
         if ($expr !~ m{\{}) {

@@ -33,6 +33,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 # while (<DATA>) {
 while (<>) {
     s/\s+\Z//; # chompr
+    next if ! m{\AA\d+}
     my $line = $_;
     my ($aseqno, $callcode, @parms) = split(/\t/, $line);
     $parms[3] = $parms[1];

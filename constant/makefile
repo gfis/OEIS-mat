@@ -97,16 +97,23 @@ equals_post: # split equations; keep only formulas with "Xnnnnnn"; make seq4 for
 	2>       $@.3.rest.tmp
 	head -n8 $@.3.tmp
 	wc -l    $@.*
-equals9: equals_merge equals_replace
-equals_merge: # replace the plcaeholders again
+equals9: equals_merge equals_replace equals_polish
+equals_merge: # replace the placeholders again
 	perl merge.pl -c 4 equals_prepare.man \
 	| tee    $@.tmp
 	wc -l    $@.*tmp
 equals_replace: # replace the X-numbers by their formulas
-	perl replace_known.pl -d $(D) -f equals_super.tmp equals_merge.tmp \
+	perl replace_known.pl -d $(D) -f equals_super.man equals_merge.tmp \
 	2> $@.rest.tmp \
-	| tee    $@.gen
+	| tee    $@.tmp
 	wc -l    $@*
+equals_polish: # CC=decexpr when m{REALS}
+	cat equals_replace.tmp \
+	| perl -pe 'if (m{REALS}) { s/\tdecexp/\tdecexpr/; } s/\_?\w+\=[^\t]+/\t/; ' \
+	| grep -vP "new (MyFunction|Unary)" \
+	>        equals.gen
+	tail -n4 equals.gen
+	wc -l    equals.gen
 #--------
 exact: exact1 exact2 exact3
 exact1:

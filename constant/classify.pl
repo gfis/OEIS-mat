@@ -41,6 +41,7 @@ my %hash = ();
 open (IN1, "<", $infile1) || die "cannot read $infile1\n";
 while (<IN1>) {
     s/\s+\Z//; # chompr
+    next if ! m{\AA\d+}
     my $line = $_;
     my ($aseqno, $m) = split(/\t/, $line);
     if (length($marker) == 1) {
