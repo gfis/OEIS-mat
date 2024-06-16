@@ -60,8 +60,8 @@ equals_super: # extract lines with "public class" or "super("
 	>        $@.tmp
 	tail -n2 $@.tmp
 	wc -l    $@.*tmp
-equals_classify: # mark known A-numbers
-	perl classify.pl -m X -f equals_super.tmp equals_grep.tmp \
+equals_classify: # MARK=X mark known A-numbers
+	perl classify.pl -m $(MARK) -f equals_super.tmp equals_grep.tmp \
 	>        $@.tmp
 	tail -n2 $@.tmp
 	wc -l    $@.*tmp
@@ -99,11 +99,11 @@ equals_post: # split equations; keep only formulas with "Xnnnnnn"; make seq4 for
 	wc -l    $@.*
 equals9: equals_merge equals_replace equals_polish
 equals_merge: # replace the placeholders again
-	perl merge.pl -c 4 equals_prepare.man \
+	perl merge.pl -c 4 equals_prepare.tmp \
 	| tee    $@.tmp
 	wc -l    $@.*tmp
 equals_replace: # replace the X-numbers by their formulas
-	perl replace_known.pl -d $(D) -f equals_super.man equals_merge.tmp \
+	perl replace_known.pl -d $(D) -f equals_super.tmp equals_merge.tmp \
 	2> $@.rest.tmp \
 	| tee    $@.tmp
 	wc -l    $@*
@@ -369,7 +369,7 @@ floor3: # weird patches for leading "CR.mN" and "null."
 #----
 floorn: floorn0 floorn1 floorn2 floorn3
 floorn0:
-	grep -Pi "^A\d+\tnull\t([abc]\(n\) *\=)?[0-9n\+\-\*\^ ]*(floor|ceil|round|frac|[\[\]])" $(COMMON)/joeis_names.txt \
+	grep -Pi "^A\d+\tnyi[^\t]*\t([abc]\(n\) *\=)?[0-9n\+\-\*\^ ]*(floor|ceil|round|frac|[\[\]])" $(COMMON)/joeis_names.txt \
 	| cut -f1-3 \
 	| grep -vPhi "mod|sum|\.\.|prod|binom|acci|lucas|digit|reverse|radius|Rounded|fractionalpart|Fractalization|elevator|concat|prime|power|number|integer|\-\>|\!|A[0-9]+\(|pi\(|\[x\^" \
 	| perl -ne 's{\t[abc]\(n\) *\= *(.*)}{\t$$1}; s{\.\Z}{}; s{ and }{\,}g; s{[\,\;]? *where}{\,}; s{ }{}g; print; ' \
@@ -404,8 +404,8 @@ floorn3: # weird patches for leading "CR.mN" and "null."
 floorD: floorD1 floorD2 floorD3
 MODE=new
 floorD1:
-	grep -E "\[\{|floor|ceil|round|frac" $(COMMON)/joeis_names.txt 
-	| grep -P "\tnull\t" \
+	grep -E "\[\{|floor|ceil|round|frac" $(COMMON)/joeis_names.txt \
+	| grep -P "\tnyi[^\t]*\t" \
 	| perl ck_guide_D.pl -a D -m $(MODE) \
 	2>       $@.rest.tmp \
 	| perl -ne 's{\(n}{\(n\+1} if m{^A184116}; s{\t1\t}{\t0\t} if m{^A166477}; print; ' \
@@ -429,7 +429,7 @@ decsolv: decsolv0 decsolv1 decsolv2 decsolv3 decsolv4 # solve()
 	cut -f2  $@.gen | sort | uniq -c
 decsolv0:
 	grep -P "Decimal expansion of " $(COMMON)/joeis_names.txt \
-	| grep -P "\AA\d+\tnull\t" \
+	| grep -P "\AA\d+\tnyi[^\t]*\t" \
 	| grep -vP "continued fraction|Khinchin|Glaisher|Fibonacci|prime|Riemann|Dedekind" \
 	| perl decsolv.pl \
 	2>       $@.rest.tmp \
