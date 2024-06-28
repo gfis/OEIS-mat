@@ -193,7 +193,7 @@ decfini:
 cofr0: cofr1 cofr2 cofr3 cofr4 # prepare for ContinuedFraction
 cofr1: # grep names
 	grep -E "Continued fraction " $(COMMON)/joeis_names.txt \
-	| grep -P "\tnull\t" \
+	| grep -P "\tnyi" \
 	  >      $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

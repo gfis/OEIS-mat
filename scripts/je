@@ -1,0 +1,6 @@
+#!/bin/sh
+
+name=`perl $GITS/OEIS-mat/scripts/Anumber.pl -s $1`.java
+fname=$GITS/joeis-lite/internal/fischer/manual/`perl $GITS/OEIS-mat/scripts/Anumber.pl $1`.java
+cp -v $GITS/joeis/src/irvine/oeis/$name $fname
+e $fname

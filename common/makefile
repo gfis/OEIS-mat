@@ -1007,4 +1007,48 @@ dyck: # nyi tabf
 lpf_gpf:
 	grep -P "(largest|least|smallest|greatest) prime factor|\b(lpf|spf|gpf|A020639|A009190)\b" jcat25.txt \
 	| grep -P "^%[NFC] A\d+ +a\(n\) *\=" | grep -v "€" \
+#----
+selecta: # LIST=; select formulas for a list of A-numbers
+	grep -P "$(LIST)" jcat25.txt | grep -P "^%[NF]" \
+	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
+	| sort -k2 \
+	| perl poor.pl \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----
+nest_count: # count the nested A-number calls
+	grep -P "A\d{6}\([\+\-\*0-9n]*A\d{6}\(" jcat25.txt | grep -P "^." \
+	| perl nest_count.pl \
+	| endirect \
+	| sort -k2,2 > $@.tmp
+	head -n8 $@.tmp
+	wc    -l $@.tmp
+	cut -f2  $@.tmp | sort | uniq -c | sort -k2 \
+	>        $@.sort.tmp
+	head -n8 $@.sort.tmp
+	wc    -l $@.sort.tmp
+nest_form: # formulas with nested A-number callse
+	grep -P "A\d{6}\([\+\-\*0-9n]*A\d{6}\(" jcat25.txt | grep -P "^%[NF]" \
+	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
+	| sort -k2 \
+	| perl poor.pl \
+	| tee $@.tmp
+	wc -l $@.tmp
+nest_eval:
+	grep -P "lambdan" nest_form.tmp \
+	| grep -vP "J\d+\([A-Z]\d+" \
+	| tee $@.tmp
+#----
+jnnn: # which sequences occur in formulas as Jxxxxxx(n)
+	grep -P "^%[NFC] A\d{6} +a\(n\) * \=" jcat25.txt \
+	| endirect \
+	| perl -ne 'foreach my $$xno (m{([J]\d{6})\(n\)}g) { print "$$xno\n"; }'\
+	| sort | uniq -c | sort -rn > $@.tmp
+	head -n8 $@.tmp
+	wc    -l $@.tmp
+xxx:
+	cut -f2  $@.tmp | sort | uniq -c | sort -k2 \
+	>        $@.sort.tmp
+	head -n8 $@.sort.tmp
+	wc    -l $@.sort.tmp
 	

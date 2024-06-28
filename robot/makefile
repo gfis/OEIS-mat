@@ -585,6 +585,23 @@ fract2:
 	tail -n2 $@.gen
 	wc -l    $@.gen
 #--------
+ntraf: # lambdan/sintraf/multraf
+	grep -P "^%[NF] A\d{6} *a\(n\) *\= *[\+\-\*\/\^\(\)0-9nADEFJKM]+[\.\=]" $(CAT) \
+	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
+	| sort -k2 \
+	| perl $(COMMON)/poor.pl -a \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	perl ntraf.pl $@.tmp \
+	2>       $@.rest.tmp \
+	| grep -vP "\#|X\d{6}" \
+	| tee    $@.gen
+	grep -P  "^A\d" $(FISCHER)/aman/2024-06-24.man | cut -b1-7 | sed -e "s/\r//" > $@.grep
+	grep -vf $@.grep $@.gen \
+	| grep -vf $@.bad.man \
+	| sort >> $(FISCHER)/aman/2024-06-22.man
+	wc -l    $@*.tmp $@.gen   $(FISCHER)/aman/2024-06-22.man
+#--------
 ordtraf: # Ordinal transform of Annnnnn
 	grep -iP "Ordinal transform" $(CAT) | grep -P "^\%[NFY]" | $(NYI) $@ \
 	| perl -ne 'use strict; my ($$aseqno, $$callcode, $$offset, $$name) = split(/\t/); '\
