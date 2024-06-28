@@ -12,8 +12,8 @@ use integer;
 use warnings;
 
 my $iparm = 1; # operate on this parameter
-while (<DATA>) {
-#while (<>) {
+#while (<DATA>) {
+while (<>) {
     if (m{\AA\d+\t}) { # assume seq4 format
         s/\s+\Z//;
         my ($aseqno, $callcode, @parms) = split(/\t/);
