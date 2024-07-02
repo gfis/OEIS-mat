@@ -3,7 +3,7 @@
 # @(#) $Id$
 # 2024-06-28, Georg Fischer
 #
-#:# Filter seq4 records and remove trailing author comment, ".", (End)" etc.
+#:# Filter records and remove trailing author comment, ".", (End)" etc.
 #:# Usage:
 #:#   perl cutauth.pl infile.seq4 > outfile.seq4
 #--------------------------------------------------------
@@ -14,20 +14,20 @@ use warnings;
 my $iparm = 1; # operate on this parameter
 #while (<DATA>) {
 while (<>) {
-    if (m{\AA\d+\t}) { # assume seq4 format
+    if (m{\AA\d+}) { # starts with A-number
         s/\s+\Z//;
-        my ($aseqno, $callcode, @parms) = split(/\t/);
-        my $parmi = $parms[$iparm];
+        my $parm = $_;
 
-        $parmi =~ s{\[[A-Za-z][^\<\>\=\]]+\]}        {}; # remove "[From _G. F.]"
-        $parmi =~ s{\. +\- \_[A-Z]\w+\.? [A-Z].*}    {}; # remove ". - _G. F."
-        $parmi =~ s{\([Ee]nd\)\. *\Z}                {}; # remove trailing "(End)." 
-        $parmi =~ s{[^\.]\. *\Z}                     {}; # remove trailing "." 
+        $parm =~ s{\[[From [A-Za-z\_][^\]]+\]}      {}i;  # remove "[From _G. F.]"
+        $parm =~ s{\. +\- +_?[A-Z]\w*\.? [A-Zvd].*} {};   # remove ". - _G. F."
+#       $parm =~ s{\. \- _?[A-Z].*}     {};   # remove ". - _G. F."
+        $parm =~ s{\(End\)\.? *\Z}                  {}i;  # remove trailing "(End)." 
+        $parm =~ s{\((based on|corrected).*}        {};   # remove trailing "(based on", "(corrected"
+        $parm =~ s{\. *\Z}                          {};   # remove trailing "." 
 
-        $parms[$iparm] = $parmi;
-        print join("\t", $aseqno, $callcode, @parms) . "\n";
+        print "$parm\n";
     } else { # no seq4
-        print;
+        # print;
     }
 } # while
 __DATA__

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+perl $GITS/OEIS-mat/scripts/movinits.pl $1

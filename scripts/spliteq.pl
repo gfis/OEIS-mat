@@ -18,10 +18,11 @@ while (<>) {
         s/\s+\Z//;
         my ($aseqno, $callcode, @parms) = split(/\t/);
         my $oparmi = $parms[$iparm];
-        my @parts = split(/([\{\[\(\)\]\}\=]) */, $oparmi); # split with separators
+        my @parts  = split(/([\{\[\(\)\]\}\=]) */, $oparmi); # split with separators
         my @levels = ();
         my $nparmi = "";
-        my $level = 0;
+        my $level  = 0;
+        my $eqno   = 1;
         for (my $ipart = 0; $ipart < scalar(@parts); $ipart ++) {
             my $part = $parts[$ipart];
             if (0) {
@@ -33,9 +34,10 @@ while (<>) {
                 $nparmi .= $part;
             } elsif ($part eq "=") { # eq - group change
                 # print "# nparmi=$nparmi, level=$level\n";
-                if ($level == 0) { # split
+                if ($level == 0) { # split iff "=" on level 0
                     $parms[$iparm] = $nparmi;
-                    print join("\t", $aseqno, $callcode, @parms) . "\n";
+                    print join("\t", $aseqno, "$callcode.$eqno", @parms) . "\n";
+                    $eqno ++;
                     $nparmi = "";
                 } else { 
                     $nparmi .= $part;
@@ -46,7 +48,7 @@ while (<>) {
         } # for $ipart
         if (1) { # repeat at end of group
                     $parms[$iparm] = $nparmi;
-                    print join("\t", $aseqno, $callcode, @parms) . "\n";
+                    print join("\t", $aseqno, "$callcode", @parms) . "\n";
                     $nparmi = "";
         } # end of group
     } else { # no seq4

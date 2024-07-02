@@ -585,8 +585,45 @@ fract2:
 	tail -n2 $@.gen
 	wc -l    $@.gen
 #--------
+lsmtraf: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
+#--
+lsm1: # prepare
+	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF]" \
+	| perl -pe 's{€}{A}g' | endirect | cut -b 4- | grep -P "^A\d{6}" \
+	| cutauth \
+	 
+xx:
+	echo
+	| movinits \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+lsm2: # spliteq
+	cat lsm1.tmp \
+	| perl -pe 's{ a\(n\) *\= *}{\tlsm\t0\t};' \
+	| spliteq \
+	| grep -vP "\.\.\." \
+	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
+#--
+lsm2: # enshape
+	cat lsmtraf1.tmp \
+	| enshape -en \
+	| sort -k4,4 \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#--
+lsm3:
+	echo 
+	| spliteq \ 
+	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
+	| sort -k2 \
+	| perl $(COMMON)/poor.pl -a \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#--------
 ntraf: # lambdan/sintraf/multraf
-	grep -P "^%[NF] A\d{6} *a\(n\) *\= *[\+\-\*\/\^\(\)0-9nADEFJKM]+[\.\=]" $(CAT) \
+	grep -P "^%[NF] A\d{6} *a\(n\) *\= *[\+\-\*\/\^\(\)0-9nABDEFJKM]+[\.\=]" $(CAT) \
 	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
 	| sort -k2 \
 	| perl $(COMMON)/poor.pl -a \
@@ -595,6 +632,7 @@ ntraf: # lambdan/sintraf/multraf
 	perl ntraf.pl $@.tmp \
 	2>       $@.rest.tmp \
 	| grep -vP "\#|X\d{6}" \
+	| grep -vf ntraf.bad.man \
 	| tee    $@.gen
 	grep -P  "^A\d" $(FISCHER)/aman/2024-06-24.man | cut -b1-7 | sed -e "s/\r//" > $@.grep
 	grep -vf $@.grep $@.gen \

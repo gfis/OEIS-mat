@@ -1027,6 +1027,20 @@ nest_count: # count the nested A-number calls
 	>        $@.sort.tmp
 	head -n8 $@.sort.tmp
 	wc    -l $@.sort.tmp
+nest_names: # attach the names to J-numbers
+	$(DBAT) -f seq2.create.sql
+	grep J nest_count.sort.tmp \
+	| sed -e "s/J/A/" \
+	| gawk -e '{print $$2 "\t" $$1+1000 }' \
+	| $(DBAT) -r seq2
+	$(DBAT) -x "SELECT s.aseqno, 'names', s.info, n.name \
+	  FROM seq2 s, asname n \
+	  WHERE s.aseqno = n.aseqno \
+	  ORDER BY 3 DESC" \
+	| endirect | grep -P "^J" | grep -vP "100[123]" | sed -e "s/\t10*/\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
 nest_form: # formulas with nested A-number callse
 	grep -P "A\d{6}\([\+\-\*0-9n]*A\d{6}\(" jcat25.txt | grep -P "^%[NF]" \
 	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
@@ -1051,4 +1065,19 @@ xxx:
 	>        $@.sort.tmp
 	head -n8 $@.sort.tmp
 	wc    -l $@.sort.tmp
+#--
+jnnn_names: # attach the names to J-numbers
+	$(DBAT) -f seq2.create.sql
+	grep J jnnn.tmp \
+	| sed -e "s/J/A/" \
+	| gawk -e '{print $$2 "\t" $$1+1000 }' \
+	| $(DBAT) -r seq2
+	$(DBAT) -x "SELECT s.aseqno, 'names', s.info, n.name \
+	  FROM seq2 s, asname n \
+	  WHERE s.aseqno = n.aseqno \
+	  ORDER BY 3 DESC" \
+	| endirect | grep -P "^J" | grep -vP "100[123]" | sed -e "s/\t10*/\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
 	
