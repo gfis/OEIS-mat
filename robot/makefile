@@ -591,10 +591,8 @@ lsm1: # prepare
 	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF]" \
 	| perl -pe 's{€}{A}g' | endirect | cut -b 4- | grep -P "^A\d{6}" \
 	| cutauth \
-	 
-xx:
-	echo
-	| movinits \
+	| sed -e "s/ /\tlsm\t0\t/" \
+	| movinits 2> movinits.tmp \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
@@ -621,6 +619,33 @@ lsm3:
 	| perl $(COMMON)/poor.pl -a \
 	| tee    $@.tmp
 	wc -l    $@.tmp
+#--
+lsmDD: # lambdan Dnnnnnn(Dmmmmmm(n))
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
+	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmDJ: # sintrif Dnnnnnn(Jmmmmmm(n))
+	grep -P "\t[BDEFM]\d{6}\([J]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
+	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
+	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
+	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
+	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmDDD: # lambdan Dkkkkkk(Dnnnnnn(Dmmmmmm(n)))
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
+	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmDDJ: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([J]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
+	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
+	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
+	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
+	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
 #--------
 ntraf: # lambdan/sintraf/multraf
 	grep -P "^%[NF] A\d{6} *a\(n\) *\= *[\+\-\*\/\^\(\)0-9nABDEFJKM]+[\.\=]" $(CAT) \

@@ -1,6 +1,7 @@
 #!perl
 
 # Copy CAT25 file and replace all leading "%" characters by "#" for jOEIS sequences
+# 2024-07-03: "Empirical for (row|column)" -> "?"
 # 2023-09-28: nyi A-numbers -> "Ännnnnn"
 # 2023-05-05: renamed from ../common/jcat25.pl
 # 2023-05-01: App(e->a)rent, seem
@@ -78,12 +79,16 @@ while (<>) { # CAT25 format
     }
     $line =~ s{\A.}{$col1};
     if (0) {
+    } elsif ($atype eq "F" && ($line =~ m{Empirical for (row|column)})) {
+        $state = 2;
     } elsif ($atype eq "F" && ($line =~ m{Conjecture}i) && ($line =~ m{\(Start\)}i)) {
         $state = 1;
     } elsif ($state == 1   && ($line =~ m{\(End\)}i)) {
         $state = 0;
+    } elsif ($state == 2   && ($atype ne "F")) {
+        $state = 0;
     }
-    if ($state == 1 || ($line =~ m{[Cc]onject|Apparent|Appear|May be|Empiric|Seem})) {
+    if ($state >= 1 || ($line =~ m{[Cc]onject|Apparent|Appear|May be|Empiric|Seem})) {
         $line =~ s{\A.}{\?};
     }
     if ($nyia ne "") {

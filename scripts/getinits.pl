@@ -37,9 +37,12 @@ while (<>) {
         my ($aseqno, $callcode, @parms) = split(/\t/, "$line\t\t", -1);
         my $parm = $parms[$iparm];
         $nok = 0;
-        if ($parm =~ m{\>\=(\d+)}) {
+        if (0) {
+        } elsif ($parm =~ m{\>\=(\d+)}) {
             my $count = $1;
             $parm = get_inits($aseqno, $count);
+            $parms[$iparm] = "\"$parm\"";
+        } elsif (length($parm) == 0) {
             $parms[$iparm] = "\"$parm\"";
         }
         if ($nok eq "0") {

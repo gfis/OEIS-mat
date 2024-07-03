@@ -14,15 +14,14 @@ use warnings;
 my $iparm = 1; # operate on this parameter and the next
 my $asinfo = "\$GITS/OEIS-mat/common/asinfo.txt"; # print "$asinfo\n";
 my $nok = 0;
-my $callcode = "lsm";
-my $offset = 0;
 #while (<DATA>) {
 while (<>) {
     #       1    1   2  2
     if (m{\A(A\d+)\s+(.*)}) { # starts with A-number
-        my ($aseqno, $parm) = ($1, $2);
+        s/\s+\Z//; # chompr
         my $line = $_;
-        $parm =~ s/\s+\Z//;
+        my ($aseqno, $callcode, @rest) = split(/\t/, $line);
+        my $parm = $rest[$iparm];
         $nok = 0;
         my %inits = ();
         my $cond = "";
@@ -53,12 +52,13 @@ while (<>) {
             } # while MMA
             $cond = "\"" . join(",", map { $inits{$_} } sort(keys(%inits))) . "\"";
         } # if a(1)=0 ...
-        # print "# $line\#$parm $cond\n";  
-        if ($cond ne "") {
+        # print "# $line\$parm $cond\n";  
+        if ($cond eq "") {
             # then check for conditions like "for n > 0"
-            #               1              1  2    2 3           3
-            if ($parm =~ s{(for|given|with) +(all )?([a-z]\D+\d+) *}{}i) {
+            #              1              1  2    2 3           3
+            if ($parm =~ s{(for|given|with) +(all )?([i-n]\D+\d+)}{}i) {
                 $cond = $3;
+                # print "# cond2=\"$cond\", parm=\"$parm\"\n";
                 $cond =~ s{ }{}g;
                 #              1     12         23      3
                 if ($cond =~ m{([i-n])([\>\=\<]+)(\-?\d+)}) {
@@ -77,11 +77,16 @@ while (<>) {
         # print "# $aseqno parmi=\"$parm\"\n";
         $parm =~ s{[\,\;\:]? *(given|with|for|and|)[\.\,\;\: ]*\Z}{};
         $parm =~ s{\A[ \.\,\;\:]+}{};
-        
+        if ($parm =~ m{(a\(n\) *\= *)}p) {
+            $parm = ${^POSTMATCH};  # only keep formula behind "a(n) = "
+        }
+        # $parm =~ s{\Aa\(n\) *\= *}{}; # remove leading "a(n) = "
+        $rest[$iparm + 0] = $parm;
+        $rest[$iparm + 1] = $cond;
         if ($nok eq "0") {
-            print        join("\t", $aseqno, $callcode        , $parm, $cond) . "\n";
+            print        join("\t", $aseqno, $callcode        , @rest) . "\n";
         } else {
-            print STDERR join("\t", $aseqno, "$callcode\#$nok", $parm, $cond) . "\n";
+            print STDERR join("\t", $aseqno, "$callcode\#$nok", @rest) . "\n";
         }
     } else { # no seq4
         # print;
@@ -89,17 +94,17 @@ while (<>) {
 } # while
 __DATA__
 # test data
-A079078 a(0) = 1, a(1) = 2; for n > 1, a(n) = prime(n)*a(n-2).
-A079121 a(n+1) = floor((1/n)*(Sum_{k=1..n} a(k)^((n+1)/k))), given a(0)=1, a(1)=3, a(2)=8.
-A079271 a(n) = 4 * a(n-1) * (3^(2^(n-1))-a(n-1)) with a(0)=1.
-A079274 a(n) = A074141(n) - 2* A074141(n-1) for n > 0 and a(0) = 1
-A079318 a(0) = 1; for n > 0, a(n) = (3^(A000120(n)-1) + 1)/2.
-A079438 a(0) = a(1) = 1, a(n) = 2*(floor((n+1)/3) + (if n >= 14) (floor((n-10)/4) + floor((n-14)/8))).
-A079438 a(0) = a(1) = 1, a(n) = 2*(floor((n+1)/3) + (if n >= 14) (floor((n-10)/4) + floor((n-14)/8))).
-A079512 a(0)=1, a(1)=1; for n>1, a(n) = Sum_{i=0..n/2} binomial(n-i-1,i)*a(n-2i-1) + ((n+1) mod 2).
-A079708 a(0)=0, a(n) = A052330(a(n-1)) for n <=17
-A079719 a(n) = n + floor[sum_k{k<n}a(k)/2] for n >= 3
-A080068 a(n) = €080067(a(n-1)). for n > 2
-A080073 a(n)=((n-1)!*sum(i=0..n-1, (binomial(n,i)*sum(j=0..n, j!*(-1)^(j)*binomial(n,j)*stirling1(n-i-1,j)))/(n-i-1)!)), n>0
-A080135 a(n+1) = floor( a(n)*sum(k=0..n, 1/a(k)^s) ), where s = sum(k>=0, 1/a(k)^s) and a(0)=1; s = 2.260568736857767...
-A080254 a(0)=a(1)=1. For n>1, a(n)=1 + sum('2^r*binomial(n, r)*a(n-r)', 'r'=1..n)
+A079078	lsm	0	a(0) = 1, a(1) = 2; for n > 1, a(n) = prime(n)*a(n-2).
+A079121	lsm	0	a(n+1) = floor((1/n)*(Sum_{k=1..n} a(k)^((n+1)/k))), given a(0)=1, a(1)=3, a(2)=8.
+A079271	lsm	0	a(n) = 4 * a(n-1) * (3^(2^(n-1))-a(n-1)) with a(0)=1.
+A079274	lsm	0	a(n) = A074141(n) - 2* A074141(n-1) for n > 0 and a(0) = 1
+A079318	lsm	0	a(0) = 1; for n > 0, a(n) = (3^(A000120(n)-1) + 1)/2.
+A079438	lsm	0	a(0) = a(1) = 1, a(n) = 2*(floor((n+1)/3) + (if n >= 14) (floor((n-10)/4) + floor((n-14)/8))).
+A079438	lsm	0	a(0) = a(1) = 1, a(n) = 2*(floor((n+1)/3) + (if n >= 14) (floor((n-10)/4) + floor((n-14)/8))).
+A079512	lsm	0	a(0)=1, a(1)=1; for n>1, a(n) = Sum_{i=0..n/2} binomial(n-i-1,i)*a(n-2i-1) + ((n+1) mod 2).
+A079708	lsm	0	a(0)=0, a(n) = A052330(a(n-1)) for n <=17
+A079719	lsm	0	a(n) = n + floor[sum_k{k<n}a(k)/2] for n >= 3
+A080068	lsm	0	a(n) = €080067(a(n-1)). for n > 2
+A080073	lsm	0	a(n)=((n-1)!*sum(i=0..n-1, (binomial(n,i)*sum(j=0..n, j!*(-1)^(j)*binomial(n,j)*stirling1(n-i-1,j)))/(n-i-1)!)), n>0
+A080135	lsm	0	a(n+1) = floor( a(n)*sum(k=0..n, 1/a(k)^s) ), where s = sum(k>=0, 1/a(k)^s) and a(0)=1; s = 2.260568736857767...
+A080254	lsm	0	a(0)=a(1)=1. For n>1, a(n)=1 + sum('2^r*binomial(n, r)*a(n-r)', 'r'=1..n)

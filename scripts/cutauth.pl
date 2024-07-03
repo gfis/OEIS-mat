@@ -18,11 +18,12 @@ while (<>) {
         s/\s+\Z//;
         my $parm = $_;
 
-        $parm =~ s{\[[From [A-Za-z\_][^\]]+\]}      {}i;  # remove "[From _G. F.]"
+        $parm =~ s{\[From [A-Za-z\_][^\]]+\]}       {}i;  # remove "[From _G. F.]"
         $parm =~ s{\. +\- +_?[A-Z]\w*\.? [A-Zvd].*} {};   # remove ". - _G. F."
 #       $parm =~ s{\. \- _?[A-Z].*}     {};   # remove ". - _G. F."
         $parm =~ s{\(End\)\.? *\Z}                  {}i;  # remove trailing "(End)." 
         $parm =~ s{\((based on|corrected).*}        {};   # remove trailing "(based on", "(corrected"
+        $parm =~ s{\,? *where.*}                    {};   # remove " where ..." 
         $parm =~ s{\. *\Z}                          {};   # remove trailing "." 
 
         print "$parm\n";
