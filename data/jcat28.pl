@@ -64,8 +64,10 @@ while (<>) { # CAT25 format
     my $aseqno = substr($line, 3, 7); # $1 || "A000000";
     if ($atype ne $otype) {
         if ($state != 0) {
+            if ($state != 2) {
+                print STDERR "# Start-End overrun in $otype $oseqno\n";
+            }
             $state = 0;
-            print STDERR "# Start-End overrun in $otype $oseqno\n";
         }
         $otype = $atype;
     }
