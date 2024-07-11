@@ -6,7 +6,8 @@
 # 2024-05-14, Georg Fischer: copied from ../sortprep.pl
 #
 #:# Usage:
-#:#   perl endirect.pl [-f directfile] infile > outfile
+#:#   perl endirect.pl [-f directfile] [-c] infile > outfile
+#:#       -c read from clipboard
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -62,4 +63,4 @@ __DATA__
 %	F	A342229	a(n)=Sum_{k=(\d+),n}Annn(k)*Annn(n-k)	1	A113061,A000041
 %	F	A342230	a(n)=Sum_{k=(\d+),n}Annn(k)*Annn(n-k)	1	A001511,A000041
 %	F	A342231	a(n)=Sum_{k=(\d+),n}Annn(k)*Annn(n-k)	1	A038712,A000041
-
+#	T	A008292

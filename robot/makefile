@@ -589,9 +589,10 @@ lsmtraf: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
 #--
 lsm1: # prepare
 	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF]" \
-	| perl -pe 's{€}{A}g' | endirect | cut -b 4- | grep -P "^A\d{6}" \
+	| perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" \
 	| cutauth \
 	| sed -e "s/ /\tlsm\t0\t/" \
+	| perl -pe 's/(\d+)([i-n])/$$1\*$$2/g;' \
 	| movinits 2> movinits.tmp \
 	>        $@.tmp
 	head -n8 $@.tmp
@@ -602,8 +603,11 @@ lsm2: # spliteq
 	| spliteq \
 	| grep -vP "\.\.\." \
 	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
 #--
-lsm2: # enshape
+lsm3: # enshape
 	cat lsmtraf1.tmp \
 	| enshape -en \
 	| sort -k4,4 \
@@ -611,7 +615,7 @@ lsm2: # enshape
 	head -n8 $@.tmp
 	wc -l    $@.tmp
 #--
-lsm3:
+lsm4:
 	echo 
 	| spliteq \ 
 	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
@@ -646,11 +650,60 @@ lsmDDJ: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
 	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
 	| tee $@.tmp
 	wc -l $@.tmp
+lsmSTU: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
+	grep -P "\t[STU]\d{6}\([BDEFMSTU]\d{6}" lsm1.tmp | getinits \
+	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
+	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
+	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
+	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
+#--
+lsmH:
+	grep -P "H\d{6}" lsm1.tmp \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----
+tritraf: tri1 tri2 tri3 # lambdan/sintraf/multraf
+#--
+tri1: # prepare
+	grep -P "[TA]\([i-n]\, *[i-n]\) *\=" $(CAT) | grep -P "^%[NF]" \
+	| perl -pe 's{€}{A}g' | endirect | cut -b 4- | grep -P "^A\d{6}" \
+	| cutauth \
+	| sed -e "s/ /\ttri\t0\t/" \
+	| movinits 2> movinits.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+tri2: # spliteq
+	cat tri1.tmp \
+	| perl -pe 's{ a\(n\) *\= *}{\ttri\t0\t};' \
+	| spliteq \
+	| grep -vP "\.\.\." \
+	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
+#--
+tri2: # enshape
+	cat tritraf1.tmp \
+	| enshape -en \
+	| sort -k4,4 \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#--
+tri3:
+	echo 
+	| spliteq \ 
+	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
+	| sort -k2 \
+	| perl $(COMMON)/poor.pl -a \
+	| tee    $@.tmp
+	wc -l    $@.tmp
 #--------
 ntraf: # lambdan/sintraf/multraf
-	grep -P "^%[NF] A\d{6} *a\(n\) *\= *[\+\-\*\/\^\(\)0-9nABDEFJKM]+[\.\=]" $(CAT) \
-	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
+	grep -P "^%[NF] A\d{6} *a\(n\) *\= *[\+\-\*\/\^\(\)0-9nABDEFJKMSTU]+[\.\=]" $(CAT) \
+	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}\(" | perl -pe 's/^/A/; s/ /\t/;'\
 	| sort -k2 \
+	| tee $@.1.tmp \
 	| perl $(COMMON)/poor.pl -a \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -660,6 +713,7 @@ ntraf: # lambdan/sintraf/multraf
 	| grep -vf ntraf.bad.man \
 	| tee    $@.gen
 	grep -P  "^A\d" $(FISCHER)/aman/2024-06-24.man | cut -b1-7 | sed -e "s/\r//" > $@.grep
+	echo "#----" `date +%Y-%m-%d` >> $(FISCHER)/aman/2024-06-22.man
 	grep -vf $@.grep $@.gen \
 	| grep -vf $@.bad.man \
 	| sort >> $(FISCHER)/aman/2024-06-22.man
@@ -803,6 +857,11 @@ sum_maple: # Maple
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+#-----
+tricolrow:
+	grep -iP "(Column|Row) [a-n^Sp-z0-9\= ]*of [A-Z]\d{6}" jcat25.txt | grep -P "^%[NFCY]" | endirect | grep -P "of [HSTU]\d+" \
+	| tee $@.tmp
+	wc -l $@.tmp
 #----
 triprod:
 	# Triangles that are products of 2 other triangles

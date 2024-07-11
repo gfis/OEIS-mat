@@ -16,8 +16,8 @@ use warnings;
 my ($aseqno, $callcode, $offset, $form, $inits, $seqlist, @rest, $lambda);
 my %jhash;
 my @jseqs;
-while (<DATA>) {
-#while (<>) {
+#while (<DATA>) {
+while (<>) {
     s/\s+\Z//; # chompr;
     my $line = $_;
     my $nok = 0;
