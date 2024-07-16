@@ -371,7 +371,7 @@ joeis_pullloc: # refresh local önly
 #--
 tinfo_reload: asinfo_load asname_load bfinfo_load
 joeis_reload: joeis_load joeis_ofter joeis_ofdec joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
-# joeis_rest: joeis_names jcat25 joeis_analog joeis_progress
+# joeis_rest: joeis_names jcat25 joeis_analog joeis_progress joeis_50pc
 joeis_rest: joeis_names joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
 	$(DBAT) -f joeis.create.sql
@@ -440,7 +440,7 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
 	# currently not; cd $(FISCHER); make analog
-ALAST=A064000
+ALAST=A072000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -449,6 +449,12 @@ joeis_progress:
 	    );" \
 	>>        $@.txt
 	tail -n16 $@.txt
+joeis_50pc: # how many remain until 50%
+	$(DBAT) -x "SELECT SUBSTR(CAST((b/2 - a) AS CHAR),1,6) \
+	    || ' jOEIS sequences remaining until 50%' FROM \
+	    ( (SELECT COUNT(j.aseqno) as a FROM joeis  j) j1 \
+	    , (SELECT COUNT(i.aseqno) as b FROM asinfo i) j2 \
+	    );"
 joeis_stat: # percentage of sequences implemented in jOEIS
 	echo '************************************************************************'
 	$(DBAT) -x "SELECT CAST(a AS CHAR) || ' Java classes = '   || SUBSTR(CAST(a/b * 100 AS CHAR),1,7) \
