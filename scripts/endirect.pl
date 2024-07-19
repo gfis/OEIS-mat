@@ -45,7 +45,7 @@ while (<>) {
     if ($debug >= 1) {
         print "# line=$line";
     }
-    foreach my $aseqno ($line =~ m{\b(A\d+)}g) {
+    foreach my $aseqno ($line =~ m{\b([€AB-HJKSTUX]\d{6})}g) {
         my $seqno = substr($aseqno, 1);
         my $nseqno = ($seqno < $veclen) ? "$vector[$seqno]$seqno" : "A$seqno";
         $line =~ s{$aseqno}{$nseqno};

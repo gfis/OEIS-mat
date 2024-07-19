@@ -1086,4 +1086,7 @@ jnnn_names: # attach the names to J-numbers
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
-	
+#----
+jnames: # nyi, and sorted by name
+	# endirect joeis_names.txt | grep -P "^A" | cut -f1,3- | sort -k2,2 -t"	" -k1,1 > jnames.txt
+	endirect joeis_names.txt  > jnames.txt

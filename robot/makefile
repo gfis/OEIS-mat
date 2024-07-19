@@ -115,7 +115,127 @@ cent_old:
 	2>       $@.rest.tmp \
 	| tee    $@.gen
 	wc -l    $@.*
-#----
+
+#----------------
+MANY=16
+OPT=
+chain1: # process from source chain file to target chain file 
+	cp -v chain.tcn $(PROC).scn
+	wc -l    $(PROC).scn
+	cat $(PROC).scn | $(PROC) $(OPT) > $(PROC).tcn 2> $(PROC).err
+	grep -A3 -P "^$(PROC):" makefile | tail -n2 | tee chain.mf
+	head -n$(MANY) $(PROC).tcn
+	wc -l    $(PROC).tcn $(PROC).err
+	cp -v    $(PROC).tcn chain.tcn
+	make -f chain.mf
+	
+chain:
+	cp -v $(HEAD).scn chain.tcn || touch chain.tcn
+	make -f makefile $(HEAD)
+
+GREP=A0776
+start:
+	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF] $(GREP)" \
+	| perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" \
+	>        chain.tcn
+	head -n2 chain.tcn
+	wc -l    chain.tcn
+	make -f makefile chain1 OPT= PROC=cutauth
+cutauth:
+	make -f makefile chain1 OPT= PROC=$@
+movinits:
+	make -f makefile chain1 OPT= PROC=$@
+spliteq:
+	make -f makefile chain1 OPT= PROC=$@
+stop:
+	cat chain.tcn
+	exit
+getinits:
+	make -f makefile chain1 OPT= PROC=$@
+finish:
+	echo finish chain
+#----------------
+
+lsmtraf: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
+#--
+lsm1: # prepare
+	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF]" \
+	| perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" \
+	| cutauth \
+	| sed -e "s/ /\tlsm\t0\t/" \
+	| perl -pe 's/(\d+)([i-n])/$$1\*$$2/g;' \
+	| movinits 2> movinits.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+lsm2: # spliteq
+	cat lsm1.tmp \
+	| perl -pe 's{ a\(n\) *\= *}{\tlsm\t0\t};' \
+	| spliteq \
+	| grep -vP "\.\.\." \
+	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#--
+lsm3: # enshape
+	cat lsmtraf1.tmp \
+	| enshape -en \
+	| sort -k4,4 \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+#--
+lsm4:
+	echo 
+	| spliteq \ 
+	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
+	| sort -k2 \
+	| perl $(COMMON)/poor.pl -a \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+#--
+lsmDD: # lambdan Dnnnnnn(Dmmmmmm(n))
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
+	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmDJ: # sintrif Dnnnnnn(Jmmmmmm(n))
+	grep -P "\t[BDEFM]\d{6}\([J]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
+	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
+	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
+	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
+	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmDDD: # lambdan Dkkkkkk(Dnnnnnn(Dmmmmmm(n)))
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
+	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmDDJ: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([J]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
+	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
+	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
+	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
+	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
+lsmSTU: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
+	grep -P "\t[STU]\d{6}\([BDEFMSTU]\d{6}" lsm1.tmp | getinits \
+	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
+	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
+	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
+	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
+	| tee $@.tmp
+	wc -l $@.tmp
+#--
+lsmH:
+	grep -P "H\d{6}" lsm1.tmp \
+	| tee $@.tmp
+	wc -l $@.tmp
+
+#----------------
 charfun:
 	grep -E "^%" $(CAT) | grep -P "Characteristic function (for|of) A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
@@ -584,85 +704,6 @@ fract2:
 	>        $@.gen
 	tail -n2 $@.gen
 	wc -l    $@.gen
-#--------
-lsmtraf: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
-#--
-lsm1: # prepare
-	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF]" \
-	| perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" \
-	| cutauth \
-	| sed -e "s/ /\tlsm\t0\t/" \
-	| perl -pe 's/(\d+)([i-n])/$$1\*$$2/g;' \
-	| movinits 2> movinits.tmp \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-lsm2: # spliteq
-	cat lsm1.tmp \
-	| perl -pe 's{ a\(n\) *\= *}{\tlsm\t0\t};' \
-	| spliteq \
-	| grep -vP "\.\.\." \
-	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-#--
-lsm3: # enshape
-	cat lsmtraf1.tmp \
-	| enshape -en \
-	| sort -k4,4 \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-#--
-lsm4:
-	echo 
-	| spliteq \ 
-	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
-	| sort -k2 \
-	| perl $(COMMON)/poor.pl -a \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-#--
-lsmDD: # lambdan Dnnnnnn(Dmmmmmm(n))
-	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
-	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
-	| tee $@.tmp
-	wc -l $@.tmp
-lsmDJ: # sintrif Dnnnnnn(Jmmmmmm(n))
-	grep -P "\t[BDEFM]\d{6}\([J]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
-	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
-	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
-	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
-	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
-	| tee $@.tmp
-	wc -l $@.tmp
-lsmDDD: # lambdan Dkkkkkk(Dnnnnnn(Dmmmmmm(n)))
-	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
-	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
-	| tee $@.tmp
-	wc -l $@.tmp
-lsmDDJ: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
-	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([J]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
-	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
-	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
-	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
-	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
-	| tee $@.tmp
-	wc -l $@.tmp
-lsmSTU: # sintrif Dkkkkkk(Dnnnnnn(Jmmmmmm(n)))
-	grep -P "\t[STU]\d{6}\([BDEFMSTU]\d{6}" lsm1.tmp | getinits \
-	| perl -ne 'use strict; s/\s+\Z/\t/; my ($$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) = split(/\t/);'\
-	' if ($$p1 =~ s{([A-Z]\d+)\([J](\d+)\(n\)\)}{$$1\(term\)}) {'\
-	' $$p3 = "new A$$2\(\)"; $$p1 = "(term, n) -> $$p1"; $$cc = "sintrif"; if (length($$p2) == 0) { $$p2 = "\"\""; } '\
-	' print join("\t", $$asn, $$cc, $$ofs, $$p1, $$p2, $$p3) . "\n"; }'\
-	| tee $@.tmp
-	wc -l $@.tmp
-#--
-lsmH:
-	grep -P "H\d{6}" lsm1.tmp \
-	| tee $@.tmp
-	wc -l $@.tmp
 #----
 tritraf: tri1 tri2 tri3 # lambdan/sintraf/multraf
 #--
@@ -681,14 +722,6 @@ tri2: # spliteq
 	| spliteq \
 	| grep -vP "\.\.\." \
 	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
-#--
-tri2: # enshape
-	cat tritraf1.tmp \
-	| enshape -en \
-	| sort -k4,4 \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
 #--
 tri3:
 	echo 

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+name=`perl $GITS/OEIS-mat/scripts/Anumber.pl -s $1`.java
+fname=$GITS/joeis-lite/src/irvine/oeis/$name
+cat    $fname
+ls -al $fname
+ano=`perl $GITS/OEIS-mat/scripts/Anumber.pl $1`
+echo $ano | clip 
