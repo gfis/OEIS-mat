@@ -34,7 +34,7 @@ my $iparm = 0; # $(PARM1)
 my @parms;
 my $sep = ";";
 my $eq  = "=";
-my $colon = ":";
+my $slash = "/";
 my %tree; # maps index -> etype:formula_string
 my $nok;
 # while (<DATA>) {
@@ -45,8 +45,8 @@ while (<>) {
         if ($debug > 0) {
             print "$line\n";
         }
-        ($aseqno, $callcode, $offset, @parms) = split(/\t/, $line);
         $nok = 0;
+        ($aseqno, $callcode, $offset, @parms) = split(/\t/, $line);
         my $form = $parms[$iparm];
 
         if ($actions =~ m{en}) {
@@ -61,42 +61,42 @@ while (<>) {
                 my $changed = 0; # assume that nothing was changed
                 #                  1       ( 2     2  )1  
                 while($form =~ s{\b(J\d{6}\(n(\+\d+)?\))}                         {\{$index\}}) { # J012345(n+2)
-                    $tree{$index} = "J$colon$1";
+                    $tree{$index} = "J$slash$1";
                     print "# whileJ tree{$index} = $tree{$index}\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
                 #                1                             1
                 while($form =~ s{([\+\-\*0-9]*[i-n][\+\-\*0-9]*)}                 {\{$index\}}) { # integer expression with n + - * 7
-                    $tree{$index} = "n$colon$1";
+                    $tree{$index} = "n$slash$1";
                     print "# whilen tree{$index} = $tree{$index}\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
                 #                  1                                 ( {17 } )1
                 while($form =~ s{\b(([BDEFKSTU]\d{6}|[A-Z][A-Z0-9]+)\(\{\d\}\))}     {\{$index\}}) { # F012345({17})
-                    $tree{$index} = "F$colon$1";
+                    $tree{$index} = "F$slash$1";
                     print "# whileF tree{$index} = $tree{$index}\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
                 #                1      2             2 1   
                 while($form =~ s{(\{\d\}([\^\^]\{\d+\})+)}                        {\{$index\}}) { # {2}*{3}
-                    $tree{$index} = "^$colon$1";
+                    $tree{$index} = "^$slash$1";
                     print "# while^ tree{$index} = $tree{$index}\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
                 #                1      2             2 1   
                 while($form =~ s{(\{\d\}([\*\%]\{\d+\})+)}                        {\{$index\}}) { # {2}*{3}
-                    $tree{$index} = "*$colon$1";
+                    $tree{$index} = "*$slash$1";
                     print "# while* tree{$index} = $tree{$index}\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
                 #                1      2             2 1   
                 while($form =~ s{(\{\d\}([\+\-]\{\d+\})+)}                        {\{$index\}}) { # {2}+{3}
-                    $tree{$index} = "+$colon$1";
+                    $tree{$index} = "+$slash$1";
                     print "# while+ tree{$index} = $tree{$index}\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
@@ -125,6 +125,9 @@ while (<>) {
                 foreach my $node (@nodes) { # store all nodes in the hash = tree
                     my ($index, $elem) = split(/$eq/, $node);
                     $tree{$index} = $elem;
+                    if ($debug >= 2) {
+                        print "# add tree{$index}=$elem\n";
+                    }
                 } # foreach $node
             } # reconstructed
             # now walk over all nodes of the tree and expand them
@@ -132,13 +135,13 @@ while (<>) {
         } # -de
 
         $parms[$iparm] = $form; # original formula with structure tree elements appended
+        if ($nok ne "0") {
+            print STDERR join("\t", $aseqno, $nok     , $offset, @parms) . "\n";
+        } else {
+            print        join("\t", $aseqno, $callcode, $offset, @parms) . "\n";
+        }
     } else {
-        $nok = "noano"; # not starting with A-number
-    }
-    if ($nok ne "0") {
-        print STDERR join("\t", $aseqno, $nok     , $offset, @parms) . "\n";
-    } else {
-        print        join("\t", $aseqno, $callcode, $offset, @parms) . "\n";
+        # ignore lines without A-numbers
     }
 } # while
 #----
@@ -146,9 +149,13 @@ sub expand_node { # expand a node (recursive)
     my ($index) = @_;
     my @list;
     my $result = "";
-    my ($code, $node) = split(/$colon/, $tree{$index});
+    my $oper;
+    if ($index =~ m{\A\{(\d+)\}\Z}) { # reference to another node
+        $index = $1;
+    }
+    my ($code, $node) = split(/$slash/, $tree{$index});
     if ($debug >= 2) {
-        print "# expand_node code=$code, node=$node\n";
+        print "# expand_node tree{$index}=\"$tree{$index}\", code=$code, node=\"$node\"\n";
     }
     if (0) {
     } elsif ($code eq "^") {
@@ -156,19 +163,22 @@ sub expand_node { # expand a node (recursive)
         $result .= &expand_node(shift(@list));
         foreach my $elem (@list) {
             if (0) {
-            } elsif ($elem eq "^") { # ignore
+            } elsif ($elem eq "^") {
+                $oper = $elem;
             } else {
-                $result .= ".^(" . &expand_node($elem) . ")";
+                $result .= ".$oper(" . &expand_node($elem) . ")";
             }
         }
     } elsif ($code eq "*") {
         @list = split(/(\*)/, $node);
         $result .= &expand_node(shift(@list));
+        
         foreach my $elem (@list) {
             if (0) {
-            } elsif ($elem eq "^") { # ignore
+            } elsif ($elem eq "*") {
+                $oper = $elem;
             } else {
-                $result .= ".^(" . &expand_node($elem) . ")";
+                $result .= ".$oper(" . &expand_node($elem) . ")";
             }
         }
     } elsif ($code eq "+") {
@@ -177,11 +187,25 @@ sub expand_node { # expand a node (recursive)
         foreach my $elem (@list) {
             if (0) {
             } elsif ($elem eq "-") { # ignore
-                $result .= ".-(" . &expand_node($elem) . ")";
+                $oper = $elem;
+            } elsif ($elem eq "+") { # ignore
+                $oper = $elem;
             } else {
-                $result .= ".+(" . &expand_node($elem) . ")";
+                $result .= ".$oper(" . &expand_node($elem) . ")";
             }
         }
+    } elsif ($code eq "F") { # ;3=F/D000290({1});
+        #              1          1 ( {2   2 } )
+        if ($node =~ m{([A-Z]\d{6})\(\{(\d+)\}\)}) {
+            $result .= "$1(" . &expand_node($2) . ")";
+        } else {
+            $nok = "syntax";
+            $result .= "<?syntax?>";
+        }
+    } elsif ($code eq "J") { # ;1=J/J059253(n);
+        $result .= $node;
+    } elsif ($code eq "n") { # ;2=n/k;
+        $result .= $node;
     }
     return $result;
 } # expand_node
