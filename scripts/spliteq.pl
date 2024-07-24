@@ -3,7 +3,7 @@
 # @(#) $Id$
 # 2024-06-28, Georg Fischer
 #
-#:# Filter seq4 records and split equations (at "=" outside of parentheses) in $(PARM1) into several records
+#:# Filter seq4 records and split equations in $(PARM1) (at "=" outside of parentheses) into several records
 #:# Usage:
 #:#   perl spliteq.pl infile.seq4 > outfile.seq4
 #--------------------------------------------------------
@@ -36,7 +36,7 @@ while (<>) {
                 # print "# nparmi=$nparmi, level=$level\n";
                 if ($level == 0) { # split iff "=" on level 0
                     $parms[$iparm] = $nparmi;
-                    print join("\t", $aseqno, "$callcode.$eqno", @parms) . "\n";
+                    print join("\t", $aseqno, "$callcode", @parms) . "\n";
                     $eqno ++;
                     $nparmi = "";
                 } else { 

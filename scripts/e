@@ -1,4 +1,4 @@
 #!/bin/sh
 
-touch $1
-uedit64 $1
+touch   $1 $2 $3 $4
+uedit64 $1 $2 $3 $4

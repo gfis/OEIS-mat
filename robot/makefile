@@ -120,43 +120,135 @@ cent_old:
 MANY=16
 OPT=
 chain1: # process from source chain file to target chain file 
-	cp -v chain.tcn $(PROC).scn
-	wc -l    $(PROC).scn
-	cat $(PROC).scn | $(PROC) $(OPT) > $(PROC).tcn 2> $(PROC).err
-	grep -A3 -P "^$(PROC):" makefile | tail -n2 | tee chain.mf
-	head -n$(MANY) $(PROC).tcn
-	wc -l    $(PROC).tcn $(PROC).err
-	cp -v    $(PROC).tcn chain.tcn
+	echo ---- $(PROC) ----
+	cp chain.ocn $(PROC).icn
+	wc -l    $(PROC).icn
+	cat $(PROC).icn | $(PROC) $(OPT) > $(PROC).ocn 2> $(PROC).ecn
+	grep -A16 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
+	head -n$(MANY) $(PROC).ocn
+	wc -l    $(PROC).ocn $(PROC).ecn || :
+	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf
-	
-chain:
-	cp -v $(HEAD).scn chain.tcn || touch chain.tcn
-	make -f makefile $(HEAD)
+#----
+# helper targets for chaining
+next: # continue the chain with the next target
+	echo "#### next $(PROC) ####"
+	grep -A16 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
+	head -n$(MANY) $(PROC).ocn
+	wc -l    $(PROC).ocn $(PROC).ecn || :
+	cp       $(PROC).ocn chain.ocn
+	make -f chain.mf FISCHER=$(FISCHER)
+restart: # get the output of the previous target in the chain
+	echo "#### next $(PROC) ####"
+	grep -B2 -P "^$(PROC):" makefile | head -n2 | sed -e "s/^\t/\tcp $$\@.ocn chain.ocn # /" > chain.mf
+	make -f chain.mf FISCHER=$(FISCHER)
+	make $(PROC)
+jump: # continue the chain with target $(FOLLOW)
+	echo "#### jump $(PROC) FOLLOW=$(FOLLOW) ####"
+	grep -A16 -P "^$(FOLLOW):" makefile | tee chain.mf
+	wc -l    $(PROC).ocn $(PROC).ecn || :
+	cp       $(PROC).ocn chain.ocn
+	make -f chain.mf FISCHER=$(FISCHER)
 
-GREP=A0776
-start:
-	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF] $(GREP)" \
-	| perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" \
-	>        chain.tcn
-	head -n2 chain.tcn
-	wc -l    chain.tcn
-	make -f makefile chain1 OPT= PROC=cutauth
-cutauth:
+#==== the chain of targets ====
+GREP=A
+chain:	grepan
+grepan: # this is the start of the chain
+	grep -P "a\(n\) *\=" $(CAT) 2> $@.ecn | grep -P "^%[NF] $(GREP)" | perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" | tee $@.ocn > chain.ocn ; make next PROC=$@
+cutauth: # remove trailing author signature
 	make -f makefile chain1 OPT= PROC=$@
-movinits:
+insertcc: # insert callcode, make seq4 format
+	perl -pe 's/ /\tlambdan\t0\t/' chain.ocn > $@.ocn 2> $@.ecn ; make next PROC=$@
+movinits: # extract assignments to initial terms and move them to parm2, or a condition like "n>=2"
 	make -f makefile chain1 OPT= PROC=$@
-spliteq:
+spliteq: # split several assignments to a(n) into separate records
 	make -f makefile chain1 OPT= PROC=$@
-stop:
-	cat chain.tcn
-	exit
+oeisfunc: # replace known OEIS functions by their A-numbers
+	make -f makefile chain1 OPT= PROC=$@
+funcrest: # count the remaining function occurrences
+	cp -v chain.ocn $@.ocn
+	cut -f2 oeisfunc.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn 
+	make next PROC=$@
+longwords: # remove those with elaborate wording
+	grep -vP "\w{8}|(\w+ ){3}" chain.ocn > $@.ocn ; grep -P "\w{8}|(\w+ ){3}" chain.ocn > $@.ecn ; make next PROC=$@
+oeisprep: # egalize OEIS formula conventions
+	make -f makefile chain1 OPT=-all PROC=$@
+lsmtraf: # separate into lambdan, sintrif or multraf callcodes
+	make -f makefile chain1 OPT= PROC=$@
+remajx: # remove those with A|X-numbers and J-numbers if not Jxxx(n)
+	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])" chain.ocn > $@.ocn 
+	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])" chain.ocn > $@.ecn
+	make next PROC=$@
+sortuniq: # sort by callcode, parm1, parm2, parm3, and uniq
+	sort chain.ocn | uniq | sort -k2,2 -k4,4 -k5,5 -k6,6 -k7,7 > $@.ocn 2> $@.ecn ;	make next PROC=$@
+ddn2:
+	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
+	| grep -vP "\(n\-\d{2}" \
+	> $@.ocn 2> $@.ecn
+	wc -l $@*
+	make next PROC=$@
+remtoday: # remove those that are already in today's aman/date.man file
+	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.man \
+	| perl -pe 's{\A(A\d+).*}{\^$$1};' | tr -d "\r" > $@.tmp
+	grep -vf $@.tmp chain.ocn > $@.ocn || :
+	grep  -f $@.tmp chain.ocn > $@.ecn || :
+	wc -l $@*
+	make next PROC=$@
+remfailed: # remove those that failed (code 'fx' in previous man files
+	grep -vf getfailed.tmp chain.ocn > $@.ocn || :
+	grep  -f getfailed chain.ocn > $@.ecn || :
+	wc -l $@*
+	make next PROC=$@
 getinits:
-	make -f makefile chain1 OPT= PROC=$@
-finish:
-	echo finish chain
+	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+runtest: # compile and run
+	cp -v chain.ocn $(FISCHER)/aman/$@.man
+	head -n4 $(FISCHER)/aman/$@.man
+	wc -l    $(FISCHER)/aman/$@.man
+	# cd $(FISCHER) ; make CC=$@ pegel TO=2 GU=32
+	make next PROC=$@
+finish: # this is the end of the chain
+	exit
+stop:
+	exit
+#==== end of the chain ====
+
+getfailed: # determine those that failed (code 'fx' in previous man files
+	grep -h -P "^f\S*\tA\d+\t" $(FISCHER)/aman/`date +%Y-%m`*.man \
+	| perl -pe 's{\Af\S*\t(A\d+).*}{\^$$1};' | tr -d "\r" | sort | uniq > $@.tmp
+	wc -l $@*
+
+
+FOLLOW=ddn2
+branch1: # allow for several different followers
+	cp -v chain.ocn $@.ocn
+	make jump PROC=$@ FOLLOW=$(FOLLOW)
+
+join1: # continue with the overall chain
+	cp -v chain.ocn $@.ocn
+	make next PROC=$@
+
+# branch1
+xxddn2:
+	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
+	| grep -vP "\(n\-\d{2}" \
+	| getinits \
+	| tee - \
+	> $(FISCHER)/aman/$@.man
+	make jump PROC=$@ FOLLOW=join1
+	
+ddn:
+	cat 
+	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([BDEFHIMSTU]\d{6}\(([n\+\-\*0-9]+|term|[BDEFHIMSTU]\d{6}\(([n\+\-\*0-9]|term)+\))\)\)\t" sortuniq.ocn \
+	| getinits \
+	| tee $@.tmp
+ddn1:
+	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([BDEFHIMSTU]\d{6}\(([n\+\-\*0-9][n\+\-\*0-9]+|[BDEFHIMSTU]\d{6}\([n\+\-\*0-9][n\+\-\*0-9]+\))\)\)\t" sortuniq.ocn \
+	| getinits \
+	| tee $@.tmp
 #----------------
 
-lsmtraf: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
+lsm0: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
 #--
 lsm1: # prepare
 	grep -P "a\(n\) *\=" $(CAT) | grep -P "^%[NF]" \

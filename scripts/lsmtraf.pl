@@ -33,7 +33,7 @@ while (<>) {
         #                 1 2     21 (  )
         while ($form =~ s{(J(\d{6}))\(n\)}{I$2\(n\)}) {
             $jhash{$1} = $jx ++;
-            push(@jseqs, "new A$1()");
+            push(@jseqs, "new A$2()");
         }
         if (0) {
         } elsif (scalar(keys(%jhash)) == 0) {

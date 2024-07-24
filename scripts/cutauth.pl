@@ -24,7 +24,7 @@ while (<>) {
 #       $parm =~ s{\. \- _?[A-Z].*}     {};   # remove ". - _G. F."
         $parm =~ s{\(End\)\.? *\Z}                  {}i;  # remove trailing "(End)." 
         $parm =~ s{\((based on|corrected).*}        {};   # remove trailing "(based on", "(corrected"
-#       $parm =~ s{\,? *where.*}                    {};   # remove " where ..." 
+        $parm =~ s{\,? *where.*}                    {};   # remove " where ..." 
         $parm =~ s{\. *\Z}                          {};   # remove trailing "." 
 
         print "$parm\n";
