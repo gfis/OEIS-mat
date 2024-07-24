@@ -28,6 +28,7 @@ antisigma       D024816
 bell            F000110
 bigomega        F001222
 binomial        BI
+cat             F000108
 catalan         F000108
 chowla          F048050
 core            F007913

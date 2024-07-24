@@ -81,6 +81,10 @@ while (<>) {
         $parm1 =~ s{stirling}                                      {S}ig;
     }
     if($fac > 0) {
+        if (index($parm1, "!!") >= 0) { 
+        $parm1 =~ s{\(([^\)\(]+)\)\!\!}                            {DF\($1\)}g;
+        $parm1 =~ s{(\w)\!\!}                                      {DF\($1\)}g;
+        }
         if (index($parm1, "!") >= 0) { 
         $parm1 =~ s{\(([^\)\(]+)\)\!}                              {FA\($1\)}g;
         $parm1 =~ s{(\w)\!}                                        {FA\($1\)}g;

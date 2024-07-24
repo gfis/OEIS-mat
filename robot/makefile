@@ -173,20 +173,18 @@ longwords: # remove those with elaborate wording
 	grep -vP "\w{8}|(\w+ ){3}" chain.ocn > $@.ocn ; grep -P "\w{8}|(\w+ ){3}" chain.ocn > $@.ecn ; make next PROC=$@
 oeisprep: # egalize OEIS formula conventions
 	make -f makefile chain1 OPT=-all PROC=$@
-lsmtraf: # separate into lambdan, sintrif or multraf callcodes
-	make -f makefile chain1 OPT= PROC=$@
 remajx: # remove those with A|X-numbers and J-numbers if not Jxxx(n)
 	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])" chain.ocn > $@.ocn 
 	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])" chain.ocn > $@.ecn
 	make next PROC=$@
 sortuniq: # sort by callcode, parm1, parm2, parm3, and uniq
 	sort chain.ocn | uniq | sort -k2,2 -k4,4 -k5,5 -k6,6 -k7,7 > $@.ocn 2> $@.ecn ;	make next PROC=$@
-ddn2:
-	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
-	| grep -vP "\(n\-\d{2}" \
-	> $@.ocn 2> $@.ecn
-	wc -l $@*
-	make next PROC=$@
+enstruct: # append a structure tree to $(PARM1)
+	make -f makefile chain1 OPT= PROC=$@
+destruct: # flatten the structure tree into jOEIS infix syntax
+	make -f makefile chain1 OPT= PROC=$@
+lsmtraf: # separate into lambdan, sintrif or multraf callcodes
+	make -f makefile chain1 OPT= PROC=$@
 remtoday: # remove those that are already in today's aman/date.man file
 	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.man \
 	| perl -pe 's{\A(A\d+).*}{\^$$1};' | tr -d "\r" > $@.tmp
@@ -195,7 +193,7 @@ remtoday: # remove those that are already in today's aman/date.man file
 	wc -l $@*
 	make next PROC=$@
 remfailed: # remove those that failed (code 'fx' in previous man files
-	grep -vf getfailed.tmp chain.ocn > $@.ocn || :
+	grep -vf getfailed.tmp chain.ocn | grep -v "A333387" > $@.ocn || :
 	grep  -f getfailed chain.ocn > $@.ecn || :
 	wc -l $@*
 	make next PROC=$@
@@ -205,13 +203,20 @@ runtest: # compile and run
 	cp -v chain.ocn $(FISCHER)/aman/$@.man
 	head -n4 $(FISCHER)/aman/$@.man
 	wc -l    $(FISCHER)/aman/$@.man
-	# cd $(FISCHER) ; make CC=$@ pegel TO=2 GU=32
+	cd $(FISCHER) ; make CC=$@ pegel TO=2 GU=32
 	make next PROC=$@
 finish: # this is the end of the chain
 	exit
 stop:
 	exit
 #==== end of the chain ====
+
+ddn2:
+	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
+	| grep -vP "\(n\-\d{2}" \
+	> $@.ocn 2> $@.ecn
+	wc -l $@*
+	make next PROC=$@
 
 getfailed: # determine those that failed (code 'fx' in previous man files
 	grep -h -P "^f\S*\tA\d+\t" $(FISCHER)/aman/`date +%Y-%m`*.man \
