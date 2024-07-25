@@ -56,11 +56,6 @@ while (<>) {
         $nok = 0;
         ($aseqno, $callcode, $offset, @parms) = split(/\t/, $line);
         $form = $parms[$iparm];
-        if ($form =~ s{\A([^\-]+\-\> *)}{}) {
-           $lambda = $1;
-        } else {
-           $lambda = "";
-        }
 
         if ($actions =~ m{en}) {
             %tree = ();
@@ -68,11 +63,26 @@ while (<>) {
             $parms[1] = $parms[1] || "\"\"";
             $parms[2] = $parms[2] || "";
             $parms[3] = $form;
+            $lambda = "";
+            #                1     (       )1
+            if ($form =~ s{\A(\w+|\([^\)]*\))\-\>}{}) { # remember lambda parameter list
+                $lambda = "$1 -> ";
+            }
+            $form =~ s{\-\>}{\,}g; # replace inner arrows
             $form .= "    ";
             my $busy = 1;
             my $index = 0;
             while ($busy >= 1) {
                 my $changed = 0; # assume that nothing was changed
+
+                # L ->           1                2         21  3       3
+                while($form =~ s{(\{\d+\}|[ijkn]|\([a-z\,]+\))µ(\{\d+\})}               {\{$index\}}) { # J012345(n+2)
+                    $tree{$index} = "L$slash$1µ$2";
+                    print "# whileL tree{$index} = $tree{$index}, form=\"$form\"\n" if ($debug >= 1);
+                    $index ++;
+                    $changed = 1;
+                }
+
                 # JJJJ             1       ( 2     2  )1
                 while($form =~ s{\b(J\d{6}\(n(\+\d+)?\))}                         {\{$index\}}) { # J012345(n+2)
                     $tree{$index} = "J$slash$1";
@@ -80,14 +90,16 @@ while (<>) {
                     $index ++;
                     $changed = 1;
                 }
-                # nnnn           1                             1
-                while($form =~ s{([\+\-\*0-9]*[i-n][\+\-\*0-9]*)}                 {\{$index\}}) { # integer expression with n + - * 7
+
+                # Nnnn           1                             1
+                while($form =~ s{([ijkn0-9]([\+\-\*][ijkn0-9])+)}                 {\{$index\}}) { # integer expression with n + - * 7
 #               while($form =~ s{([\+\-\*0-9i-n]+)}                               {\{$index\}}) { # integer expression with n + - * 7
                     $tree{$index} = "N$slash$1";
                     print "# whilen tree{$index} = $tree{$index}, form=\"$form\"\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
+
                 my $start_index = $index;
                 # FFFF             1               (2-----------23 ,4-----------43  1)
                 while($form =~ s{\b([A-Z][A-Z0-9]+\((\{\d+\}|\d+)(\,(\{\d+\}|\d+))*\))}  {\{\#\}}) { # F012345({17}), BI({1},{2})
@@ -99,21 +111,24 @@ while (<>) {
                 for (my $ix = $start_index; $ix < $index; $ix ++) {
                     $form =~ s{\#}{$ix};
                 }
-                # ^^^^           12-----------23    4-----------43 1
+
+                # P^^^           12-----------23    4-----------43 1
                 while($form =~ s{((\{\d+\}|\d+)([\^](\{\d+\}|\d+))+)}                          {\{$index\}}) { # {2}^{3}
                     $tree{$index} = "P$slash$1";
                     print "# while^ tree{$index} = $tree{$index}, form=\"$form\"\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
-                # ****           12-----------23      4-----------43 1
+
+                # M***           12-----------23      4-----------43 1
                 while($form =~ s{((\{\d+\}|\d+)([\*\%](\{\d+\}|\d+))+)}                        {\{$index\}}) { # {2}*{3}
                     $tree{$index} = "M$slash$1";
                     print "# while* tree{$index} = $tree{$index}, form=\"$form\"\n" if ($debug >= 1);
                     $index ++;
                     $changed = 1;
                 }
-                # ++++           12-----------23      4-----------43 1
+
+                # A+++           12-----------23      4-----------43 1
                 while($form =~ s{((\{\d+\}|\d+)([\+\-](\{\d+\}|\d+))+)}                        {\{$index\}}) { # {2}+{3}
                     $tree{$index} = "A$slash$1";
                     print "# while+ tree{$index} = $tree{$index}, form=\"$form\"\n" if ($debug >= 1);
@@ -122,6 +137,12 @@ while (<>) {
                 }
                 $busy = $changed;
             } # while busy
+            if (length($lambda) > 0) {
+                if ($form =~ s{\A\{(\d+)\} *}{\{$index\}    }) {
+                    $tree{$index} = "L$slash$lambda$slash\{$1\}";
+                    $index ++;
+                }
+            }
             # append the tree structure:
             foreach my $key (sort(keys(%tree))) {
                 $form .= "$sep$key$eq$tree{$key}";
@@ -153,7 +174,7 @@ while (<>) {
             $form = &expand_node($root);
         } # -de
 
-        $parms[$iparm] = "$lambda$form"; # original formula with structure tree elements appended
+        $parms[$iparm] = "$form"; # original formula with structure tree elements appended
         if ($nok ne "0") {
             print STDERR join("\t", $aseqno, $nok     , $offset, @parms) . "\n";
         } else {
@@ -203,6 +224,23 @@ sub expand_node { # expand a node (recursive)
                     $result .= ".$oper(" . $elem . ")";
                 } else {
                     $result .= ".$oper(" . &expand_node($elem) . ")";
+                }
+            }
+    } elsif ($code eq "L") {
+            @list = split(/(µ)/, $node);
+            for ($il = 0; $il < scalar(@list); $il ++) {
+                $elem = $list[$il];
+                if (0) {
+                } elsif ($elem eq "µ") {
+                    $oper = " -> ";
+                } elsif ($elem =~ m{\A\(}) { # (term,n)
+                    $result .= "$elem";
+                } elsif ($elem =~ m{\A[ijkn]\Z}) { # n
+                    $result .= "$elem";
+                } elsif ($elem =~ m{\A(\d+)\Z}) { # number
+                    $result .= "$oper$elem";
+                } else {
+                    $result .= "$oper" . &expand_node($elem);
                 }
             }
     } elsif ($code eq "A") {
@@ -261,12 +299,12 @@ sub expand_node { # expand a node (recursive)
     return $result;
 } # expand_node
 __DATA__
-A243035	lsmtraf	0	9*10^(FA(n)-1)	"1,2,3"
-A229361	lsmtraf	0	97+41*Z2(n)+21*3^n+13*4^n+8*5^n+5*6^n+3*7^n+2*8^n+9^n+10^n
-A163545	lsmtraf	0	D000290(J059252(n))+D000290(J059253(n))
-A163547	lsmtraf	0	D000290(J059253(n))+D000290(J059252(n))	"1,2,3"
-A365161	lsmtraf	0	D001223(J059305(n)-1)	"1,6,1"
-A120355	lsmtraf	0	D002034(ABS(n))+FA(n)*NEG(k)^Z2(n)	""
-A162455	lsmtraf	0	D002061(F000142(BI(n, 3))+1)
-A324115	lsmtraf	0	D002487(E323244(n)*2)
-A131822	lsmtraf	0	D003961(J036035(n-1)+n-3)
+A243035	lsmtraf	0	n -> 9*10^(FA(n)-1)	"1,2,3"
+A229361	lsmtraf	0	n -> 97+41*Z2(n)+21*3^n+13*4^n+8*5^n+5*6^n+3*7^n+2*8^n+9^n+10^n
+A163545	lsmtraf	0	n -> D000290(J059252(n))+D000290(J059253(n))
+A163547	lsmtraf	0	n -> D000290(J059253(n))+D000290(J059252(n))	"1,2,3"
+A365161	lsmtraf	0	n -> D001223(J059305(n)-1)	"1,6,1"
+A120355	lsmtraf	0	n -> D002034(ABS(n))+FA(n)*NEG(k)^Z2(n)	""
+A162455	multraf	0	(self,n) -> D002061(F000142(BI(n, 3))+1)	""	new A171819()
+A324115	lsmtraf	0	n -> SU(0, n, k -> D002487(E323244(k)*2))
+A131822	sintrif	0	(term, n) -> D003961(J036035(n-1)+n-3)
