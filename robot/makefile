@@ -163,59 +163,74 @@ movinits: # extract assignments to initial terms and move them to parm2, or a co
 	make -f makefile chain1 OPT= PROC=$@
 spliteq: # split several assignments to a(n) into separate records
 	make -f makefile chain1 OPT= PROC=$@
-oeisfunc: # replace known OEIS functions by their A-numbers
+oeisfunc: # replace known OEIS functions by their A-numbers, and suppress O() and "..."
 	make -f makefile chain1 OPT= PROC=$@
 funcrest: # count the remaining function occurrences
 	cp -v chain.ocn $@.ocn
 	cut -f2 oeisfunc.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn 
 	make next PROC=$@
 longwords: # remove those with elaborate wording
-	grep -vP "\w{8}|(\w+ ){3}" chain.ocn > $@.ocn ; grep -P "\w{8}|(\w+ ){3}" chain.ocn > $@.ecn ; make next PROC=$@
+	grep -vP "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ocn 
+	grep -P  "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ecn 
+	make next PROC=$@
+shortend: # remove those with short expressions in n and \d
+	grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn 
+	grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn 
+	make next PROC=$@      
+stop2:
+	exit
 oeisprep: # egalize OEIS formula conventions
 	make -f makefile chain1 OPT=-all PROC=$@
 remajx: # remove those with A|X-numbers and J-numbers if not Jxxx(n)
-	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])" chain.ocn > $@.ocn 
-	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])" chain.ocn > $@.ecn
+	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ocn 
+	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ecn
 	make next PROC=$@
 sortuniq: # sort by callcode, parm1, parm2, parm3, and uniq
-	sort chain.ocn | uniq | sort -k2,2 -k4,4 -k5,5 -k6,6 -k7,7 > $@.ocn 2> $@.ecn ;	make next PROC=$@
+	sort chain.ocn | uniq | sort -k2,2 -k4,4 -k5,5 -k6,6 -k7,7 > $@.ocn 2> $@.ecn ; make next PROC=$@
 enstruct: # append a structure tree to $(PARM1)
 	make -f makefile chain1 OPT= PROC=$@
 destruct: # flatten the structure tree into jOEIS infix syntax
 	make -f makefile chain1 OPT= PROC=$@
 lsmtraf: # separate into lambdan, sintrif or multraf callcodes
 	make -f makefile chain1 OPT= PROC=$@
-remtoday: # remove those that are already in today's aman/date.man file
-	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.man \
-	| perl -pe 's{\A(A\d+).*}{\^$$1};' | tr -d "\r" > $@.tmp
-	grep -vf $@.tmp chain.ocn > $@.ocn || :
-	grep  -f $@.tmp chain.ocn > $@.ecn || :
+remove: # remove superfluous records
+	# (1) records that are already in today's aman/date.ack.man file
+	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.ack.man | cut -f1 >  $@.tmp
+	# (2) ... in the date.nak.file
+	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.nak.man | cut -f1 >> $@.tmp
+	# (3) ... in the chatest.fail.log file
+	grep -P "^A\d+\t" $(FISCHER)/chatest.fail.log              | cut -f1 >> $@.tmp
+	# (7)	unique
+	sort $@.tmp | uniq | sed -e "s/^/\^/"> $@.grep.tmp
+	# (8) grep
+	grep -vf $@.grep.tmp chain.ocn > $@.ocn || :
+	grep  -f $@.grep.tmp chain.ocn > $@.ecn || :
 	wc -l $@*
 	make next PROC=$@
+stop: 
+	exit #----------------
+getinits:
+	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+chatest: # compile and run, no break
+	cp -v chain.ocn $(FISCHER)/aman/$@.man
+	wc -l    $(FISCHER)/aman/$@.man
+	cd $(FISCHER) ; make -i CC=chatest pegel
+	make next PROC=$@
+prune1: # prune and compile again, no break
+	cd $(FISCHER) ; make -i CC=chatest prune gener dist               ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
+	make next PROC=$@
+prune2: # prune and compile again, possibly break
+	cd $(FISCHER) ; make -i CC=chatest prune gener dist test log TO=2 ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
+	make next PROC=$@
+finish: # this is the end of the chain
+	exit
+stop1:
+	exit
 remfailed: # remove those that failed (code 'fx' in previous man files
 	grep -vf getfailed.tmp chain.ocn | grep -v "A333387" > $@.ocn || :
 	grep  -f getfailed chain.ocn > $@.ecn || :
 	wc -l $@*
 	make next PROC=$@
-getinits:
-	getinits chain.ocn > $@.ocn 2> $@.err 
-	make next PROC=$@
-runtest: # compile and run
-	cp -v chain.ocn $(FISCHER)/aman/$@.man
-	head -n4 $(FISCHER)/aman/$@.man
-	wc -l    $(FISCHER)/aman/$@.man
-	cd $(FISCHER) ; make -i CC=$@ pegel TO=2 GU=32
-	make next PROC=$@
-prune1: # prune and compile again
-	cd $(FISCHER) ; make -i CC=runtest prune gener dist 
-	make next PROC=$@
-prune2: # prune and compile again
-	cd $(FISCHER) ; make CC=runtest prune gener dist test log 
-	make next PROC=$@
-finish: # this is the end of the chain
-	exit
-stop:
-	exit
 #==== end of the chain ====
 
 ddn2:

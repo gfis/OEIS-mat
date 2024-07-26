@@ -113,12 +113,18 @@ while (<>) {
     my $line = $_;
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
-    if(1) {
+    if(0) {
+    } elsif ($parm1 =~ m{\+ *O\(}) { # remove "+ O(n)"
+        $nok = "O()";
+    } elsif ($parm1 =~ m{\.\.\.}) { # remove "..."
+        $nok = "3dots";
+    } else {
+        #                           1                           1 (
         my @afuncs = ($parm1 =~ m{\b([a-zA-z0-9\_][a-zA-z0-9\_]+)\(}g);
         # print "# " .join("/", @afuncs) . "\n";
         foreach my $func (@afuncs) {
             if (0) {
-            } elsif ($func =~ m{\A[A-KMR-X]\d{6}\Z}) { # ignore A-numbers
+            } elsif ($func  =~ m{\A[A-KMR-X]\d{6}\Z}) { # ignore A-numbers
             } elsif ($parm1 =~ m{\^}) { # strange??? ignore these, too
             } elsif ($parm1 =~ m{\Afloor\Z}) { # either followed by "sqrt(" or by "n/2"
                 $parm1 =~ s{floor\(sqrt\(}{(SQRT\(};
