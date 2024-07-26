@@ -198,12 +198,19 @@ remfailed: # remove those that failed (code 'fx' in previous man files
 	wc -l $@*
 	make next PROC=$@
 getinits:
-	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+	getinits chain.ocn > $@.ocn 2> $@.err 
+	make next PROC=$@
 runtest: # compile and run
 	cp -v chain.ocn $(FISCHER)/aman/$@.man
 	head -n4 $(FISCHER)/aman/$@.man
 	wc -l    $(FISCHER)/aman/$@.man
-	cd $(FISCHER) ; make CC=$@ pegel TO=2 GU=32
+	cd $(FISCHER) ; make -i CC=$@ pegel TO=2 GU=32
+	make next PROC=$@
+prune1: # prune and compile again
+	cd $(FISCHER) ; make -i CC=runtest prune gener dist 
+	make next PROC=$@
+prune2: # prune and compile again
+	cd $(FISCHER) ; make CC=runtest prune gener dist test log 
 	make next PROC=$@
 finish: # this is the end of the chain
 	exit
