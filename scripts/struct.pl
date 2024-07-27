@@ -49,6 +49,8 @@ my %zfuncs = qw(
 ABS             abs
 SIGN            signum
 NEG             negate
+CEIL            ceiling
+FLOOR           floor
 );
 
 # while (<DATA>) {
@@ -74,7 +76,7 @@ while (<>) {
             if ($form =~ s{\A(\w+|\([^\)]*\))\-\>}{}) { # remember lambda parameter list
                 $lambda = "$1 -> ";
             }
-            $lamvars = join("", ($form =~ m{([a-z])\-\>}g));
+            $lamvars = join("", ($form =~ m{([a-z])\-\>}g)) . "n";
             $form =~ s{\-\>}{\,\,}g; # replace inner arrows by ",,"
             $form .= "    ";
             my $busy = 1;
@@ -84,12 +86,17 @@ while (<>) {
                 $changed = 0; # assume that nothing was changed; set in &inext
 
                 # JJJJ             1       ( 2     2  )1
-                while($form =~ s[\b(J\d{6}\(n(\+\d+)?\))]                               [\{$itext\}]) { # J012345(n+2)
+            #   while($form =~ s[\b(J\d{6}\(n(\+\d+)?\))]                               [\{$itext\}]) { # J012345(n+2)
+                while($form =~ s[\b(J\d{6}\(n\))]                                       [\{$itext\}]) { # J012345(n+2)
                     &inext("J", $1);
                 }
 
-                # Nnnn           1        2                     2 1
-                while($form =~ s[\b([a-z0-9]([\+\-\*\~\%][a-z0-9])*)\b]                  [\{$itext\}]) { # integer expression with n + - * 7
+                # Nnnn           1      12        3                    3 24      4
+                while($form =~ s[([\(\,])([a-z0-9]([\+\-\*\~\%][a-z0-9])*)([\)\,])]     [$1\{$itext\}$4]) { # integer expression with n + - * 7
+                    &inext("N", $2);
+                }
+                # Nnnn             1         1
+                while($form =~ s[\b([a-z]|\d+)]                                         [\{$itext\}]) { # integer variable or constant
                     &inext("N", $1);
                 }
                 # FFFF             1               (2----------23 ,4           43  )1
@@ -136,7 +143,7 @@ while (<>) {
                 $nok = "noroot";
             }
             foreach my $lowvar ($form =~ m{([a-z])}g) {
-                if (index($lamvars, $lowvar < 0)) {
+                if (index($lamvars, $lowvar) < 0) {
                     $nok = "unk_$lowvar";
                 }
             } # foreach $lowvar
@@ -166,15 +173,15 @@ while (<>) {
 
             # walk over all nodes of the tree and expand them
             $form = &expand_node($root);
-            
+
             # polish ".^()"
             $form =~ s{\b2\.\^\(}{Z2\(}g;
-            #            1  1    
-            $form =~ s{\b(\w)\.\^\(}{ZV($1).\^\(}g;
-            #          1                  12        3                   3 2
-            $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]([\+\-\*\~\%][a-z0-9])*)} {$1ZV\($2\)}g;
-            #            1        2                  2 1
-            $form =~ s{\A([a-z0-9]([\+\-\*\~\%][a-z0-9])*)} {ZV\($1\)}g;
+            #            1   1
+            $form =~ s{\b(\w+)\.\^\(}{ZV($1).\^\(}g;
+            #          1                  12         3                     3 2
+            $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {${1}ZV\($2\)}g;
+            #            1         2                     2 1
+            $form =~ s{\A([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {ZV\($1\)}g;
             $form =~ s{\~}{\/}g;
         } # -de
 
@@ -246,12 +253,22 @@ sub expand_node { # expand a node (recursive)
         #                     1              1 (23-----------34 5-----------54 2 )
         } elsif ($node =~ m{\b([A-Z][A-Z0-9]+)\(((\{[A-J]+\})(\,(|\{[A-J]+\}))*)\)}) {
             my $funame = $1;
-            my $fzname = $zfuncs{$funame}; # when it is a Z method that must be appended 
+            my $fzname = $zfuncs{$funame}; # when it is a Z method that must be appended
             my $reflist = $2;
-            $result = defined($fzname) ? "(" : "$funame(";
-
+            if (defined($fzname)) {
+                if (0) {
+                } elsif ($funame eq "FLOOR") {
+                    $result .= "(";
+                } elsif ($funame eq "CEIL") {
+                    $result .= "(-(-(";
+                } else { # append
+                    $result .= "(";
+                }
+            } else {
+                $result .= "$funame(";
+            }
             @list = split(/(\,)/, $reflist);
-            $il = 0; 
+            $il = 0;
             while ($il < scalar(@list)) {
                 $elem = $list[$il];
                 if ($il == 0) {
@@ -268,7 +285,18 @@ sub expand_node { # expand a node (recursive)
                 }
                 $il ++;
             } # while $il
-            $result .= defined($fzname) ? ").$fzname()" : ")";
+            if (defined($fzname)) {
+                if (0) {
+                } elsif ($funame eq "FLOOR") {
+                    $result .= "(";
+                } elsif ($funame eq "CEIL") {
+                    $result .= ")))";
+                } else { # append
+                     $result .= ").$fzname()";
+                }
+            } else {
+                $result .= ")";
+            }
         } else {
             $nok = "syntax";
             $result .= "<?syntax?>";

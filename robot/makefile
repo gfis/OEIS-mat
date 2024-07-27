@@ -127,7 +127,7 @@ chain1: # process from source chain file to target chain file
 	cp chain.ocn $(PROC).icn
 	wc -l    $(PROC).icn
 	cat $(PROC).icn | $(PROC) $(OPT) > $(PROC).ocn 2> $(PROC).ecn
-	grep -A16 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
+	grep -A32 -P "^$(PROC):" makefile | sed -e '1d' | grep -A32 -P "^\w+\:" | tee chain.mf
 	head -n$(MANY) $(PROC).ocn
 	wc -l    $(PROC).*cn
 	cp       $(PROC).ocn chain.ocn
@@ -135,7 +135,7 @@ chain1: # process from source chain file to target chain file
 
 next: # continue the chain with the next target
 	#### next $(PROC) ####
-	grep -A32 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
+	grep -A32 -P "^$(PROC):" makefile | sed -e '1d' | grep -A32 -P "^\w+\:" | tee chain.mf
 	head -n$(MANY) $(PROC).ocn
 	wc -l    $(PROC).*cn
 	cp       $(PROC).ocn chain.ocn
@@ -202,36 +202,29 @@ destruct: # flatten the structure tree into jOEIS infix syntax
 lsmtraf: # separate into lambdan, sintrif or multraf callcodes
 	make -i -f makefile chain1 OPT= PROC=$@
 remove: # remove superfluous records
-	# (1) records that are already in today's aman/date.ack.man file
 	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.ack.man | cut -f1 >  $@.tmp
-	# (2) ... in the date.nak.file
 	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.nak.man | sed -e "s/\^//" | cut -f1 >> $@.tmp
-	# (3) ... in the chatest.fail.log file
-	# grep -P "^A\d+\t" $(FISCHER)/chatest.fail.log              | cut -f1 >> $@.tmp
-	# (4) with "\tn -> \w?\t
 	grep -P "\tn *\-\> *ZV\(\w?\)\t"    chain.ocn              | cut -f1 >> $@.tmp
-	# (7)	unique
 	sort $@.tmp | uniq | sed -e "s/^/\^/"                                >  $@.grep.tmp
-	# (8) grep
 	grep  -f $@.grep.tmp chain.ocn                                       >  $@.ecn || :
-	grep -vf $@.grep.tmp chain.ocn \
-	| perl -pe 's{\t\_?(\t\_?)*\Z}{};'                                   >  $@.ocn
-	wc -l $@*
+	grep -vf $@.grep.tmp chain.ocn                                       >  $@.ocn || :
+	wc -l $@.*
 	make next PROC=$@
 getinits:
 	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 chatest: # compile and run, no break
 	cp -v chain.ocn $(FISCHER)/aman/$@.man
+	cp -v chain.ocn $@.ocn
 	wc -l    $(FISCHER)/aman/$@.man
 	cd $(FISCHER) ; make -i CC=chatest pegel
 	make next PROC=$@
-stop:
-	exit
 prune1: # prune and compile again, no break
 	cd $(FISCHER) ; make -i CC=chatest prune gener dist               ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
+	cat $(FISCHER)/$(CC).javer.tmp >  $(PROC).ecn
 	make next PROC=$@
 prune2: # prune and compile again, possibly break
-	cd $(FISCHER) ; make -i CC=chatest prune gener dist test log TO=2 ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
+	cd $(FISCHER) ; make CC=chatest prune gener dist test log TO=2 ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
+	cat $(FISCHER)/$(CC).javer.tmp >> $(PROC).ecn
 	make next PROC=$@
 finish: # this is the end of the chain
 	exit
