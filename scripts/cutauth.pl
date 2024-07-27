@@ -18,14 +18,14 @@ while (<>) {
         s/\s+\Z//;
         my $parm = $_;
 
-        $parm =~ s{\[From [A-Za-z\_][^\]]+\]}       {}i;  # remove "[From _G. F.]"
-        $parm =~ s{\. +\- +_?[A-Z]\w*\.? [A-Zvd].*} {};   # remove ". - _G. F."
+        $parm =~ s{\.[^\,]+\, [A-Z][a-z]{2} \d\d \d{4}.*} {};
+        $parm =~ s{\[From [A-Za-z\_][^\]]+\]}             {}i;  # remove "[From _G. F.]"
+        $parm =~ s{\. +\- +_?[A-Z]\w*\.? [A-Zvd].*}       {};   # remove ". - _G. F."
         $parm =~ s{\- _[A-Z][a-z]*\.* [A-Z][a-z]*\.*[^\,]*\, \w{3} \d{2} \d{4}.*} {};
-#       $parm =~ s{\. \- _?[A-Z].*}     {};   # remove ". - _G. F."
-        $parm =~ s{\(End\)\.? *\Z}                  {}i;  # remove trailing "(End)." 
-        $parm =~ s{\((based on|corrected).*}        {};   # remove trailing "(based on", "(corrected"
-        $parm =~ s{\,? *where.*}                    {};   # remove " where ..." 
-        $parm =~ s{\. *\Z}                          {};   # remove trailing "." 
+        $parm =~ s{\(End\)\.? *\Z}                        {}i;  # remove trailing "(End)."
+        $parm =~ s{\((based on|corrected).*}              {};   # remove trailing "(based on", "(corrected"
+        $parm =~ s{\,? *where.*}                          {};   # remove " where ..."
+        $parm =~ s{\. *\Z}                                {};   # remove trailing "."
 
         print "$parm\n";
     } else { # no seq4

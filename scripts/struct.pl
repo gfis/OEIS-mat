@@ -42,7 +42,7 @@ my $itext = "A";
 my $changed = 0;
 
 # some functions are appended; keep in sync with oeisfunc.pl!
-my %afuncs = qw(
+my %zfuncs = qw(
 ABS             abs
 SIGN            signum
 NEG             negate
@@ -84,27 +84,32 @@ while (<>) {
                     &inext("J", $1);
                 }
 
-                # Nnnn           1        2                2 1
-                while($form =~ s[\b([a-z0-9]([\+\-\*][a-z0-9])*)\b]                     [\{$itext\}]) { # integer expression with n + - * 7
+                # Nnnn           1        2                     2 1
+                while($form =~ s[\b([a-z0-9]([\+\-\*\~\%][a-z0-9])*)\b]                  [\{$itext\}]) { # integer expression with n + - * 7
                     &inext("N", $1);
                 }
                 # FFFF             1               (2----------23 ,4           43  )1
-                while($form =~ s[\b([A-Z][A-Z0-9]+\((\{[A-J]+\})(\,(|\{[A-J]+\}))*\))]  [\{$itext\}]) { # F012345({17}), BI({1},{2})
+                while($form =~ s[\b([A-Z][A-Z0-9]+\((\{[A-J]+\})(\,(|\{[A-J]+\}))*\))]  [\{$itext\}]) { # F012345({AB}), BI({A},{B})
                     &inext("F", $1);
                 }
 
-                # P^^^           12----------23    4----------43 1
-                while($form =~ s[((\{[A-J]+\})([\^](\{[A-J]+\}))+)]                     [\{$itext\}]) { # {2}^{3}
-                    &inext();
+                # CC()            (1          1 )
+                while($form =~ s[\((\{[A-J]+\})\)]                                      [\{$itext\}]) { # ({A})
+                    &inext("C", $1);
                 }
 
-                # M***           12----------23      4----------43 1
-                while($form =~ s[((\{[A-J]+\})([\*\%](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {2}*{3}
+                # P^^^           12----------23    4----------43 1
+                while($form =~ s[((\{[A-J]+\})([\^](\{[A-J]+\}))+)]                     [\{$itext\}]) { # {A}^{B}
+                    &inext("P", $1);
+                }
+
+                # M***           12----------23        4----------43 1
+                while($form =~ s[((\{[A-J]+\})([\~\*\%](\{[A-J]+\}))+)]                 [\{$itext\}]) { # {A}*{B}
                     &inext("M", $1);
                 }
 
                 # A+++           12----------23      4----------43 1
-                while($form =~ s[((\{[A-J]+\})([\+\-](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {2}+{3}
+                while($form =~ s[((\{[A-J]+\})([\+\-](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {A}+{B}
                     &inext("A", $1);
                 }
                 $busy = $changed;
@@ -146,9 +151,19 @@ while (<>) {
                     }
                 } # foreach $node
             } # reconstructed
-            # now walk over all nodes of the tree and expand them
+
+            # walk over all nodes of the tree and expand them
             $form = &expand_node($root);
-            # $form =~ s{\, *\, *}{ \-\> }g;
+            
+            # polish ".^()"
+            $form =~ s{\b2\.\^\(}{Z2\(}g;
+            #            1  1    
+            $form =~ s{\b(\w)\.\^\(}{ZV($1).\^\(}g;
+            #          1                  12        3                   3 2
+            $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]([\+\-\*\~\%][a-z0-9])*)} {$1ZV\($2\)}g;
+            #            1        2                  2 1
+            $form =~ s{\A([a-z0-9]([\+\-\*\~\%][a-z0-9])*)} {ZV\($1\)}g;
+            $form =~ s{\~}{\/}g;
         } # -de
 
         $parms[$iparm] = "$form"; # original formula with structure tree elements appended
@@ -210,32 +225,38 @@ sub expand_node { # expand a node (recursive)
                 }
             }
 
+    } elsif ($code eq "C") {
+            $result .= "(" . &expand_node($node) . ")";
+
     } elsif ($code eq "F") { # ;3=F/D000290({1});
         # FFFF                1               (2-----------23 ,4-----------43  1)
-        #  while($form =~ s{\b([A-Z][A-Z0-9]+\((\{[A-J]+\})(\,(\{[A-J]+\}))*\))}  {\{\#\}]) { # F012345({17}), BI({1},{2})
         if (0) {
         #                     1              1 (23-----------34 5-----------54 2 )
         } elsif ($node =~ m{\b([A-Z][A-Z0-9]+)\(((\{[A-J]+\})(\,(|\{[A-J]+\}))*)\)}) {
             my $funame = $1;
+            my $fzname = $zfuncs{$funame}; # when it is a Z method that must be appended 
             my $reflist = $2;
-            $result = "$funame(";
+            $result = defined($fzname) ? "(" : "$funame(";
 
             @list = split(/(\,)/, $reflist);
-            for ($il = 0; $il < scalar(@list); $il ++) {
+            $il = 0; 
+            while ($il < scalar(@list)) {
                 $elem = $list[$il];
                 if ($il == 0) {
                     $result .= ($elem =~ m{\A(\d+)\Z}) ? "$elem" : &expand_node($elem);
                 } elsif ($elem eq ",") {
-                    $oper = $elem;
+                    $oper = ", ";
                 } elsif ($elem =~ m{\A\Z}) { # empty - was a lambda arrow
-                    $result .= " -> ";
+                    $il ++; # skip the 2nd comma
+                    $oper = " -> ";
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
-                    $result .= ", $elem";
+                    $result .= "$oper$elem";
                 } else {
-                    $result .= ", " . &expand_node($elem);
+                    $result .= "$oper" . &expand_node($elem);
                 }
-            }
-            $result .= ")";
+                $il ++;
+            } # while $il
+            $result .= defined($fzname) ? ").$fzname()" : ")";
         } else {
             $nok = "syntax";
             $result .= "<?syntax?>";
@@ -248,7 +269,7 @@ sub expand_node { # expand a node (recursive)
             my ($tref, $lparm) = split(/$slash/, $node); # must be: reference, lambda parmlist
             $result .= $lparm . &expand_node($tref);
 
-    } elsif ($code eq "M") {
+    } elsif ($code eq "M") { # * % ~
             @list = split(/(\*)/, $node);
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
@@ -256,6 +277,10 @@ sub expand_node { # expand a node (recursive)
                     $result .= ($elem =~ m{\A(\d+)\Z}) ? "ZV($1)" : &expand_node($elem);
                 } elsif ($elem eq "*") {
                     $oper = $elem;
+                } elsif ($elem eq "\~") {
+                    $oper = "/";
+                } elsif ($elem eq "%") {
+                    $oper = "mod";
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
                     $result .= ".$oper(" . $elem . ")";
                 } else {
@@ -271,7 +296,8 @@ sub expand_node { # expand a node (recursive)
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    $result .= ($elem =~ m{\A(\d+)\Z}) ? "ZV($1)" : &expand_node($elem);
+                    #                        1               1
+                    $result .= ($elem =~ m{\A([i-n0-9\+\-\*]+)\Z}) ? "ZV($1)" : &expand_node($elem);
                 } elsif ($elem eq "^") {
                     $oper = $elem;
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
@@ -296,8 +322,8 @@ A120355	lsmtraf	0	n -> D002034(ABS(n))+FA(n)*NEG(k+1)^Z2(n-1)	""
 A162455	multraf	0	(self,n) -> D002061(F000142(BI(n-1, k-3))+1)	""	new A171819()
 A324115	lsmtraf	0	n -> SU(0, n, k -> D002487(E323244(k)*2))
 A131822	sintrif	0	(term, n) -> D003961(J036035(n-1)+n-3)
-A226355	lambdan	0	n -> 1+4*n+4*SU(1,n,k->F000005(k))
-A255541	lambdan	0	n -> 1+SU(1,2^n-1,k->F000010(k))
+A226355	lambdan	0	n -> 1+4*n+4*SU(1,n,k->F000005(k~2))
+A255541	lambdan	0	n -> 1+SU(1,2^n-1,k->F000010(k%2))
 A135570	lambdan	0	n -> 1+SU(1,n,i->S2(i)*2^i)
 A368638	lambdan	0	n -> 1+SU(1,n,i->BI(n-i+2,2)*F000010(i))
 A255170	lambdan	0	n -> 1-n+SU(1,n,k->M000081(k))

@@ -110,17 +110,17 @@ while (<>) {
         #            (1   1   +  2     2 )
         $parm1 =~ s{\((\d+) *\+ *([i-n])\)}                        {\($2\+$1\)}g; # (1+n) -> (n+1)
     }
-    if(0 && $z12 > 0) { # before neg - not yet
+    if($z12 > 0) { # before neg - not yet
         $parm1 =~ s{2\^\(}                                         {Z2\(}g;
         $parm1 =~ s{2\^([i-n])}                                    {Z2\($1\)}g;
         $parm1 =~ s{\(\-1\)\^\(}                                   {Z_1\(}g;
         $parm1 =~ s{\(\-1\)\^([i-n])}                              {Z_1\($1\)}g;
     }
-    if(0 && $neg > 0) { # not yet
+    if($neg > 0) { # not yet
         $parm1 =~ s{\A\-([i-n]|[0-9]+)\W}                          {NEG\($1\)};
         $parm1 =~ s{\(\-([i-n]|[0-9]+)\W}                          {\(NEG\($1\)}g;
-        if ($parm1 =~ m{\A|\(\-}) {
-            $nok = 2;
+        if ($parm1 =~ m{\A\-|\(\-}) {
+            $nok = "neg";
         }
     }
     if($sum > 0) {
@@ -133,7 +133,7 @@ while (<>) {
         #               1     1   2  2  3  34        4      5  5
         $parm1 =~ s{Prod(uct_?)?\{(\w)\|(\w)([^\}\,]*)[\}\,](.*)}      {PD($3, $2 -> $5\)}i;
         if ($parm1 =~ m{(Sum|Prod(uct)?)_?}) {
-            $nok = 1;
+            $nok = "sum";
         }
     }
     if ($nok ne "0") {

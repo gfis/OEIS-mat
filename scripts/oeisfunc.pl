@@ -79,6 +79,7 @@ reversal        F004086
 divisorsigma    F000203
 s1              S1
 s2              S2
+sig             SIGN
 sign            SIGN
 signum          SIGN
 sigma           F000203
@@ -120,16 +121,20 @@ while (<>) {
         $nok = "3dots";
     } else {
         #                           1                           1 (
-        my @afuncs = ($parm1 =~ m{\b([a-zA-z0-9\_][a-zA-z0-9\_]+)\(}g);
+        my @afuncs = ($parm1 =~ m{\b([a-zA-Z0-9\_][a-zA-Z0-9\_]+)\(}g);
         # print "# " .join("/", @afuncs) . "\n";
         foreach my $func (@afuncs) {
             if (0) {
-            } elsif ($func  =~ m{\A[A-KMR-X]\d{6}\Z}) { # ignore A-numbers
+            } elsif ($func  =~ m{\A[A-Z]\d{6}\Z}) { # ignore A-numbers
             } elsif ($parm1 =~ m{\^}) { # strange??? ignore these, too
-            } elsif ($parm1 =~ m{\Afloor\Z}) { # either followed by "sqrt(" or by "n/2"
-                $parm1 =~ s{floor\(sqrt\(}{(SQRT\(};
+            } elsif ($parm1 =~ m{floor}i) { # either followed by "sqrt(" or by "n/2"
+                if (0) {
+                } elsif ($parm1 =~ s{floor\(sqrt\(}{(SQRT\(}i) {
                 #                 (1     1 /2   2 )
-                $parm1 =~ s{floor\(([i-n])\/(\d+)\)}{$1\\$2};
+                } elsif ($parm1 =~ s{floor\(([i-n])\/([i-n0-9]+)\)}{$1\~$2}i) {
+                } else {
+                    print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
+                }
             } else {
                 my $lfunc = lc($func);
                 $lfunc =~ s{_}{}g; # remove underscores

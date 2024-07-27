@@ -131,18 +131,23 @@ chain1: # process from source chain file to target chain file
 	make -f chain.mf
 #----
 # helper targets for chaining
+
 next: # continue the chain with the next target
-	echo "#### next $(PROC) ####"
-	grep -A16 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
+	#### next $(PROC) ####
+	grep -A32 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
 	head -n$(MANY) $(PROC).ocn
 	wc -l    $(PROC).ocn $(PROC).ecn || :
 	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf FISCHER=$(FISCHER)
+	
 restart: # get the output of the previous target in the chain
-	echo "#### next $(PROC) ####"
-	grep -B2 -P "^$(PROC):" makefile | head -n2 | sed -e "s/^\t/\tcp $$\@.ocn chain.ocn # /" > chain.mf
+	#### restart $(PROC) ####
+	grep -B32 -P "^$(PROC):" makefile | grep -P "^\w+\:" | tail -n2 | head -n1 \
+	| tee x.tmp | perl -ne 'my $$target; if (m{\A(\w+)\:}) { $$target = $$1; }; '\
+	' print "$$target\:\n\tcp -v $$target.ocn chain.ocn\n\tmake $(PROC)\n";'\
+	| tee chain.mf
 	make -f chain.mf FISCHER=$(FISCHER)
-	make $(PROC)
+
 jump: # continue the chain with target $(FOLLOW)
 	echo "#### jump $(PROC) FOLLOW=$(FOLLOW) ####"
 	grep -A16 -P "^$(FOLLOW):" makefile | tee chain.mf
@@ -177,8 +182,6 @@ shortend: # remove those with short expressions in n and \d
 	grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn 
 	grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn 
 	make next PROC=$@      
-stop2:
-	exit
 oeisprep: # egalize OEIS formula conventions
 	make -f makefile chain1 OPT=-all PROC=$@
 remajx: # remove those with A|X-numbers and J-numbers if not Jxxx(n)
@@ -197,18 +200,19 @@ remove: # remove superfluous records
 	# (1) records that are already in today's aman/date.ack.man file
 	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.ack.man | cut -f1 >  $@.tmp
 	# (2) ... in the date.nak.file
-	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.nak.man | cut -f1 >> $@.tmp
+	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.nak.man | sed -e "s/\^//" | cut -f1 >> $@.tmp
 	# (3) ... in the chatest.fail.log file
-	grep -P "^A\d+\t" $(FISCHER)/chatest.fail.log              | cut -f1 >> $@.tmp
+	# grep -P "^A\d+\t" $(FISCHER)/chatest.fail.log              | cut -f1 >> $@.tmp
+	# (4) with "\tn -> \w?\t
+	grep -P "\tn *\-\> *ZV\(\w?\)\t"    chain.ocn              | cut -f1 >> $@.tmp
 	# (7)	unique
-	sort $@.tmp | uniq | sed -e "s/^/\^/"> $@.grep.tmp
+	sort $@.tmp | uniq | sed -e "s/^/\^/"                                >  $@.grep.tmp
 	# (8) grep
-	grep -vf $@.grep.tmp chain.ocn > $@.ocn || :
-	grep  -f $@.grep.tmp chain.ocn > $@.ecn || :
+	grep  -f $@.grep.tmp chain.ocn                                       >  $@.ecn || :
+	grep -vf $@.grep.tmp chain.ocn \
+	| perl -pe 's{\t\_?(\t\_?)*\Z}{};'                                   >  $@.ocn
 	wc -l $@*
 	make next PROC=$@
-stop: 
-	exit #----------------
 getinits:
 	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 chatest: # compile and run, no break
@@ -216,6 +220,8 @@ chatest: # compile and run, no break
 	wc -l    $(FISCHER)/aman/$@.man
 	cd $(FISCHER) ; make -i CC=chatest pegel
 	make next PROC=$@
+stop:
+	exit
 prune1: # prune and compile again, no break
 	cd $(FISCHER) ; make -i CC=chatest prune gener dist               ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
 	make next PROC=$@
