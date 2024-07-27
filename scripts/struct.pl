@@ -29,7 +29,10 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
-my ($aseqno, $callcode, $offset, $form, $inits, $seqlist, @rest, $lambda, $etype, $root);
+my ($aseqno, $callcode, $offset, $form, $inits, $seqlist, @rest);
+my $lambda; # the outermost lambda parameter tuple
+my $lamvars; # lambda expression parameter names (single lc char.)
+my $root;
 my $iparm = 0; # $(PARM1)
 my @parms;
 my $sep = ";";
@@ -62,15 +65,16 @@ while (<>) {
 
         if ($actions =~ m{en}) {
             %tree = ();
-            $form =~ s{ }{}g;
-            $parms[1] = $parms[1] || "\"\"";
-            $parms[2] = $parms[2] || "";
-            $parms[3] = $form;
+            $form =~ s{ }{}g; # remove spaces
+            if (length($parms[1]) == 0) {
+               $parms[1] = "\"\"";
+            }
             $lambda = "";
             #                1     (       )1
             if ($form =~ s{\A(\w+|\([^\)]*\))\-\>}{}) { # remember lambda parameter list
                 $lambda = "$1 -> ";
             }
+            $lamvars = join("", ($form =~ m{([a-z])\-\>}g));
             $form =~ s{\-\>}{\,\,}g; # replace inner arrows by ",,"
             $form .= "    ";
             my $busy = 1;
@@ -130,6 +134,14 @@ while (<>) {
             } # foreach key
             if ($form !~ m{\A\{[A-J]+\} *$sep}) {
                 $nok = "noroot";
+            }
+            foreach my $lowvar ($form =~ m{([a-z])}g) {
+                if (index($lamvars, $lowvar < 0)) {
+                    $nok = "unk_$lowvar";
+                }
+            } # foreach $lowvar
+            if ($index <= 2) {
+                $nok = "ix<=2";
             }
         } # -en
 

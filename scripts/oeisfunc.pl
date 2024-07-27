@@ -25,12 +25,17 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my %hfuncs = qw(
 abs             ABS
 antisigma       D024816
+ard             F003415
 bell            F000110
 bigomega        F001222
+binom           BI
 binomial        BI
 cat             F000108
 catalan         F000108
+catalannumber   F000108
 chowla          F048050
+ceil            CEIL
+ceiling         CEIL
 core            F007913
 cototient       F051953
 delta           D055034
@@ -40,6 +45,7 @@ factorial       F000142
 fallfac         F008279
 fib             F000045
 fibonacci       F000045
+floor           FLOOR
 gcd             GCD
 gpf             F006530
 hammingweight   F000120
@@ -53,6 +59,7 @@ makeodd         F000265
 max             MAX
 mertens         F002321
 min             MIN
+mod             MOD
 mobius          F008683
 moebius         F008683
 mu              F008683
@@ -111,38 +118,51 @@ wt              F000120
 #while (<DATA>) {
 while (<>) {
     s/\s+\Z//; # chompr;
-    my $line = $_;
+    my $line = $_; #
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
     if(0) {
     } elsif ($parm1 =~ m{\+ *O\(}) { # remove "+ O(n)"
         $nok = "O()";
-    } elsif ($parm1 =~ m{\.\.\.}) { # remove "..."
+    } elsif ($parm1 =~ m{\.\.\.})  { # remove "..."
         $nok = "3dots";
+    } elsif ($parm1 =~ m{\[x\^})   { # remove "[x^n"
+        $nok = "[x^n]";
     } else {
-        #                           1                           1 (
-        my @afuncs = ($parm1 =~ m{\b([a-zA-Z0-9\_][a-zA-Z0-9\_]+)\(}g);
-        # print "# " .join("/", @afuncs) . "\n";
+        #                         1           1 (
+        my @afuncs = ($parm1 =~ m{([a-zA-Z]\w+)\(}g);
+        if ($debug > 0) {
+            print "# $aseqno, afuncs=" .join(",", @afuncs) . ", parm1=$parm1\n";
+        }
         foreach my $func (@afuncs) {
             if (0) {
+        #   } elsif ($func  =~ m{\^}) { # strange??? ignore these, too
             } elsif ($func  =~ m{\A[A-Z]\d{6}\Z}) { # ignore A-numbers
-            } elsif ($parm1 =~ m{\^}) { # strange??? ignore these, too
-            } elsif ($parm1 =~ m{floor}i) { # either followed by "sqrt(" or by "n/2"
-                if (0) {
-                } elsif ($parm1 =~ s{floor\(sqrt\(}{(SQRT\(}i) {
-                #                 (1     1 /2   2 )
-                } elsif ($parm1 =~ s{floor\(([i-n])\/([i-n0-9]+)\)}{$1\~$2}i) {
-                } else {
-                    print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
-                }
             } else {
-                my $lfunc = lc($func);
-                $lfunc =~ s{_}{}g; # remove underscores
-                my $fnnn = $hfuncs{$lfunc};
-                if (defined($fnnn)) {
-                    $parm1 =~ s{\b$func\(}{$fnnn\(};
-                } else {
-                    print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
+                my $busy = 1;
+                if ($func  =~ m{floor}i) { # either followed by "sqrt(", "log_2" or  "n/2"
+                    if (0) {
+                    } elsif ($parm1 =~ s{floor\(sqrt\(}{(SQRT\(}i) {
+                        $busy = 0;
+                    #                          (1                  | (                   )1 /2                  | (                   )2 )
+                    } elsif ($parm1 =~ s{floor\(([a-z0-9\+\-\*\% ]+|\([a-z0-9\+\-\*\% ]+\))\/([a-z0-9\+\-\*\% ]+|\([a-z0-9\+\-\*\% ]+\))\)}{\($1\~$2\)}i) {
+                        $busy = 0;
+                    } else {
+                        $busy = 1;
+                    }
+                }
+                if ($busy > 0) {
+                    my $lfunc = lc($func);
+                    $lfunc =~ s{_}{}g; # remove underscores
+                    my $fnnn = $hfuncs{$lfunc};
+                    if (defined($fnnn)) {
+                        $parm1 =~ s{\b$func\(}{$fnnn\(};
+                        if ($func eq "Omega") { # the only one with differing case: omega vs. Omega
+                            $parm1 = "F001222(";
+                        }
+                    } else {
+                        print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
+                    }
                 }
             }
         } # foreach
@@ -157,7 +177,7 @@ __DATA__
 A077611	lambdan	0	(n-1)!*(2*n*(n-1)-(2*n-1)*(-1)^n-1)/8
 A077612	lambdan	0	4!*(A099284 - X001620 - X073742 + 1)
 A077641	lambdan	0	usigma(A188347(n))- 3
-A077642	lambdan	0	Sum_{j=0..-1+10^n}abs(mu(10^n + j))
+A077642	lambdan	0	Sum_{j=0..-1+10^n}binomial(mu(10^n + j))
 A077643	lambdan	0	Sum_{j=0..n-1}abs(mu(n+j))
 A077644	lambdan	0	Sum_{j|n} abs(mu(2^n + j))
 A077645	lambdan	0	Product_{j=0..n-1}abs(mu(n+j))

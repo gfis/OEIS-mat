@@ -12,33 +12,40 @@ use integer;
 use warnings;
 
 my $iparm = 1; # operate on this parameter
+my ($aseqno, $callcode, @parms);
+my $oparmi;
+my @parts ;
+my @levels;
+my $nparmi;
+my $level ;
+my $eqno  ;
+my $nok;
+
 #while (<DATA>) {
 while (<>) {
     if (m{\AA\d+\t}) { # assume seq4 format
         s/\s+\Z//;
-        my ($aseqno, $callcode, @parms) = split(/\t/);
-        my $oparmi = $parms[$iparm];
-        my @parts  = split(/([\{\[\(\)\]\}\=]) */, $oparmi); # split with separators
-        my @levels = ();
-        my $nparmi = "";
-        my $level  = 0;
-        my $eqno   = 1;
+        ($aseqno, $callcode, @parms) = split(/\t/);
+        $oparmi = $parms[$iparm];
+        @parts  = split(/([\{\[\(\)\]\}\=]) */, $oparmi); # split on bracket separators and keep them
+        @levels = ();
+        $nparmi = "";
+        $level  = 0;
+        $eqno   = 1;
+        $nok = 0;
         for (my $ipart = 0; $ipart < scalar(@parts); $ipart ++) {
             my $part = $parts[$ipart];
             if (0) {
-            } elsif ($part =~ m{[\(\[\{]}) { # opening
+            } elsif ($part =~ m{[\(\[\{]}) { # opening bracket
                 $level ++;
                 $nparmi .= $part;
-            } elsif ($part =~ m{[\)\]\}]}) { # closing
+            } elsif ($part =~ m{[\)\]\}]}) { # closing bracket
                 $level --;
                 $nparmi .= $part;
             } elsif ($part eq "=") { # eq - group change
                 # print "# nparmi=$nparmi, level=$level\n";
                 if ($level == 0) { # split iff "=" on level 0
-                    $parms[$iparm] = $nparmi;
-                    print join("\t", $aseqno, "$callcode", @parms) . "\n";
-                    $eqno ++;
-                    $nparmi = "";
+                    &output();
                 } else { 
                     $nparmi .= $part;
                 }
@@ -47,14 +54,23 @@ while (<>) {
             }
         } # for $ipart
         if (1) { # repeat at end of group
-                    $parms[$iparm] = $nparmi;
-                    print join("\t", $aseqno, "$callcode", @parms) . "\n";
-                    $nparmi = "";
+                    &output();
         } # end of group
     } else { # no seq4
         print;
     }
 } # while
+#----
+sub output {
+                    $parms[$iparm] = $nparmi;
+                    if (length($nparmi) > 1) {
+                        print        join("\t", $aseqno, "$callcode", @parms) . "\n";
+                    } else {
+                        print STDERR join("\t", $aseqno, "$callcode", @parms) . "\n";
+                    }
+                    $eqno ++;
+                    $nparmi = "";
+} # output
 __DATA__
 # test data
 A358847	spliteq	0	E358755(6*n)	18	19	20

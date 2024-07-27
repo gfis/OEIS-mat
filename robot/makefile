@@ -119,24 +119,25 @@ cent_old:
 #----------------
 MANY=16
 OPT=
+#----
+# helper targets for chaining
+
 chain1: # process from source chain file to target chain file 
-	echo ---- $(PROC) ----
+	#### chain1 $(PROC) ####
 	cp chain.ocn $(PROC).icn
 	wc -l    $(PROC).icn
 	cat $(PROC).icn | $(PROC) $(OPT) > $(PROC).ocn 2> $(PROC).ecn
 	grep -A16 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
 	head -n$(MANY) $(PROC).ocn
-	wc -l    $(PROC).ocn $(PROC).ecn || :
+	wc -l    $(PROC).*cn
 	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf
-#----
-# helper targets for chaining
 
 next: # continue the chain with the next target
 	#### next $(PROC) ####
 	grep -A32 -P "^$(PROC):" makefile | sed -e '1d' | grep -A16 -P "^\w+\:" | tee chain.mf
 	head -n$(MANY) $(PROC).ocn
-	wc -l    $(PROC).ocn $(PROC).ecn || :
+	wc -l    $(PROC).*cn
 	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf FISCHER=$(FISCHER)
 	
@@ -149,9 +150,9 @@ restart: # get the output of the previous target in the chain
 	make -f chain.mf FISCHER=$(FISCHER)
 
 jump: # continue the chain with target $(FOLLOW)
-	echo "#### jump $(PROC) FOLLOW=$(FOLLOW) ####"
+	#### jump $(PROC) FOLLOW=$(FOLLOW) ####"
 	grep -A16 -P "^$(FOLLOW):" makefile | tee chain.mf
-	wc -l    $(PROC).ocn $(PROC).ecn || :
+	wc -l    $(PROC).*cn 
 	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf FISCHER=$(FISCHER)
 
@@ -159,11 +160,15 @@ jump: # continue the chain with target $(FOLLOW)
 GREP=A
 chain:	grepan
 grepan: # this is the start of the chain
-	grep -P "a\(n\) *\=" $(CAT) 2> $@.ecn | grep -P "^%[NF] $(GREP)" | perl -pe 's{€}{A}g;' | endirect | cut -b 4- | grep -P "^A\d{6}" | tee $@.ocn > chain.ocn ; make next PROC=$@
+	grep -P "a\(n\) *\=" $(CAT) 2> $@.ecn | grep -P "^%[NF] $(GREP)" | perl -pe 's{€}{A}g;' | endirect | cut -b 4- \
+	| grep -P "^A\d{6}" | tee $@.ocn > chain.ocn 
+	make next PROC=$@
 cutauth: # remove trailing author signature
 	make -f makefile chain1 OPT= PROC=$@
 insertcc: # insert callcode, make seq4 format
-	perl -pe 's/ /\tlambdan\t0\t/' chain.ocn > $@.ocn 2> $@.ecn ; make next PROC=$@
+	#                                                              parm1 ini ali comment 
+	perl -ne 's/\s*\Z//; m{\A(A\d+) (.*)}; print join("\t", $$1, "lambdan", 0, $$2, "", "", $$2) . "\n";' chain.ocn > $@.ocn 2> $@.ecn
+	make next PROC=$@
 movinits: # extract assignments to initial terms and move them to parm2, or a condition like "n>=2"
 	make -f makefile chain1 OPT= PROC=$@
 spliteq: # split several assignments to a(n) into separate records
@@ -195,7 +200,7 @@ enstruct: # append a structure tree to $(PARM1)
 destruct: # flatten the structure tree into jOEIS infix syntax
 	make -f makefile chain1 OPT= PROC=$@
 lsmtraf: # separate into lambdan, sintrif or multraf callcodes
-	make -f makefile chain1 OPT= PROC=$@
+	make -i -f makefile chain1 OPT= PROC=$@
 remove: # remove superfluous records
 	# (1) records that are already in today's aman/date.ack.man file
 	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.ack.man | cut -f1 >  $@.tmp

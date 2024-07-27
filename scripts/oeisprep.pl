@@ -70,8 +70,9 @@ while (<>) {
     my $line = $_;
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
-    if($mod > 0) { # must be done before space removal
-        $parm1 =~ s{ +mod +}                                       {\%}g;
+    if($mod > 0) { # must be done before space removal!
+        #           1     1
+        $parm1 =~ s{([ \)])mod +}                                  {$1\%}g;
     }
     $parm1 =~ s{ }{}g; # remove spaces
     if($abs > 0) {
@@ -110,13 +111,13 @@ while (<>) {
         #            (1   1   +  2     2 )
         $parm1 =~ s{\((\d+) *\+ *([i-n])\)}                        {\($2\+$1\)}g; # (1+n) -> (n+1)
     }
-    if($z12 > 0) { # before neg - not yet
+    if($z12 > 0) { # before neg!          
         $parm1 =~ s{2\^\(}                                         {Z2\(}g;
         $parm1 =~ s{2\^([i-n])}                                    {Z2\($1\)}g;
         $parm1 =~ s{\(\-1\)\^\(}                                   {Z_1\(}g;
         $parm1 =~ s{\(\-1\)\^([i-n])}                              {Z_1\($1\)}g;
     }
-    if($neg > 0) { # not yet
+    if($neg > 0) { 
         $parm1 =~ s{\A\-([i-n]|[0-9]+)\W}                          {NEG\($1\)};
         $parm1 =~ s{\(\-([i-n]|[0-9]+)\W}                          {\(NEG\($1\)}g;
         if ($parm1 =~ m{\A\-|\(\-}) {

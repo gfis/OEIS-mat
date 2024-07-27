@@ -18,3 +18,8 @@ all: # all possible targets:
 gitadd: makecmd # all all relevant source files, and makecmd
 	find . | cut -b3-  | grep -vP "\." | xargs -l git add -v
 	git add -v *.pl
+#----
+test: # PL= test a Perl script
+	grep -P "^A\d{6}" $(PL).pl | perl $(PL).pl -d $(D) 2> $(PL).err | tee $(PL).tst
+	head -n256 $(PL).err || :
+
