@@ -21,7 +21,7 @@ if (0 && scalar(@ARGV) == 0) {
     exit;
 }
 my $debug = 0;
-my $column = 2;
+my $column = 4;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {

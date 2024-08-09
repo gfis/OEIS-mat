@@ -671,6 +671,15 @@ homegf3:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+homegf4: # LIST=
+	grep -P "\tbva\t" $(LIST) \
+	| $(JPREP) -f - \
+	| sed -e "s/\tbva\t/\tholos\t/" \
+	>        $@.tmp
+	head -n2 $@.tmp | cut -b1-80
+	wc -l    $@.tmp
+bva2rec:
+	make homegf4 LIST=$(FISCHER)/aman/2024-07-30.man
 #--------
 hiter: hiter1 hiter2 hiter3
 hiter1:
@@ -824,10 +833,10 @@ satis: satis1 satis3 satis4
 satis1:
 	grep -Ei "satisfies" $(COMMON)/jcat25.txt \
 	| grep -P "^\%" \
-	| grep -vP "Decimal expansion|E\.\g\.\f\.|adic integer" \
+	| grep -vP "Decimal expansion|adic integer" \
 	| perl satis.pl \
 	>               satis.tmp
-	grep -P  "\?\?" satis.tmp > satis.rest.tmp
+	grep -P  "\?\?" satis.tmp > satis.rest.tmp || :
 	grep -vP "\?\?" satis.tmp | sort | uniq -w7 \
 	>        satis.gen
 	head -n4 satis.gen

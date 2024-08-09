@@ -71,9 +71,9 @@ while (<>) {
         $nok = "no n,k";
     }
     if ($nok eq "") {
-        print        join("\t", $aseqno, "$callcode$m", $offset1, "$p, $q", "\"$content\"", $expr) . "\n";
-    } else {
-        print STDERR join("\t", $aseqno, $nok,          $offset1, "$p, $q", "\"$content\"", $expr, substr($name, 0,1024)) . "\n";
+        print        join("\t", $aseqno, "$callcode$m", $offset1, "$p, $q", "\"$content\"", $expr, ""                       ) . "\n";
+    } else {                                                                                     
+        print STDERR join("\t", $aseqno, $nok,          $offset1, "$p, $q", "\"$content\"", $expr, "", substr($name, 0,1024)) . "\n";
     }
 } # while <>
 #----
@@ -132,6 +132,9 @@ sub analyze {
     $expr    =~ s{\^}{\)\.pow\(}g;
     $expr    =~ s{\An}{Z\.valueOf\(n};
     $expr    =~ s{\bn\b}{mN}g;
+    if ($expr =~ m{([a-z])}) {
+      $nok = "var $1";
+    }
 } # sub analyze
 #----
 sub ope2matrix {

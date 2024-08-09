@@ -65,7 +65,7 @@ equals_classify: # MARK=X mark known A-numbers
 	>        $@.tmp
 	tail -n2 $@.tmp
 	wc -l    $@.*tmp
-equals_split: # split equations; keep only formulas with "Xnnnnnn"; make seq4 format
+equals_split: # split equations; keep only formulas with "Xnnnnnn"
 	perl split_equations.pl equals_classify.tmp \
 	| grep -P "X\d+" | grep -P "\AA\d+[^A]+\Z" \
 	| sed -e "s/X001620/gamma/" \

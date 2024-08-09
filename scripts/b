@@ -1,0 +1,6 @@
+#!/bin/sh
+
+seqno=`perl $GITS/OEIS-mat/scripts/Anumber.pl -a $1`
+fname=$GITS/OEIS-mat/common/bfile/b$seqno.txt
+less $GITS/OEIS-mat/common/bfile/b$seqno.txt
+ls -al $fname

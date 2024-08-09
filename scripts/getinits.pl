@@ -38,7 +38,7 @@ while (<>) {
         my $parm = $parms[$iparm];
         $nok = 0;
         if (0) {
-        } elsif ($parm =~ m{\>\=(\d+)}) {
+        } elsif ($parm =~ m{(\d+)\Z}) {
             my $count = $1;
             $parm = get_inits($aseqno, $count);
             $parms[$iparm] = "\"$parm\"";
