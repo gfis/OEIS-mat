@@ -640,7 +640,7 @@ homegf2:
 	grep -E "^A[0-9]" $@.1.tmp > $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-homegf4:
+homegf4_2:
 	cat homegf4.man \
 	| perl holmaple.pl -n 16 -t 8 \
 	  2>&1 > $@.1.tmp
