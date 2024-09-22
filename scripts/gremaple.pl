@@ -24,8 +24,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     if (0) {
     } elsif ($opt  eq "-d") {
         $debug     =  shift(@ARGV);
-    } elsif ($opt  =~ m{\A\-(de|en)\Z}) {
-        $timeout   =  $1;
+    } elsif ($opt  eq "-t") {
+        $timeout   =  shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }

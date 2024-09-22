@@ -3,7 +3,7 @@
 # @(#) $Id$
 # 2024-06-28, Georg Fischer
 #
-#:# Filter seq4 records and determine callcodes lambdin/sintrif/multraf
+#:# Filter seq4 records and determine callcodes lambdan/sintrif/multraf
 #:# Usage:
 #:#   perl lsmtraf.pl infile.seq4 > outfile.seq4
 #
@@ -61,7 +61,7 @@ while (<>) {
         } elsif ($form =~ m{[\+\-\*\/\^\!\.\,]}) {
             $nok ="arit";
         }
-        $seqlist = join(", ", @jseqs);
+        $seqlist = $callcode eq "sintrif" ? splice(@jseqs, 0, 1) : join(", ", @jseqs);
         if ($nok eq "0") {
             print        join("\t", $aseqno, $callcode,         $offset, "$lambda$form", $inits, $seqlist, @rest) . "\n";
         } else {

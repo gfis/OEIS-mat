@@ -1193,4 +1193,17 @@ A172062:
 	  ORDER BY 2" \
 	| tee    $@.tmp
 #----
+ser_holo:
+	rm -f $@.txt
+	grep -Pi "series reversion" $(COMMON)/jnames.txt | grep Holono | tee $@.tmp
+	cut -f1 $@.tmp \
+	| xargs -innn make -s ser_holo1 A=nnn
+ser_holo1:
+	grep $(A) ser_holo.tmp | cut -f1,3 \
+	| sed -e "s/Expansion of //i" -e "s/^J/A/" \
+	| tee -a ser_holo.txt
+	j $(A) | grep super \
+	| sed -e "s/^ *super/  /"     | tee -a ser_holo.txt
+	echo --------                 | tee -a ser_holo.txt
+	
 	
