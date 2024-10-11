@@ -309,8 +309,8 @@ sub expand_node { # expand a node (recursive)
             my ($tref, $lparm) = split(/$slash/, $node); # must be: reference, lambda parmlist
             $result .= $lparm . &expand_node($tref);
 
-    } elsif ($code eq "M") { # * % ~
-            @list = split(/(\*)/, $node);
+    } elsif ($code eq "M") { # * %
+            @list = split(/([\*\%])/, $node);
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
@@ -319,7 +319,7 @@ sub expand_node { # expand a node (recursive)
                     $oper = $elem;
                 } elsif ($elem eq "\~") {
                     $oper = "/";
-                } elsif ($elem eq "%") {
+                } elsif ($elem eq "\%") {
                     $oper = "mod";
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
                     $result .= ".$oper(" . $elem . ")";

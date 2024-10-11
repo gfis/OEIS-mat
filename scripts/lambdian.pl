@@ -51,13 +51,35 @@ while (<>) { # read inputfile
         my $prefix = "";
         @terms = split(/\, */, $inits);
         my $limit = $offset1 + scalar(@terms) - 1;
-        my $same = &check_same();
-        my @prog = &check_progression();
+        my $same  = &check_same();
+        my @prog  = &check_progression();
         if (0) {
         } elsif ($same > 0) {
             $prefix = "($var <= $limit) ? ZV($terms[0]) : ";
-        } else { # more than 2 - use an array
-            $prefix = "($var <= $limit) ? ZV(new int[] { $inits }[n" . ($offset1 == 0 ? "" : " - $offset1") . "]) : ";
+        } elsif (scalar(@prog) == 2) { # arithmetic progression
+            my $factn = "n";
+            my ($start, $delta) = @prog;
+            $prefix = "($var <= $limit) ? ZV(";
+            if (0) {
+            } elsif ($delta ==  1) {
+                $factn = "$factn";
+            } elsif ($delta >   1) {
+                $factn = "$delta*$factn";
+            } elsif ($delta == -1) {
+                $factn = "-$factn";
+            } elsif ($delta <  -1) {
+                $factn = "-$delta*$factn";
+            }
+            my $add = - $offset1*$delta + $start;
+            if ($add == 0) {
+                $add = "";
+            } elsif ($add > 0) {
+                $add = "+$add";
+            }
+            $prefix .= "$factn$add) : ";
+            $parms[2] = "#" . (scalar(@terms) == 2 ? "2" : "n") . ":$inits/" . join("~", @prog) . "/";
+        } else { # different - use an array
+            $prefix = "($var <= $limit) ? ZV(new int[]{$inits}[n" . ($offset1 == 0 ? "" : " - $offset1") . "]) : ";
             $parms[2] = "#" . (scalar(@terms) == 2 ? "2" : "n") . ":$inits/" . join("~", @prog) . "/";
         }
         if ($expr =~ m{\?}) { # contains another 3-way-expression -> shield it with "(...)"

@@ -46,9 +46,9 @@ lr0:
 	perl extract_lrindex.pl -d $(D) -m lrlink > lrlink.create.sql
 	$(DBAT) -f                                  lrlink.create.sql
 #--
-REMOTE=set_REMOTEeqUserAtServer
+REM=set_REM_eq_User_At_Server_
 lrlink_pull:
-	ssh $(REMOTE) 'cd ~/work/gits/OEIS-mat/lrindex ; make lrlink_prep'
+	ssh $(REM) 'cd ~/work/gits/OEIS-mat/lrindex ; make lrlink_prep'
 	make lrlink_scp
 lrlink_prep: # extract all links (faster on Linux)
 	find $(COMMON)/ajson -iname "*.json" | sort | xargs -l grep -H \

@@ -2,6 +2,7 @@
 
 # Polishing of OEIS formula conventions: Sum_{}, abs, ! etc.
 # @(#) $Id$
+# 2024-10-10: mod; *NJAS=85
 # 2024-07-19, Georg Fischer
 #
 #:# Usage:

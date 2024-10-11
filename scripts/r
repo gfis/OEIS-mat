@@ -4,5 +4,5 @@ seqno=`perl $GITS/OEIS-mat/scripts/Anumber.pl -a $1`
 fname=$GITS/OEIS-mat/common/bfile/b$seqno.txt
 ls -al $fname
 cd $GITS/OEIS-mat/contrib ; wget -q -r "https://oeis.org/b$seqno.txt" -O $fname
-head -n4 $fname
+head -n8 $fname
 ls -al $fname

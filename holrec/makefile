@@ -1175,7 +1175,7 @@ hygsolve2:
 	wc -l    $@.tmp
 #----
 sumbinom: # grep: a(n) = sum ... binom...
-	grep -E "^\%[NF]" ../common/jcat25.txt \
+	grep -P "^\%[NF]" ../common/jcat25.txt \
 	| grep -i Sum | grep -iP "binom(ial)?\(|C\(" \
 	| grep -P "a\(n\) *\=" \
 	| cut -b4- \

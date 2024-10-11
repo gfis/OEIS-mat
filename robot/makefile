@@ -210,8 +210,10 @@ remove: # remove superfluous records
 	grep -vf $@.grep.tmp chain.ocn                                       >  $@.ocn || :
 	wc -l $@.*
 	make next PROC=$@
-getinits:
+getinits: # get initial terms
 	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+lambdian: # patch CC=lambdin -> lambdan with inits in a condition of n
+	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 chatest: # compile and run, no break
 	cp -v chain.ocn $(FISCHER)/aman/$@.man
 	cp -v chain.ocn $@.ocn
@@ -708,6 +710,19 @@ knownf3: # select "pure" applications
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+#----
+tlinrec: # grep LinearRecurrence from %t records
+	grep -P "^%t A\d+ LinearRecurrence" $(CAT) \
+	| perl $@.pl \
+	| tee    $@.gen
+	wc -l    $@.gen
+tratogf: # grep CoefficientList[Series from %t records
+	grep -P "^\%t (A\d+) *CoefficientList *\[ *Series *\[ *([^\]]+)\]" $(CAT) \
+	| perl $@.pl \
+	2>       $@.rest.tmp \
+	| grep -vP "^A375" \
+	| tee    $@.gen 
+	wc -l    $@.gen
 #--------
 m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 	grep -P "\A\%[NF] A\d+ a\(n\) *\= *\(\-\w+\)\^A\d+\(n\)"             $(CAT) | $(NYI) m1pow \
