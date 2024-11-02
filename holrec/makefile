@@ -1148,14 +1148,14 @@ hyperext:
 hygsolve: hygsolve1 hygsolve2
 hygsolve1:
 	$(DBAT) -x "SELECT i.aseqno, 'hygsolve', i.offset1, d.data \
-	  FROM asinfo i, bfdata d, bfinfo b \
+	  FROM asinfo i, asdata d, bfinfo b \
 	  WHERE i.aseqno = d.aseqno \
 	    AND d.aseqno = b.aseqno \
 	    AND i.offset1 >= 0 \
 	    AND i.aseqno NOT IN (SELECT aseqno FROM holref) \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND i.aseqno NOT IN (SELECT aseqno FROM cojec) \
 	    AND b.bfimax >= 64 \
-	    AND b.maxlen >=  3 \
-	    AND d.termno >= 32 \
 	    AND NOT i.keyword LIKE '%dead%' \
 	    AND NOT i.keyword LIKE '%tab%' \
 	    AND NOT i.keyword LIKE '%cons%' \
@@ -1164,8 +1164,8 @@ hygsolve1:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+	#    AND b.maxlen >=  3 \
 	#    AND b.decindex >= 32 \
-	#    AND SUBSTR(d.data, 1, 2) = '1,' \
 	#
 N=3
 S=8

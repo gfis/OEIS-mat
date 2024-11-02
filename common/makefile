@@ -1090,3 +1090,6 @@ jnnn_names: # attach the names to J-numbers
 jnames: # nyi, and sorted by name
 	# endirect joeis_names.txt | grep -P "^A" | cut -f1,3- | sort -k2,2 -t"	" -k1,1 > jnames.txt
 	endirect joeis_names.txt  > jnames.txt
+
+mma_series: # grep Series with Sqrt
+	grep -iP "CoefficientList\[Series" jcat25.txt |grep -P "^%[t] A\d+ " | grep -viP "Sum|Product|Exp|log|cos|sin|tan|cot|arc|Continued|Lambert|Bessel|Fold|Elliptic|Jacobi|ator|Pochhammer" >> makefile

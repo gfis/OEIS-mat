@@ -97,6 +97,7 @@ while (<>) {
                             # A322288 4449, 0, 0; -710, 4449, 0; 0, -710, 4449; 0, 0, -710; -5159, 0, 0; 710, -5159, 0; 0, 710, -5159; 0, 0, 710]] 0,6,12,56,100,144,188,521,1231
                         }
                         print "make runholo OFF=$offset A=$aseqno MATRIX=\"[[0],[$llist],[$rlist]]\" INIT=\"$tlist\"\n";
+                        print join("\t", $aseqno, "holos", $offset, "[[0],[$llist],[$rlist]]", $tlist, 0, 0), "\n";
                     } # plausible result
                 } # scalar(pair) == 2
             }

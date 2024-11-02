@@ -9,6 +9,7 @@ MF=64
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 BASE=bigout1
 WAIT=16
+COMMON=../common
 #-------------------------
 all: 
 	# please make targets explicitely: table, brol, url1 ...
@@ -23,3 +24,18 @@ sfget:
 		sfdir.html \
 	| tee $@.tmp
 	wget --wait=8 --no-clobber -i $@.tmp
+#----
+evalink: evalink1 evalink2 # get the links
+evalink1:
+	grep "seqfan.eu" $(COMMON)/jcat25.txt \
+	| tee $@.tmp
+evalink2:
+	cat evalink1.tmp \
+	| perl -ne 'm{\"([^\"]+)}; print "$$1\n";' \
+	| sort | uniq | sort -r \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----
+expand: # expand all gzips
+	find . -iname "*.gz" | xargs -innn gzip -dk nnn
+	wc -l *.txt

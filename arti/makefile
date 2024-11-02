@@ -53,6 +53,7 @@ evalsame:
 	cat sortprep.tmp \
 	| grep -vP "€" \
 	| perl evalsame.pl \
+	| endirect \
 	>          $@.tmp
 	head -n2   $@.tmp
 	wc -l      $@.tmp
