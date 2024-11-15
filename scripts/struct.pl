@@ -1,14 +1,15 @@
 #!perl
 
 # @(#) $Id$
+# 2024-11-15: "/" -> D, division; *EFF=3
 # 2024-07-24, Georg Fischer
 #
 #:# Filter seq4 records and possibly append a structure tree to parm1
 #:# Usage:
-#:#   perl struct.pl [-d debug] {-en|-de} infile.seq4 > outfile.seq4
+#:#   perl struct.pl [-d debug] {-en|-de|-re} infile.seq4 > outfile.seq4
 #:#       -d debugging mode: 0=none, 1=some, 2=more
 #:#       -en structure encoding
-#:#       -tr structure transformation
+#:#       -re structure transformation
 #:#       -de structure deconding
 #--------------------------------------------------------
 use strict;
@@ -37,7 +38,7 @@ my $iparm = 0; # $(PARM1)
 my @parms;
 my $sep = ";";
 my $eq  = "=";
-my $slash = "/";
+my $slash = ":";
 my %tree; # maps index -> etype:formula_string
 my $nok;
 my $index = 0;
@@ -91,8 +92,8 @@ while (<>) {
                     &inext("J", $1);
                 }
 
-                # Nnnn           1      12        3                    3 24      4
-                while($form =~ s[([\(\,])([a-z0-9]([\+\-\*\~\%][a-z0-9])*)([\)\,])]     [$1\{$itext\}$4]) { # integer expression with n + - * 7
+                # Nnnn           1      12        3                      3 24      4
+                while($form =~ s[([\(\,])([a-z0-9]([\+\-\*\~\%\$][a-z0-9])*)([\)\,])]   [$1\{$itext\}$4]) { # integer expression with n + - * 7
                     &inext("N", $2);
                 }
                 # Nnnn             1         1
@@ -123,6 +124,10 @@ while (<>) {
                 while($form =~ s[((\{[A-J]+\})([\+\-](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {A}+{B}
                     &inext("A", $1);
                 }
+                # D///           12----------23      4----------43 1
+                while($form =~ s[((\{[A-J]+\})([\/\$](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {A}/{B}, {A}${B}
+                    &inext("D", $1);
+                }
                 $busy = $changed;
                 if ($debug >= 3) {
                     print "# busy=$busy, form=\"$form\"\n";
@@ -152,7 +157,7 @@ while (<>) {
             }
         } # -en
 
-        if ($actions =~ m{tr}) { # "tr" - structure transformation
+        if ($actions =~ m{re}) { # "re" - restructuring
             # nyi
         }
 
@@ -175,14 +180,29 @@ while (<>) {
             $form = &expand_node($root);
 
             # polish ".^()"
-            $form =~ s{\b2\.\^\(}{Z2\(}g;
+            $form =~ s{\b2\.\^\(}                                               {Z2\(}g;               # 2^x -> Z2(x)
             #            1   1
-            $form =~ s{\b(\w+)\.\^\(}{ZV($1).\^\(}g;
+            $form =~ s{\b(\w+)\.\^\(}                                           {ZV($1).\^\(}g;        # x^.(y)  -> ZV(x).^(y)
             #          1                  12         3                     3 2
-            $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {${1}ZV\($2\)}g;
+            $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {${1}ZV\($2\)}g;       # -> ???
             #            1         2                     2 1
-            $form =~ s{\A([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {ZV\($1\)}g;
+            $form =~ s{\A([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)}                   {ZV\($1\)}g;           # 
             $form =~ s{\~}{\/}g;
+
+            # polish ".$(ZV(17))" -> integer division without rest
+            #                    1   1
+            $form =~ s{\.\$\(ZV\((\d+)\)\)}      {/$1}g;
+            #           1   1
+            $form =~ s{\$(\d+)}                  {/$1}g;
+            
+            # polish superfluous brackets
+            #           (1 (ZV (       ) )1 )
+            $form =~ s{\((\(ZV\([^\)]+\)\))\)}                                  {$1}g;                 # ((ZV(...))) -> (ZV(...))
+            
+            # polish ".^(ZV(...))"
+            #           . ^ (ZV (1      1 ) )
+            $form =~ s{\.\^\(ZV\(([^\)]+)\)\)}                                  {\.\^\($1\)}g;         # ".^(ZV(...))" -> .^(...)
+
         } # -de
 
         $parms[$iparm] = "$form"; # original formula with structure tree elements appended
@@ -246,6 +266,27 @@ sub expand_node { # expand a node (recursive)
 
     } elsif ($code eq "C") {
             $result .= "(" . &expand_node($node) . ")";
+
+    } elsif ($code eq "D") {
+            @list = split(/([\/\$])/, $node);
+            for ($il = 0; $il < scalar(@list); $il ++) {
+                $elem = $list[$il];
+                if ($il == 0) {
+                    $result .= ($elem =~ m{\A(\d+)\Z}) ? "ZV($1)" : &expand_node($elem);
+                } elsif ($elem eq "/") {
+                    $oper = $elem;
+                } elsif ($elem eq "\$") {
+                    $oper = $elem;
+                } elsif ($elem =~ m{\A(\d+)\Z}) { # number
+                    if ($oper eq "/") {
+                        $result .= ".$oper(" . $elem . ")";
+                    } else { # = "$"
+                        $result .= "/"       . $elem;
+                    }
+                } else {
+                    $result .= ".$oper(" . &expand_node($elem) . ")";
+                }
+            }
 
     } elsif ($code eq "F") { # ;3=F/D000290({1});
         # FFFF                1               (2-----------23 ,4-----------43  1)

@@ -1,12 +1,12 @@
 #!perl
 
-# Polishing of OEIS formula conventions: Sum_{}, abs, ! etc.
+# Polishing of PARI/GP program lines
 # @(#) $Id$
 # 2024-10-10: mod; *NJAS=85
-# 2024-07-19, Georg Fischer
+# 2024-11-14, Georg Fischer: copied from oeisprep.pl
 #
 #:# Usage:
-#:#   perl oeisprep.pl {options} jcat25-format > seq4-format
+#:#   perl pariprep.pl {options} in.seq4 > out.seq4
 #:#       with the following options:
 #:#       -abs: |abs| -> ABS()
 #:#       -bin: binomial, Stirling[12] -> BI, S1, S2
@@ -33,12 +33,22 @@ my $mul = 0;
 my $neg = 0;
 my $sum = 0;
 my $z12 = 0;
+        $abs = 1;
+        $bin = 1;
+        $fac = 1;
+        $fun = 1;
+        $gcd = 1;
+        $mod = 1;
+        $mul = 1;
+        $neg = 1;
+        $sum = 1;
+        $z12 = 1;
 
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     }
-    if($opt =~ m{\A\-d})    { 
+    if ($opt =~ m{\A\-d})    { 
         $debug = shift(@ARGV); 
     } elsif ($opt =~ m{\A\-all})  {
         $abs = 1;
@@ -71,18 +81,18 @@ while (<>) {
     my $line = $_;
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
-    if($mod > 0) { # must be done before space removal!
+    if ($mod > 0) { # must be done before space removal!
         #           1     1
         $parm1 =~ s{([ \)])mod +}                                  {$1\%}g;
     }
     $parm1 =~ s{ }{}g; # remove spaces
-    if($abs > 0) {
+    if ($abs > 0) {
     }
-    if($bin > 0) {
+    if ($bin > 0) {
         $parm1 =~ s{binom(ial)?}                                   {BI}ig;
         $parm1 =~ s{stirling}                                      {S}ig;
     }
-    if($fac > 0) {
+    if ($fac > 0) {
         if (index($parm1, "!!") >= 0) { 
         $parm1 =~ s{\(([^\)\(]+)\)\!\!}                            {DF\($1\)}g;
         $parm1 =~ s{(\w)\!\!}                                      {DF\($1\)}g;
@@ -98,34 +108,34 @@ while (<>) {
         $parm1 =~ s{(\w)\'}                                        {ARD\($1\)}g;
         }
     }
-    if($fun > 0) {
+    if ($fun > 0) {
         $parm1 =~ s{\(([^\)\(]+)\)\!}                              {FA\($1\)}g;
         $parm1 =~ s{(\w)\!}                                        {FA\($1\)}g;
     }
-    if($gcd > 0) {
+    if ($gcd > 0) {
         $parm1 =~ s{\b(abs|gcd|gpf|lcm|max|min|mu|phi|rad|spf|tau)\(}  
                    {uc($1) . "\("}ieg;
     }
-    if($mul > 0) {
+    if ($mul > 0) {
         $parm1 =~ s{\b(\d)([A-Za-z])}                              {$1\*$2}g; # insert "*"
         $parm1 =~ s{\b(\d)\(}                                      {$1\*\(}g; # insert "*"
         #            (1   1   +  2     2 )
         $parm1 =~ s{\((\d+) *\+ *([i-n])\)}                        {\($2\+$1\)}g; # (1+n) -> (n+1)
     }
-    if($z12 > 0) { # before neg!          
+    if ($z12 > 0) { # before neg!          
         $parm1 =~ s{2\^\(}                                         {Z2\(}g;
         $parm1 =~ s{2\^([i-n])}                                    {Z2\($1\)}g;
         $parm1 =~ s{\(\-1\)\^\(}                                   {Z_1\(}g;
         $parm1 =~ s{\(\-1\)\^([i-n])}                              {Z_1\($1\)}g;
     }
-    if($neg > 0) { 
+    if ($neg > 0) { 
         $parm1 =~ s{\A\-([i-n]|[0-9]+)\W}                          {NEG\($1\)};
         $parm1 =~ s{\(\-([i-n]|[0-9]+)\W}                          {\(NEG\($1\)}g;
         if ($parm1 =~ m{\A\-|\(\-}) {
             $nok = "neg";
         }
     }
-    if($sum > 0) {
+    if ($sum > 0) {
         #                  1  1  2   2    3        3      4  4
         $parm1 =~ s{Sum_?\{(\w)\=(\w+)\.\.([^\}\,]+)[\}\,](.*)}        {SU($2, $3, $1 -> $4\)}i;
         #                  1  1  2  23        3      4  4

@@ -166,9 +166,7 @@ grepan: # this is the start of the chain
 cutauth: # remove trailing author signature
 	make -f makefile chain1 OPT= PROC=$@
 insertcc: # insert callcode, make seq4 format
-	#                                                              parm1 ini ali comment 
-	perl -ne 's/\s*\Z//; m{\A(A\d+) (.*)}; print join("\t", $$1, "lambdan", 0, $$2, "", "", $$2) . "\n";' chain.ocn > $@.ocn 2> $@.ecn
-	make next PROC=$@
+	make -f makefile chain1 OPT= PROC=$@
 movinits: # extract assignments to initial terms and move them to parm2, or a condition like "n>=2"
 	make -f makefile chain1 OPT= PROC=$@
 spliteq: # split several assignments to a(n) into separate records
@@ -238,7 +236,29 @@ remfailed: # remove those that failed (code 'fx' in previous man files
 	wc -l $@*
 	make next PROC=$@
 #==== end of the chain ====
-
+parisums: parisum1 parisum2 # process (PARI) a(n) = sum(...)
+parisum1:
+	grep -P "^%o A\d+ +\(PARI\) +a\(n\) *\= *([^\*]+\*|)(sum|prod)" $(CAT) \
+	| perl -pe 's/\(PARI\) *//; s/^\%o //;' \
+	| grep -vP "my *\(|local|for *\(|polcoeff|bernfrac" \
+	| cutauth  \
+	| tee         cutauth.gp.ocn \
+	| insertcc \
+	| movinits                    | tee movinits.gp.ocn \
+	| oeisfunc 2> oeisfunc.gp.ecn | tee oeisfunc.gp.ocn \
+	| pariprep 2> pariprep.gp.ecn \
+	| oeisprep 2> oeisprep.gp.ecn | tee oeisprep.gp.ocn \
+	| cat
+	tail -n8      oeisprep.gp.ocn
+	wc -l *.gp*
+parisum2:
+	cat           oeisprep.gp.ocn \
+	| enstruct 2> enstruct.gp.ecn | tee enstruct.gp.ocn \
+	| destruct 2> destruct.gp.ecn \
+	| lsmtraf                     | tee lsmtraf.gp.ocn
+	wc -l *gp.*
+	head          lsmtraf.gp.ocn
+#========
 ddn2:
 	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
 	| grep -vP "\(n\-\d{2}" \

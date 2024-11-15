@@ -1,6 +1,7 @@
 #!perl
 
 # @(#) $Id$
+# 2024-11-14: PARI specific
 # 2024-06-28, Georg Fischer
 #
 #:# Filter records and remove trailing author comment, ".", (End)" etc.
@@ -26,6 +27,11 @@ while (<>) {
         $parm =~ s{\((based on|corrected).*}              {};   # remove trailing "(based on", "(corrected"
         $parm =~ s{\,? *where.*}                          {};   # remove " where ..."
         $parm =~ s{\. *\Z}                                {};   # remove trailing "."
+        
+        # PARI specific:
+        $parm =~ s{\\\\.*}{}; # line end comment
+        $parm =~ s{\/\*[^\*]\*\/ *}{}g; # remove inline comments
+        $parm =~ s{\; *\Z}{}; # remove trailing semicolon
 
         print "$parm\n";
     } else { # no seq4

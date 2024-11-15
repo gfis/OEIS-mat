@@ -384,6 +384,17 @@ analyze2:
 	grep " n" analyze.txt | grep -v "sign" | cut -b1-64 \
 	| tee $@.`date +%Y-%m-%dT%H_%M`.txt
 	wc -l $@.*.txt
+#--------
+bfi: bfi_select bfile_incr # check for non-implemented sequences with non-increasing terms
+bfi_select:
+	$(DBAT) "SELECT d.aseqno, d.termno, d.data FROM asdata d, bfinfo b \
+	WHERE d.aseqno = b.aseqno \
+	  AND b.message NOT LIKE '%synth%' \
+	  AND d.aseqno  NOT IN (select aseqno from joeis) ORDER BY 1" > $@.tmp
+	wc -l $@.tmp
+bfile_incr:
+	perl bfile_incr.pl bfi_select.tmp \
+	| tee $@.tmp
 #----
 first:
 	perl bfstrip.pl analyze.txt | tee $@.tmp

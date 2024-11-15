@@ -12,7 +12,7 @@ use integer;
 use warnings;
 
 my $iparm = 1; # operate on this parameter and the next
-my $asinfo = "\$GITS/OEIS-mat/common/asinfo.txt"; # print "$asinfo\n";
+# my $asinfo = "\$GITS/OEIS-mat/common/asinfo.txt"; # print "$asinfo\n";
 my $nok = 0;
 #while (<DATA>) {
 while (<>) {
@@ -80,7 +80,6 @@ while (<>) {
         if ($parm =~ m{(a\(n\) *\= *)}p) {
             $parm = ${^POSTMATCH};  # only keep formula behind "a(n) = "
         }
-        # $parm =~ s{\Aa\(n\) *\= *}{}; # remove leading "a(n) = "
         $rest[$iparm + 0] = $parm;
         $rest[$iparm + 1] = $cond;
         if ($nok eq "0") {

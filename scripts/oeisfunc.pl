@@ -5,13 +5,13 @@
 # 2024-07-20, Georg Fischer
 #
 #:# Usage:
-#:#   perl oeisfunc.pl jcat25-format > seq4-format
+#:#   perl oeisfunc.pl in.seq4 > out.seq4
 #--------------------------------------------------------
 use strict;
 use integer;
 use warnings;
-my $debug = 0;
 
+my $debug = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -48,7 +48,8 @@ fibonacci       F000045
 floor           FLOOR
 gcd             GCD
 gpf             F006530
-hammingweight   F000120
+hammingweight   F000120   
+isprime         Predicates.PRIME.is
 jacobi          Functions.JACOBI.z
 kronecker       Functions.KRONECKER.z
 lah             F008297
