@@ -254,7 +254,7 @@ parisum1:
 parisum2:
 	cat           oeisprep.gp.ocn \
 	| enstruct 2> enstruct.gp.ecn | tee enstruct.gp.ocn \
-	| destruct 2> destruct.gp.ecn \
+	| struct -re 2> destruct.gp.ecn \
 	| lsmtraf                     | tee lsmtraf.gp.ocn
 	wc -l *gp.*
 	head          lsmtraf.gp.ocn

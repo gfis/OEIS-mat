@@ -45,6 +45,7 @@ my $index = 0;
 my $itext = "A";
 my $changed = 0;
 my $has_ratdiv = 0; # whether the tree contains a D node with "/" (rational division)
+my $dtype; # desired overall type
 
 # some functions are appended; keep in sync with oeisfunc.pl!
 my %zfuncs = qw(
@@ -53,6 +54,11 @@ SIGN            signum
 NEG             negate
 CEIL            ceiling
 FLOOR           floor
+);
+my %qiters = qw(
+SU              RU
+SD              RD
+PR              RQ    
 );
 
 # while (<DATA>) {
@@ -84,6 +90,7 @@ while (<>) {
             my $busy = 1;
             $index = 0; $itext = "A";
             my $startx = 0;
+            my $node;
             while ($busy >= 1) {
                 $changed = 0; # assume that nothing was changed; set in &store_next_node
 
@@ -108,7 +115,8 @@ while (<>) {
 
                 # CC()            (1          1 )
                 while($form =~ s[\((\{[A-J]+\})\)]                                      [\{$itext\}]) { # ({A})
-                    &store_next_node("CZ", $1);
+                    $node = $1;
+                    &store_next_node("C" . &get_node_type($node), $node);
                 }
 
                 # P^^^           12----------23    4----------43 1
@@ -159,19 +167,24 @@ while (<>) {
         } # -en
         #---------------- restruct ----
         if ($actions =~ m{re}) { # "re" - restructuring
-            if ($actions !~ m{en}) { # no previous encoding - reconstruct the tree:   
+        #   if ($actions !~ m{en}) { # no previous encoding - reconstruct the tree:   
                 $has_ratdiv = "";
                 $root = &build_tree($form);
-            } # reconstructed
-            $root = &build_tree($form);
+        #   } # reconstructed
+            # &swap_node($root);
             $form = &flatten_node($root);
+            # polish her, too:
+            $form =~ s{\$}{\/}g;
+            if ($dtype eq "Q") {
+                $form .= ".num()";
+            }
         }
         #---------------- destruct ----
         if ($actions =~ m{de}) { # flatten the structure tree and introduce jOEIS infix operators
-            if ($actions !~ m{en|re}) { # no previous encoding - reconstruct the tree:   
+        #   if ($actions !~ m{en|re}) { # no previous encoding - reconstruct the tree:   
                 $has_ratdiv = "";
                 $root = &build_tree($form);
-            } # reconstructed
+        #   } # reconstructed
 
             # walk over all nodes of the tree and expand them
             $form = &flatten_node($root);
@@ -188,32 +201,6 @@ while (<>) {
         # ignore lines without A-numbers
     }
 } # while
-#----
-sub polish_form {
-    # polish ".^()"
-    $form =~ s{\b2\.\^\(}                                               {Z2\(}g;               # 2^x -> Z2(x)
-    #            1   1
-    $form =~ s{\b(\w+)\.\^\(}                                           {ZV($1).\^\(}g;        # x^.(y)  -> ZV(x).^(y)
-    #          1                  12         3                     3 2
-    $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {${1}ZV\($2\)}g;       # -> ???
-    #            1         2                     2 1
-    $form =~ s{\A([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)}                   {ZV\($1\)}g;           # 
-    $form =~ s{\~}{\/}g;
-
-    # polish ".$(ZV(17))" -> integer division without rest
-    #                    1   1
-    $form =~ s{\.\$\(ZV\((\d+)\)\)}      {/$1}g;
-    #           1   1
-    $form =~ s{\$(\d+)}                  {/$1}g;
-    
-    # polish superfluous brackets
-    #           (1 (ZV (       ) )1 )
-    $form =~ s{\((\(ZV\([^\)]+\)\))\)}                                  {$1}g;                 # ((ZV(...))) -> (ZV(...))
-    
-    # polish ".^(ZV(...))"
-    #           . ^ (ZV (1      1 ) )
-    $form =~ s{\.\^\(ZV\(([^\)]+)\)\)}                                  {\.\^\($1\)}g;         # ".^(ZV(...))" -> .^(...)
-}
 #----
 sub store_next_node { 
     my ($code, $match) = @_;
@@ -248,17 +235,15 @@ sub build_tree {
             print "# add tree{$index}=$elem\n";
         }
     } # foreach $node
-    if ($debug >= 1) {
-        print "# has_ratdiv=\"$has_ratdiv\"\n";
-    }
+    $dtype = (length($has_ratdiv) > 0) ? "Q" : "Z";
+    print "# has_ratdiv=\"$has_ratdiv\", dtype=$dtype\n" if ($debug >= 1);
     return $root;
 } # build_tree
 #----
 sub flatten_node { # expand a node (recursively), and generate code for it
     my ($index) = @_;
-    my @list;
+    my ($oper, $elem, $il, @list);
     my $result = "";
-    my ($oper, $elem, $il);
     if ($index =~ m{\A\{([A-Z]+)\}\Z}) { # reference to another node
         $index = $1;
     }
@@ -267,9 +252,7 @@ sub flatten_node { # expand a node (recursively), and generate code for it
     if ($code =~ m{([A-Z])([A-Za-z])}) {
         ($code, $etype) = ($1, $2);
     }
-    if ($debug >= 2) {
-        print "# flatten_node tree{$index}=\"$tree{$index}\", code=$code, etype=$etype, node=\"$node\"\n";
-    }
+    print "# flatten_node tree{$index}=\"$tree{$index}\", code=$code, etype=$etype, node=\"$node\"\n" if ($debug >= 2);
     if (0) {
 
     } elsif ($code eq "A") {
@@ -277,10 +260,10 @@ sub flatten_node { # expand a node (recursively), and generate code for it
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    $result .= ($elem =~ m{\A(\d+)\Z}) ? "ZV($1)" : &flatten_node($elem);
-                } elsif ($elem eq "-") { # ignore
+                    $result .= &force_1st_type($elem, $index);
+                } elsif ($elem eq "-") {
                     $oper = $elem;
-                } elsif ($elem eq "+") { # ignore
+                } elsif ($elem eq "+") {
                     $oper = $elem;
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
                     $result .= ".$oper(" . $elem . ")";
@@ -297,10 +280,10 @@ sub flatten_node { # expand a node (recursively), and generate code for it
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    $result .= ($elem =~ m{\A(\d+)\Z}) ? "ZV($1)" : &flatten_node($elem);
-                } elsif ($elem eq "/") {
+                    $result .= &force_1st_type($elem, $index);
+               } elsif ($elem eq "/") {
                     $oper = $elem;
-                } elsif ($elem eq "\$") {
+                } elsif ($elem eq '\$') {
                     $oper = $elem;
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
                     if ($oper eq "/") {
@@ -313,7 +296,7 @@ sub flatten_node { # expand a node (recursively), and generate code for it
                 }
             }
 
-    } elsif ($code eq "F") { # ;3=F/D000290({1});
+    } elsif ($code eq "F") { # ;3=F:D000290({1});
         # FFFF                1               (2-----------23 ,4-----------43  1)
         if (0) {
         #                     1              1 (23-----------34 5-----------54 2 )
@@ -331,6 +314,11 @@ sub flatten_node { # expand a node (recursively), and generate code for it
                     $result .= "(";
                 }
             } else {
+                if ($dtype eq "Q" && (defined($qiters{$funame}))) { # patch the Z iterators into Q iterators: SU -> RU, SD - RD, PR -> RQ
+                    $funame = $qiters{$funame};
+                    $tree{$index} = "FQ$colon$funame($reflist)";
+                    print "# patch Z iterators: funame=$funame, tree{$index}=$tree{$index}, node=\"$node\"\n" if ($debug >= 2);
+                } 
                 $result .= "$funame(";
             }
             @list = split(/(\,)/, $reflist);
@@ -338,7 +326,8 @@ sub flatten_node { # expand a node (recursively), and generate code for it
             while ($il < scalar(@list)) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    $result .= ($elem =~ m{\A(\d+)\Z}) ? "$elem" : &flatten_node($elem);
+                    $result .= &flatten_node($elem);
+                    # $result .= &force_1st_type($elem, $index);
                 } elsif ($elem eq ",") {
                     $oper = ", ";
                 } elsif ($elem =~ m{\A\Z}) { # empty - was a lambda arrow
@@ -368,7 +357,7 @@ sub flatten_node { # expand a node (recursively), and generate code for it
             $result .= "<?syntax?>";
         }
 
-    } elsif ($code eq "J") { # ;1=J/J059253(n); parameter is no expression of n
+    } elsif ($code eq "J") { # ;1=J:J059253(n); parameter is no expression of n
             $result .= $node;
 
     } elsif ($code eq "L") {
@@ -380,8 +369,8 @@ sub flatten_node { # expand a node (recursively), and generate code for it
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    $result .= ($elem =~ m{\A(\d+)\Z}) ? "ZV($1)" : &flatten_node($elem);
-                } elsif ($elem eq "*") {
+                    $result .= &force_1st_type($elem, $index);
+                } elsif ($elem eq "\*") {
                     $oper = $elem;
                 } elsif ($elem eq "\~") {
                     $oper = "/";
@@ -402,8 +391,7 @@ sub flatten_node { # expand a node (recursively), and generate code for it
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    #                        1               1
-                    $result .= ($elem =~ m{\A([i-n0-9\+\-\*]+)\Z}) ? "ZV($1)" : &flatten_node($elem);
+                    $result .= &force_1st_type($elem, $index);
                 } elsif ($elem eq "^") {
                     $oper = $elem;
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
@@ -418,6 +406,115 @@ sub flatten_node { # expand a node (recursively), and generate code for it
     }
     return $result;
 } # flatten_node
+#----
+sub get_node_type {
+    my ($node) = @_;
+    $node =~ s{[\{\}]}{}g; # remove { }
+    my $rtype = substr($tree{$node}, 1, 1);
+    print "# get_node_type($node) -> $rtype\n" if ($debug >= 2);
+    return $rtype
+} # get node_type
+#----
+sub force_1st_type {
+    my ($elem, $index) = @_;
+    $elem =~ s{[\{\}]}{}g; # remove { }
+    my $type2 = $tree{$elem};
+    my $ltype = substr($type2, 0, 1);
+    my $rtype = substr($type2, 1, 1);
+    my $result;
+    if ($rtype ne $dtype) {
+        #                    1 12 23  3
+        $tree{$index} =~ s{\A(.)(.)(.*)}{$1$dtype$3};
+        if (0) {
+        } elsif ($ltype eq "C") { # parentheses
+            $result = "${dtype}V"  . &flatten_node($elem);
+        } else {
+            $result = "${dtype}V(" . &flatten_node($elem) . ")";
+        }
+        print "# force_1st_type1($elem), type=$type2, tree{$index}=$tree{$index}, result=$result\n" if ($debug >= 2);
+    } else {
+        $result = &flatten_node($elem);
+        print "# force_1st_type2($elem), type=$type2, tree{$index}=$tree{$index}, result=$result\n" if ($debug >= 2);
+    }
+    return $result;
+} # force_1st_type
+#----
+sub swap_node { # swap M and A nodes if the first operand is of simpler type than the second (I < Z, Z < Q, Q < R)
+    my ($index) = @_;
+    my ($oper, $elem, $il, @list);
+    my $result = "";
+    if ($index =~ m{\A\{([A-Z]+)\}\Z}) { # reference to another node
+        $index = $1;
+    }
+    my ($code, $node) = split(/$colon/, $tree{$index}, 2);
+    my $etype = "Z";
+    if ($code =~ m{([A-Z])([A-Za-z])}) {
+        ($code, $etype) = ($1, $2);
+    }
+    print "# swap_node1 tree{$index}=\"$tree{$index}\", code=$code, etype=$etype, node=\"$node\"\n" if ($debug >= 2);
+    if (0) {
+    } elsif ($code =~ m{\A[AM]\Z}) { # add, mul node
+            @list = split(/([\+\-\*\%])/, $node);
+            $il = 0; 
+            while ($il < scalar(@list)) {
+                $elem = $list[$il];
+                print "#   swap_node2 elem=$elem\n" if ($debug >= 2) ;
+                if ($elem =~ m{[\+\*]}) { # commutative operators
+                    my $ltype = &get_node_type($list[$il - 1]);
+                    my $rtype = &get_node_type($list[$il + 1]);
+                    print "#     swap_node3 ltype=$ltype, rtype=$rtype\n" if ($debug >= 2) ;
+                    if ($ltype eq "I" && $rtype eq "Z") { # swap
+                        my $temp       = $list[$il - 1];
+                        $list[$il - 1] = $list[$il + 1];
+                        $list[$il + 1] = $temp;
+                        print "#       swap_node4 swapped: $list[$il - 1] $list[$il] $list[$il + 1]\n" if ($debug >= 2);
+                        $il ++; # the following was the left operand - it's already processed, skip it
+                    }
+                }
+                $il ++;
+            } # while il
+            $node = join("", @list); # with possibly swapped elements
+            $tree{$index} = "$code$etype$colon$node";
+            @list = $node =~ m{(\{\w+\})}g;
+            for ($il = 0; $il < scalar(@list); $il ++) { # walk into all subnodes
+                &swap_node($list[$il]);
+            }
+    } else { # all other nodes 
+            #                    1     1
+            @list = $node =~ m{(\{\w+\})}g;
+            for ($il = 0; $il < scalar(@list); $il ++) { # walk into all subnodes
+                &swap_node($list[$il]);
+            }
+    }
+    print "# swap_node5 node=\"$node\"\n" if ($debug >= 2);
+    return $result;
+} # swap_node
+#----
+sub polish_form {
+    # polish ".^()"
+    $form =~ s{\b2\.\^\(}                                               {Z2\(}g;               # 2^x -> Z2(x)
+    #            1   1
+    $form =~ s{\b(\w+)\.\^\(}                                           {ZV($1).\^\(}g;        # x^.(y)  -> ZV(x).^(y)
+    #          1                  12         3                     3 2
+    $form =~ s{(\-\> *|[^A-Z0-9]\()([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)} {${1}ZV\($2\)}g;       # -> ???
+    #            1         2                     2 1
+    $form =~ s{\A([a-z0-9]+([\+\-\*\~\%][a-z0-9]+)*)}                   {ZV\($1\)}g;           # 
+    $form =~ s{\~}{\/}g;
+
+    # polish ".$(ZV(17))" -> integer division without rest
+    #                    1   1
+    $form =~ s{\.\$\(ZV\((\d+)\)\)}      {/$1}g;
+    #           1   1
+    $form =~ s{\$(\d+)}                  {/$1}g;
+    
+    # polish superfluous brackets
+    #           (1 (ZV (       ) )1 )
+    $form =~ s{\((\(ZV\([^\)]+\)\))\)}                                  {$1}g;                 # ((ZV(...))) -> (ZV(...))
+    
+    # polish ".^(ZV(...))"
+    #           . ^ (ZV (1      1 ) )
+    $form =~ s{\.\^\(ZV\(([^\)]+)\)\)}                                  {\.\^\($1\)}g;         # ".^(ZV(...))" -> .^(...)
+}
 __DATA__
 A243035	lsmtraf	0	n -> 9*10^(FA(n)-1)	"1,2,3"
 A229361	lsmtraf	0	n -> 97+41*Z2(n)+21*3^n+13*4^n+8*5^n+5*6^n+3*7^n+2*8^n+9^n+10^n
