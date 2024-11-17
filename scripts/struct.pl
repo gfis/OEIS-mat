@@ -73,17 +73,19 @@ R       CV
 my $ztype = "N";
 # Functions and their expected types
 my %ftypes = qw(
-FA      IN
 BI      IIN
+FA      IN
+PD      IILN
+PR      IIILN
+QV      NQ
+RD      IILQ
+RQ      IIILQ
+RU      IIILQ
 S1      IIN
 S2      IIN
-SU      IIILN
 SD      IILN
-RU      IIILQ
-RD      IILQ
-PR      IIILN
-PD      IILN
-RQ      IIILQ
+SU      IIILN
+ZV      IN
 );
 
 # while (<DATA>) {
@@ -195,26 +197,13 @@ while (<>) {
                 $nok = "ix<=2";
             }
         } # -en
-        #---------------- re - restruct ----
-        if ($actions =~ m{re}) {
-        #   if ($actions !~ m{en}) { # no previous encoding - reconstruct the tree:   
-                $has_ratdiv = "";
-                $root = &build_tree($form);
-        #   } # reconstructed
-            $form = &flatten_tree($root);
-            # polish her, too:
-            $form =~ s{\$}{\/}g;
-            if ($dtype eq "Q") {
-                $form .= ".num()";
-            }
-        }
         #---------------- destruct ----
         if ($actions =~ m{de}) { 
         #   if ($actions !~ m{en}) { # no previous encoding - reconstruct the tree:   
                 $has_ratdiv = "";
                 $root = &build_tree($form);
         #   } # reconstructed
-            &entype_child1($root);
+            &entype_tree($root);
             &dump_tree($root) if ($debug >= 2);
             $indent = ""; &print_tree($root) if ($debug >= 1);
             $form = &flatten_tree($root);
@@ -223,17 +212,6 @@ while (<>) {
                 $form .= ".num()";
             }
         }
-#        #---------------- destruct ----
-#        if ($actions =~ m{de}) { # flatten the structure tree and introduce jOEIS infix operators
-#        #   if ($actions !~ m{en|re}) { # no previous encoding - reconstruct the tree:   
-#                $has_ratdiv = "";
-#                $root = &build_tree($form);
-#        #   } # reconstructed
-#
-#            # walk over all nodes of the tree and expand them
-#            $form = &flatten_tree($root);
-#            &polish_form();
-#        } # -de
         #---------------- finish ----
         $parms[$iparm] = "$form"; # original formula with structure tree elements appended
         if ($nok ne "0") {
@@ -245,8 +223,9 @@ while (<>) {
         # ignore lines without A-numbers
     }
 } # while
+#-------- end of main --------
 #----
-sub entype_child1 { # force type of 1st child
+sub entype_tree { # force type of 1st child
     my ($parent) = @_;
     #                1   1
     $parent =~ s[\A\{(\w+)\}\Z][$1]; # remove any surrounding { } 
@@ -258,26 +237,75 @@ sub entype_child1 { # force type of 1st child
     #                           1       1
     my @node_list = ($node =~ m[(\{\w+\})]g);
     if (0) {
-    } elsif ($code =~ m{[ADMP]}) {
+    #----
+    } elsif ($code =~ m{[AMP]}) {
         for (my $il = 0; $il < scalar(@node_list); $il ++) {
-            &entype_child1($node_list[$il]);
+            &entype_tree($node_list[$il]);
         }
         my $child = $node_list[0];
-        if (&get_type($child) ne $dtype) { # not the desired 
+        if (&get_type($child) ne $dtype) { # not the desired type
+            &insert_vof($parent, $child);
+        }
+        # AMP
+    #----
+    } elsif ($code =~ m{[D]}) {
+        for (my $il = 0; $il < scalar(@node_list); $il ++) {
+            &entype_tree($node_list[$il]);
+        }
+        foreach my $child (@node_list) {
+            if (&get_type($child) ne $dtype) { # not the desired type
+                &insert_vof($parent, $child);
+            }
+        }
+        # D
+    #----
+    } elsif ($code =~ m{[C]} ) {
+    #----
+    } elsif ($code =~ m{[F]} ) { # Function
+        for (my $il = 0; $il < scalar(@node_list); $il ++) {
+            &entype_tree($node_list[$il]);
+        }
+        #                1   1
+        if ($node =~ m{\A(\w+)\(}) { # extract the function's name
+            # (SU|SD|PR|PD|RU|RD|RQ)
+            my $funame = $1;
+            if (defined($ftypes{$funame})) {
+                my $futype_string = $ftypes{$funame};
+                my $result_type = substr($futype_string, -1); # last letter
+                if (0) {
+                } elsif ($dtype eq "Q" && defined($qiters{$funame})) { # SU -> RU
+                    $node =~ s{\A$funame}{$qiters{$funame}};
+                    $tree{$parent} = "F$dtype$colon$node";
+                #} elsif ($funame ne "QV" || &get_type($node_list[0]) ne "Q") { # no duplicate QV
+                #   $node =~ s{\A$funame}{$qiters{$funame}};
+                #   $tree{$parent} = "F$dtype$colon$node";
+                }
+            } else { 
+                $nok = "unfu_$funame";
+            }
+        }
+    #----
+    } elsif ($code =~ m{[L]} ) { # not used
+    } elsif ($code =~ m{[N]} ) {
+    } elsif ($code =~ m{[J]} ) {
+    #----
+    } else {
+    }
+} # entype_tree
+#----
+sub insert_vof { # insert type.valueOf()
+            my ($parent, $child) = @_;
             my $old_child = quotemeta($child);
             my $new_child = quotemeta("{$itext}");
             $tree{$parent} =~ s[$old_child][\{$itext\}];
-            &store_next_node("F$dtype", "$types_vof{$dtype}($child)");
-            print "# entype_child1 child=$child, new_child=$new_child, tree{$parent}=$tree{$parent}\n" if ($debug >= 2);
-        }
-        # ADMP
-    } elsif ($code =~ m{[C]} ) {
-    } elsif ($code =~ m{[FL]}) {
-    } elsif ($code =~ m{[N]} ) {
-    } elsif ($code =~ m{[J]} ) {
-    } else {
-    }
-} # entype_child1
+            $tree{$parent} =~ s[\A(.)(.)][$1$dtype];
+            if (&get_class($child) eq "C") {
+                &store_next_node("F$dtype", "$types_vof{$dtype}($child)");
+            } else {
+                &store_next_node("F$dtype", "$types_vof{$dtype}($child)");
+            }
+            print "# insert_vof parent=$parent, child=$child, new_child=$new_child, tree{$parent}=$tree{$parent}\n" if ($debug >= 2);
+} # insert_vof
 #----
 sub store_next_node { 
     my ($code, $expr) = @_;
@@ -286,7 +314,7 @@ sub store_next_node {
         print "# undefined code for expr=\"$expr\", form=\"$form\"\n";
     }
     $tree{$itext} = "$code$colon$expr";
-    print "# store_next_code($code, $expr), tree{$itext}=$tree{$itext}, form=\"$form\"\n" if ($debug >= 2);
+    print "# store_next_code($code, $expr), tree{$itext}=$tree{$itext}, form=\"$form\"\n" if ($debug >= 3);
     $index ++;
     $itext = $index;
     $itext =~ tr{0123456789}
@@ -318,6 +346,7 @@ sub build_tree {
     $itext = $index;
     $itext =~ tr{0123456789}
                 {ABCDEFGHIJ};
+    $indent = ""; &print_tree($root) if ($debug >= 2);
     return $root;
 } # build_tree
 #----
@@ -333,15 +362,17 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
     if ($code =~ m{([A-Z])([A-Za-z])}) {
         ($code, $etype) = ($1, $2);
     }
-    print "# flatten_tree tree{$parent}=\"$tree{$parent}\", code=$code, etype=$etype, node=\"$node\"\n" if ($debug >= 2);
+    print "# flatten_tree tree{$parent}=\"$tree{$parent}\", code=$code, etype=$etype, node=\"$node\"\n" if ($debug >= 3);
     if (0) {
 
     } elsif ($code eq "A") {
             @list = split(/([\+\-])/, $node);
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
+            #   if ($il == 0) {
+            #       $result .= &force_1st_type($elem, $parent);
                 if ($il == 0) {
-                    $result .= &force_1st_type($elem, $parent);
+                    $result .= &flatten_tree($elem);
                 } elsif ($elem eq "-") {
                     $oper = $elem;
                 } elsif ($elem eq "+") {
@@ -360,9 +391,11 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
             @list = split(/([\/\$])/, $node);
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
+            #   if ($il == 0) {
+            #       $result .= &force_1st_type($elem, $parent);
                 if ($il == 0) {
-                    $result .= &force_1st_type($elem, $parent);
-               } elsif ($elem eq "/") {
+                    $result .= &flatten_tree($elem);
+                } elsif ($elem eq "/") {
                     $oper = $elem;
                 } elsif ($elem eq '\$') {
                     $oper = $elem;
@@ -378,10 +411,10 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
             }
 
     } elsif ($code eq "F") { # ;3=F:D000290({1});
-        # FFFF                1               (2-----------23 ,4-----------43  1)
+        # FFFF   
         if (0) {
         #                     1              1 (23-----------34 5-----------54 2 )
-        } elsif ($node =~ m{\b([A-Z][A-Z0-9]+)\(((\{[A-J]+\})(\,(|\{[A-J]+\}))*)\)}) {
+        } elsif ($node =~ m{\b([A-Z][A-Z0-9]+)\(((\{[A-Z]+\})(\,(|\{[A-Z]+\}))*)\)}) {
             my $funame = $1;
             my $fzname = $zfuncs{$funame}; # when it is a Z method that must be appended
             my $reflist = $2;
@@ -396,9 +429,9 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
                 }
             } else {
                 if ($dtype eq "Q" && (defined($qiters{$funame}))) { # patch the Z iterators into Q iterators: SU -> RU, SD - RD, PR -> RQ
-                    $funame = $qiters{$funame};
-                    $tree{$parent} = "FQ$colon$funame($reflist)";
-                    print "# patch Z iterators: funame=$funame, tree{$parent}=$tree{$parent}, node=\"$node\"\n" if ($debug >= 2);
+        #            $funame = $qiters{$funame};
+        #            $tree{$parent} = "FQ$colon$funame($reflist)";
+        #            print "# patch Z iterators: funame=$funame, tree{$parent}=$tree{$parent}, node=\"$node\"\n" if ($debug >= 2);
                 } 
                 $result .= "$funame(";
             }
@@ -435,7 +468,7 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
             }
         } else {
             $nok = "syntax";
-            $result .= "<?syntax?>";
+            $result .= "<?syntax parent=$parent,node=$node?>";
         }
 
     } elsif ($code eq "J") { # ;1=J:J059253(n); parameter is no expression of n
@@ -465,11 +498,11 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
                     $result .= ".$oper(" . &flatten_tree($elem) . ")";
                 }
                 #              1      1
-                if ($node =~ m{(\{\w\})}) {
-                    my $child1 = $1;
-                    print "# child1=$child1, tree{$parent}=$tree{$parent}, node=$node\n" if ($debug >= 3);
-                    &force_1st_type($child1, $parent);
-                }
+           #     if ($node =~ m{(\{\w\})}) {
+           #         my $child1 = $1;
+           #         print "# child1=$child1, tree{$parent}=$tree{$parent}, node=$node\n" if ($debug >= 3);
+           #         &force_1st_type($child1, $parent);
+           #     }
             }
 
     } elsif ($code eq "N") { # ;2=n/k;
@@ -479,8 +512,10 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
             @list = split(/(\^)/, $node);
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
+            #   if ($il == 0) {
+            #       $result .= &force_1st_type($elem, $parent);
                 if ($il == 0) {
-                    $result .= &force_1st_type($elem, $parent);
+                    $result .= &flatten_tree($elem);
                 } elsif ($elem eq "^") {
                     $oper = $elem;
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
@@ -494,39 +529,50 @@ sub flatten_tree { # expand a node (recursively), and generate code for it
     return $result;
 } # flatten_tree
 #----
+sub get_class {
+    my ($node) = @_;
+    $node =~ s{[\{\}]}{}g; # remove { }
+    my $result = substr($tree{$node}, 0, 1);
+    print "# get_class($node) -> $result\n" if ($debug >= 2);
+    return $result;
+} # get_class
+#----
 sub get_type {
     my ($node) = @_;
     $node =~ s{[\{\}]}{}g; # remove { }
-    my $rtype = substr($tree{$node}, 1, 1);
-    print "# get_type($node) -> $rtype\n" if ($debug >= 2);
-    return $rtype
-} # get node_type
-#----
-sub force_1st_type {
-    my ($elem, $parent) = @_;
-    $elem =~ s{[\{\}]}{}g; # remove { }
-    my $type2 = $tree{$elem};
-    my $ltype = substr($type2, 0, 1);
-    my $rtype = substr($type2, 1, 1);
-    my $result;
-    if ($rtype ne $dtype) {
-        #                    1 12 23  3
-        $tree{$parent} =~ s{\A(.)(.)(.*)}{$1$dtype$3};
-        if (0) {
-        } elsif ($ltype eq "C") { # parentheses
-            $result = "$types_vof{${dtype}}"  . &flatten_tree($elem);
-        } else {
-            $result = "$types_vof{${dtype}}(" . &flatten_tree($elem) . ")";
-        }
-        print "# force_1st_type1($elem), type=$type2, tree{$parent}=$tree{$parent}, result=$result\n" if ($debug >= 2);
-    } else {
-        $result = &flatten_tree($elem);
-        print "# force_1st_type2($elem), type=$type2, tree{$parent}=$tree{$parent}, result=$result\n" if ($debug >= 2);
-    }
+    my $result = substr($tree{$node}, 1, 1);
+    print "# get_type($node)  -> $result\n" if ($debug >= 2);
     return $result;
-} # force_1st_type
+} # get_type
 #----
-sub entype_1st { # expand a node (recursively), and force the first nodes in all lists to $dtype
+sub print_tree { # print a legible representation of the node (recursively): indented tree
+    my ($parent) = @_;
+    #                1   1
+    $parent =~ s[\A\{(\w+)\}\Z][$1]; # remove any surrounding { } 
+    my $node = $tree{$parent};
+    print "$indent$parent=$node\n";
+    #                        1       1
+    foreach my $child(split(/(\{\w+\})/, $node)) {
+        if ($child =~ m{\{(\w+)\}}) {
+            $indent .= "  ";
+            &print_tree($child);
+            $indent = substr($indent, 2);
+        }
+    } # foreach child
+} # print_tree
+#----
+sub dump_tree { # print the internal representation of the tree
+    my ($parent) = @_;
+    print "# dump_tree: $parent    ";
+    my $result = "";
+    foreach my $key(sort(keys(%tree))) {
+        $result .= "$semic$key=$tree{$key}";
+    } # foreach $key
+    print "$result\n";
+} # dump_tree
+#================================ no longer used ========
+#----
+sub entype_1st_99 { # expand a node (recursively), and force the first nodes in all lists to $dtype
     my ($parent) = @_;
     my ($oper, $elem, $il, @list);
     my $result = "";
@@ -538,19 +584,19 @@ sub entype_1st { # expand a node (recursively), and force the first nodes in all
     if ($code =~ m{([A-Z])([A-Za-z])}) { # separate into 2 uppercase letters
         ($code, $etype) = ($1, $2);
     }
-    print "# entype_1st tree{$parent}=\"$tree{$parent}\", code=$code, etype=$etype, node=\"$node\"\n" if ($debug >= 2);
+    print "# entype_1st_99 tree{$parent}=\"$tree{$parent}\", code=$code, etype=$etype, node=\"$node\"\n" if ($debug >= 2);
     if (0) {
 
     } elsif ($code eq "A") {
             @list = split(/([\+\-])/, $node);
-            &entype_child1($parent, $list[0]);
+            &entype_tree($parent, $list[0]);
 
     } elsif ($code eq "C") {
-            $result .= "(" . &entype_1st($node) . ")";
+            $result .= "(" . &entype_1st_99($node) . ")";
 
     } elsif ($code eq "D") {
             @list = split(/([\/\$])/, $node);
-            &entype_child1($parent, $list[0]);
+            &entype_tree($parent, $list[0]);
 
     } elsif ($code eq "F") { # ;3=F:D000290({1});
         # FFFF                1               (2-----------23 ,4-----------43  1)
@@ -582,7 +628,7 @@ sub entype_1st { # expand a node (recursively), and force the first nodes in all
             while ($il < scalar(@list)) {
                 $elem = $list[$il];
                 if ($il == 0) {
-                    $result .= &entype_1st($elem);
+                    $result .= &entype_1st_99($elem);
                     # $result .= &force_1st_type($elem, $parent);
                 } elsif ($elem eq ",") {
                     $oper = ", ";
@@ -592,7 +638,7 @@ sub entype_1st { # expand a node (recursively), and force the first nodes in all
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
                     $result .= "$oper$elem";
                 } else {
-                    $result .= "$oper" . &entype_1st($elem);
+                    $result .= "$oper" . &entype_1st_99($elem);
                 }
                 $il ++;
             } # while $il
@@ -618,58 +664,45 @@ sub entype_1st { # expand a node (recursively), and force the first nodes in all
 
     } elsif ($code eq "L") {
             my ($tref, $lparm) = split(/$colon/, $node); # must be: reference, lambda parmlist
-            &entype_child1($parent, $lparm);
+            &entype_tree($parent, $lparm);
 
     } elsif ($code eq "M") { # * %
             @list = split(/([\*\%])/, $node);
-            &entype_child1($parent, $list[0]);
+            &entype_tree($parent, $list[0]);
 
     } elsif ($code eq "N") { # ;2=n/k;
 
     } elsif ($code eq "P") {
             @list = split(/(\^)/, $node);
-            &entype_child1($parent, $list[0]);
+            &entype_tree($parent, $list[0]);
     }
-    print "# entype_1st result=\"$result\"\n" if ($debug >= 3);
+    print "# entype_1st_99 result=\"$result\"\n" if ($debug >= 3);
     return $result;
-} # entype_1st
+} # entype_1st_99
 #----
-sub entype_child2 {
-    my ($parent, $child1) = @_;
-    $child1 =~ s{[\{\}]}{}g; # remove { }
-    if (&get_type($child1) ne $dtype) {
-        my $new_child = $itext;
-        $tree{$parent} =~ s[\{$child1\}][\{$new_child\}];
-        &store_next_node("F$dtype", "$types_vof{$dtype}V({$child1})");
-        print "# entype_node child1=$child1, new_child=$new_child, tree{$parent}=$tree{$parent}\n" if ($debug >= 2);
-    }
-} # entype_child2
-#----
-sub print_tree { # print a legible representation of the node (recursively): indented tree
-    my ($parent) = @_;
-    #                1   1
-    $parent =~ s[\A\{(\w+)\}\Z][$1]; # remove any surrounding { } 
-    my $node = $tree{$parent};
-    print "$indent$parent=$node\n";
-    #                        1       1
-    foreach my $child(split(/(\{\w+\})/, $node)) {
-        if ($child =~ m{\{(\w+)\}}) {
-            $indent .= "  ";
-            &print_tree($child);
-            $indent = substr($indent, 2);
+sub force_1st_type_99 {
+    my ($elem, $parent) = @_;
+    $elem =~ s{[\{\}]}{}g; # remove { }
+    my $type2 = $tree{$elem};
+    my $ltype = substr($type2, 0, 1);
+    my $rtype = substr($type2, 1, 1);
+    my $result;
+    if ($rtype ne $dtype) {
+        #                    1 12 23  3
+        $tree{$parent} =~ s{\A(.)(.)(.*)}{$1$dtype$3};
+        if (0) {
+        } elsif ($ltype eq "C") { # parentheses
+            $result = "$types_vof{${dtype}}"  . &flatten_tree($elem);
+        } else {
+            $result = "$types_vof{${dtype}}(" . &flatten_tree($elem) . ")";
         }
-    } # foreach child
-} # print_tree
-#----
-sub dump_tree { # print the internal representation of the tree
-    my ($parent) = @_;
-    print "# dump_tree: $parent    ";
-    my $result = "";
-    foreach my $key(sort(keys(%tree))) {
-        $result .= "$semic$key=$tree{$key}";
-    } # foreach $key
-    print "$result\n";
-} # dump_tree
+        print "# force_1st_type1($elem), type=$type2, tree{$parent}=$tree{$parent}, result=$result\n" if ($debug >= 2);
+    } else {
+        $result = &flatten_tree($elem);
+        print "# force_1st_type2($elem), type=$type2, tree{$parent}=$tree{$parent}, result=$result\n" if ($debug >= 2);
+    }
+    return $result;
+} # force_1st_type
 #----
 sub swap_node { # swap M and A nodes if the first operand is of simpler type than the second (I < Z, Z < Q, Q < R)
     my ($parent) = @_;
