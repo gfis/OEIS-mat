@@ -259,8 +259,8 @@ parisum2:
 	wc -l *gp.*
 	head          lsmtraf.gp.ocn
 enstest:
-	enstruct   -d $(D) enstest.man | tee enstest.ocn
-	struct -de  -d $(D) enstest.ocn
+	enstruct   -d $(D) enstest.man  2>&1 | tee enstest.ocn
+	struct -de  -d $(D) enstest.ocn 2>&1 | tee destest.ocn
 #========
 ddn2:
 	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \

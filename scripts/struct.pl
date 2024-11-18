@@ -238,28 +238,41 @@ sub entype_tree { # force type of 1st child
     my @node_list = ($node =~ m[(\{\w+\})]g);
     if (0) {
     #----
-    } elsif ($code =~ m{[AMP]}) {
+    } elsif ($code =~ m{[ADMP]}) {
         for (my $il = 0; $il < scalar(@node_list); $il ++) {
             &entype_tree($node_list[$il]);
         }
-        my $child = $node_list[0];
-        if (&get_type($child) ne $dtype) { # not the desired type
-            &insert_vof($parent, $child);
-        }
-        # AMP
-    #----
-    } elsif ($code =~ m{[D]}) {
-        for (my $il = 0; $il < scalar(@node_list); $il ++) {
-            &entype_tree($node_list[$il]);
-        }
-        foreach my $child (@node_list) {
+        #                       1  2   2  1
+        if ($tree{$parent} =~ m{(\{(\w+)\})}) { # first in node list
+            my $child = $1;
             if (&get_type($child) ne $dtype) { # not the desired type
                 &insert_vof($parent, $child);
             }
         }
-        # D
+        # ADMP
+    #----
+#   } elsif ($code =~ m{[D]}) {
+#       for (my $il = 0; $il < scalar(@node_list); $il ++) {
+#           &entype_tree($node_list[$il]);
+#       }
+#       foreach my $child (@node_list) {
+#           if (&get_type($child) ne $dtype) { # not the desired type
+#               &insert_vof($parent, $child);
+#           }
+#       }
+#       # D
     #----
     } elsif ($code =~ m{[C]} ) {
+        for (my $il = 0; $il < scalar(@node_list); $il ++) {
+            &entype_tree($node_list[$il]);
+        }
+        #                       1  2   2  1
+        if ($tree{$parent} =~ m{(\{(\w+)\})}) { # first in node list
+            my $child = $1;
+            if (&get_type($child) ne $dtype) { # not the desired type
+                &insert_vof($parent, $child);
+            }
+        }
     #----
     } elsif ($code =~ m{[F]} ) { # Function
         for (my $il = 0; $il < scalar(@node_list); $il ++) {
@@ -267,8 +280,7 @@ sub entype_tree { # force type of 1st child
         }
         #                1   1
         if ($node =~ m{\A(\w+)\(}) { # extract the function's name
-            # (SU|SD|PR|PD|RU|RD|RQ)
-            my $funame = $1;
+           my $funame = $1;
             if (defined($ftypes{$funame})) {
                 my $futype_string = $ftypes{$funame};
                 my $result_type = substr($futype_string, -1); # last letter
@@ -283,7 +295,8 @@ sub entype_tree { # force type of 1st child
             } else { 
                 $nok = "unfu_$funame";
             }
-        }
+            # (SU|SD|PR|PD|RU|RD|RQ)
+         }
     #----
     } elsif ($code =~ m{[L]} ) { # not used
     } elsif ($code =~ m{[N]} ) {
