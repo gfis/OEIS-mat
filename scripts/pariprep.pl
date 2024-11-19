@@ -2,13 +2,14 @@
 
 # Polishing of PARI/GP program lines
 # @(#) $Id$
+# 2024-11-19: ~ instead of $
 # 2024-11-14, Georg Fischer: copied from oeisprep.pl
 #
 #:# Usage:
 #:#   perl pariprep.pl {options} in.seq4 > out.seq4
 #:#       with the following options:
 #:#       -cmt: remove comments
-#:#       -idv: replace integer division "\\" with "/"
+#:#       -idv: replace integer division "\\" with "~"
 #:#       -sti: move digits 1,2 in stirling calls
 #:#       -sum: move the loop variable to the 3rd position
 #--------------------------------------------------------
@@ -53,11 +54,11 @@ while (<>) {
     my $nok = 0;
     if ($mod > 0) { # must be done before space removal!
         #           1     1
-        $parm1 =~ s{([ \)])mod +}                                  {$1\%}g;
+        $parm1 =~ s{([ \)])mod +}                                      {$1\%}g;
     }
     $parm1 =~ s{ }{}g; # remove all spaces
     if ($idv > 0) {
-        $parm1 =~ s{(\w) *\\ *(\w+)}{$1\$$2}; # "$" <- integer division without rest
+        $parm1 =~ s{(\w) *\\ *(\w+)}{$1\~$2}; # "~" <- integer division without rest
     }
     if ($sti > 0) {
         while ($parm1 =~ m{stirling}p) { # modifier "p" is essential!

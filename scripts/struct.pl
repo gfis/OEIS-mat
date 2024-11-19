@@ -37,6 +37,7 @@ my $root;
 my $form;
 my $iparm = 0; # $(PARM1)
 my $semic = ";";
+my $idiv  = "~"; # symbol for integer division
 my $eq    = "=";
 my $colon = ":";
 my %tree; # maps index -> etype:formula_string
@@ -161,7 +162,7 @@ while (<>) {
                     &store_next_node("A$ztype", $1);
                 }
                 # D///           12----------23      4----------43 1
-                while($form =~ s[((\{[A-J]+\})([\/\$](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {A}/{B}, {A}${B}
+                while($form =~ s[((\{[A-J]+\})([\/\~](\{[A-J]+\}))+)]                   [\{$itext\}]) { # {A}/{B}, {A}${B}
                     &store_next_node("DQ", $1);
                 }
                 $busy = $changed;
@@ -209,7 +210,7 @@ while (<>) {
             &dump_tree($root) if ($debug >= 2);
             $indent = ""; &print_tree($root) if ($debug >= 1);
             $form = &generate($root);
-            $form =~ s{\$}{\/}g;
+            $form =~ s{$idiv}{\/}g;
             if ($dtype eq "Q") {
                 $form .= ".num()";
             }
@@ -261,7 +262,7 @@ sub entype_tree { # force type of 1st child
         if ($tree{$parent} =~ m{(\{(\w+)\})}) { # first in node list
             my $child = $1;
             if (&get_type($child) ne $dtype) { # not the desired type
-            #   &insert_vof($parent, $child);
+                #&insert_vof($parent, $child);
             }
         }
     #----
@@ -312,17 +313,19 @@ sub propagate_up { # propagate a type to all parents of a node
 sub insert_vof { # insert type.valueOf()
     my ($parent, $child) = @_;
     print "# insert_vof start parent=$parent, child=$child, type(child)=" . &get_type($child) . "\n" if ($debug >= 3);
-    my $old_child = quotemeta($child);
-    my $new_child = quotemeta("{$itext}");
-    $tree{$parent} =~ s[$old_child][\{$itext\}];
-    &propagate_up($parent, $dtype);
     if (&get_class($child) eq "C") {
-        &store_next_node("F$dtype", "$types_vof{$dtype}($child)");
+        $child =~ s{[\{\}]}{}g; # remove all { }
+        $tree{$child} = "F$dtype$colon$types_vof{$dtype}(" . substr($tree{$child}, index($tree{$child}, ":") + 1) . ")";
+        &propagate_up($parent, $dtype);
     } else {
+        my $old_child = quotemeta($child);
+        my $new_child = quotemeta("{$itext}");
+        $tree{$parent} =~ s[$old_child][\{$itext\}];
+        &propagate_up($parent, $dtype);
         &store_next_node("F$dtype", "$types_vof{$dtype}($child)");
     }
     if ($debug >= 3) {
-        print "# insert_vof end parent=$parent, child=$child, type(child)=" . &get_type($child) . ", new_child=$new_child, tree=\n";
+        print "# insert_vof end parent=$parent, child=$child, type(child)=" . &get_type($child) . ", tree=\n";
         &print_tree($root);
         print "\n";
     }
@@ -396,12 +399,12 @@ sub generate { # expand a node (recursively), and generate code for it
     if (0) {
 
     } elsif ($code =~ m{[ADMP]}) {
-            @list = split(/([\+\-\*\/\$\^])/, $node);
+            @list = split(/([\+\-\*\/\~\^])/, $node);
             for ($il = 0; $il < scalar(@list); $il ++) {
                 $elem = $list[$il];
                 if ($il == 0) {
                     $result .= &generate($elem);
-                } elsif ($elem =~ m{([\+\-\*\/\^])}) {
+                } elsif ($elem =~ m{([\+\-\*\/\^\~])}) {
                     $oper = $elem;
                 } elsif ($elem =~ m{\A(\d+)\Z}) { # number
                     $result .= ".$oper(" . $elem . ")";
@@ -623,9 +626,9 @@ sub polish_form {
 
     # polish ".$(ZV(17))" -> integer division without rest
     #                    1   1
-    $form =~ s{\.\$\(ZV\((\d+)\)\)}      {/$1}g;
+    $form =~ s{\.$idiv\(ZV\((\d+)\)\)}      {/$1}g;
     #           1   1
-    $form =~ s{\$(\d+)}                  {/$1}g;
+    $form =~ s{$idiv(\d+)}                  {/$1}g;
     
     # polish superfluous brackets
     #           (1 (ZV (       ) )1 )
