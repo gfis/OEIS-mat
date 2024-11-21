@@ -79,6 +79,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 while (<>) {
     s/\s+\Z//; # chompr;
     my $line = $_;
+    next if ($line !~ m{\AA\d{6}});
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
     if ($mod > 0) { # must be done before space removal!

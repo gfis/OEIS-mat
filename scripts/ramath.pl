@@ -47,7 +47,8 @@ while (<>) {
             my $response = &get_url($parm1);
             print "$response\n" if ($debug >= 1);
             my $parm2 = "";
-            ($aseqno, $callcode, $offset1, $parm1, $parm2) = split(/\t/, $response);  
+            ($aseqno, $callcode, $offset1, $parm1, $parm2) = split(/\t/, $response);
+            $callcode = "holos";
             $parm1 =~ s{\"}{}g; # remove quotes
             $rest[0] = "n>=$parm2"; 
             $rest[1] = 0;

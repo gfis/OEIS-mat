@@ -33,6 +33,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 
 my %hfuncs = qw(
 eulerphi        Functions.PHI.z
+gcd             GCD
 ispolygonal     Predicates.POLYGONAL.is
 ispower         Predicates.POWER.is
 isprimepower    Predicates.PRIME_POWER.is
@@ -41,7 +42,7 @@ issquare        Predicates.SQUARE_FREE.is
 numbpart        Functions.PARTITIONS.z
 numdiv          Functions.SIGMA0.z
 precprime       Functions.PREV_PRIME.z
-sqrtint         Functions.SQRT.z
+sqrtint         SQRT
 sumdigits       Functions.DIGIT_SUM.z
 );
 # floor(sqrt     F000196
@@ -49,7 +50,8 @@ sumdigits       Functions.DIGIT_SUM.z
 #while (<DATA>) {
 while (<>) {
     s/\s+\Z//; # chompr;
-    my $line = $_; #
+    my $line = $_; 
+    next if ($line !~ m{\AA\d{6}});
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
     if(0) {
@@ -85,8 +87,8 @@ while (<>) {
                 if ($busy > 0) {
                     my $lfunc = lc($func);
                     $lfunc =~ s{_}{}g; # remove underscores
-                    my $fnnn = $hfuncs{$lfunc};
-                    if (defined($fnnn)) {
+                    if (defined($hfuncs{$lfunc})) {
+                        my $fnnn = $hfuncs{$lfunc};
                         $parm1 =~ s{\b$func\(}{$fnnn\(};
                         if ($func eq "Omega") { # the only one with differing case: omega vs. Omega
                             $parm1 = "F001222(";
@@ -120,3 +122,4 @@ A077657	lambdan	0	sopfr(n+1)+sopf(J045984(n+1))-n
 A077691	lambdan	0	GPF(n)/n!
 A077697	lambdan	0	POD(n+1)/ard(n)
 A077699	lambdan	0	Fib(n+1)/lucas(n)
+A175493	lambdan	0	prod(k=1, n, k^numdiv(k))

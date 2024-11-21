@@ -238,13 +238,14 @@ remfailed: # remove those that failed (code 'fx' in previous man files
 #==== end of the chain ====
 parisums: parisum1 parisum2 # process (PARI) a(n) = sum(...)
 parisum1:
-	grep -P "^%o A\d+ +\(PARI\) +a\(n\) *\= *([^\*]+\*|)(sum|prod)" $(CAT) \
+	grep -P "^%o A\d+ +\(PARI\) +a\(n\) *\= *([^\*\+\-]+[\*\+\-]|)(sum|prod)" $(CAT) \
 	| perl -pe 's/\(PARI\) *//; s/^\%o //;' \
 	| grep -vP "my *\(|local|for *\(|polcoeff|bernfrac" \
 	| cutauth  \
 	| tee         cutauth.gp.ocn \
 	| insertcc \
 	| movinits                    | tee movinits.gp.ocn \
+	| parifunc 2> parifunc.gp.ecn | tee parifunc.gp.ocn \
 	| oeisfunc 2> oeisfunc.gp.ecn | tee oeisfunc.gp.ocn \
 	| pariprep 2> pariprep.gp.ecn \
 	| oeisprep 2> oeisprep.gp.ecn | tee oeisprep.gp.ocn \

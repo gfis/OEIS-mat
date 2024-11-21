@@ -50,6 +50,7 @@ while (<>) {
     if ($debug >= 1) {
         print STDERR "# sti=$sti, line=$line\n";
     }
+    next if ($line !~ m{\AA\d{6}});
     my ($aseqno, $callcode, $offset, $parm1, @rest) = split(/\t/, $line);
     my $nok = 0;
     if ($mod > 0) { # must be done before space removal!

@@ -49,7 +49,7 @@ floor           FLOOR
 gcd             GCD
 gpf             F006530
 hammingweight   F000120   
-isprime         Predicates.PRIME.is
+isprime         PP
 jacobi          Functions.JACOBI.z
 kronecker       Functions.KRONECKER.z
 lah             F008297
