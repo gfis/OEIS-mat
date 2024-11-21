@@ -251,6 +251,8 @@ parisum1:
 	| cat
 	tail -n8      oeisprep.gp.ocn
 	wc -l *.gp*
+funcrest.gp:
+	cut -f2 oeisfunc.gp.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn 
 parisum2:
 	cat           oeisprep.gp.ocn \
 	| enstruct 2> enstruct.gp.ecn | tee enstruct.gp.ocn \

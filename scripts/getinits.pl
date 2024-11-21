@@ -7,6 +7,7 @@
 #:# Usage:
 #:#   perl getinits.pl [-p parmno] infile.seq4 > outfile.seq4
 #:#       -p parameter number for the range (1..8, default = 2 = $(PARM2))
+#:#       -q no quotes around the constant ist
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -17,6 +18,8 @@ my $iparm  = 2; # operate on this parameter
 my $nok    = 0;
 my $debug  = 0;
 my $fatal  = 0; # no fatal error so far
+my $quoted = 1; # default
+
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -24,6 +27,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         $debug     =  shift(@ARGV);
     } elsif ($opt  =~ m{p}) {
         $iparm     =  shift(@ARGV);
+    } elsif ($opt  =~ m{q}) {
+        $quoted    =  0;
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -41,9 +46,9 @@ while (<>) {
         } elsif ($parm =~ m{(\d+)\Z}) {
             my $count = $1;
             $parm = get_inits($aseqno, $count);
-            $parms[$iparm] = "\"$parm\"";
+            $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
         } elsif (length($parm) == 0) {
-            $parms[$iparm] = "\"$parm\"";
+            $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
         }
         if ($nok eq "0") {
             print        join("\t", $aseqno, $callcode        , @parms) . "\n";

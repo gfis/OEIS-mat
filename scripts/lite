@@ -1,5 +1,0 @@
-#!/bin/sh
-
-cd $GITS/joeis-lite/internal/fischer
-title lite
-
