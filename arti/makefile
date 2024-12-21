@@ -42,6 +42,7 @@ delseq: seq # parameters: $(TAB) $(LIST)
 	$(DBAT) -v "DELETE FROM $(TAB) WHERE aseqno IN (SELECT aseqno FROM seq)"
 #==============================
 # sort program lines in jcat25
+new: sortprep evalsame endirsame
 sortprep:
 	grep -P "^[\%\#][optF]" $(CAT) \
 	| perl sortprep.pl \
@@ -58,7 +59,7 @@ evalsame:
 	head -n2   $@.tmp
 	wc -l      $@.tmp
 endirsame:
-	perl endirect.pl evalsame.tmp \
+	endirect evalsame.tmp \
 	| grep -P "^\%" | cut -f3- \
 	| grep -P "^A\d+\s*a\(n\) *\=" \
 	| grep -P "D\d+" \

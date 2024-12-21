@@ -395,6 +395,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	WHERE a.aseqno = n.aseqno \
 	  and a.aseqno = b.aseqno \
 	ORDER BY 1" \
+	| endirect \
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
@@ -966,6 +967,7 @@ mathconj: # nyi conjectures of RM
 	wc -l    $@.3.tmp
 	grep -f  $@.3.tmp jcat25.txt \
 	| sed -e "s/^\%I/\n\%I/" \
+	| endirect \
 	>        $@.man
 	uedit64  $@.man
 mathconi: # implemented conjectures of RM
@@ -1093,3 +1095,13 @@ jnames: # nyi, and sorted by name
 
 mma_series: # grep Series with Sqrt
 	grep -iP "CoefficientList\[Series" jcat25.txt |grep -P "^%[t] A\d+ " | grep -viP "Sum|Product|Exp|log|cos|sin|tan|cot|arc|Continued|Lambert|Bessel|Fold|Elliptic|Jacobi|ator|Pochhammer" >> makefile
+
+dgf: # Dirichlet g.f.s in jcat25 nyi
+	grep -iP "Dirichlet g\.f\." jcat25.txt | grep -P "^%[NFC]" \
+	| perl -pe "s/g\.f\. /g\.f\.\: /" \
+	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
+
+mult: # Multiplicative in jcat25 nyi
+	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
+	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
+	

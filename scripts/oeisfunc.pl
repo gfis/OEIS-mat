@@ -49,7 +49,6 @@ floor           FLOOR
 gcd             GCD
 gpf             F006530
 hammingweight   F000120   
-isprime         PP
 jacobi          Functions.JACOBI.z
 kronecker       Functions.KRONECKER.z
 lah             F008297
@@ -130,8 +129,8 @@ while (<>) {
     } elsif ($parm1 =~ m{\[x\^})   { # remove "[x^n"
         $nok = "[x^n]";
     } else {
-        #                         1           1 (
-        my @afuncs = ($parm1 =~ m{([a-zA-Z]\w+)\(}g);
+        #                         1                       1 (
+        my @afuncs = ($parm1 =~ m{([a-zA-Z][A-Za-z0-9_\.]+)\(}g); # with dots
         if ($debug > 0) {
             print "# $aseqno, afuncs=" .join(",", @afuncs) . ", parm1=$parm1\n";
         }
@@ -162,7 +161,7 @@ while (<>) {
                             $parm1 = "F001222(";
                         }
                     } else {
-                        print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
+                    #   print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
                     }
                 }
             }

@@ -266,7 +266,7 @@ enstest:
 	struct -de  -d $(D) enstest.ocn 2>&1 | tee destest.ocn
 #========
 ddn2:
-	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
+	grep -P "\t[BDEFHIKMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
 	| grep -vP "\(n\-\d{2}" \
 	> $@.ocn 2> $@.ecn
 	wc -l $@*
@@ -289,7 +289,7 @@ join1: # continue with the overall chain
 
 # branch1
 xxddn2:
-	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
+	grep -P "\t[BDEFHIKMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
 	| grep -vP "\(n\-\d{2}" \
 	| getinits \
 	| tee - \
@@ -297,12 +297,11 @@ xxddn2:
 	make jump PROC=$@ FOLLOW=join1
 	
 ddn:
-	cat 
-	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([BDEFHIMSTU]\d{6}\(([n\+\-\*0-9]+|term|[BDEFHIMSTU]\d{6}\(([n\+\-\*0-9]|term)+\))\)\)\t" sortuniq.ocn \
+	grep -P "\t[BDEFHIKMSTU]\d{6}\([BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9]+|term|[BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9]|term)+\))\)\)\t" sortuniq.ocn \
 	| getinits \
 	| tee $@.tmp
 ddn1:
-	grep -P "\-\> *[BDEFHIMSTU]\d{6}\([BDEFHIMSTU]\d{6}\(([n\+\-\*0-9][n\+\-\*0-9]+|[BDEFHIMSTU]\d{6}\([n\+\-\*0-9][n\+\-\*0-9]+\))\)\)\t" sortuniq.ocn \
+	grep -P "\t[BDEFHIKMSTU]\d{6}\([BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9][n\+\-\*0-9]+|[BDEFHIKMSTU]\d{6}\([n\+\-\*0-9][n\+\-\*0-9]+\))\)\)\t" sortuniq.ocn \
 	| getinits \
 	| tee $@.tmp
 #----------------
@@ -1125,4 +1124,8 @@ union:
 	| grep -vE "A091898|A177457|A274994|A277334|A281265|A331669|A343222|A356301" \
 	| tee    $@.gen
 	wc -l    $@.*
-#----	
+#----
+primof: # Primes of (the )form ...
+	grep -Pi "\A%[NF] A\d+ [Pp]rimes of (the )?form " $(CAT) | grep -P "^%[NF]" \
+	| perl -pe 's/^\%\w //; s/\W[Pp]rimes of (the )?form /\tlambdan\t0\tk \-\> /;' \
+	| sort -k6,6 | endirect | tee $@.tmp

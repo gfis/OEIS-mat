@@ -1141,6 +1141,7 @@ holrindx: # which are in lrindx and not in holref -> 14628
 hyperext:
 	grep -E "holon" $(FISCHER)/holref.txt \
 	| perl   hyperext.pl \
+	| endirect \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -1205,5 +1206,37 @@ ser_holo1:
 	j $(A) | grep super \
 	| sed -e "s/^ *super/  /"     | tee -a ser_holo.txt
 	echo --------                 | tee -a ser_holo.txt
-	
-	
+#----
+quotser: # series of quotients a(n)/a(n-1)
+	$(DBAT) -x "SELECT d.aseqno, '$@', i.offset1, i.offset2, d.termno, d.data \
+	  FROM asinfo i, asdata d \
+	  WHERE i.aseqno = d.aseqno \
+	    AND d.termno >= 8 \
+	    AND i.keyword NOT LIKE '%word%' \
+	    AND i.keyword NOT LIKE '%base%' \
+	    AND i.keyword NOT LIKE '%cons%' \
+	    AND i.keyword NOT LIKE '%tab%' \
+	    AND i.keyword NOT LIKE '%fini%' \
+	    AND i.keyword NOT LIKE '%frac%' \
+	    AND i.keyword NOT LIKE '%mult%' \
+	  ORDER BY 1" \
+	| perl quotser.pl \
+	| tee    $@.1.tmp
+	wc -l    $@.1.tmp
+	$(DBAT) -x "SELECT n.aseqno, '-------', n.name \
+	  FROM asinfo i, asdata d, asname n \
+	  WHERE n.aseqno = i.aseqno \
+	    AND i.aseqno = d.aseqno \
+	    AND d.termno >= 8 \
+	    AND i.keyword NOT LIKE '%word%' \
+	    AND i.keyword NOT LIKE '%base%' \
+	    AND i.keyword NOT LIKE '%cons%' \
+	    AND i.keyword NOT LIKE '%tab%' \
+	    AND i.keyword NOT LIKE '%fini%' \
+	    AND i.keyword NOT LIKE '%frac%' \
+	    AND i.keyword NOT LIKE '%mult%' \
+	  ORDER BY 1" \
+	>        $@.2.tmp
+	sort -k1,1 -k2,2 $@.1.tmp $@.2.tmp | endirect > $@.txt
+
+

@@ -75,9 +75,15 @@ R       CV
 my $ztype = "N";
 # Functions and their expected types
 my %ftypes = qw(
+ABS     NN
 BI      IIN
+CEIL    NN
 FA      IN
+FLOOR   NN
+GCD     NN,NN
+MAX     NN,NN
 PD      IILN
+PP      NB
 PR      IIILN
 QV      NQ
 RD      IILQ
@@ -87,6 +93,7 @@ S1      IIN
 S2      IIN
 SD      IILN
 SU      IIILN
+Z2      IN
 ZV      IN
 );
 
@@ -270,10 +277,11 @@ sub entype_tree { # force type of 1st child
         for (my $il = 0; $il < scalar(@node_list); $il ++) {
             &entype_tree($node_list[$il]);
         }
-        #                1   1
-        if ($node =~ m{\A(\w+)\(}) { # extract the function's name
-           my $funame = $1;
-            if (defined($ftypes{$funame})) {
+        #                1                    1
+        if ($node =~ m{\A([A-Za-z][A-Z0-9_\.]*)\(}) { # extract the function's name
+            my $funame = $1;
+            if (0) {
+            } elsif (defined($ftypes{$funame})) {
                 my $futype_string = $ftypes{$funame};
                 my $result_type = substr($futype_string, -1); # last letter
                 if (0) {
@@ -284,6 +292,8 @@ sub entype_tree { # force type of 1st child
                 #   $node =~ s{\A$funame}{$qiters{$funame}};
                 #   $tree{$parent} = "F$dtype$colon$node";
                 }
+            } elsif ($funame =~ m{\A[A-Z]\d{6}\Z}) {
+                # ignore
             } else { 
                 $nok = "unfu_$funame";
             }

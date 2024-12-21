@@ -30,20 +30,35 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 # bitxor
 # isprime
 # ispseudoprime
+# bigomega        Functions.BIG_OMEGA.z
+# binomial        BI
+# eulerphi        Functions.PHI.z
+# gcd             Functions.GCD.z
+# hammingweight   Functions.DIGIT_SUM.z
+# kronecker       Functions.KRONECKER.z
+# lcm             LCM
+# min             MIN
+# max             MAX
+# moebius         MU
+# omega           Functions.OMEGA.z
+# sigma           Functions.SIGMA1.z
+
 
 my %hfuncs = qw(
-eulerphi        Functions.PHI.z
-gcd             GCD
 ispolygonal     Predicates.POLYGONAL.is
 ispower         Predicates.POWER.is
 isprimepower    Predicates.PRIME_POWER.is
 issquare        Predicates.SQUARE.is
-issquare        Predicates.SQUARE_FREE.is
-numbpart        Functions.PARTITIONS.z
-numdiv          Functions.SIGMA0.z
-precprime       Functions.PREV_PRIME.z
+issquarefree    Predicates.SQUARE_FREE.is
+numbpart        partitions
+numdiv          sigma0
+precprime       prevprime
+prod            prod
+proddiv         proddiv
 sqrtint         SQRT
-sumdigits       Functions.DIGIT_SUM.z
+sumdigits       digitsum
+sum             sum
+sumdiv          sumdiv
 );
 # floor(sqrt     F000196
 
@@ -94,7 +109,7 @@ while (<>) {
                             $parm1 = "F001222(";
                         }
                     } else {
-                        print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
+                    #   print STDERR join("\t", $aseqno, $func, $parm1) . "\n";
                     }
                 }
             }
