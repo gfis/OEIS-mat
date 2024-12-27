@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo 
+java -jar $GITS/dbat/dist/dbat.jar -e UTF-8 -c worddb -c $GITS/dbat/dbat.properties $1 $2 $3 $4 $5 $6 $7 $8 $9

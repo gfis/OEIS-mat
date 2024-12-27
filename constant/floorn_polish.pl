@@ -1,11 +1,11 @@
 #!perl
 
-# Polish formulae for floor|ceil|roudn|frac
+# Polish formulae for floor|ceil|round|frac
 # @(#) $Id$
 # 2021-08-29, Georg Fischer
 #
 #:# Usage: (cf. makefile)
-#:#   perl floorn.pl [-d debug] input > output
+#:#   perl floorn_polish.pl [-d debug] input > output
 #--------------------------------------------------------
 use strict;
 use integer;

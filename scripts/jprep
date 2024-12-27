@@ -1,0 +1,4 @@
+#!/bin/sh
+
+java -cp $GITS/ramath/dist/ramath.jar org.teherba.ramath.sequence.JoeisPreparer $1 $2 $3 $4 $5 $6 $7 $8
+
