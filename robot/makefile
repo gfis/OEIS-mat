@@ -305,7 +305,32 @@ ddn1:
 	| getinits \
 	| tee $@.tmp
 #----------------
-
+lingfcj: lingfcj1 lingfcj2 lingfcj3 lingfcj4 # conjectural o.g.f.s
+lingfcj1: # extract from CAT
+	grep -P "^[\?\%]F A\d+ " $(CAT) \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+lingfcj2: # extract g.f.
+	perl lingf.pl lingfcj1.tmp \
+	2>       $@.ecn \
+	>        $@.ocn
+	head -n8 $@.ocn
+	wc -l    $@.?cn
+lingfcj3: # convert into 2 bigvectors
+	endirect lingfcj2.ocn \
+	| grep -P "^A" \
+	| grep -vP "^A128527" \
+	| jprep    -ci lingf -co lingfcj -f - \
+	2>       $@.ecn \
+	>        $@.ocn
+	head -n8 $@.ocn
+	wc -l    $@.?cn
+lingfcj4:
+	cat lingfcj3.ocn \
+	| perl -ne 'print if length($$_) < 1024;'\
+	> ../../joeis-lite/internal/fischer/aman/lingfcj3.man
+#----------------
 lsm0: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
 #--
 lsm1: # prepare
