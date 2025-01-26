@@ -19,6 +19,6 @@ my $class = shift(@ARGV);
 if ($class !~ m{^irvine\.}) {
     $class = "irvine.oeis.$class";
 }
-my $cmd  = "java $jopt -cp $cp $class " . join(" ", map { m{[\,\ \;\:\&\=]} ? "$_" : $_ } @ARGV);
+my $cmd  = "java $jopt -cp $cp $class " . join(" ", map { m{[\,\ \;\:\&\=\<\>]} ? "\"$_\"" : $_ } @ARGV);
 print STDERR "$cmd\n";
 print `$cmd` ."\n";
