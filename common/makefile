@@ -1104,4 +1104,6 @@ dgf: # Dirichlet g.f.s in jcat25 nyi
 mult: # Multiplicative in jcat25 nyi
 	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
 	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
-	
+	 
+filprim:
+	grep -P "Numbers [nk] such that \(\d+\^[^i]+is prime" joeis_names.txt | grep nyi | tee filprim.tmp
