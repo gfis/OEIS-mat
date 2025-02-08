@@ -30,8 +30,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
-# while (<DATA>) {
-while (<>) {
+while (<DATA>) {
+#while (<>) {
     s/\s+\Z//; # chompr
     next if ! m{\AA\d+};
     my $line = $_;

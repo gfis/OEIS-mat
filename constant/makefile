@@ -47,6 +47,7 @@ GREP=DecimalExpansionSequence
 equals_pack: # GREP= pack all extending $(GREP)
 	grep -P "\t$(GREP)\t" $(COMMON)/joeis_names.txt \
 	| cut -f1-2 \
+	| perl -pe 's/^[A-Z]/A/;' \
 	>        $@.tmp
 	tail -n2 $@.tmp
 	wc -l    $@.tmp
@@ -114,6 +115,70 @@ equals_polish: # CC=decexpr when m{REALS}
 	>        equals.gen
 	tail -n4 equals.gen
 	wc -l    equals.gen
+#--------
+# Formulas with "Equals ..."
+equa: equa1 equa2 equa3 equa4 equa5 equa6 equa7
+equa0:
+	grep -P "Decimal expansion of " $(COMMON)/jcat25.txt | grep -P "^%[NF]" \
+	| perl -pe 's/\.(\Z|\s+.*)//; s/ *Decimal expansion of  */\t/; $$_ = substr($$_, 3); s/ //g;' \
+	| endirect \
+	| perl -pe 's/X(\d{6})/getcr\($$1\)/g;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+equam:
+	cp -v equa0.man equa1.tmp
+	make equa2 equa3 equa4 equa5 equa6 equa7
+equa1:
+	grep -P "Equals " $(COMMON)/jcat25.txt | grep -P "^%[NF]" \
+	| perl -pe 's/\.(\Z|\s+.*)//; s/ *Equals */\t/; $$_ = substr($$_, 3); s/ //g;' \
+	| endirect \
+	| perl -pe 's/X(\d{6})/getcr\($$1\)/g;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+equa2:
+	cat equa1.tmp  \
+	| perl split_equations.pl -c 2 \
+	| grep -vPi "€|lim|sum|intersect|integral|prod(uct)?|the|triang|union|matri|root of|where|A\d+\(n|Coffey|Catalan|\.\.\." \
+	| perl -pe 's/\.(\Z|\s+.*)//;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+equa3:	
+	cat equa2.tmp \
+	| perl -pe 's/\t/\tdecexp\t0\t\;/; ' \
+	| perl -pe 's/X001620/gamma/g; s/X001622/phi/g;' \
+	| tee    $@.tmp
+	wc -l    $@.*tmp
+equa4:
+	cat equa3.tmp \
+	| $(JPREP) -cc post  -f - | sed -e "s/\r//" \
+	2>       $@.rest.tmp \
+	| perl -pe 's/\t\;\;/\t/;' \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@*.tmp
+equa5:
+	cat equa4.tmp \
+	| $(JPREP) -d 2 -cc infix -p $(FISCHER)/CR.xpat -f - \
+	| sed -e "s/\r//" \
+	>        $@.tmp \
+	2>       $@.rest.tmp
+	head -n8 $@.tmp
+equa6:
+	cat equa5.tmp \
+	| perl $(FISCHER)/cr_polish.pl \
+	2>       $@.rest.tmp \
+	| perl -pe 's/\t\t+0\t+(0\t*)?//;' \
+	| grep -vPi "A340576" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.*
+equa7:
+	grep -vE ";" equa6.tmp \
+	| grep -P "\.[a-zA-Z]" \
+	| perl -pe 's/(\tdecexpr?\t0\t)/$$1(\) \-\> /;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/aman/equa.man
 #--------
 exact: exact1 exact2 exact3
 exact1:
@@ -525,10 +590,7 @@ post_cr: # LIST=; convert $(PARM1) -> postfix -> CR
 	2>       $@.3.rest.tmp
 	wc -l    $@*.tmp $(LIST)
 #----------------
-decexp: decexp1 decexp2 decexp3 decexp4 # Decimal expansion of expr.
-	cp -v decexp4.tmp $@.gen
-	head -n4 $@.gen
-	cut -f2  $@.gen | sort | uniq -c
+decexp: decexp1 decexp2 decexp3 decexp4 decexp5 # Decimal expansion of expr.
 decexp1:
 	grep -P "^\%[NFC] A\d+\s+Decimal expansion" $(COMMON)/jcat25.txt \
 	| cut -b4- | grep -vP '\, *where' \
@@ -564,6 +626,14 @@ decexp4:
 	| perl -ne 'my ($$aseqno, $$callcode, $$offset1, $$parm1, @rest) = split(/\t/); '\
 	' if ((length($$offset1) <= 4) && ($$parm1 =~ m{\A[A-Z]})) { print; } '\
 	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+decexp5:
+	endirect decexp4.tmp \
+	| grep -P "^A\d+\t\w+\t\d+\tCR\." \
+	| perl -pe 's/CR\./\(\) \-\> CR\./;' \
+	| grep -vE "A085667|A181693|A202955|A254689|A259235|A291486|A296040|A296041|A296042|A347073|A347074|A347184" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp

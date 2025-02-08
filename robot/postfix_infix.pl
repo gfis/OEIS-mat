@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$
+# 2025-02-06: remove leading unary "+"
 # 2025-02-02, Georg Fischer: copied from ../gits/joeis-lite/internal/fischercr_infix.pl
 #
 #:# Usage:
@@ -51,8 +52,8 @@ if (length($fileName) == 0) { # 1 or 2 arguments
     print join(",", &toInfix($postfix)) . "\n";
 } else { # read from seq4 file
     my $line;
-    while (<DATA>) {
-    # while (<>) {
+    # while (<DATA>) {
+    while (<>) {
         $line = $_;
         $line =~ s/\s+\Z//; # chompr
         if ($line =~ m{\AA\d+\tpoly}) { # starts with aseqno, polx...
@@ -196,34 +197,30 @@ sub expand_polys {
             my $fact = $factors[$expon];
             if ($fact != 0) { # contributes to the polynomial in x
                 $sumLen ++;
-                if ($expon > 0 && $fact > 0) {
+                if ($fact > 0) {
                     $fact = "+$fact";
                 }
                 if (0) {
                 } elsif ($expon == 0) {
                     $result .= $fact;
-                } elsif ($expon == 1) {
-                    if ($fact == 1) {
-                        $result .= "x";
+                } else {
+                    if (abs($fact) == 1) {
+                        $result .= substr($fact, 0, 1) . "x";
                     } else {
                         $result .= "$fact*x";
                         $prio = $mPrioMap{"*"};
                     }
-                } elsif ($expon >= 2) {
-                    if ($fact == 1) {
-                        $result .= "x";
-                    } else {
-                        $result .= "$fact*x";
+                    if ($expon >= 2) {
+                        $result .= "^$expon";
                         $prio = $mPrioMap{"*"};
                     }
-                    $result .= "^$expon";
-                    $prio = $mPrioMap{"*"};
                 } # >= 2
             } # facvt != 0
         } # for $expon
         if ($sumLen >= 2) { # several summands
             $prio = $mPrioMap{"+"};
         }
+        $result =~ s{\A\+}{}; # remove leading unary "+"
         push(@polys, "$prio${mSep}$result");
     } # foreach $plist
     return @polys;

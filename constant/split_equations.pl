@@ -2,7 +2,8 @@
 
 # Write several records for lists of equations
 # @(#) $Id$
-# 2024-06-05, Georg Fischer:
+# 2025-02-03: default column=2
+# 2024-06-05, Georg Fischer
 #
 #:# Usage:
 #:#   perl split_equations.pl [-d debug] -c fieldno input.seq4 > output.seq4
@@ -21,7 +22,7 @@ if (0 && scalar(@ARGV) == 0) {
     exit;
 }
 my $debug = 0;
-my $column = 4;
+my $column = 2;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -34,6 +35,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     }
 } # while $opt
 
+#while (<DATA>) {
 while (<>) {
     next if ! m{\AA\d+\s};
     s/\s+\Z//; # chompr
