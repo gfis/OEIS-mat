@@ -638,11 +638,16 @@ decexp5:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #----
-decexro0: decexro1 decexro2 # real roots of polynomials 
-decexro1: # grep and merge with manuals, extract polynomial (num) and den=1
-	grep -Ei  "(solution|root|zero) (of|to)" conjs.tmp \
-	| grep -viE "Gamma|prime|Moebius" | grep -vE "Pi|Phi|sin\(" \
-	| cat - decexro.man \
+decexro: decexro1 decexro2 # real roots of polynomials 
+decexro0: 
+	endirect decexro.man | grep -P "^A" | cut -b1-7 \
+	| tee    $@.1.tmp 
+	grep -f  $@.1.tmp conjs.tmp \
+	| tee    $@.tmp
+	wc -l    $@*.tmp
+	# manually append "root of " and the polynomials in x
+decexro1: # Extract polynomial (num) and den=1
+	cat decexro0.tmp \
 	| grep -vE "A102912" \
 	| perl decexro.pl -w 1 \
 	2>       $@.rest.tmp \

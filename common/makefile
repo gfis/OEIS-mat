@@ -1107,3 +1107,5 @@ mult: # Multiplicative in jcat25 nyi
 	 
 filprim:
 	grep -P "Numbers [nk] such that \(\d+\^[^i]+is prime" joeis_names.txt | grep nyi | tee filprim.tmp
+sumpari:
+	grep -P "^%o A380\d+ \(PARI" jcat25.txt | grep sum | tee sumpari.tmp
