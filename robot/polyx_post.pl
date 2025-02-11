@@ -15,8 +15,30 @@ use warnings;
 my ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula);
 my $polys;
 my $line;
+my $name;
 my $nok = "";
 my $sep = ";";
+my $debug = 0;
+my $known_file = "polyx_known.txt";
+
+while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
+    my $opt = shift(@ARGV);
+    if (0) {
+    } elsif ($opt  =~ m{d}) {
+        $debug     =  shift(@ARGV);
+    } elsif ($opt  =~ m{k}) {
+        $known_file=  shift(@ARGV);
+    } else {
+       print STDERR "# invalid option \"$opt\"\n";
+    }
+} # while options
+my %known = ();
+open(KNO, "<", $known_file) || die "cannot read $known_file";
+while (<KNO>) {
+	s{\W}{}g;
+	$known{$_} = 1;
+} # while KNO
+close(KNO);
 
 while(<>) {
     s{\s*\Z}   {}; # chompr
@@ -31,7 +53,59 @@ while(<>) {
         $sep = substr($postfix, 0, 1);
         $postfix = substr($postfix, 1);
         $polys = "[[1]]";
+
+        if (1) {# handle A(x)
+            $postfix =~ s{A}{\#}g; # shield "A"
+            $postfix =~ s{${sep}\#\(${sep}x${sep}\#\)${sep}}
+                         {${sep}A${sep}}g; # A(x) -> A
+            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)} {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
+                # try again
+            }
+            if ($postfix =~ m{\#}) { # they should all be replaced
+                $nok = "unA";
+            }
+        } # handle A(x)
+
+        if (1) { # handle exponentiation
+            # A295533	polyx	0	"[[1]]"	";1;x;A;3;^;*;+;x;2;^;A;7;^;/;-"	0	0	1+x*A(x)^3-x^2/A(x)^7
+            #              ;    1 d 1 ;     ^ ;                     ->      ;     ^d  ; 
+            $postfix =~ s{${sep}(\d+)${sep}\^${sep}}                      {${sep}\^$1${sep}}g;
+            # A281186	polyx	0	"[[1]]"	";1;A;/;A;8;3;/;^;int;*;exp"	0	1	exp(1/A(x)*int(A(x)^(8/3)))
+            #              ;    1   1 ;    2 d 2 ;     / ;     ^ ;  ->      ;     ^d  / d ;
+            $postfix =~ s{${sep}(\d+)${sep}(\d+)${sep}\/${sep}\^${sep}}   {${sep}\^$1\/$2${sep}}g;
+        }
         
+        my @elems = grep {
+            length($_) > 0
+        } map {
+            my $elem = $_;
+            if (0) {
+            } elsif ($elem eq ",") {
+                $elem = "";
+                $nok = "comma";
+            #                   1   12      2
+            } elsif ($elem =~ m{(\w+)([\(\)])\Z}) { # is a function
+                $name = $1;
+                my $bracket = $2;
+                if (!defined($known{$1})) {
+                    $nok = "unkfct";
+                }
+                if ($bracket eq "(") {
+                    $elem = ""; # will be removed
+                } else {
+                    $elem = $name;
+                }
+                # function check
+            } elsif ($elem =~ m{\A([a-zA-Z]\w*)\Z}) { # is a name
+                $name = $1;
+                if ($name !~ m{\A(A|x)\Z}) { # only "A", "x"
+                    $nok = "un?$name";
+                }
+            }
+            $elem # return value for 'map'
+        } split(/$sep/, substr($postfix, 1)); # without the leading separator
+
+        $postfix = "$sep" . join($sep, @elems);
         if ($expon ne "^1") {
             $expon =~ s{\A\^(\d+)}{\^1\/$1};
             $postfix .= "$sep$expon";
@@ -81,12 +155,12 @@ sub polish {
         $expr =~ s{([a-zA])\(([a-z])\)}{A\[$2\]}g;
         if ($expr =~ m{[a-zA]\(}) {
             $expr = "??1 $expr"; # void
-        } else { 
+        } else {
             # make annihilator, imply ... = 0
             if (0) {
             } elsif ($expr =~ s{\A0\=}     {}         ) { # done
             } elsif ($expr =~ s{\=0\Z}     {}         ) { # done
-            } elsif ($expr =~ s{\A([^\+\-]+)\=}{-$1\+}) { 
+            } elsif ($expr =~ s{\A([^\+\-]+)\=}{-$1\+}) {
             } else {
                 # $expr =~ s{\A}{#?? };
                 $expr = "??2 $expr";  # void

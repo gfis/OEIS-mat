@@ -17,11 +17,13 @@ my $aseqno;
 my $formula; 
 my $expon;
 my $gfType;
+my $nok = "";
 
 while(<>) {
     s{\.\s*\Z}   {}; # chompr
-    s{\. \- _.*} {}; # remove author
+    s{\. \- .*} {}; # remove author
     $line = $_;
+    $nok = "";
     if (0) {
     #                         1     1       2  2
     } elsif ($line =~ m{A\(x\)(\^\d+)? *\= *(.*)}) {
@@ -34,18 +36,33 @@ while(<>) {
         if ($line =~ m{e\.g\.f\.}i) {
             $gfType = "e";
         }
-        $formula =~ s{with A\(\d\).*}{}; # remove initial terms
-        $formula =~ s{A\'\(x\)}{dif\(A\(x\)\)}g; # derivative
-        if ($formula =~ s{Integral}{int\(}i) {
+        $formula =~ s{(\, )?(with|where|for) .*}{};   # remove initial terms and conditions
+        $formula =~ s{A\'\(x\)}{dif\(A\(x\)\)}g; # derivative A'(x)
+        $formula =~ s{A\'\(}{difA\(}g;           # derivative A'(...
+        if ($formula =~ s{Integral}{int\(}ig) {
             $formula =~ s{dx}{\)}g;
+        }
+        $formula =~ s{\A *\[x\^n\] *}{}; # allow for leading "[x^n]"
+        if ($formula =~ s{\A *\[x\^[^\]]+\]}{}) { # disallow other leading "[x^...]"
+            $nok = "[x^mn]";
         }
         $formula =~ s{ }{}g;  # remove spaces
         $formula =~ tr{\[\]}  # MMA
                       {\(\)}; #     -> normal brackets
         $formula =~ s{Series[_\-]Reversion}  {rev}ig;
         $formula =~ s{d\/dx}                 {dif}ig;
-        if (defined($formula) && length($formula) >= 4) {
-            print join("\t", $aseqno, "polyx", 0, ";$formula", $expon, $gfType, $formula) . "\n";
+        $formula =~ s{LambertW}              {lambertW}ig;
+        $formula =~ s{AGM}                   {agm}ig;
+        if (!defined($formula)) {
+            $nok = "undef";
+        }
+        if (length($formula) < 4) {
+            $nok = "len<4";
+        }
+        if (length($nok) == 0) {
+            print        join("\t", $aseqno, "polyx", 0, ";$formula", $expon, $gfType, $formula) . "\n";
+        } else {
+            print STDERR join("\t", $aseqno, "$nok" , 0, ";$formula", $expon, $gfType, $formula) . "\n";
         }
     }
 } # while <>

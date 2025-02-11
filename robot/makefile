@@ -894,24 +894,55 @@ fract2:
 	wc -l    $@.gen
 #----
 # postfix for PolynomielFieldSequence
-polyx: polyx1 polyx2 polyx3
-polyx1: # extract from jcat25
+polyx: polyx0 polyx1 polyx2 polyx_known polyx3 polyx4
+polyx0: # extract from jcat25
 	grep -P "A\(x\)(\^\d+)? *\=" $(CAT) \
 	| grep -P "^\%[NF]" \
-	| grep -viP "€|\.\.\.|sum|prod|real|[B-Z]\d*\(x" \
-	| perl polyx_prep.pl \
-	| tee    $@.tmp
+	| grep -viP "€|\.\.\.|sum|prod|real\Woo\W|[B-Z]\d*\(x" \
+	>        $@.tmp
+	head -n8 $@.tmp
 	wc -l    $@.tmp
+polyx1: # prepare for postfix generator
+	cat polyx0.tmp \
+	| perl polyx_prep.pl \
+	2>       $@.rest.tmp \
+	| sort | uniq \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@*.tmp
 polyx2: # convert to standard postfix
 	jprep -cc post -f polyx1.tmp \
 	2>       $@.rest.tmp \
-	| tee    $@.tmp
+	>        $@.tmp
+	head -n8 $@.tmp
 	wc -l    $@*.tmp
+polyx_known: # get the known functions from PolynomialFieldSequence
+	grep -P "^\s+case +\"[a-zA-Z0-9]+\"\:" $(LITE)/../joeis/src/irvine/oeis/PolynomialFieldSequence.java \
+	| perl -ne 'm{\"([^\"]+)}; print "$$1\n";' | sort \
+	| tee    $@.txt
 polyx3: # postprocess into postfix for PolynomialFieldSequence
-	perl polyx_post.pl polyx2.tmp \
+	perl polyx_post.pl -k polyx_known.txt polyx2.tmp \
 	2>       $@.rest.tmp \
-	| tee    $@.tmp
-	wc -l    $@*.tmp
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    polyx*.tmp
+polyx4: # split into a number of files with callcodes differing by "polyx.<icc>", compile and run test
+	perl callcode_enum.pl polyx3.tmp > $@.tmp
+	make polyx_sub ICC=1 
+	make polyx_sub ICC=2
+	make polyx_sub ICC=3 
+	make polyx_sub ICC=4 
+	make polyx_sub ICC=5 
+	make polyx_sub ICC=6 
+	make polyx_sub ICC=7 
+	make polyx_sub ICC=8 
+	make polyx_sub ICC=9
+polyx_sub: 
+	grep -P      "\tpolyx\.$(ICC)\t" polyx4.tmp \
+	| perl -pe 's{\tpolyx\.$(ICC)\t}{\tpolyx\t};' \
+	>        $(FISCHER)/aman/polyx.$(ICC).man
+	wc -l    $(FISCHER)/aman/polyx.$(ICC).man
+	cd $(FISCHER) ; make CC=polyx.$(ICC) pegel addpass
 #----
 tritraf: tri1 tri2 tri3 # lambdan/sintraf/multraf
 #--
