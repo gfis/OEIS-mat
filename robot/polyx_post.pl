@@ -2,57 +2,55 @@
 
 # Grep (differential) equations of the form "A(x)^d = ..." and prepare them for "jprep -cc post"
 # @(#) $Id$
-# 2025-02-10, Georg Fischer: copied from satis.pl
+# 2025-02-11, Georg Fischer: copied from satis.pl
 #
 #:# Usage:
 #:#   grep -P "A\(x\)(\^\d+)? *\=" $(COMMON)/jcat25.txt | grep -P "^\%[NF]" \
-#:#   | perl polyx.pl > (aseqno, ~~expr)
+#:#   | perl polyx_prep.pl > output.seq4
 #---------------------------------
 use strict;
 use integer;
 use warnings;
 
-my $aseqno;
-my $poly;
+my ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula);
+my $polys;
 my $line;
-my $expr; 
-my $expon;
-my $rest;
-my $gfType;
+my $nok = "";
+my $sep = ";";
 
 while(<>) {
-    s{\.\s*\Z}   {}; # chompr
-    s{\. \- _.*} {}; # remove author
+    s{\s*\Z}   {}; # chompr
     $line = $_;
-    if (0) {
-    #                         1     1       2  2
-    } elsif ($line =~ m{A\(x\)(\^\d+)? *\= *(.*)}) {
-        $expon = $1 || "^1";
-        $expr = $2;
-        if ($line =~ m{\A\%[NF] (A\d+)}) {
-            $aseqno = $1;
+    $nok = "";
+    if ($line =~ m{\<\?}) {
+        $nok = "syntax";
+    }
+    ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula) = split(/\t/);
+    if (length($nok) == 0) {
+        $gfType =~ tr{oe}{01};
+        $sep = substr($postfix, 0, 1);
+        $postfix = substr($postfix, 1);
+        $polys = "[[1]]";
+        
+        if ($expon ne "^1") {
+            $expon =~ s{\A\^(\d+)}{\^1\/$1};
+            $postfix .= "$sep$expon";
         }
-        $gfType = "o";
-        if ($line =~ m{e\.g\.f\.}i) {
-            $gfType = "e";
-        }
-        $expr =~ s{with A\(\d\).*}{}; # remove initial terms
-        $expr =~ s{A\'\(x\)}{dif\(A\(x\)\)}g; # derivative
-        if ($expr =~ s{Integral}{int\(}i) {
-            $expr =~ s{dx}{\)}g;
-        }
-        $expr =~ s{ }{}g; # remove spaces
-        $expr =~ tr{\[\]}  # MMA
-                   {\(\)}; # -> normal brackets
-        $expr =~ s{Series[_\-]Reversion}  {rev}ig;
-        $expr =~ s{d\/dx}                 {dif}ig;
-        if (defined($expr) && length($expr) >= 4) {
-            print join("\t", $aseqno, "polyx", 0, ";$expr", $expon, $gfType, $expr) . "\n";
-        }
+    }
+    if (length($nok) == 0) {
+        print        join("\t", $aseqno, $callcode, $offset1, "\"$polys\"", "\"$postfix\"", 0, $gfType, $formula) . "\n";
+    } else {
+        print STDERR join("\t", $aseqno, $nok     , $offset1, "\"$polys\"", "\"$postfix\"", 0, $gfType, $formula) . "\n";
     }
 } # while <>
 #----
 __DATA__
+A107094	polyx	0	;;1;x;+;A(;A(;x;A);1;x;+;/;A);*;1;x;+;A(;x;A);+;/	^1	o	(1+x)*A(A(x)/(1+x))/(1+x+A(x))					0
+A107096	polyx	0	;;x;A(;A(;x;A);2;^;x;/;A);*;1;x;+;/	^2	o	x*A(A(x)^2/x)/(1+x)					0
+A107096	polyx	0	;;x;x;rev(;A(;x;A);2;^;x;/;rev);*;+	^1	o	x+x*rev(A(x)^2/x)					0
+A107097	polyx	0	;;x;A(;x;A);rev(;A(;x;A);rev);*;+	^1	o	x+A(x)*rev(A(x))					0
+A107588	polyx	0	;;1;x;A(;x;A);/;A(;x;A(;x;A);/;A);/;+	^1	o	1+(x/A(x))/A(x/A(x))					0
+
 sub polish {
     my ($gf, $expr) = @_;
     my ($gf1, $gf2) = ("A", "\QA(x)\E"); # default

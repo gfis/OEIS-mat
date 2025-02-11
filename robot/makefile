@@ -894,16 +894,21 @@ fract2:
 	wc -l    $@.gen
 #----
 # postfix for PolynomielFieldSequence
-polyx: polyx1 polyx2
+polyx: polyx1 polyx2 polyx3
 polyx1: # extract from jcat25
 	grep -P "A\(x\)(\^\d+)? *\=" $(CAT) \
 	| grep -P "^\%[NF]" \
 	| grep -viP "€|\.\.\.|sum|prod|real|[B-Z]\d*\(x" \
-	| perl polyx.pl \
+	| perl polyx_prep.pl \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 polyx2: # convert to standard postfix
 	jprep -cc post -f polyx1.tmp \
+	2>       $@.rest.tmp \
+	| tee    $@.tmp
+	wc -l    $@*.tmp
+polyx3: # postprocess into postfix for PolynomialFieldSequence
+	perl polyx_post.pl polyx2.tmp \
 	2>       $@.rest.tmp \
 	| tee    $@.tmp
 	wc -l    $@*.tmp
