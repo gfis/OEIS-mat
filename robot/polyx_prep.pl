@@ -14,45 +14,51 @@ use warnings;
 
 my $line;
 my $aseqno;
+my $oseqno = "A000000"; # old, for a group of A-numbers
 my $formula; 
 my $expon;
 my $gfType;
 my $nok = "";
 
 while(<>) {
+    s{\(End\)}   {}i;
     s{\.\s*\Z}   {}; # chompr
-    s{\. \- .*} {}; # remove author
+    s{\. \- .*}  {}; # remove author
+    s{\,\Z}      {}; # trailing comma
     $line = $_;
     $nok = "";
     if (0) {
     #                         1     1       2  2
     } elsif ($line =~ m{A\(x\)(\^\d+)? *\= *(.*)}) {
-        $expon = $1 || "^1";
+        $expon   = $1 || "^1";
         $formula = $2;
         if ($line =~ m{\A\%[NF] (A\d+)}) {
             $aseqno = $1;
         }
-        $gfType = "o";
-        if ($line =~ m{e\.g\.f\.}i) {
-            $gfType = "e";
+        if ($aseqno eq $oseqno) { # in same group
+            # keep gfType
+        } else { # new group
+            $gfType = ($line =~ m{e\.g\.f\.}i) ? "e" : "o";
         }
         $formula =~ s{(\, )?(with|where|for) .*}{};   # remove initial terms and conditions
         $formula =~ s{A\'\(x\)}{dif\(A\(x\)\)}g; # derivative A'(x)
         $formula =~ s{A\'\(}{difA\(}g;           # derivative A'(...
-        if ($formula =~ s{Integral}{int\(}ig) {
+        if ($formula =~ s{Integral|intformal}{int\(}ig) {
             $formula =~ s{dx}{\)}g;
         }
-        $formula =~ s{\A *\[x\^n\] *}{}; # allow for leading "[x^n]"
+        $formula =~ s{\A *\[x\^n\] *}{};          # allow for leading "[x^n]"
         if ($formula =~ s{\A *\[x\^[^\]]+\]}{}) { # disallow other leading "[x^...]"
             $nok = "[x^mn]";
         }
         $formula =~ s{ }{}g;  # remove spaces
-        $formula =~ tr{\[\]}  # MMA
+        $formula =~ tr{\[\]}  # convert MMA square brackets
                       {\(\)}; #     -> normal brackets
-        $formula =~ s{Series[_\-]Reversion}  {rev}ig;
-        $formula =~ s{d\/dx}                 {dif}ig;
+        $formula =~ s{(Series[_\-])?Reversion|serreverse}{rev}ig;
+        $formula =~ s{d\/dx|diff|deriv}      {dif}ig;
         $formula =~ s{LambertW}              {lambertW}ig;
         $formula =~ s{AGM}                   {agm}ig;
+        $formula =~ s{Sqrt}                  {sqrt}ig;
+        $formula =~ s{arc(sin|cos|tan)}      {a$1}ig;
         if (!defined($formula)) {
             $nok = "undef";
         }

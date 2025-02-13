@@ -20,13 +20,13 @@ my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (ti
 my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 
-my $debug = 0;
 if (0 and scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
 }
 my $COMMON = "../../../OEIS-mat/common";
 my $ofter_file = "$COMMON/joeis_ofter.txt";
+my $debug = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {

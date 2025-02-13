@@ -12,7 +12,7 @@ use strict;
 use integer;
 use warnings;
 
-my ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula);
+my ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula, $terms);
 my $polys;
 my $line;
 my $name;
@@ -20,14 +20,17 @@ my $nok = "";
 my $sep = ";";
 my $debug = 0;
 my $known_file = "polyx_known.txt";
+my $ofter_file = "polyx3_ofter.tmp";
 
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
-    } elsif ($opt  =~ m{d}) {
-        $debug     =  shift(@ARGV);
-    } elsif ($opt  =~ m{k}) {
-        $known_file=  shift(@ARGV);
+    } elsif ($opt   =~ m{d}) {
+        $debug      =  shift(@ARGV);
+    } elsif ($opt   =~ m{k}) {
+        $known_file =  shift(@ARGV);
+    } elsif ($opt   =~ m{f}  ) {
+        $ofter_file = shift(@ARGV);
     } else {
        print STDERR "# invalid option \"$opt\"\n";
     }
@@ -35,10 +38,24 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 my %known = ();
 open(KNO, "<", $known_file) || die "cannot read $known_file";
 while (<KNO>) {
-	s{\W}{}g;
-	$known{$_} = 1;
+    s{\W}{}g;
+    $known{lc($_)} = 1;
 } # while KNO
 close(KNO);
+
+my %ofters = ();
+open (OFT, "<", $ofter_file) || die "cannot read $ofter_file\n";
+while (<OFT>) {
+    s{\s+\Z}{};
+    ($aseqno, $offset1, $terms) = split(/\t/);
+    $terms = $terms || "";
+    if ($offset1 < -1) { # offsets -2, -3: strange, skip these
+    } else {
+        $ofters{$aseqno} = "$offset1\t$terms";
+    }
+} # while <OFT>
+close(OFT);
+print STDERR "# $0: " . scalar(%ofters) . " jOEIS offsets and some terms read from $ofter_file\n";
 
 while(<>) {
     s{\s*\Z}   {}; # chompr
@@ -49,16 +66,29 @@ while(<>) {
     }
     ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula) = split(/\t/);
     if (length($nok) == 0) {
-        $gfType =~ tr{oe}{01};
-        $sep = substr($postfix, 0, 1);
+        $gfType  =~ tr{oe}{01};
+        $sep     = substr($postfix, 0, 1);
         $postfix = substr($postfix, 1);
-        $polys = "[[1]]";
+        $polys   = "[[1]]";
+        ($offset1, $terms) = split(/\t/, $ofters{$aseqno});
+        if ($offset1 != 0) {
+            $terms =~ s{\,.*}{}; # keep 1st term only
+            for (my $it = 0; $it < $offset1; $it ++) {
+                 $terms = "0,$terms";
+            }
+            $polys = "[[$terms]]";
+        }
 
         if (1) {# handle A(x)
             $postfix =~ s{A}{\#}g; # shield "A"
-            $postfix =~ s{${sep}\#\(${sep}x${sep}\#\)${sep}}
-                         {${sep}A${sep}}g; # A(x) -> A
-            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)} {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
+            $postfix =~ s{${sep}\#\(${sep}x${sep}\#\)${sep}}           {${sep}A${sep}}g; # A(x) -> A
+            #              ;    1       12          2
+            $postfix =~ s{${sep}(dif|log)(A|sub|log)\(${sep}}          {${sep}$1\(${sep}$2\(${sep}}g; # ;dif#(; -> ;dif(;#(;
+            $postfix =~ s{${sep}(dif|log)(A|sub|log)\)${sep}}          {${sep}$2\)${sep}$1\)${sep}}g; # ;dif#); -> ;#);dif);
+            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)}          {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
+                # try again
+            }
+            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)}          {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
                 # try again
             }
             if ($postfix =~ m{\#}) { # they should all be replaced
@@ -68,11 +98,11 @@ while(<>) {
 
         if (1) { # handle exponentiation
             # A295533	polyx	0	"[[1]]"	";1;x;A;3;^;*;+;x;2;^;A;7;^;/;-"	0	0	1+x*A(x)^3-x^2/A(x)^7
-            #              ;    1 d 1 ;     ^ ;                     ->      ;     ^d  ; 
-            $postfix =~ s{${sep}(\d+)${sep}\^${sep}}                      {${sep}\^$1${sep}}g;
+            #              ;    1 d 1 ;     ^                       ->      ;     ^d  ; 
+            $postfix =~ s{${sep}(\d+)${sep}\^}                            {${sep}\^$1}g;
             # A281186	polyx	0	"[[1]]"	";1;A;/;A;8;3;/;^;int;*;exp"	0	1	exp(1/A(x)*int(A(x)^(8/3)))
-            #              ;    1   1 ;    2 d 2 ;     / ;     ^ ;  ->      ;     ^d  / d ;
-            $postfix =~ s{${sep}(\d+)${sep}(\d+)${sep}\/${sep}\^${sep}}   {${sep}\^$1\/$2${sep}}g;
+            #              ;    1   1 ;    2 d 2 ;     / ;     ^    ->      ;     ^d  / d ;
+            $postfix =~ s{${sep}(\d+)${sep}(\d+)${sep}\/${sep}\^}         {${sep}\^$1\/$2}g;
         }
         
         my @elems = grep {
@@ -87,8 +117,9 @@ while(<>) {
             } elsif ($elem =~ m{(\w+)([\(\)])\Z}) { # is a function
                 $name = $1;
                 my $bracket = $2;
-                if (!defined($known{$1})) {
-                    $nok = "unkfct";
+                if (!defined($known{lc($name)})) {
+                    $nok = "unfct";
+                    print STDERR "# $nok $name\n";
                 }
                 if ($bracket eq "(") {
                     $elem = ""; # will be removed

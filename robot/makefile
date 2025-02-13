@@ -894,7 +894,7 @@ fract2:
 	wc -l    $@.gen
 #----
 # postfix for PolynomielFieldSequence
-polyx: polyx0 polyx1 polyx2 polyx_known polyx3 polyx4
+polyx: polyx0 polyx1 polyx2 polyx_known polyx_ofter polyx3 polyx4
 polyx0: # extract from jcat25
 	grep -P "A\(x\)(\^\d+)? *\=" $(CAT) \
 	| grep -P "^\%[NF]" \
@@ -920,10 +920,22 @@ polyx_known: # get the known functions from PolynomialFieldSequence
 	grep -P "^\s+case +\"[a-zA-Z0-9]+\"\:" $(LITE)/../joeis/src/irvine/oeis/PolynomialFieldSequence.java \
 	| perl -ne 'm{\"([^\"]+)}; print "$$1\n";' | sort \
 	| tee    $@.txt
+polyx_ofter: # get offsets and a few terms
+	cd $(COMMON) ; make seq LIST=../robot/polyx2.tmp
+	$(DBAT) -x  "SELECT i.aseqno, i.offset1, SUBSTR(d.data, 1, 16) \
+	    FROM  asinfo i, asdata d, seq s \
+	    WHERE s.aseqno = i.aseqno \
+	      AND i.aseqno = d.aseqno \
+	    ORDER BY 1" \
+	| tr -d '\r' > $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
 polyx3: # postprocess into postfix for PolynomialFieldSequence
-	perl polyx_post.pl -k polyx_known.txt polyx2.tmp \
+	perl polyx_post.pl -k polyx_known.txt -f polyx_ofter.tmp polyx2.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
+	grep -P "^\# unfct" $@.rest.tmp | sort | uniq -c | sort -nr \
+	| tee    $@.unfct.tmp
 	head -n8 $@.tmp
 	wc -l    polyx*.tmp
 polyx4: # split into a number of files with callcodes differing by "polyx.<icc>", compile and run test
@@ -932,17 +944,17 @@ polyx4: # split into a number of files with callcodes differing by "polyx.<icc>"
 	make polyx_sub ICC=2
 	make polyx_sub ICC=3 
 	make polyx_sub ICC=4 
-	make polyx_sub ICC=5 
-	make polyx_sub ICC=6 
-	make polyx_sub ICC=7 
-	make polyx_sub ICC=8 
-	make polyx_sub ICC=9
+	# make polyx_sub ICC=5 
+	# make polyx_sub ICC=6 
+	# make polyx_sub ICC=7 
+	# make polyx_sub ICC=8 
+	# make polyx_sub ICC=9
 polyx_sub: 
 	grep -P      "\tpolyx\.$(ICC)\t" polyx4.tmp \
 	| perl -pe 's{\tpolyx\.$(ICC)\t}{\tpolyx\t};' \
-	>        $(FISCHER)/aman/polyx.$(ICC).man
-	wc -l    $(FISCHER)/aman/polyx.$(ICC).man
-	cd $(FISCHER) ; make CC=polyx.$(ICC) pegel addpass
+	>        $(FISCHER)/aman/polyx.$(ICC)b.man
+	wc -l    $(FISCHER)/aman/polyx.$(ICC)b.man
+	cd $(FISCHER) ;  make CC=polyx.$(ICC)b pegel addpass
 #----
 tritraf: tri1 tri2 tri3 # lambdan/sintraf/multraf
 #--
