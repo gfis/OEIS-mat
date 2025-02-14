@@ -66,7 +66,7 @@ while(<>) {
     }
     ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula) = split(/\t/);
     if (length($nok) == 0) {
-        $gfType  =~ tr{oe}{01};
+        # $gfType  =~ tr{oe}{01};
         $sep     = substr($postfix, 0, 1);
         $postfix = substr($postfix, 1);
         $polys   = "[[1]]";
@@ -95,7 +95,6 @@ while(<>) {
                 $nok = "unA";
             }
         } # handle A(x)
-
         if (1) { # handle exponentiation
             # A295533	polyx	0	"[[1]]"	";1;x;A;3;^;*;+;x;2;^;A;7;^;/;-"	0	0	1+x*A(x)^3-x^2/A(x)^7
             #              ;    1 d 1 ;     ^                       ->      ;     ^d  ; 
@@ -104,7 +103,10 @@ while(<>) {
             #              ;    1   1 ;    2 d 2 ;     / ;     ^    ->      ;     ^d  / d ;
             $postfix =~ s{${sep}(\d+)${sep}(\d+)${sep}\/${sep}\^}         {${sep}\^$1\/$2}g;
         }
-        
+        if (1) { # handle AGM (2 operands)
+            $postfix =~ s{${sep}\,${sep}agm}                              {${sep}agm}g; # remove ","
+        }
+
         my @elems = grep {
             length($_) > 0
         } map {

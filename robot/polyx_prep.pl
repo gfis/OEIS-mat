@@ -38,7 +38,7 @@ while(<>) {
         if ($aseqno eq $oseqno) { # in same group
             # keep gfType
         } else { # new group
-            $gfType = ($line =~ m{e\.g\.f\.}i) ? "e" : "o";
+            $gfType = ($line =~ m{e\.g\.f\.}i) ? 1 : 0;
         }
         $formula =~ s{(\, )?(with|where|for) .*}{};   # remove initial terms and conditions
         $formula =~ s{A\'\(x\)}{dif\(A\(x\)\)}g; # derivative A'(x)
@@ -53,10 +53,10 @@ while(<>) {
         $formula =~ s{ }{}g;  # remove spaces
         $formula =~ tr{\[\]}  # convert MMA square brackets
                       {\(\)}; #     -> normal brackets
+        $formula =~ s{AGM}                   {agm}ig;
         $formula =~ s{(Series[_\-])?Reversion|serreverse}{rev}ig;
         $formula =~ s{d\/dx|diff|deriv}      {dif}ig;
         $formula =~ s{LambertW}              {lambertW}ig;
-        $formula =~ s{AGM}                   {agm}ig;
         $formula =~ s{Sqrt}                  {sqrt}ig;
         $formula =~ s{arc(sin|cos|tan)}      {a$1}ig;
         if (!defined($formula)) {

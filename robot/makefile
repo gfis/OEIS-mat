@@ -956,6 +956,24 @@ polyx_sub:
 	wc -l    $(FISCHER)/aman/polyx.$(ICC)b.man
 	cd $(FISCHER) ;  make CC=polyx.$(ICC)b pegel addpass
 #----
+gpoly: gpoly1 gpoly2 # grep PARI equations, and feed them into polyx chain
+gpoly1:
+	grep  -P "^\%o A\d+ +\(PARI\) *\{ *a\(n\) *\= *local *\(A" $(CAT) \
+	| grep -vP "(if|sum|binomial|floor|real|imag|norm|binary|concat|Pol|Vec|Ser)\(|\W([jkmBCGFIT])\W" \
+	| perl -pe 's/^\%o //; s/ *\(PARI\) * \{ *a\(n\) *\= *local */\t/; s/ //g;' \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+gpoly2:
+	cat gpoly1.tmp \
+	| perl gpoly_prep.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@*.tmp
+	cp -v    $@.tmp polyx1.tmp
+	make polyx2
+#----
 tritraf: tri1 tri2 tri3 # lambdan/sintraf/multraf
 #--
 tri1: # prepare
