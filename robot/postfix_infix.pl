@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$
+# 2025-02-15: /(op2); *BirgitW=80
 # 2025-02-06: remove leading unary "+"
 # 2025-02-02, Georg Fischer: copied from ../gits/joeis-lite/internal/fischercr_infix.pl
 #
@@ -95,6 +96,7 @@ sub assignPriorities() {
 sub popElem {
     my ($tarPrio) = @_;
     my $elem = pop(@mStack);
+    #            1   1
     $elem =~ s{\A(\d+)$mSep}{}; # extract the priority
     my $srcPrio = $1;
     if ($srcPrio < $tarPrio) {
@@ -113,7 +115,15 @@ sub toInfix {
     foreach my $post (@posts) {
         my $prio = $mPrioMap{$post};
 
-        if (defined($prio)) {                       # one of the binary arithmetic operators + - * / ^
+        if (0) {
+        } elsif ($post =~ m{\A\/\Z}) {              # /op2 => /(op2)
+            $op2 = &popElem($prio + 1);
+            $op1 = &popElem($prio);
+            if ($post =~ m{\A[\+\-]\Z}) {
+                $post = " $post ";
+            }
+            push(@mStack, "$prio${mSep}$op1$post$op2");
+        } elsif (defined($prio)) {                  # one of the binary arithmetic operators + - * / ^
             $op2 = &popElem($prio);
             $op1 = &popElem($prio);
             if ($post =~ m{\A[\+\-]\Z}) {
@@ -147,7 +157,11 @@ sub toInfix {
                 $op1  = &popElem($powPrio);
             }
             push(@mStack, "$powPrio${mSep}$op1" . ($op2 eq "1" ? "" : "$post$op2"));
-        } elsif ($post =~ m{\A([a-z]+)\Z}) {        # function call exp, neg, int, rev etc.
+        } elsif ($post =~ m{\A(agm)\Z})           {  # function calls with 2 operands: agm
+            $op2 = &popElem($mPrimPrio + 1);
+            $op1 = &popElem($mPrimPrio + 1);
+            push(@mStack, "$mPrimPrio${mSep}$post($op1, $op2)");
+        } elsif ($post =~ m{\A([a-z][a-zNW]+)\Z}) {  # function calls exp, neg, int, rev, lambertW etc.
             if (0) {
             } elsif ($post eq "rev") {
                 $post = "reversion";

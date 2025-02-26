@@ -939,11 +939,12 @@ polyx3: # postprocess into postfix for PolynomialFieldSequence
 	head -n8 $@.tmp
 	wc -l    polyx*.tmp
 polyx4: # split into a number of files with callcodes differing by "polyx.<icc>", compile and run test
+	cd $(FISCHER) ;  make purge
 	perl callcode_enum.pl polyx3.tmp > $@.tmp
 	make polyx_sub ICC=1 
 	make polyx_sub ICC=2
 	make polyx_sub ICC=3 
-	make polyx_sub ICC=4 
+	# make polyx_sub ICC=4 
 	# make polyx_sub ICC=5 
 	# make polyx_sub ICC=6 
 	# make polyx_sub ICC=7 
@@ -952,11 +953,42 @@ polyx4: # split into a number of files with callcodes differing by "polyx.<icc>"
 polyx_sub: 
 	grep -P      "\tpolyx\.$(ICC)\t" polyx4.tmp \
 	| perl -pe 's{\tpolyx\.$(ICC)\t}{\tpolyx\t};' \
-	>        $(FISCHER)/aman/polyx.$(ICC)b.man
-	wc -l    $(FISCHER)/aman/polyx.$(ICC)b.man
-	cd $(FISCHER) ;  make CC=polyx.$(ICC)b pegel addpass
+	>        $(FISCHER)/aman/polyx.$(ICC)a.man
+	wc -l    $(FISCHER)/aman/polyx.$(ICC)a.man
+	cd $(FISCHER) ;  make CC=polyx.$(ICC)a segel addpass  
+	ro # read missing b-files
 #----
-gpoly: gpoly1 gpoly2 # grep PARI equations, and feed them into polyx chain
+# manually selected, feed them into the polyx chain
+polyxm:
+	grep -P "^\%[NFC] A" $(FISCHER)/aman/polyx0.man \
+	>        polyx0.tmp
+	head -n8 polyx0.tmp
+	wc -l    polyx0.tmp
+	make polyx1 polyx2 polyx_known polyx_ofter polyx3 polyx4
+#----
+# Extract (e.)g.f.s without "A(x) ="
+polegf: polegf0 polegf1 polegf2
+polegf0:
+	grep -P "^%[NF] A\d+ *Expansion of " $(CAT) \
+	| grep -viP "€|\.\.\.|sum|prod|real\Woo|powers of q" \
+	| perl -ne 'if ($$_ !~ m{A\(x\) *\=}) { s/Expansion of ((e\.)?g\.f\.) *\:?/Expansion of $$1 A\(x\) \= /; } print; ' \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+polegf1:
+	cat polegf0.tmp \
+	| grep -P "A\(x\)(\^\d+)? *\=" \
+	| grep -viP "€|\.\.\.|sum|prod|real\Woo\W|[B-Z]\d*\(x" \
+	>        polyx0.tmp
+	head -n8 polyx0.tmp
+	wc -l    polyx0.tmp
+	# | grep -P "(exp|sin|cos|tan|cot|sqrt|Lamb|lamb|log|sec|arc)"
+polegf2: polyx1 polyx2 polyx_known polyx_ofter polyx3 polyx4
+#----
+# grep PARI equations, and feed them into polyx chain
+gpoly: gpoly1 gpoly2 \
+	polyx2 polyx_known polyx_ofter polyx3 \
+	gpoly4 polyx4 
 gpoly1:
 	grep  -P "^\%o A\d+ +\(PARI\) *\{ *a\(n\) *\= *local *\(A" $(CAT) \
 	| grep -vP "(if|sum|binomial|floor|real|imag|norm|binary|concat|Pol|Vec|Ser)\(|\W([jkmBCGFIT])\W" \
@@ -972,7 +1004,11 @@ gpoly2:
 	head -n8 $@.tmp
 	wc -l    $@*.tmp
 	cp -v    $@.tmp polyx1.tmp
-	make polyx2
+gpoly4: # move the polys to $(PARM1)
+	cat polyx3.tmp \
+	| perl -pe 'my @elems = split(/\t/); $$elems[3] = "\"$$elems[8]\""; print join("\t", @elems);' \
+	>        $@.tmp
+	cp -v    $@.tmp polyx3.tmp
 #----
 tritraf: tri1 tri2 tri3 # lambdan/sintraf/multraf
 #--

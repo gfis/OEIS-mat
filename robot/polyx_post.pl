@@ -12,7 +12,7 @@ use strict;
 use integer;
 use warnings;
 
-my ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula, $terms);
+my ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula, $terms, @rest);
 my $polys;
 my $line;
 my $name;
@@ -64,7 +64,7 @@ while(<>) {
     if ($line =~ m{\<\?}) {
         $nok = "syntax";
     }
-    ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula) = split(/\t/);
+    ($aseqno, $callcode, $offset1, $postfix, $expon, $gfType, $formula, @rest) = split(/\t/);
     if (length($nok) == 0) {
         # $gfType  =~ tr{oe}{01};
         $sep     = substr($postfix, 0, 1);
@@ -81,14 +81,14 @@ while(<>) {
 
         if (1) {# handle A(x)
             $postfix =~ s{A}{\#}g; # shield "A"
-            $postfix =~ s{${sep}\#\(${sep}x${sep}\#\)${sep}}           {${sep}A${sep}}g; # A(x) -> A
+            $postfix =~ s{${sep}\#\(${sep}x${sep}\#\)${sep}}              {${sep}A${sep}}g; # A(x) -> A
             #              ;    1       12          2
-            $postfix =~ s{${sep}(dif|log)(A|sub|log)\(${sep}}          {${sep}$1\(${sep}$2\(${sep}}g; # ;dif#(; -> ;dif(;#(;
-            $postfix =~ s{${sep}(dif|log)(A|sub|log)\)${sep}}          {${sep}$2\)${sep}$1\)${sep}}g; # ;dif#); -> ;#);dif);
-            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)}          {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
+            $postfix =~ s{${sep}(dif|log)(A|sub|log)\(${sep}}             {${sep}$1\(${sep}$2\(${sep}}g; # ;dif#(; -> ;dif(;#(;
+            $postfix =~ s{${sep}(dif|log)(A|sub|log)\)${sep}}             {${sep}$2\)${sep}$1\)${sep}}g; # ;dif#); -> ;#);dif);
+            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)}             {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
                 # try again
             }
-            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)}          {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
+            while($postfix =~ s{${sep}\#\(${sep}([^\#]+)\#\)}             {${sep}sub(${sep}${1}sub\)}) { # A(...) -> sub(...)
                 # try again
             }
             if ($postfix =~ m{\#}) { # they should all be replaced
@@ -97,7 +97,7 @@ while(<>) {
         } # handle A(x)
         if (1) { # handle exponentiation
             # A295533	polyx	0	"[[1]]"	";1;x;A;3;^;*;+;x;2;^;A;7;^;/;-"	0	0	1+x*A(x)^3-x^2/A(x)^7
-            #              ;    1 d 1 ;     ^                       ->      ;     ^d  ; 
+            #              ;    1 d 1 ;     ^                       ->      ;     ^d  ;
             $postfix =~ s{${sep}(\d+)${sep}\^}                            {${sep}\^$1}g;
             # A281186	polyx	0	"[[1]]"	";1;A;/;A;8;3;/;^;int;*;exp"	0	1	exp(1/A(x)*int(A(x)^(8/3)))
             #              ;    1   1 ;    2 d 2 ;     / ;     ^    ->      ;     ^d  / d ;
@@ -145,9 +145,9 @@ while(<>) {
         }
     }
     if (length($nok) == 0) {
-        print        join("\t", $aseqno, $callcode, $offset1, "\"$polys\"", "\"$postfix\"", 0, $gfType, $formula) . "\n";
+        print        join("\t", $aseqno, $callcode, $offset1, "\"$polys\"", "\"$postfix\"", 0, $gfType, $formula, @rest) . "\n";
     } else {
-        print STDERR join("\t", $aseqno, $nok     , $offset1, "\"$polys\"", "\"$postfix\"", 0, $gfType, $formula) . "\n";
+        print STDERR join("\t", $aseqno, $nok     , $offset1, "\"$polys\"", "\"$postfix\"", 0, $gfType, $formula, @rest) . "\n";
     }
 } # while <>
 #----
