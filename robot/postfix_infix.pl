@@ -1,7 +1,8 @@
 #!perl
 
 # Convert from postfix to infix notation
-# @(#) $Id$
+# @(#) $Id$  
+# 2025-03-07: operand n
 # 2025-02-15: /(op2); *BirgitW=80
 # 2025-02-06: remove leading unary "+"
 # 2025-02-02, Georg Fischer: copied from ../gits/joeis-lite/internal/fischercr_infix.pl
@@ -132,6 +133,8 @@ sub toInfix {
             push(@mStack, "$prio${mSep}$op1$post$op2");
         } elsif ($post =~ m{\AA\Z}) {               # the G.f. itself
             push(@mStack, "$mPrimPrio${mSep}A(x)");
+        } elsif ($post =~ m{\An\Z}) {               # variable n
+            push(@mStack, "$mPrimPrio${mSep}n");
         } elsif ($post =~ m{\Ax\Z}) {               # variable x
             push(@mStack, "$mPrimPrio${mSep}x");
         } elsif ($post =~ m{\Ap(\d+)\Z}) {          # polynomial p0, p1 ...
