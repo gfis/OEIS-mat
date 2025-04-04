@@ -706,7 +706,11 @@ exacheck: # check the exalist, and generate HTML worksheet
 	head -n4 $@.txt
 	wc -l    $@.txt
 	perl $(COMMON)/html_checks.pl -m makefile $@.txt > $@.html
-#-----
+#----
+hypergeo: 
+	grep -P "Decimal expansion" $(COMMON)/jcat25.txt | grep -P "^%" | grep -P "[Hh]ypergeo|pFq|\W\d+F\d+" \
+	| tee    $@.tmp
+#----
 alcover:
 	grep -E "^\%t" $(COMMON)/jcat25.txt | grep -E "RealDigits" | grep Alcover \
 	>        $@.tmp
