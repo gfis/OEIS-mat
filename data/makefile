@@ -2,6 +2,7 @@
 
 # OEIS-mat/data - extraction from repositories
 # @(#) $Id$
+# 2025-03-26: git reset --hard HEAD
 # 2023-06-17: compile-internal
 # 2023-05-02: Georg Fischer
 #
@@ -53,7 +54,7 @@ catex_down: oeisdata_pull cat28 tinfo catex_pack
 tinfo_down:                     tinfo catex_pack
 #--
 oeisdata_pull: # update the OEIS git repository
-	cd $(OEISDATA) ; git pull
+	cd $(OEISDATA) ; git reset --hard HEAD ; git pull
 cat28: # reassemble the cat25.txt file
 	cd $(OEISDATA) ; find seq -type f | sort > $(HERE)/$@.list.tmp
 	rm -f    $@.txt
