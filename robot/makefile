@@ -412,7 +412,7 @@ lsmH:
 
 #----------------
 charfun:
-	grep -E "^%" $(CAT) | grep -P "Characteristic function (for|of) A" \
+	grep -E "^%" $(CAT) | grep -Pi "Characteristic function (for|of) A" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{(for|of) (A\d+)}) { my $$rn = $$2; '\
@@ -444,7 +444,7 @@ convol: # convolution, convolved with or inverse
 	wc -l    $@.*
 #----
 diffseq:
-	grep -E "^%" $(CAT) | grep -P "(First |Second |Third |)[Dd]ifferences of [^A]* A\d{6}" \
+	grep -E "^%" $(CAT) | grep -P "(First |Second |Third |)[Dd]ifferences of [^A]*A\d{6}" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of [^A]*(A\d+)}) { my $$rn = $$1; '\
@@ -790,7 +790,7 @@ m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
 #----
 maindia:
 	grep -P "Main diagonal of" $(CAT) | grep -v "€" | grep -P "^%[NFC]" \
-	| perl rseqnos.pl -cc "maindia" \
+	| perl rseqnos.pl -cc "trixdiag" \
 	2>       $@.rest.tmp \
 	| tee    $@.gen
 	wc -l    $@.*
@@ -893,7 +893,7 @@ fract2:
 	tail -n2 $@.gen
 	wc -l    $@.gen
 #----
-# postfix for PolynomielFieldSequence
+# postfix for PolynomialFieldSequence
 polyx: polyx0 polyx1 polyx2 polyx_known polyx_ofter polyx3 polyx4
 polyx0: # extract from jcat25
 	grep -P "A\(x\)(\^\d+)? *\=" $(CAT) \

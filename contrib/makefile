@@ -228,7 +228,7 @@ subdir:
 	| perl ../common/nyi.pl -p | cut -b1- \
 	> $(DIR)/$(DIR)list.txt
 	wc -l $(DIR)/$(DIR)list.txt
-authors: ajlist aklist amlist edlist grlist iglist jvplist oglist oplist pblist phlist rblist rzlist smlist
+authors: ajlist aklist amlist edlist grlist iglist jvplist oglist oplist pblist phlist rblist rzlist smlist whlist
 ajlist:
 	make subdir DIR=aj  NAME=Jasinski
 aklist:
@@ -260,10 +260,14 @@ phlist:
 	make subdir DIR=ph  NAME=Hanna
 rblist:                 
 	make subdir DIR=rb  NAME=Bagula
+rslist:                 
+	make subdir DIR=rs  NAME=Sigrist
 rzlist:                 
 	make subdir DIR=rz  NAME=Zumkeller
 smlist:                 
 	make subdir DIR=sm  NAME=Seiichi
+whlist:                 
+	make subdir DIR=wh  NAME=Wesley
 #--------
 khintchin: khin1 khin2 khin3 khin4 # Which continued fractions belong to the "Khintchin" set
 khin1: # select the continued fractions
