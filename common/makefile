@@ -388,6 +388,7 @@ joeis_dead: # not used
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null 
+	perl ue_script.pl -close > joeis_names_close.js
 	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_close.js"
 	cmd /c attrib -R $@.txt
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
@@ -399,6 +400,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	| perl -pe "s{\'\'}{\'}g" > $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
+	perl ue_script.pl -open  > joeis_names_open.js
 	uedit64 /s="C:\\Users\\User\\work\\gits\\OEIS-mat\\common\\joeis_names_open.js"
 joeis_tabl: # 'tabl' A-numbers with their jOEIS superclass or null, 
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
