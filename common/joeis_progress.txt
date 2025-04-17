@@ -1046,7 +1046,6 @@
 2024-11-21	10:19:20	190781	Java classes =	50.4757	% out of	377966	OEIS sequences are implemented by jOEIS
 2024-11-22	09:36:04	190910	Java classes =	50.5098	% out of	377966	OEIS sequences are implemented by jOEIS
 2024-11-23	10:02:24	190930	Java classes =	50.5063	% out of	378032	OEIS sequences are implemented by jOEIS
-2024-11-24	11:06:38	191027	Java classes =	112.2764	% out of	170140	OEIS sequences are implemented by jOEIS
 2024-11-24	12:41:24	191027	Java classes =	50.5320	% out of	378032	OEIS sequences are implemented by jOEIS
 2024-11-25	10:57:21	191084	Java classes =	50.5394	% out of	378089	OEIS sequences are implemented by jOEIS
 2024-11-26	09:23:05	191101	Java classes =	50.5439	% out of	378089	OEIS sequences are implemented by jOEIS

@@ -1,15 +1,18 @@
 #!make
 
-# Makefile in gits/OEIS-mat/sequencedb
-# @(#) $Id$
+# Makefile in gits/OEIS-mat/sequence-machine 
+# @(#) $Id$                   
+# 2025-04-09: renamed from sequencdb
 # 2021-06-22, Georg Fischer: copied from ../makefile
 #
+# from Jon Maiga: https://github.com/jonmaiga/sequence-machine-data
+#----------------
 GITS=../..
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
-HERE=OEIS-mat/sequencedb
+HERE=$(GITS)/OEIS-mat/sequence-machine
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 JPREP=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.sequence.JoeisPreparer 
 ifeq ($(OS),Windows_NT)
@@ -32,6 +35,55 @@ flatten:
 	>        $@.json
 	head -n4 $@.json
 	wc -l    $@.json
+#----------------------------------
+# parse into seq4 format
+seqmach: # parse all programs into seq4 format
+	rm -f $@.txt
+	find ../../sequence-machine-data/oeis -iname "A*.programs.json" | xargs -innn \
+	perl seqmach_parse.pl nnn \
+	>>       $@.txt
+	tail -n4 $@.txt
+	wc -l    $@.txt
+seqmach_test:
+	perl seqdb_parse.pl -s $(JSON) \
+	| less
+seqmach_load:
+	$(DBAT) -f seqdb.create.sql
+	$(DBAT) -r seqdb < seqmach.txt
+	$(DBAT) -4 seqdb
+	$(DBAT) -n seqdb
+seqmach_a4:
+	cut -f4    seqdb.txt \
+	| perl -ne 's{(\d+)}{\#}g; print;' \
+	| cut -b1-3 | sort | uniq -c
+#----------------------------------
+# parse into seq4 format
+seqprov: # parse all programs into seq4 format, with "proven" tags
+	rm -f $@.txt
+	find ../../sequence-machine-data/oeis -mtime -3 -iname "A*.programs.json" | xargs -innn \
+	perl seqmach_parse.pl nnn \
+	>>       $@.txt
+	tail -n4 $@.txt
+	wc -l    $@.txt
+seqprov2: # polish/separate the "proven" field
+	cat seqprov.txt \
+	| perl -pe 's/\,s\"\:\"oeis\;tags\"\:\[/\t/;' \
+	>        $@.tmp
+	tail -n8 $@.tmp
+seqprov_load:
+	$(DBAT) -f seqdb.create.sql
+	$(DBAT) -r seqdb < seqprov2.tmp
+	$(DBAT) -4 seqdb
+	$(DBAT) -n seqdb
+seqprov_eval:
+	$(DBAT) -x "SELECT s.aseqno, s.si, s.mt, s.ix, s.px, COALESCE(j.superclass, 'nyi'), s.tags \
+	  FROM seqdb s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
+	  WHERE s.tags = 'proven'\
+	  ORDER BY 1" \
+	| endirect \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@.tmp
 #----------------------------------
 # parse into seq4 format
 seqdb: # -s takes subset (nyi in jOEIS)
@@ -174,3 +226,33 @@ simple2:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 #--------
+OGF=../../sequence-machine-data/ogf.grep
+# ./A000/A000211.programs.json:      "ix": "∑[ogf((-4+5x+x^2)/(-1+x+x^2))]",
+tell_ogf: tell_ogf1 tell_ogf2 tell_ogf3 # combine sqm ogfs with joeis
+tell_ogf1: # make unique records
+	grep -P "\"ix\"" $(OGF) \
+	| cut -b8- | perl -pe 's/\"//g; s/\.programs\.json\: *ix\: /\t/; s/\,//g; s/(\d+)x/$$1\*x/g;' \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+tell_ogf2: # load into seq2
+	cd ../common; make seq2 LIST=$(HERE)/tell_ogf1.tmp
+tell_ogf3: # join with joeis table
+	$(DBAT) -x "SELECT s.aseqno, COALESCE(j.superclass, 'nyi'), s.info \
+	  FROM  seq2 s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
+	  ORDER BY 1" \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+tell_ogf4: # select the ones not in joeis, with number of terms
+	$(DBAT) -x "SELECT s.aseqno, b.bfimax, s.info, n.name \
+	  FROM  seq2 s, asname n \
+	  LEFT JOIN bfinfo b ON b.aseqno = n.aseqno \
+	  WHERE s.aseqno NOT IN (select aseqno from joeis) \
+	    AND s.aseqno = n.aseqno \
+	  ORDER BY 1" \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+	
