@@ -1,7 +1,7 @@
 #!make
 
-# Makefile in gits/OEIS-mat/sequence-machine 
-# @(#) $Id$                   
+# Makefile in gits/OEIS-mat/sequence-machine
+# @(#) $Id$
 # 2025-04-09: renamed from sequencdb
 # 2021-06-22, Georg Fischer: copied from ../makefile
 #
@@ -14,14 +14,14 @@ JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 HERE=$(GITS)/OEIS-mat/sequence-machine
 DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
-JPREP=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.sequence.JoeisPreparer 
+JPREP=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath.sequence.JoeisPreparer
 ifeq ($(OS),Windows_NT)
     CPS=;
 else
     CPS=:
 endif
 JAVA=java $(JOPT) -cp "$(LITE)/dist/joeis-lite.jar$(CPS)$(JOEIS)/build.tmp/joeis.jar"
-JSON=compiled_entities_correct.json 
+JSON=compiled_entities_correct.json
 #----------------
 all:
 	# Possible targets:
@@ -56,6 +56,12 @@ seqmach_a4:
 	cut -f4    seqdb.txt \
 	| perl -ne 's{(\d+)}{\#}g; print;' \
 	| cut -b1-3 | sort | uniq -c
+seqendir: # qualified A-numbers
+	endirect seqmach.txt > $@.txt
+seqogf: # ogf in seqmach and not in joeis
+	grep ogf seqendir.txt | grep -P "^A" \
+	| tee $@.tmp
+	wc -l $@.tmp
 #----------------------------------
 # parse into seq4 format
 seqprov: # parse all programs into seq4 format, with "proven" tags
@@ -84,6 +90,52 @@ seqprov_eval:
 	  ORDER BY 1" \
 	| endirect \
 	| grep -P "^A" \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@.tmp
+seqprov_nyi:
+	$(DBAT) -x "SELECT s.aseqno, s.si, s.mt, s.ix, s.px, s.tags \
+	  FROM seqdb s \
+	  WHERE s.tags = 'proven' \
+	    AND s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	| endirect \
+	| grep -vP "\DA\d{6}" \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@.tmp
+#----
+proven: proven1 proven2 proven3
+proven1: # procondition: proven.tmp from Linux; extract the A-numbers
+	cat proven.tmp \
+	| perl -ne 'm/(A\d{6})/; print "$$1\n";' \
+	| sort | uniq \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+proven2: # load into seq table
+	cd ../common ; make seq LIST=../sequence-machine/proven1.tmp
+proven3: # select the ones not yet implemented in jOEIS
+	$(DBAT) -x "SELECT s.aseqno \
+	  FROM seq s \
+	  WHERE s.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	  ORDER BY 1" \
+	| endirect \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@.tmp
+proven4: # extract the postfix and linearize it in near-seq4 format
+	rm -f    $@.txt
+	cat proven3.tmp \
+	| perl -ne 'm/((A\d\d\d)\d\d\d)/; print "$$2/$$1\n"'\
+	| xargs -innn \
+	perl seqmach_parse.pl ../../sequence-machine-data/oeis/nnn.programs.json \
+	>>       $@.tmp
+	endirect $@.tmp > $@.txt
+	tail -n4 $@.txt
+	wc -l    $@.txt
+proven5: # remove those with nyi-A-Numbers
+	grep -vP ".A\d{6}" proven4.txt \
 	>        $@.tmp
 	tail -n8 $@.tmp
 	wc -l    $@.tmp
@@ -186,7 +238,7 @@ de1:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
-decex: decex1 
+decex: decex1
 decex1:
 	grep -P "\tde\[" seqdb4.tmp \
 	| grep "Decimal expansion" \
@@ -202,7 +254,7 @@ contfrac_de: de1 contfrac1
 	| sed -e "s/\t/\tcofr\t0\t/" \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp	
+	wc -l    $@.tmp
 #--------
 # floor()
 floor: floor1
@@ -258,4 +310,3 @@ tell_ogf4: # select the ones not in joeis, with number of terms
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
-	

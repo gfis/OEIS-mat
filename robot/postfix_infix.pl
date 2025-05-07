@@ -1,7 +1,8 @@
 #!perl
 
 # Convert from postfix to infix notation
-# @(#) $Id$  
+# @(#) $Id$ 
+# 2025-05-03: additional o.g.f.s referenced by s0, s1 ... 
 # 2025-03-07: operand n
 # 2025-02-15: /(op2); *BirgitW=80
 # 2025-02-06: remove leading unary "+"
@@ -35,21 +36,24 @@ my $mPrio = 0;
 my ($op1, $op2);
 my @mStack;
 my @mPolys;
+my @mAnums;
 my $mSep;
 
 if (length($fileName) == 0) { # 1 or 2 arguments
     my  $postfix;
     my  $polstr  = shift(@ARGV);
-    if ($polstr !~ m{\A\[\[}) {
+    if ($polstr !~ m{\A\[}) {
         $postfix = $polstr;
         $polstr  = "[[1]]";
     } else {
         $postfix = shift(@ARGV);
     }
-    $mSep   = substr($postfix, 0, 1);
+    $mSep   = ($postfix =~ m{^\W}) ? substr($postfix, 0, 1) : ",";
     @mPolys = &expand_polys($polstr);
-    foreach (my $poli = 0; $poli < scalar(@mPolys); $poli ++) {
-        print "p$poli=$mPolys[$poli]\n";
+    foreach (my $poli = 0; $poli < scalar(@mPolys); $poli ++) { 
+        my $temp = $mPolys[$poli];
+        $temp =~ s{\A(\d+)\,(.*)}{$2 prio=$1}; 
+        print "p$poli = $temp\n";
     }
     print join(",", &toInfix($postfix)) . "\n";
 } else { # read from seq4 file
@@ -62,7 +66,7 @@ if (length($fileName) == 0) { # 1 or 2 arguments
             my ($aseqno, $callcode, $offset, $polstr, $postfix, @rest) = split(/\t/, $line);
             $polstr  =~ s{\"}{}g;
             $postfix =~ s{\"}{}g;
-            $mSep    = substr($postfix, 0, 1);
+            $mSep   = ($postfix =~ m{^\W}) ? substr($postfix, 0, 1) : ",";
             @mPolys  = &expand_polys($polstr);
             $polstr  = &toInfix($postfix);
             print join("\t", $aseqno, $callcode, $offset, "\"$polstr\"", "\"$postfix\"", @rest) . "\n";
@@ -110,8 +114,14 @@ sub popElem {
 sub toInfix {
     my ($postfix) = @_;
     &assignPriorities();
-    $mSep = substr($postfix, 0, 1);
-    my @posts = split(/$mSep/, substr($postfix, 1));
+    my @posts;
+    if ($postfix =~ m{^\W}) {
+        $mSep = substr($postfix, 0, 1);
+        @posts = split(/$mSep/, substr($postfix, 1));
+    } else {
+        $mSep = ",";
+        @posts = split(/$mSep/, $postfix);
+    }
     @mStack = ();
     foreach my $post (@posts) {
         my $prio = $mPrioMap{$post};
@@ -201,9 +211,15 @@ sub toInfix {
 sub expand_polys {
     my ($matrix) = @_;
     my @polys = ();
-    $matrix =~ s{ }{}g;
-    $matrix =~ s{\A\"?\[+}{};
-    $matrix =~ s{\]+\"?\Z}{};
+    $matrix =~ s{ }{}g; # remove spaces
+    $matrix =~ s{\A[\'\"]?\[+}{}; # remove surrounding quotes and square brackets
+    $matrix =~ s{\]+[\'\"]?\Z}{};
+    $matrix =~ s{\]*\,?(A\d.+)}{}; # extract/remove any list of additional o.g.f.s
+    my $ogflist = $1 || "";
+    @mAnums = split(/\,/, $ogflist);
+    for (my $iseq = 0; $iseq < scalar(@mAnums); $iseq ++) {
+        print "s$iseq = $mAnums[$iseq]\n";
+    }
     my @plists = split(/\]\,\[/, $matrix);
     foreach my $plist (@plists) {
         my @factors = split(/\,/, $plist);
@@ -244,18 +260,18 @@ sub expand_polys {
 } # expand_polys
 #--------------------------------
 __DATA__
-A100615	polyx	0	"[[1],[0,1]]"	",p1,p1,exp,p0,-,/,^2"	1	1	E.g.f.: (x/(exp(x)-1))^2
-A174512	poly	0	"[[1],[0,0,1]]"	",p1,sub,^2,p1,sub,^3,<1,+"	G.f. satisfies: A(x) = A(x^2)^2 + x*A(x^2)^3.
-A174513	poly	0	"[[1],[0,0,1]]"	",p1,sub,^2,p1,sub,^4,<1,+"	G.f. satisfies: A(x) = A(x^2)^2 + x*A(x^2)^4.
-A183036	poly	0	"[[1],[1,0,-1],[1,-1],[0,0,1],[0,0,0,0,1]]"	",p1,p2,^2,/,p3,sub,^2,*,p4,sub,/"	G.f. satisfies: A(x) = (1-x^2)/(1-x)^2 * A(x^2)^2/A(x^4).
-A183038	poly	0	"[[1],[1,0,0,-1],[1,-1],[0,0,0,1],[0,0,0,0,0,0,0,0,0,1]]"	",p1,p2,^3,/,p3,sub,^2,*,p4,sub,/"	G.f. satisfies: A(x) = (1-x^3)/(1-x)^3 * A(x^3)^2/A(x^9).
-A195200	poly	0	"[[1],[0,0,1]]"	",p1,sub,^3,p1,sub,^2,<1,+"	G.f. satisfies: A(x) = A(x^2)^3 + x*A(x^2)^2.
-A213091	poly	0	"[[1]]"	",1,x,A,^2,<1,neg,sub,/,+"	G.f. satisfies: A(x) = 1 + x/A(-x*A(x)^2).
-A213092	poly	0	"[[1]]"	",1,x,A,^3,<1,neg,sub,/,+"	G.f. satisfies: A(x) = 1 + x/A(-x*A(x)^3).
-A213093	poly	0	"[[1]]"	",1,x,A,^4,<1,neg,sub,/,+"	G.f. satisfies: A(x) = 1 + x/A(-x*A(x)^4).
-A215114	poly	1	"[[0,1],[0,1,2]]"	",p1,A,sub,sub,<1,+"	G.f. satisfies: A(x) = x + 2*x^2 + x*A(A(A(x))).
-A215116	poly	1	"[[0,1],[0,1,3]]"	",p1,A,sub,sub,sub,<1,+"	G.f. satisfies: A(x) = x + 3*x^2 + x*A(A(A(A(x)))).
-A215118	poly	1	"[[0,1],[0,1,4]]"	",p1,A,sub,sub,sub,sub,<1,+"	G.f. satisfies: A(x) = x + 4*x^2 + x*A(A(A(A(A(x))))).
-A223026	poly	0	"[[1],[0,0,1],[0,8]]"	",p1,sub,^4,p2,+,^1/8"	G.f. satisfies: A(x)^8 = A(x^2)^4 + 8*x.
-A223142	poly	0	"[[1],[0,0,1],[0,4]]"	",p1,sub,^2,p2,+,^1/2"	G.f. satisfies: A(x)^2 = A(x^2)^2 + 4*x.
-A223143	poly	0	"[[1],[0,0,1],[0,9]]"	",p1,sub,^3,p2,+,^1/3"	G.f. satisfies: A(x)^3 = A(x^2)^3 + 9*x.
+A100615 polyx 0 "[[1],[0,1]]" ",p1,p1,exp,p0,-,/,^2"  1 1 E.g.f.: (x/(exp(x)-1))^2
+A174512 poly  0 "[[1],[0,0,1]]" ",p1,sub,^2,p1,sub,^3,<1,+" G.f. satisfies: A(x) = A(x^2)^2 + x*A(x^2)^3.
+A174513 poly  0 "[[1],[0,0,1]]" ",p1,sub,^2,p1,sub,^4,<1,+" G.f. satisfies: A(x) = A(x^2)^2 + x*A(x^2)^4.
+A183036 poly  0 "[[1],[1,0,-1],[1,-1],[0,0,1],[0,0,0,0,1]]" ",p1,p2,^2,/,p3,sub,^2,*,p4,sub,/"  G.f. satisfies: A(x) = (1-x^2)/(1-x)^2 * A(x^2)^2/A(x^4).
+A183038 poly  0 "[[1],[1,0,0,-1],[1,-1],[0,0,0,1],[0,0,0,0,0,0,0,0,0,1]]" ",p1,p2,^3,/,p3,sub,^2,*,p4,sub,/"  G.f. satisfies: A(x) = (1-x^3)/(1-x)^3 * A(x^3)^2/A(x^9).
+A195200 poly  0 "[[1],[0,0,1]]" ",p1,sub,^3,p1,sub,^2,<1,+" G.f. satisfies: A(x) = A(x^2)^3 + x*A(x^2)^2.
+A213091 poly  0 "[[1]]" ",1,x,A,^2,<1,neg,sub,/,+"  G.f. satisfies: A(x) = 1 + x/A(-x*A(x)^2).
+A213092 poly  0 "[[1]]" ",1,x,A,^3,<1,neg,sub,/,+"  G.f. satisfies: A(x) = 1 + x/A(-x*A(x)^3).
+A213093 poly  0 "[[1]]" ",1,x,A,^4,<1,neg,sub,/,+"  G.f. satisfies: A(x) = 1 + x/A(-x*A(x)^4).
+A215114 poly  1 "[[0,1],[0,1,2]]" ",p1,A,sub,sub,<1,+"  G.f. satisfies: A(x) = x + 2*x^2 + x*A(A(A(x))).
+A215116 poly  1 "[[0,1],[0,1,3]]" ",p1,A,sub,sub,sub,<1,+"  G.f. satisfies: A(x) = x + 3*x^2 + x*A(A(A(A(x)))).
+A215118 poly  1 "[[0,1],[0,1,4]]" ",p1,A,sub,sub,sub,sub,<1,+"  G.f. satisfies: A(x) = x + 4*x^2 + x*A(A(A(A(A(x))))).
+A223026 poly  0 "[[1],[0,0,1],[0,8]]" ",p1,sub,^4,p2,+,^1/8"  G.f. satisfies: A(x)^8 = A(x^2)^4 + 8*x.
+A223142 poly  0 "[[1],[0,0,1],[0,4]]" ",p1,sub,^2,p2,+,^1/2"  G.f. satisfies: A(x)^2 = A(x^2)^2 + 4*x.
+A223143 poly  0 "[[1],[0,0,1],[0,9]]" ",p1,sub,^3,p2,+,^1/3"  G.f. satisfies: A(x)^3 = A(x^2)^3 + 9*x.
