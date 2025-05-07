@@ -1,14 +1,13 @@
 #!perl
 
-# Extract parameters for IntersectionSequence and UnionSequence 
-# 2025-05-06: moved from joeis-lite/internal/fischer
-# 2022-02-22, Georg Fischer
+# Modify seq4 records with CC=insect2 for intersections
+# 2025-05-07, Georg Fischer
 #
 #:# Usage:
 #:#   grep ... $(COMMON)/joeis_names.txt \
-#:#   | perl insect.pl [-d debug] [-e] [-f ofter_file] > output
+#:#   | perl insect_gen.pl [-d debug] [-f knopre] input.seq4 > output.seq4
 #:#     -d  debugging level (0=none (default), 1=some, 2=more)
-#:#     -f  file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
+#:#     -f  known predicates file with (aseqno, lambda) (default: joeis-lite/internal/fischer/reflect/knopre.txt)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -43,8 +42,8 @@ print STDERR "# $0: " . scalar(%knopre) . " known predicates read from $knopre_f
 #----------------
 my ($parms, $letter, $expr);
 $callcode = "filter";
-#while (<>) {
-while (<DATA>) {
+while (<>) {
+#while (<DATA>) {
     s/\s+\Z//; # chompr
     $line = $_;
     my $nok = 0;
