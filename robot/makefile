@@ -2,7 +2,8 @@
 
 # OEIS-mat/robot - automatic preparation of parameters for the generation of Java programs for jOEIS
 # @(#) $Id$
-# 2023-08-20: sumbin & co.
+# 2025-05-06: insect & Co.
+# 2023-08-20: sumbin & Co.
 # 2023-05-01, Georg Fischer: start with ogf
 #---------------------------------
 GITS=../..
@@ -122,7 +123,7 @@ OPT=
 #----
 # helper targets for chaining
 
-chain1: # process from source chain file to target chain file 
+chain1: # process from source chain file to target chain file
 	#### chain1 $(PROC) ####
 	cp chain.ocn $(PROC).icn
 	wc -l    $(PROC).icn
@@ -140,7 +141,7 @@ next: # continue the chain with the next target
 	wc -l    $(PROC).*cn
 	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf FISCHER=$(FISCHER)
-	
+
 restart: # get the output of the previous target in the chain
 	#### restart $(PROC) ####
 	grep -B32 -P "^$(PROC):" makefile | grep -P "^\w+\:" | tail -n2 | head -n1 \
@@ -152,7 +153,7 @@ restart: # get the output of the previous target in the chain
 jump: # continue the chain with target $(FOLLOW)
 	#### jump $(PROC) FOLLOW=$(FOLLOW) ####"
 	grep -A16 -P "^$(FOLLOW):" makefile | tee chain.mf
-	wc -l    $(PROC).*cn 
+	wc -l    $(PROC).*cn
 	cp       $(PROC).ocn chain.ocn
 	make -f chain.mf FISCHER=$(FISCHER)
 
@@ -161,7 +162,7 @@ GREP=A
 chain:	grepan
 grepan: # this is the start of the chain
 	grep -P "a\(n\) *\=" $(CAT) 2> $@.ecn | grep -P "^%[NF] $(GREP)" | perl -pe 's{€}{A}g;' | endirect | cut -b 4- \
-	| grep -P "^A\d{6}" | tee $@.ocn > chain.ocn 
+	| grep -P "^A\d{6}" | tee $@.ocn > chain.ocn
 	make next PROC=$@
 cutauth: # remove trailing author signature
 	make -f makefile chain1 OPT= PROC=$@
@@ -175,20 +176,20 @@ oeisfunc: # replace known OEIS functions by their A-numbers, and suppress O() an
 	make -f makefile chain1 OPT= PROC=$@
 funcrest: # count the remaining function occurrences
 	cp -v chain.ocn $@.ocn
-	cut -f2 oeisfunc.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn 
+	cut -f2 oeisfunc.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn
 	make next PROC=$@
 longwords: # remove those with elaborate wording
-	grep -vP "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ocn 
-	grep -P  "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ecn 
+	grep -vP "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ocn
+	grep -P  "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ecn
 	make next PROC=$@
 shortend: # remove those with short expressions in n and \d
-	grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn 
-	grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn 
-	make next PROC=$@      
+	grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn
+	grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn
+	make next PROC=$@
 oeisprep: # egalize OEIS formula conventions
 	make -f makefile chain1 OPT=-all PROC=$@
 remajx: # remove those with A|X-numbers and J-numbers if not Jxxx(n)
-	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ocn 
+	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ocn
 	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ecn
 	make next PROC=$@
 sortuniq: # sort by callcode, parm1, parm2, parm3, and uniq
@@ -253,7 +254,7 @@ parisum1:
 	tail -n8      oeisprep.gp.ocn
 	wc -l *.gp*
 funcrest.gp:
-	cut -f2 oeisfunc.gp.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn 
+	cut -f2 oeisfunc.gp.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn
 parisum2:
 	cat           oeisprep.gp.ocn \
 	| enstruct 2> enstruct.gp.ecn | tee enstruct.gp.ocn \
@@ -295,7 +296,7 @@ xxddn2:
 	| tee - \
 	> $(FISCHER)/aman/$@.man
 	make jump PROC=$@ FOLLOW=join1
-	
+
 ddn:
 	grep -P "\t[BDEFHIKMSTU]\d{6}\([BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9]+|term|[BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9]|term)+\))\)\)\t" sortuniq.ocn \
 	| getinits \
@@ -304,6 +305,39 @@ ddn1:
 	grep -P "\t[BDEFHIKMSTU]\d{6}\([BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9][n\+\-\*0-9]+|[BDEFHIKMSTU]\d{6}\([n\+\-\*0-9][n\+\-\*0-9]+\))\)\)\t" sortuniq.ocn \
 	| getinits \
 	| tee $@.tmp
+#----
+insect: insect1 insect_eval1 insect_eval2 # seq0 = intersection of 2 seq1 and seq2
+insect1: # grep from jcat25 and preprocess
+	grep -iE "(Intersection) of" $(COMMON)/jcat25.txt \
+	| grep -P "^\%[NFCY]" | cut -b 4- | sed -e "s/ /\t/" \
+	| perl insect.pl -f ../common/joeis_ofter.txt -d 0 \
+	| grep -vP "A185188|A281627" \
+	| sort | uniq -w7 \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+insect_eval1: # determine the set of A-numbers in intersect and union
+	cat insect1.tmp \
+	| perl -ne 'print join("", map { "$$_\n" } m/new (A\d+)\(/g);' \
+	| sort | uniq -c | sort -rn \
+	| perl -pe 's/\A\s*(\w+)\s*(\w+).*/$$2\t$$1/;' \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+insect_eval2: # 
+	cd ../common ; make seq2 LIST=../robot/insect_eval1.tmp
+	$(DBAT) "SELECT s.aseqno, CAST(s.info AS INT), n.name \
+	  FROM seq2 s, asname n \
+	  WHERE s.aseqno = n.aseqno \
+	  ORDER BY 2 DESC, 1" \
+	>        $@.tmp
+	head -n32 $@.tmp
+	wc -l    $@.tmp
+insect_gen: # generate for CC=filter
+	perl insect_gen.pl insect1.tmp \
+	>        insect.txt
+	head -n2 insect.txt
+	wc -l    insect.txt
 #----------------
 lingfcj: lingfcj1 lingfcj2 lingfcj3 lingfcj4 # conjectural o.g.f.s
 lingfcj1: # extract from CAT
@@ -362,8 +396,8 @@ lsm3: # enshape
 	wc -l    $@.tmp
 #--
 lsm4:
-	echo 
-	| spliteq \ 
+	echo
+	| spliteq \
 	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
 	| sort -k2 \
 	| perl $(COMMON)/poor.pl -a \
@@ -454,8 +488,8 @@ diffseq:
 	wc -l    $@.gen
 diffs:
 	perl -ne 'if (m{\A(A\d{6})}) { print "$$1\n"; }' $@.napp  > $@.igno
-	grep -P "\A\%[NF]" $(CAT) | grep -P "(A\d{6})\(n *\+ *1\) *\- \1\(n\)" | grep -P "^%" >  $@.tmp 
-	grep -P "\A\%[NF]" $(CAT) | grep -P "(A\d{6})\(n\) *\- \1\(n *\- *1\)" | grep -P "^%" >> $@.tmp 
+	grep -P "\A\%[NF]" $(CAT) | grep -P "(A\d{6})\(n *\+ *1\) *\- \1\(n\)" | grep -P "^%" >  $@.tmp
+	grep -P "\A\%[NF]" $(CAT) | grep -P "(A\d{6})\(n\) *\- \1\(n *\- *1\)" | grep -P "^%" >> $@.tmp
 	cat $@.tmp | $(NYI) diffs \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{(A\d{6})\(n}) { my $$rn = $$1; '\
@@ -593,7 +627,7 @@ filtpos:
 	| perl filtpos.pl \
 	2>       $@.rest.tmp \
 	| grep -vE "A256563|A362453|A362454" \
-	>        $@.gen 
+	>        $@.gen
 	head -n2 $@.gen
 	wc -l    $@.gen $@.rest.tmp
 	cut -f6  $@.gen      | sort | uniq -c | sort -n | tail -n64
@@ -676,7 +710,7 @@ invtraf:
 	wc -l    $@.*
 #----
 # grep A-numbers of known functions
-knowna: knowna0 knowna1 knowna2 knowna3 knowna4 
+knowna: knowna0 knowna1 knowna2 knowna3 knowna4
 knowna0: # grep "a(n) = [factor *] Annnnnn("
 	grep -P "^\%[NF] A\d+ +(a\(n\) *\= *)?[\+\-]? *(\(?\d+(\/\d+)?\)? *[\+\-\*]?)? *A\d{6}\(" $(CAT) | $(NYI) $@ \
 	| perl knowna0.pl \
@@ -771,7 +805,7 @@ tratogf: # grep CoefficientList[Series from %t records
 	| perl $@.pl \
 	2>       $@.rest.tmp \
 	| grep -vP "^A375" \
-	| tee    $@.gen 
+	| tee    $@.gen
 	wc -l    $@.gen
 #--------
 m1pow: # a(n) = (-1)^Annnnnn  or (-1)^n * Annnnnn
@@ -941,21 +975,21 @@ polyx3: # postprocess into postfix for PolynomialFieldSequence
 polyx4: # split into a number of files with callcodes differing by "polyx.<icc>", compile and run test
 	cd $(FISCHER) ;  make purge
 	perl callcode_enum.pl polyx3.tmp > $@.tmp
-	make polyx_sub ICC=1 
+	make polyx_sub ICC=1
 	make polyx_sub ICC=2
-	make polyx_sub ICC=3 
-	# make polyx_sub ICC=4 
-	# make polyx_sub ICC=5 
-	# make polyx_sub ICC=6 
-	# make polyx_sub ICC=7 
-	# make polyx_sub ICC=8 
+	make polyx_sub ICC=3
+	# make polyx_sub ICC=4
+	# make polyx_sub ICC=5
+	# make polyx_sub ICC=6
+	# make polyx_sub ICC=7
+	# make polyx_sub ICC=8
 	# make polyx_sub ICC=9
-polyx_sub: 
+polyx_sub:
 	grep -P      "\tpolyx\.$(ICC)\t" polyx4.tmp \
 	| perl -pe 's{\tpolyx\.$(ICC)\t}{\tpolyx\t};' \
 	>        $(FISCHER)/aman/polyx.$(ICC)a.man
 	wc -l    $(FISCHER)/aman/polyx.$(ICC)a.man
-	cd $(FISCHER) ;  make CC=polyx.$(ICC)a segel addpass  
+	cd $(FISCHER) ;  make CC=polyx.$(ICC)a segel addpass
 	ro # read missing b-files
 #----
 # manually selected, feed them into the polyx chain
@@ -988,7 +1022,7 @@ polegf2: polyx1 polyx2 polyx_known polyx_ofter polyx3 polyx4
 # grep PARI equations, and feed them into polyx chain
 gpoly: gpoly1 gpoly2 \
 	polyx2 polyx_known polyx_ofter polyx3 \
-	gpoly4 polyx4 
+	gpoly4 polyx4
 gpoly1:
 	grep  -P "^\%o A\d+ +\(PARI\) *\{ *a\(n\) *\= *local *\(A" $(CAT) \
 	| grep -vP "(if|sum|binomial|floor|real|imag|norm|binary|concat|Pol|Vec|Ser)\(|\W([jkmBCGFIT])\W" \
@@ -1029,8 +1063,8 @@ tri2: # spliteq
 	| grep -vP "..A\d{6}|J\d{6}\([A_Z]\d{6}" \
 #--
 tri3:
-	echo 
-	| spliteq \ 
+	echo
+	| spliteq \
 	| grep -vP "\.\.\." | grep -vP "A\d{6}" \
 	| sort -k2 \
 	| perl $(COMMON)/poor.pl -a \
