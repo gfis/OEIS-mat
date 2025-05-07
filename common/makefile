@@ -1111,4 +1111,21 @@ sumpari:
 	grep -P "^%o A38\d+ \(PARI" jcat25.txt | grep sum | tee sumpari.tmp
 essent:
 	grep -Pi "Essentially (the same as )?A\d+" jcat25.txt | grep -P "^%[NFCY]" | endirect | tee essent.tmp
+egf:
+	grep -Pi "e\.g\.f\." joeis_names.txt \
+	| grep -P "^A" | grep -vPi "(sum|prod)" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+series:
+	grep -P "^%t" jcat25.txt | grep -Pi "CoefficientList\[Series" \
+	| cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+middle:
+	grep -P "A\d{6} ([^\-\+\*\/\=\<\>\|\.\& a-zA-Z0-9]+) A\d{6}" jcat25.txt | grep -P "^%[NFCY]"  | tee middle.tmp
 	

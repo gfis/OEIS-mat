@@ -76,11 +76,14 @@ seqprov_load:
 	$(DBAT) -4 seqdb
 	$(DBAT) -n seqdb
 seqprov_eval:
-	$(DBAT) -x "SELECT s.aseqno, s.si, s.mt, s.ix, s.px, COALESCE(j.superclass, 'nyi'), s.tags \
-	  FROM seqdb s LEFT JOIN joeis j ON s.aseqno = j.aseqno \
-	  WHERE s.tags = 'proven'\
+	$(DBAT) -x "SELECT s.aseqno, s.si, s.mt, s.ix, s.px, n.name, COALESCE(j.superclass, 'nyi'), s.tags \
+	  FROM seqdb s, asname n \
+	    LEFT JOIN joeis j ON n.aseqno = j.aseqno \
+	  WHERE s.tags = 'proven' \
+	    AND s.aseqno = n.aseqno \
 	  ORDER BY 1" \
 	| endirect \
+	| grep -P "^A" \
 	>        $@.tmp
 	tail -n8 $@.tmp
 	wc -l    $@.tmp
