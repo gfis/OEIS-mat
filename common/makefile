@@ -1126,6 +1126,9 @@ series:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
+middle:
+	grep -P "A\d{6} ([^\-\+\*\/\=\<\>\|\.\& a-zA-Z0-9]+) A\d{6}" jcat25.txt | grep -P "^%[NFCY]"  | tee middle.tmp
+	
 section:
 	grep -Pi "section of \w\d{6}" jcat25.txt | grep -P "^%[NFCY]" | grep -v "€" | endirect \
 	| tee section.tmp

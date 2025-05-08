@@ -306,12 +306,12 @@ ddn1:
 	| getinits \
 	| tee $@.tmp
 #----
-insect: insect1 insect_eval1 insect_eval2 # seq0 = intersection of 2 seq1 and seq2
+insect: insect1 insect_eval1 insect_eval2 insect_gen # seq0 = intersection of 2 seq1 and seq2
 insect1: # grep from jcat25 and preprocess
-	grep -iE "(Intersection) of" $(COMMON)/jcat25.txt \
+	grep -iP "(Intersection of| intersect )" $(COMMON)/jcat25.txt \
 	| grep -P "^\%[NFCY]" | cut -b 4- | sed -e "s/ /\t/" \
-	| perl insect.pl -f ../common/joeis_ofter.txt -d 0 \
-	| grep -vP "A185188|A281627" \
+	| perl insect_prep.pl -d 0 \
+	| grep -vP "A100715|A185188|A220264|A276142|A281627|A352595" \
 	| sort | uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
@@ -330,6 +330,7 @@ insect_eval2: #
 	  FROM seq2 s, asname n \
 	  WHERE s.aseqno = n.aseqno \
 	  ORDER BY 2 DESC, 1" \
+	| endirpre \
 	>        $@.tmp
 	head -n32 $@.tmp
 	wc -l    $@.tmp
