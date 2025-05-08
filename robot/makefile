@@ -330,6 +330,7 @@ insect_eval2: #
 	  FROM seq2 s, asname n \
 	  WHERE s.aseqno = n.aseqno \
 	  ORDER BY 2 DESC, 1" \
+	| endirpre \
 	>        $@.tmp
 	head -n32 $@.tmp
 	wc -l    $@.tmp
