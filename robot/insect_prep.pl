@@ -1,14 +1,13 @@
 #!perl
 
-# Extract parameters for IntersectionSequence and UnionSequence 
+# Extract parameters for intersection, set difference and union
 # 2025-05-06: moved from joeis-lite/internal/fischer
 # 2022-02-22, Georg Fischer
 #
 #:# Usage:
-#:#   grep ... $(COMMON)/joeis_names.txt \
-#:#   | perl insect.pl [-d debug] [-e] [-f ofter_file] > output
+#:#   grep ... $(COMMON)/jcat25.txt \
+#:#   | perl insect.pl [-d debug] > output
 #:#     -d  debugging level (0=none (default), 1=some, 2=more)
-#:#     -f  file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -19,7 +18,7 @@ my ($aseqno, $superclass, $callcode, @rest, $name);
 my $debug   = 0;
 my $offset = 0;
 my $rseqno = "";
-my $ofter_file = "../../../OEIS-mat/common/joeis_ofter.txt";
+my $ofter_file = "../common/joeis_ofter.txt";
 my $ex = "";
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
@@ -56,17 +55,27 @@ while (<>) { # from joeis_names.txt
     my @aseqnos;
     ($aseqno, $name) = split(/\t/, $line);
     if (0) {
-    } elsif ($name =~ m{Intersection of (A\d+) (and|inter) (A\d+)}i) {
+    } elsif ($name =~ m{Intersection of (A\d+) (and|inter|with) (A\d+)}i) {
         @aseqnos = ($1, $3);
         if (defined($ofters{$aseqnos[0]}) && defined($ofters{$aseqnos[1]})) {
             $callcode = "insect2";
         }
-    } elsif ($name =~ m{Intersection of +(A\d+)\, +(A\d+) +and +(A\d+)}i) {
-        @aseqnos = ($1, $2, $3);
+    } elsif ($name =~ m{Intersection of +(A\d+)\, *(A\d+) *(and|\,) +(A\d+)}i) {
+        @aseqnos = ($1, $2, $4);
         if (defined($ofters{$aseqnos[0]}) && defined($ofters{$aseqnos[1]}) && defined($ofters{$aseqnos[2]})) {
             $callcode = "insect3";
         }
-    } elsif ($name =~ m{Union of (A\d+) (and) (A\d+)}i) {
+    } elsif ($name =~ m{(A\d+) +intersect +(A\d+)}i) {
+        @aseqnos = ($1, $2);
+        if (defined($ofters{$aseqnos[0]}) && defined($ofters{$aseqnos[1]})) {
+            $callcode = "insect2";
+        }
+    } elsif ($name =~ m{(A\d+) *\{ *intersect *\} *(A\d+)}i) {
+        @aseqnos = ($1, $2);
+        if (defined($ofters{$aseqnos[0]}) && defined($ofters{$aseqnos[1]})) {
+            $callcode = "insect2";
+        }
+    } elsif ($name =~ m{Union of (A\d+) (and|with) (A\d+)}i) {
         @aseqnos = ($1, $3);
         if (defined($ofters{$aseqnos[0]}) && defined($ofters{$aseqnos[1]})) {
             $callcode = "union2";
