@@ -201,4 +201,32 @@ bfsynth2:
 	tail -n2 $@.tmp
 	wc -l    bfsynth*.tmp
 bfsynth3:
-	perl $(COMMON)/bfsynth.pl -s bfsynth1.tmp -p 3 -o $(COMMON)/bfile bfsynth2.tmp
+	perl $(COMMON)/bfsynth.pl -s bfsynth1.tmp -p 3 -o $(COMMON)/bfile bfsynth2.tmp   
+#================
+# update of the algol system (Windows); requires X: -> remote ; check with dir x:\users\user\work
+RGITS=x:/users/user/work/gits
+algol: \
+	algol_joeis   \
+	algol_jar     \
+	algol_common  \
+	algol_reflect \
+	algol_loads   \
+	#
+algol_joeis: # update joeis repository (A*.java)
+	cd $(GITS)/joeis ; git pull
+#
+algol_jar: # get the freshly compiled joeis.jar
+	cd $(GITS)/joeis/build.tmp ; cp -vp $(RGITS)/joeis/build.tmp/joeis.jar .
+#
+algol_common: # copy recent database content
+	cd $(GITS)/OEIS-mat/common ; \
+	rm -vf joeis_names.txt ; \
+	find $(RGITS)/OEIS-mat/common                     -maxdepth 1 -type f -ctime -4 | xargs -innn cp -vp nnn .
+#
+algol_reflect: # copy recent from internal/fischer/reflect 
+	cd $(GITS)/joeis-lite/internal/fischer/reflect; \
+	find $(RGITS)/joeis-lite/internal/fischer/reflect -maxdepth 1 -type f -ctime -4 | xargs -innn cp -vp nnn .
+#
+algol_load: # recreate database tables
+	cd $(GITS)/OEIS-mat/common; make aloads bloads
+#
