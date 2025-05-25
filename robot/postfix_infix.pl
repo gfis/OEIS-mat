@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
+# 2025-05-11: additional o.g.f.s referenced by S, T, U, V
 # 2025-05-03: additional o.g.f.s referenced by s0, s1 ... 
 # 2025-03-07: operand n
 # 2025-02-15: /(op2); *BirgitW=80
@@ -196,6 +197,9 @@ sub toInfix {
             } else {
                 push(@mStack, "$mPrimPrio${mSep}$post$op1");
             }
+        } elsif ($post =~ m{\A[STUV]\Z}) {          # g.f.s. of additional sequences
+            $op1 = &popElem($mPrimPrio + 1);
+            push(@mStack, "$mPrimPrio${mSep}$post$op1");
         } else {
             print "# undefined postfix element=\"$post\"\n";
         }
@@ -218,7 +222,7 @@ sub expand_polys {
     my $ogflist = $1 || "";
     @mAnums = split(/\,/, $ogflist);
     for (my $iseq = 0; $iseq < scalar(@mAnums); $iseq ++) {
-        print "s$iseq = $mAnums[$iseq]\n";
+        print chr(ord('S') + $iseq) . " = $mAnums[$iseq]\n";
     }
     my @plists = split(/\]\,\[/, $matrix);
     foreach my $plist (@plists) {
