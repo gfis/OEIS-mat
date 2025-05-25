@@ -181,7 +181,8 @@ binfos: bfdata bfinfo
 herlin: herscp aloads bloads checks
 herscp:
 	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
-aloads: asdata_load asinfo_load asname_load asprog_load asxref_load asinfo_loda asinfo_pari
+aloads: asdata_load asinfo_load asname_load \
+	# asprog_load asxref_load asinfo_loda asinfo_pari
 bloads: bfdata_load bfinfo_load bfdir_load
 #--------
 asdata: # parameter: DIR
