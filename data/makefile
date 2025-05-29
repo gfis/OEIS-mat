@@ -210,7 +210,7 @@ algol: \
 	algol_jar     \
 	algol_common  \
 	algol_reflect \
-	algol_loads   \
+	algol_load    \
 	#
 algol_joeis: # update joeis repository (A*.java)
 	cd $(GITS)/joeis ; git pull
