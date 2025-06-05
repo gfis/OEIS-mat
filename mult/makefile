@@ -19,20 +19,37 @@ mudata:
 	  WHERE i.aseqno = d.aseqno \
 	  ORDER BY 1" \
 	| grep -vP "cons|tab|bref|dead|word" \
-	| perl -pe 's/\,(easy|new|changed|less|hard|nice|hear|look)//g;' \
+	| perl -pe 's/\,(easy|new|changed|less|hard|nice|hear|look|nonn)//g;' \
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
 #----   
 multest:
-	perl multest.pl mudata.tmp \
+	perl multest2.pl mudata.tmp \
 	| endirect \
-	| tee $@.tmp
-	wc -l $@.tmp
-eval:
-	grep -E "^A" multest.tmp \
-	| grep -v mult \
-	>     $@.tmp
-	wc    $@.tmp
-	e     $@.tmp
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@.tmp
+eval: fail_mult pass_nomult pass_njoeis
+fail_mult:
+	grep -P "^[A-Z]\d{6}" multest.tmp \
+	| grep -P "\bFAIL\b" | grep -P "\bmult\b" \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc       $@.tmp
+	e        $@.tmp
+pass_nomult:
+	grep -P "^[A-Z]\d{6}" multest.tmp \
+	| grep -P "\bpass\b" | grep -vP "\bmult\b" \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc       $@.tmp
+	e        $@.tmp   
+pass_njoeis:
+	grep -P "^[A]\d{6}" multest.tmp \
+	| grep -P "\bpass\b" \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc       $@.tmp
+	e        $@.tmp   
 #----
