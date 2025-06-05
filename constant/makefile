@@ -18,7 +18,8 @@ JOEIS=$(GITS)/joeis
 COMMON=$(GITS)/OEIS-mat/common
 NT=32
 D=0 # debug mode
-WIDTH=4
+WIDTH=4 
+MARK=X
 
 all:
 	echo select specific target 

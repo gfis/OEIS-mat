@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
+# 2025-05-29: besselI
 # 2025-05-11: additional o.g.f.s referenced by S, T, U, V
 # 2025-05-03: additional o.g.f.s referenced by s0, s1 ... 
 # 2025-03-07: operand n
@@ -31,7 +32,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 my %mPrioMap; # maps operators to a numerial priority
-my $mPrimPrio; # priorit for primaries, higher than all others
+my $mPrimPrio; # priority for primaries, higher than all others
 my $mPrio = 0;
 &assignPriorities();
 my ($op1, $op2);
@@ -171,11 +172,11 @@ sub toInfix {
                 $op1  = &popElem($powPrio);
             }
             push(@mStack, "$powPrio${mSep}$op1" . ($op2 eq "1" ? "" : "$post$op2"));
-        } elsif ($post =~ m{\A(agm)\Z})           {  # function calls with 2 operands: agm
+        } elsif ($post =~ m{\A(agm|besselI)\Z})           {  # function calls with 2 operands: agm
             $op2 = &popElem($mPrimPrio + 1);
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post($op1, $op2)");
-        } elsif ($post =~ m{\A([a-z][a-zNW]+)\Z}) {  # function calls exp, neg, int, rev, lambertW etc.
+        } elsif ($post =~ m{\A([a-z][a-zA-Z]+)\Z}) {  # function calls exp, neg, int, rev, lambertW etc.
             if (0) {
             } elsif ($post eq "rev") {
                 $post = "reversion";

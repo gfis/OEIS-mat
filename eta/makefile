@@ -92,7 +92,7 @@ etasum:
 	wc -l    $@.tmp
 	grep "Ramanujan" $@.tmp | wc -l
 etaq:
-	grep "Expansion of " $(COMMON)/jcat25.txt | grep -E "^\%[NFC]" \
+	grep -P "[eE]xpansion of " $(COMMON)/jcat25.txt | grep -E "^\%[NFC]" \
 	| grep -P "\(q(\^\-?\d+(\/\d+)?)?\)" \
 	| cut -b4- \
 	| tee    $@.tmp
