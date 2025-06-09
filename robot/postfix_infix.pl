@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
+# 2025-06-08: B,C,D;e; *FP=11
 # 2025-05-29: besselI
 # 2025-05-11: additional o.g.f.s referenced by S, T, U, V
 # 2025-05-03: additional o.g.f.s referenced by s0, s1 ... 
@@ -172,7 +173,7 @@ sub toInfix {
                 $op1  = &popElem($powPrio);
             }
             push(@mStack, "$powPrio${mSep}$op1" . ($op2 eq "1" ? "" : "$post$op2"));
-        } elsif ($post =~ m{\A(agm|besselI)\Z})           {  # function calls with 2 operands: agm
+        } elsif ($post =~ m{\A(agm|besselI|pow)\Z})    {  # function calls with 2 operands: agm
             $op2 = &popElem($mPrimPrio + 1);
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post($op1, $op2)");
@@ -198,7 +199,7 @@ sub toInfix {
             } else {
                 push(@mStack, "$mPrimPrio${mSep}$post$op1");
             }
-        } elsif ($post =~ m{\A[STUV]\Z}) {          # g.f.s. of additional sequences
+        } elsif ($post =~ m{\A[BCDESTUV]\Z}) {          # g.f.s. of additional sequences
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post$op1");
         } else {
@@ -233,9 +234,9 @@ sub expand_polys {
         my $sumLen = 0;
         for (my $expon = 0; $expon < scalar(@factors); $expon ++) {
             my $fact = $factors[$expon];
-            if ($fact != 0) { # contributes to the polynomial in x
+            if ($fact ne 0) { # contributes to the polynomial in x
                 $sumLen ++;
-                if ($fact > 0) {
+                if ($fact !~ m{\A\-}) {
                     $fact = "+$fact";
                 }
                 if (0) {

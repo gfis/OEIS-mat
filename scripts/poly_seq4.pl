@@ -19,7 +19,9 @@ $lite_aman =~ s{\\}{\/}g;
 
 my $cc = "poly";
 my $polys   = shift(@ARGV);
+my $polys_org = $polys;
 my $postfix = shift(@ARGV); 
+my $options = join(" ", @ARGV);
 my $offset  = 0;
 my $dist    = "";
 my $gftype  = "";
@@ -50,19 +52,28 @@ if ($gftype ne "") {
     $cc =~ s{poly\Z}{polyx};
 }
 my @alist = ();
-if ($polys =~ s{((\, *A\d{6})+)}{}) { # move the A-numbers to instances at the end
-    my $list = substr($1, 1);
-    my @anos = split(/\,/, $list);
-    $cc =~ s{\Z}{a};
-    @alist = join(", ", map { "new $_()" } @anos);
+if ($polys =~ s{((\, *A\d{6}\!?)+)}{}) { # move the A-numbers to instances at the end
+    my $list = substr($1, 1);  
+    if (1 or $list !~ m{\!}) { # always
+        my @anos = split(/\, */, $list);
+        $cc =~ s{a?\Z}{a};
+        @alist = join(", ", map {
+                    ($_ =~ s{\!}{}) ? "egf(new $_())" : "new $_()"
+                    } @anos);
+    } # always
 }
-my $record = join("\t", "", $cc, $offset, "\"$polys\"", "\"$postfix\"", $dist, $gftype, @alist) . "\n";
+$postfix = "\"$postfix\"";
+if ($cc =~ m{x\Z}) {
+    $postfix .= "\t$dist\t$gftype";
+}
+my $record = join("\t", "", $cc, $offset, "\"$polys\"", $postfix, @alist) . "\n";
 open (PIPE, "| clip");
 print PIPE $record;
 close(PIPE);
 print      $record; 
 my $file = "$lite_aman/$timestamp.man";
 open (AMAN, ">>", $file) || die "# cannot write to $file\n";
+print AMAN "# poly \"$polys_org\" $postfix $options\n";
 print AMAN $record;
 close(AMAN);
 __DATA__

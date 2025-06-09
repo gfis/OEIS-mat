@@ -219,9 +219,10 @@ algol_jar: # get the freshly compiled joeis.jar
 	cd $(GITS)/joeis/build.tmp ; cp -vp $(RGITS)/joeis/build.tmp/joeis.jar .
 #
 algol_common: # copy recent database content
-	cd $(GITS)/OEIS-mat/common ; \
+	cd $(GITS)/OEIS-mat/common ; perl ue_script.pl -close ; \
 	rm -vf joeis_names.txt ; \
 	find $(RGITS)/OEIS-mat/common                     -maxdepth 1 -type f -ctime -4 | xargs -innn cp -vp nnn .
+	cd $(GITS)/OEIS-mat/common ; perl ue_script.pl -open
 #
 algol_reflect: # copy recent from internal/fischer/reflect 
 	cd $(GITS)/joeis-lite/internal/fischer/reflect; \
