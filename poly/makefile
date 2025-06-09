@@ -25,3 +25,11 @@ getegf: # extact the implemented e.g.f.s
 	wc -l    $@.tmp
 	e        $@.tmp
 #----
+psimple: # extract polynomials - simple attempt
+	perl psimple.pl getegf.tmp \ 
+	| sort -k5,5 \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	e        $@.tmp
+#----	

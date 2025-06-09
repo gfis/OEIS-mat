@@ -65,7 +65,7 @@ while (<>) {
 #----
 sub trans { # translate a polynomial into a bracketed list of coefficients [c0,c1,...]
     my ($part) = @_; 
-    my $result; 
+    my $result = ""; 
     if (0) {
     #                     1      12      234   4  3  5     5
     } elsif ($part =~ m{\A(\-?\d+)([\-\+])((\d+)\*)?x(\/\d+)?\Z}) {  # 1-4*x/5
