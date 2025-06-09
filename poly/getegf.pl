@@ -35,8 +35,7 @@ while (<>) {
         $postfix =~ s{\.\Z}{};
         $postfix =~ s{\s}{}g;
         $postfix =~ s{\<\/?code\>}{}g;
-        $postfix =~ s{arcsin}{asin}g;
-        print join("\t", $aseqno, "poly", 0, "\"[1]\"", $postfix, " ", " ", " ", " ", " ", " * E.g.f.: $postfix.") ."\n";
+        print join("\t", $aseqno, "polyex", 0, "\"[1]\"", $postfix, "0", "1", "  * E.g.f.: <code>$postfix</code>.") ."\n";
     }
 } # while <>
 #--------------------------------------------

@@ -7,9 +7,12 @@
 GITS=../..
 DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 COMMON=../common
-REFLECT=$(GITS)/joeis-lite/internal/fischer/reflect
-
-all: 
+FISCHER=$(GITS)/joeis-lite/internal/fischer
+REFLECT=$(FISCHER)/reflect
+RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
+JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
+#----
+all: getegf psimple egfu2 polysh
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 #----
@@ -26,10 +29,27 @@ getegf: # extact the implemented e.g.f.s
 	e        $@.tmp
 #----
 psimple: # extract polynomials - simple attempt
-	perl psimple.pl getegf.tmp \ 
-	| sort -k5,5 \
+	perl psimple.pl getegf.tmp \
+	| sort -k5 \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
 	e        $@.tmp
-#----	
+#----	 
+egfu2:
+	$(JPREP) -f psimple.tmp -cc post2 \
+	>        $@.1.tmp
+	grep -E  "\?" $@.1.tmp > $@.rest.tmp || :
+	grep -vE "\?" $@.1.tmp > $@.tmp || :
+	head -n4 $@.tmp
+	wc -l    $@*.tmp  
+#----
+polysh: # polish the postfix
+	perl polysh.pl egfu2.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.*tmp
+	e        $@.tmp
+deploy:
+	# cp       polysh.tmp $(FISCHER)/aman/polyex.man
