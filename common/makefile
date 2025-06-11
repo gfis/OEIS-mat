@@ -1113,11 +1113,21 @@ sumpari:
 essent:
 	grep -Pi "Essentially (the same as )?A\d+" jcat25.txt | grep -P "^%[NFCY]" | endirect | tee essent.tmp
 egf:
-	grep -Pi "e\.g\.f\." joeis_names.txt \
-	| grep -P "^A" | grep -vPi "(sum|prod)" \
-	| tee $@.tmp
-	wc -l $@.tmp
+	grep -P "([Ee]\.g\.f\. )" jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod|sum" | grep -P "[B-Z]\d{6}" \
+	| cut -b 4- | perl -pe 's/ /\t/;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html 
+	chmod 755    $@.html
+	cmd /c start $@.html
+ogf:
+	grep -P "([O]\.g\.|G\.)f\. " jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod|sum" | grep -P "[B-Z]\d{6}" \
+	| cut -b 4- | perl -pe 's/ /\t/;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755    $@.html
+	cmd /c start $@.html
 series:
 	grep -P "^%t" jcat25.txt | grep -Pi "CoefficientList\[Series" \
 	| cut -b 4- | sed -e "s/ /\t/" \
