@@ -27,6 +27,7 @@ my  (@parts, %hash, $pn);
 %hash = qw(
     arctan		atan
     arcsin		asin
+    arcsinh		asinh
     lambertw	lambertW
     reverse		rev
 );
@@ -55,6 +56,7 @@ while (<>) {
     } # for $ip - 1 element
     $postfix =~ s{\A\,+}{}g; # delete empty parts
     $postfix =~ s{\,(\d+)\,\^}{\,\^$1}g; # ,3,^ -> ,^3
+    $postfix =~ s{\,\^(\,|\Z)}{\,pow$1}g; # ,a,b,^ -> a,b,pow
     $postfix =~ s{\,(\d+)\,(\d+)\,\/\,\^}{\,\^$1/$2}g; # ,1,3,/,^ -> ,^1/3  
     if (($postfix =~ m{\A0\,}) && ($postfix =~ m{\-\Z})) {
         $postfix = substr($postfix, 2);

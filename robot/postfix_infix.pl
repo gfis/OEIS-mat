@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
+# 2025-06-10: negative integers and shifts
 # 2025-06-08: B,C,D;e; *FP=11
 # 2025-05-29: besselI
 # 2025-05-11: additional o.g.f.s referenced by S, T, U, V
@@ -80,7 +81,7 @@ if (length($fileName) == 0) { # 1 or 2 arguments
 } # from seq4 file
 # end main
 #--------
-# Store priorities for various operators in the HashMap
+# Set one priority for a list of operators in the HashMap
 sub setPrio {
     my @opers = @_;
     ++$mPrio;
@@ -89,7 +90,7 @@ sub setPrio {
     }
 } # setPrio
 
-# Store priorities for various operators in the HashMap
+# Store various priorities for operator lists in the HashMap
 sub assignPriorities() {
     $mPrio = 0;
     &setPrio("+", "-");
@@ -97,7 +98,7 @@ sub assignPriorities() {
     &setPrio("^");
     &setPrio("\'");
     &setPrio("~", "(", ")"); # unary minus
-    $mPrimPrio = $mPrio + 1; # higher than all others
+    $mPrimPrio = $mPrio + 1; # higher than all other priorities
 } # assignPriorities
 
 # pop one element from the stack, and enclose it in parentheses depending on priorities
@@ -152,13 +153,16 @@ sub toInfix {
             push(@mStack, "$mPrimPrio${mSep}x");
         } elsif ($post =~ m{\Ap(\d+)\Z}) {          # polynomial p0, p1 ...
             push(@mStack, $mPolys[$1]);
-        } elsif ($post =~ m{\A(\d+)\Z}) {           # integer number 1, 2, ...
+        } elsif ($post =~ m{\A(\-?\d+)\Z}) {        # integer number 1, 2, -2 ...
             push(@mStack, "$mPrimPrio${mSep}$1");
-        } elsif ($post =~ m{\A\<(\d+)\Z}) {         # shift -> multiply by power of x
+        } elsif ($post =~ m{\A\<(\-?\d+)\Z}) {      # shift -> multiply by power of x
             my $shift = $1;
             my $multPrio = $mPrioMap{"*"};
             $op1 = &popElem($multPrio);
-            push(@mStack, "$multPrio${mSep}x" . ($shift == 1 ? "" : "\^$shift") . "*$op1");
+            if ($shift < 0) {
+                $shift = "($shift)"; # enclose negative shifts in parentheses
+            }
+            push(@mStack, "$multPrio${mSep}x" . ($shift eq "1" ? "" : "\^$shift") . "*$op1");
         } elsif ($post =~ m{\A\^(\d+(\/\d+)?)?\Z}) { # power, maybe with (rational) exponent in same element
             my $powPrio = $mPrioMap{"^"};
             if (length($post) == 1) {

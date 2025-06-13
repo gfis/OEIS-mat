@@ -1,7 +1,6 @@
 #!perl
 
-# Generate a seq4 record with CC=poly* from the parameters,
-# and put it on the clipboard
+# Generate a seq4 record with CC=poly* from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
 # 2025-06-03, Georg Fischer
 #
@@ -67,13 +66,15 @@ if ($cc =~ m{x\Z}) {
     $postfix .= "\t$dist\t$gftype";
 }
 my $record = join("\t", "", $cc, $offset, "\"$polys\"", $postfix, @alist) . "\n";
-open (PIPE, "| clip");
-print PIPE $record;
-close(PIPE);
+if (0) {
+    open (PIPE, "| clip");
+    print PIPE $record;
+    close(PIPE);
+}
 print      $record; 
 my $file = "$lite_aman/$timestamp.man";
 open (AMAN, ">>", $file) || die "# cannot write to $file\n";
-print AMAN "# poly \"$polys_org\" $postfix $options\n";
+# print AMAN "# poly \"$polys_org\" $postfix $options\n";
 print AMAN $record;
 close(AMAN);
 __DATA__

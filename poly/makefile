@@ -12,7 +12,7 @@ REFLECT=$(FISCHER)/reflect
 RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
 JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
 #----
-all: getegf psimple egfu2 polysh
+all: packegf getegf psimple egfu2 polysh
 	# targets: new = prepare newseq archlist regen (in that order)
 	grep -E "^[a-z]" makefile
 #----
@@ -26,7 +26,7 @@ getegf: # extact the implemented e.g.f.s
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
-	e        $@.tmp
+	# e        $@.tmp
 #----
 psimple: # extract polynomials - simple attempt
 	perl psimple.pl getegf.tmp \
@@ -34,7 +34,7 @@ psimple: # extract polynomials - simple attempt
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
-	e        $@.tmp
+	# e        $@.tmp
 #----	 
 egfu2:
 	$(JPREP) -f psimple.tmp -cc post2 \
@@ -53,3 +53,20 @@ polysh: # polish the postfix
 	e        $@.tmp
 deploy:
 	# cp       polysh.tmp $(FISCHER)/aman/polyex.man
+#----
+numden: # get the Numerator/Denominator pairs
+	grep -P "Denominator|Numerator" ../common/jcat25.txt | grep -P "^.N" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+nyiden:
+	grep -P "^%" numden.tmp \
+	| cut -b4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755 $@.html
+	cmd /c $@.html
+	
+
