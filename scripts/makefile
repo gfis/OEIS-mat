@@ -23,3 +23,13 @@ test: # PL= test a Perl script
 	grep -P "^A\d{6}" $(PL).pl | perl $(PL).pl -d $(D) 2> $(PL).err | tee $(PL).tst
 	head -n256 $(PL).err || :
 
+histoeis: 
+	cp -v "C:/Users/drgeo/AppData/Local/Google/Chrome/User Data/Default/History" .
+	sqlite3.exe --readonly "History" ".mode tabs" \
+	"select url, id \
+	  from urls \
+	  where url like 'https://oeis.org/A______' \
+	  order by id desc limit 8;" \
+	| tee -a $@.txt
+	
+
