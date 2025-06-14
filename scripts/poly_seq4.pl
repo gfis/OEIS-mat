@@ -15,6 +15,8 @@ my $timestamp = sprintf ("%04d-%02d-%02d", $year + 1900, $mon + 1, $mday);
 my $gits =  $ENV{'GITS'};
 my $lite_aman =  "$gits/joeis-lite/internal/fischer/aman";
 $lite_aman =~ s{\\}{\/}g;
+my $makefile = "$gits/OEIS-mat/scripts/makefile";
+$makefile =~ s{\\}{\/}g;
 
 my $cc = "poly";
 my $polys   = shift(@ARGV);
@@ -51,21 +53,23 @@ if ($gftype ne "") {
     $cc =~ s{poly\Z}{polyx};
 }
 my @alist = ();
-if ($polys =~ s{((\, *A\d{6}\!?)+)}{}) { # move the A-numbers to instances at the end
+if ($polys =~ s{((\, *A\d+\!?)+)}{}) { # move the A-numbers to instances at the end
     my $list = substr($1, 1);  
     if (1 or $list !~ m{\!}) { # always
         my @anos = split(/\, */, $list);
         $cc =~ s{a?\Z}{a};
-        @alist = join(", ", map {
+        @alist = join(", ", map { 
+                    m{(\d+)}; $_ = sprintf("A%06d", $1);
                     ($_ =~ s{\!}{}) ? "egf(new $_())" : "new $_()"
                     } @anos);
     } # always
 }
 $postfix = "\"$postfix\"";
-if ($cc =~ m{x\Z}) {
+if ($cc =~ m{x}) {
     $postfix .= "\t$dist\t$gftype";
 }
-my $record = join("\t", "", $cc, $offset, "\"$polys\"", $postfix, @alist) . "\n";
+my $seqno = &last_seqno();
+my $record = join("\t", "A$seqno", $cc, $offset, "\"$polys\"", $postfix, @alist) . "\n";
 if (0) {
     open (PIPE, "| clip");
     print PIPE $record;
@@ -77,6 +81,16 @@ open (AMAN, ">>", $file) || die "# cannot write to $file\n";
 # print AMAN "# poly \"$polys_org\" $postfix $options\n";
 print AMAN $record;
 close(AMAN);
+#----
+sub last_seqno { # get aseqno from history.txt
+    map {   #        1   1
+            if (m{\/A(\d+)}) { # take the 1st
+                return $1;
+            }
+        }
+        split(/\n/, `make -f $makefile histoeis`);
+    return "";
+} # last_seqno
 __DATA__
       A polyx 0 polys postfix 0 1
 A polyx 0 "polys" "postfix" 0 1

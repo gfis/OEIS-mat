@@ -54,14 +54,11 @@ polysh: # polish the postfix
 deploy:
 	# cp       polysh.tmp $(FISCHER)/aman/polyex.man
 #----
-numden: # get the Numerator/Denominator pairs
-	grep -P "Denominator|Numerator" ../common/jcat25.txt | grep -P "^.N" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-nyiden:
-	grep -P "^%" numden.tmp \
+expsum:
+	grep -iP "g\.f\.: exp\(Sum" $(COMMON)/jcat25.txt \
+	| grep -P "^%" \
 	| cut -b4- | sed -e "s/ /\t/" \
+	| endirect \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp

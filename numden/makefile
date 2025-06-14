@@ -40,3 +40,13 @@ arico:
 	chmod 755 $@.html
 	cmd /c start $@.html
 #----
+xrefari: # get nyi from jcat25.#Y
+	grep -P "^#Y" $(COMMON)/jcat25.txt | grep -P "€\d{6} *\(\w+" \
+	| perl xrefari.pl \
+	| sort -k5 -k1 \
+	>        $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755 $@.html
+	cmd /c start $@.html
+	>        $@.tmp
