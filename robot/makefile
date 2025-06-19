@@ -324,7 +324,7 @@ insect_eval1: # determine the set of A-numbers in intersect and union
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
-insect_eval2: # 
+insect_eval2: #
 	cd ../common ; make seq2 LIST=../robot/insect_eval1.tmp
 	$(DBAT) "SELECT s.aseqno, CAST(s.info AS INT), n.name \
 	  FROM seq2 s, asname n \
@@ -1143,6 +1143,12 @@ prepend: # Simple skip/prepending
 	| tee    $@.gen
 	wc -l    $@.gen
 #----
+primof: # Primes of (the )form ...
+	grep -Pi "\A%[NF] A\d+ [Pp]rimes of (the )?form " $(CAT) | grep -P "^%[NF]" \
+	| perl -pe 's/^\%\w //; s/\W[Pp]rimes of (the )?form /\tlambdan\t0\tk \-\> /;' \
+	| sort -k6,6 | endirect | tee $@.tmp
+
+#----
 primpos:
 	grep -P "Indices of primes " $(CAT) | grep -P "^\%" | $(NYI) filtpos \
 	| perl -ne 'use strict; if (s{Indices of primes[^A]+(A\d{6}).*}{1\tnew $$1()\tPRIME}) { print; }' \
@@ -1301,8 +1307,3 @@ union:
 	| grep -vE "A091898|A177457|A274994|A277334|A281265|A331669|A343222|A356301" \
 	| tee    $@.gen
 	wc -l    $@.*
-#----
-primof: # Primes of (the )form ...
-	grep -Pi "\A%[NF] A\d+ [Pp]rimes of (the )?form " $(CAT) | grep -P "^%[NF]" \
-	| perl -pe 's/^\%\w //; s/\W[Pp]rimes of (the )?form /\tlambdan\t0\tk \-\> /;' \
-	| sort -k6,6 | endirect | tee $@.tmp

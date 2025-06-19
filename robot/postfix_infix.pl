@@ -2,9 +2,10 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
-# 2025-06-10: negative integers and shifts
-# 2025-06-08: B,C,D;e; *FP=11
-# 2025-05-29: besselI
+# 2025-06-15: .* = dot product, hadamardMultiply; more parentheses
+# 2025-06-10: negative integers and shifts, pow
+# 2025-06-08: additional o.g.f.s referenced by B,C,D,E (preferred); *FP=11 
+# 2025-05-29: besselI(0,x)
 # 2025-05-11: additional o.g.f.s referenced by S, T, U, V
 # 2025-05-03: additional o.g.f.s referenced by s0, s1 ... 
 # 2025-03-07: operand n
@@ -94,8 +95,8 @@ sub setPrio {
 sub assignPriorities() {
     $mPrio = 0;
     &setPrio("+", "-");
-    &setPrio("*", "/");
-    &setPrio("^");
+    &setPrio("*", "/", ".*", "./");
+    &setPrio("^", ".^");
     &setPrio("\'");
     &setPrio("~", "(", ")"); # unary minus
     $mPrimPrio = $mPrio + 1; # higher than all other priorities
@@ -131,39 +132,42 @@ sub toInfix {
         my $prio = $mPrioMap{$post};
 
         if (0) {
-        } elsif ($post =~ m{\A\/\Z}) {              # /op2 => /(op2)
+        } elsif ($post =~ m{\A\/\Z}) {                # /op2 => /(op2)
             $op2 = &popElem($prio + 1);
             $op1 = &popElem($prio);
             if ($post =~ m{\A[\+\-]\Z}) {
                 $post = " $post ";
             }
             push(@mStack, "$prio${mSep}$op1$post$op2");
-        } elsif (defined($prio)) {                  # one of the binary arithmetic operators + - * / ^
+        } elsif (defined($prio)) {                    # one of the binary arithmetic operators + - * / ^ .* ./
             $op2 = &popElem($prio);
             $op1 = &popElem($prio);
             if ($post =~ m{\A[\+\-]\Z}) {
                 $post = " $post ";
             }
             push(@mStack, "$prio${mSep}$op1$post$op2");
-        } elsif ($post =~ m{\AA\Z}) {               # the G.f. itself
-            push(@mStack, "$mPrimPrio${mSep}A(x)");
-        } elsif ($post =~ m{\An\Z}) {               # variable n
-            push(@mStack, "$mPrimPrio${mSep}n");
-        } elsif ($post =~ m{\Ax\Z}) {               # variable x
-            push(@mStack, "$mPrimPrio${mSep}x");
-        } elsif ($post =~ m{\Ap(\d+)\Z}) {          # polynomial p0, p1 ...
-            push(@mStack, $mPolys[$1]);
-        } elsif ($post =~ m{\A(\-?\d+)\Z}) {        # integer number 1, 2, -2 ...
-            push(@mStack, "$mPrimPrio${mSep}$1");
-        } elsif ($post =~ m{\A\<(\-?\d+)\Z}) {      # shift -> multiply by power of x
+        } elsif ($post =~ m{\AA\Z}) {                 # the target g.f. A(x)
+            push(@mStack, "$mPrimPrio${mSep}A(x)");   
+        } elsif ($post =~ m{\An\Z}) {                 # variable n
+            push(@mStack, "$mPrimPrio${mSep}n");      
+        } elsif ($post =~ m{\Ax\Z}) {                 # variable x
+            push(@mStack, "$mPrimPrio${mSep}x");      
+        } elsif ($post =~ m{\Ap(\d+)\Z}) {            # polynomial p0, p1 ...
+            push(@mStack, "($mPolys[$1])");           
+        } elsif ($post =~ m{\A(\-?\d+)\Z}) {          # integer number 1, 2, -2 ...
+            my $int = $1;
+            push(@mStack, "$mPrimPrio${mSep}" . (($int =~ m{\A\-}) ? "($int)" : $int));
+
+        } elsif ($post =~ m{\A\<(\-?\d+)\Z}) {        # <shift -> multiply by power of x
             my $shift = $1;
             my $multPrio = $mPrioMap{"*"};
             $op1 = &popElem($multPrio);
             if ($shift < 0) {
-                $shift = "($shift)"; # enclose negative shifts in parentheses
+                $shift = "($shift)"; # () if negative 
             }
             push(@mStack, "$multPrio${mSep}x" . ($shift eq "1" ? "" : "\^$shift") . "*$op1");
-        } elsif ($post =~ m{\A\^(\d+(\/\d+)?)?\Z}) { # power, maybe with (rational) exponent in same element
+
+        } elsif ($post =~ m{\A\^(\d+(\/\d+)?)?\Z})  { # power, maybe with (rational) exponent in same element
             my $powPrio = $mPrioMap{"^"};
             if (length($post) == 1) {
                 $op2 = &popElem($powPrio);
@@ -177,14 +181,16 @@ sub toInfix {
                 $op1  = &popElem($powPrio);
             }
             push(@mStack, "$powPrio${mSep}$op1" . ($op2 eq "1" ? "" : "$post$op2"));
-        } elsif ($post =~ m{\A(agm|besselI|pow)\Z})    {  # function calls with 2 operands: agm
+
+        } elsif ($post =~ m{\A(agm|besselI|pow)\Z}) { # function calls with 2 operands: agm, besselI, pow
             $op2 = &popElem($mPrimPrio + 1);
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post($op1, $op2)");
-        } elsif ($post =~ m{\A([a-z][a-zA-Z]+)\Z}) {  # function calls exp, neg, int, rev, lambertW etc.
+
+        } elsif ($post =~ m{\A([a-z][a-zA-Z]+|[\*\/]n\!)\Z}) {  # function calls exp, neg, int, rev, lambertW etc., *n!, /n!
             if (0) {
             } elsif ($post eq "rev") {
-                $post = "reversion";
+                $post = "reverse";
             } elsif ($post eq "int") {
                 $post = "integral";
             }
@@ -200,12 +206,18 @@ sub toInfix {
                 push(@mStack, "$mPrimPrio${mSep}-$op1");
             } elsif ($post eq "sub") {
                 push(@mStack, "$mPrimPrio${mSep}A$op1");
+            } elsif ($post eq "*n!") {
+                push(@mStack, "$mPrimPrio${mSep}$op1*n!");
+            } elsif ($post eq "/n!") {
+                push(@mStack, "$mPrimPrio${mSep}$op1/n!");
             } else {
                 push(@mStack, "$mPrimPrio${mSep}$post$op1");
             }
-        } elsif ($post =~ m{\A[BCDESTUV]\Z}) {          # g.f.s. of additional sequences
+
+        } elsif ($post =~ m{\A[BCDESTUV]\Z}) {        # g.f.s. of additional source sequences
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post$op1");
+
         } else {
             print "# undefined postfix element=\"$post\"\n";
         }

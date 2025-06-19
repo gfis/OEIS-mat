@@ -5,7 +5,7 @@
 # 2025-06-13: Georg Fischer
 #---------------------------------
 GITS=../..
-DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
+DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
 COMMON=../common
 FISCHER=$(GITS)/joeis-lite/internal/fischer
 REFLECT=$(FISCHER)/reflect
@@ -23,6 +23,8 @@ numden: # get the Numerator/Denominator pairs
 nyiden:
 	grep -P "^%" numden.tmp \
 	| cut -b4- | sed -e "s/ /\t/" \
+	| endirect \
+	| perl -pe 's/^[A-Z](\d{6})/A$$1/;' \
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.tmp
@@ -39,14 +41,3 @@ arico:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 755 $@.html
 	cmd /c start $@.html
-#----
-xrefari: # get nyi from jcat25.#Y
-	grep -P "^#Y" $(COMMON)/jcat25.txt | grep -P "€\d{6} *\(\w+" \
-	| perl xrefari.pl \
-	| sort -k5 -k1 \
-	>        $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755 $@.html
-	cmd /c start $@.html
-	>        $@.tmp

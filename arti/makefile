@@ -89,3 +89,23 @@ maple_lines:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#----
+xrefari: # get nyi from jcat25.#Y
+	grep -P "^#Y" $(COMMON)/jcat25.txt | grep -P "€\d{6} *\(\w+" \
+	| perl xrefari.pl \
+	| sort -k5 -k1 \
+	>        $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755 $@.html
+	cmd /c start $@.html
+xreflist: # get nyi lists from jcat25.#Y
+	grep -P "#Y A\d{6}" ../common/jcat25.txt | cut -b 4- | endirect | perl -pe 's/ /\t/;' \
+	| perl $@.pl \
+	>        $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755 $@.html
+	cmd /c start $@.html
+xx:
+#----

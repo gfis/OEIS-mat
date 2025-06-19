@@ -1143,3 +1143,13 @@ middle:
 section:
 	grep -Pi "section of \w\d{6}" jcat25.txt | grep -P "^%[NFCY]" | grep -v "€" | endirect \
 	| tee section.tmp
+#----
+invtraf: # get nyi from jcat25
+	grep -Pi "INVERTi? transform" $(COMMON)/jcat25.txt | grep -P "^%"  \
+	| endirect \
+	| cut -b4- | sed -e "s/ /\t/" -e "s/^./A/" \
+	>        $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755 $@.html
+	cmd /c start $@.html

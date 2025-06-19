@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cat /dev/clipboard | endirect
-
+echo -e "\n"

@@ -55,7 +55,7 @@ deploy:
 	# cp       polysh.tmp $(FISCHER)/aman/polyex.man
 #----
 expsum:
-	grep -iP "g\.f\.: exp\(Sum" $(COMMON)/jcat25.txt \
+	grep -iP "exp\(Sum" $(COMMON)/jcat25.txt \
 	| grep -P "^%" \
 	| cut -b4- | sed -e "s/ /\t/" \
 	| endirect \
