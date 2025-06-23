@@ -47,9 +47,10 @@ while (scalar(@ARGV) > 0) {
 $matrix =~ s{\"}{}g;
 $init   =~ s{\"}{}g;
 my $seqno = &last_seqno();
-my $record = join("\t", "A$seqno", $cc, $offset, $matrix, $init, $dist, $gftype) . "\n"
-           . join("\t", "A" . ($seqno + 1), "conum", 0, "A$seqno")               . "\n"
-           ;
+my $record   = join("\t", "A$seqno", $cc, $offset, $matrix, $init, $dist, $gftype) . "\n";
+if ($cc !~ m{holos}) {
+    $record .= join("\t", "A" . ($seqno + 1), "conum", 0, "A$seqno")               . "\n"; 
+}
 if (0) {
     open (PIPE, "| clip");
     print PIPE $record;

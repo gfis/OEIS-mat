@@ -36,14 +36,15 @@ my $name;
 while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
-    my ($aseqno, $text) = split("\t", $line); 
+    my ($aseqno, $text) = split("\t", $line);
     my $xseqno = $aseqno;
     $aseqno =~ s{\A.}{A};
     $text =~ s{this( sequence)?}{$xseqno}g;
     my $callcode = "conum";
-    my %hash = ();                                          
+    my %hash = ();
     #              123       3        (                    )    2   1
-    if ($text =~ s{(((€|[A-Z])\d{6} *\(\w+ *\= *[0-9\-\/]+\)\, *){3})} {\t$1}) {  
+    if ($text =~ s{(((€|[A-Z])\d{6} *\(\w+ *\= *[0-9\-\/]+\)\, *){3})} {\t$1}) {
+        $text =~ s{ *\= *}{\=}g;
         my ($prefix, $list) = split(/\t/, $text);
         if ($list =~ m{€}) {
             print join("\t", $aseqno, $text) . "\n";
