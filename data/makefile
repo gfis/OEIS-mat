@@ -185,8 +185,8 @@ jar_push: # REM= ; distribute the local joeis.jar to some remote server
 #====
 joeis-prep: # REM= ; make a fresh copy of joeis on the remote server
 	ssh $(REM) "cd  ~/work/gits/joeis-prep ; rm -rf * ; cp -pr ../joeis/* . ; rm -f joeis_pull* *.log ; ant clean ; ls -al ; ant test"
-xxx:
-	ssh $(REM) "cd ~/work/gits/joeis ; git pull ; cd ~/work/gits/OEIS-mat/data/
+jprep:
+	cd ../../joeis-prep ; rm -f joeis_pull* *.log ; ant clean all-jar
 #====
 bfsynth: bfsynth1 bfsynth2 bfsynth3 # generate all "synthesized" b-files from asdata
 bfsynth1:

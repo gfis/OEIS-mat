@@ -1221,7 +1221,7 @@ quotser: # series of quotients a(n)/a(n-1)
 	    AND i.keyword NOT LIKE '%mult%' \
 	  ORDER BY 1" \
 	| perl quotser.pl \
-	| tee    $@.1.tmp
+	>        $@.1.tmp
 	wc -l    $@.1.tmp
 	$(DBAT) -x "SELECT n.aseqno, '-------', n.name \
 	  FROM asinfo i, asdata d, asname n \

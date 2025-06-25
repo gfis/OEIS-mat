@@ -388,7 +388,7 @@ joeis_dead: # not used
 	$(DBAT) -n joeis
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
-joeis_names: # all A-numbers with their jOEIS superclass or null 
+joeis_names: # all A-numbers with their jOEIS superclass or null
 	perl ue_script.pl -close
 	cmd /c attrib -R $@.txt
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
@@ -401,7 +401,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	head -n4 $@.txt
 	wc -l    $@.txt
 	perl ue_script.pl -open
-joeis_tabl: # 'tabl' A-numbers with their jOEIS superclass or null, 
+joeis_tabl: # 'tabl' A-numbers with their jOEIS superclass or null,
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	WHERE a.aseqno = n.aseqno \
@@ -792,7 +792,7 @@ doubled2:
 	wc -l $@.tmp
 #----
 #---------
-zero_spaced: zero_spaced1 
+zero_spaced: zero_spaced1
 zero_spaced1:
 	perl zero_spaced.pl -v $(V) stripped \
 	| tee $@.tmp
@@ -1105,7 +1105,7 @@ dgf: # Dirichlet g.f.s in jcat25 nyi
 mult: # Multiplicative in jcat25 nyi
 	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
 	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
-	 
+
 filprim:
 	grep -P "Numbers [nk] such that \(\d+\^[^i]+is prime" joeis_names.txt | grep nyi | tee filprim.tmp
 sumpari:
@@ -1117,7 +1117,7 @@ egf:
 	| cut -b 4- | perl -pe 's/ /\t/;' \
 	| tee    $@.tmp
 	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html 
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 755    $@.html
 	cmd /c start $@.html
 ogf:
@@ -1139,17 +1139,7 @@ series:
 	cmd /c start $@.html
 middle:
 	grep -P "A\d{6} ([^\-\+\*\/\=\<\>\|\.\& a-zA-Z0-9]+) A\d{6}" jcat25.txt | grep -P "^%[NFCY]"  | tee middle.tmp
-	
+
 section:
 	grep -Pi "section of \w\d{6}" jcat25.txt | grep -P "^%[NFCY]" | grep -v "€" | endirect \
 	| tee section.tmp
-#----
-invtraf: # get nyi from jcat25
-	grep -Pi "INVERTi? transform" $(COMMON)/jcat25.txt | grep -P "^%"  \
-	| endirect \
-	| cut -b4- | sed -e "s/ /\t/" -e "s/^./A/" \
-	>        $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755 $@.html
-	cmd /c start $@.html

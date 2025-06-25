@@ -167,6 +167,15 @@ sub toInfix {
             }
             push(@mStack, "$multPrio${mSep}x" . ($shift eq "1" ? "" : "\^$shift") . "*$op1");
 
+        } elsif ($post =~ m{\A\>(\-?\d+)\Z}) {        # >shift -> divide by power of x
+            my $shift = -($1);
+            my $multPrio = $mPrioMap{"*"};
+            $op1 = &popElem($multPrio);
+            if ($shift < 0) {
+                $shift = "($shift)"; # () if negative 
+            }
+            push(@mStack, "$multPrio${mSep}x" . ($shift eq "1" ? "" : "\^$shift") . "*$op1");
+
         } elsif ($post =~ m{\A\^(\d+(\/\d+)?)?\Z})  { # power, maybe with (rational) exponent in same element
             my $powPrio = $mPrioMap{"^"};
             if (length($post) == 1) {
