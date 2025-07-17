@@ -1,7 +1,8 @@
 #!make
 
 # OEIS-mat/lrindex - recreate OEIS wiki page: "Index of linear recurrences ..."
-# @(#) $Id$
+# @(#) $Id$   
+# 2025-07-04: lrlink_grep instead of lrink_pull
 # 2021-01-16: comments
 # 2020-05-09: regenerated
 # 2019-06-04: moved from ../linrec
@@ -11,7 +12,7 @@
 # 2019-01-17: Georg Fischer
 #
 # (make lrlink_prep on the server, now in lrlink_pull)
-# make lr0 lrlink_pull lrlink
+# make lr0 lrlink_grep lrlink
 # make lrindx, repair duplicate key in lrindx.tmp
 # make lrlink_insert 
 # make lrindex_check ; delete resulting sequences (except for high orders) manually
@@ -39,12 +40,16 @@ SORTALLN=sort       -k1$(G)  -k2$(G)  -k3$(G)  -k4$(G)  -k5$(G)  -k6$(G)  -k7$(G
 all: lrindex
 	# grep -E "^[a-z]" makefile
 #======================================================
-lrindex: lr0 lrlink_pull lrlink lrindx 
+lrindex: lr0 lrlink_grep lrlink lrindx 
 lr0:
-	perl extract_lrindex.pl -d $(D) -m lrindx > lrindx.create.sql
-	$(DBAT) -f                                  lrindx.create.sql
 	perl extract_lrindex.pl -d $(D) -m lrlink > lrlink.create.sql
 	$(DBAT) -f                                  lrlink.create.sql
+#--
+lrlink_grep: # local from jcat25.txt
+	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(COMMON)/jcat25.txt \
+	>        lrlink1.tmp || :
+	head -n4 lrlink1.tmp
+	wc   -l  lrlink1.tmp
 #--
 REM=set_REM_eq_User_At_Server_
 lrlink_pull:
@@ -61,7 +66,7 @@ lrlink_scp:
 #----
 lrlink: lrlink2 lrlink3 lrlink_patch lrlord_patch lrlink_check
 lrlink2: 
-	perl extract_lrindex.pl -m link         lrlink1.tmp \
+	perl extract_lrindex.pl -m link lrlink1.tmp \
 	| $(SORTALLN) \
 	| uniq \
 	| grep -vE "01174[05]" \
@@ -136,7 +141,8 @@ lrindx1:
 	perl extract_lrindex.pl -d $(D) -m index -f lrindx.spec.tmp  lrindx.wiki \
 	>           lrindx.tmp
 lrindx2:
-	$(DBAT) "DELETE FROM lrindx"
+	perl extract_lrindex.pl -d $(D) -m lrindx > lrindx.create.sql
+	$(DBAT) -f                                  lrindx.create.sql
 	$(DBAT) -m csv -s "\t" -r lrindx <  lrindx.tmp
 	$(DBAT) -n                lrindx
 	$(DBAT) -4 lrindx
@@ -334,10 +340,10 @@ lrindx_nyi_check:
 	$(DBAT) "SELECT a.aseqno, 'holsig', a.offset1, i.signature \
 	   , REGEXP_SUBSTR(d.data, '[\-0-9]+(\,[\-0-9]+){' || CAST(i.sigorder + 1 AS CHAR) || '}') \
 	   , i.sigorder, 1, 0, a.termno, n.name \
-	   FROM lrindx i, asinfo a, asname n, bfdata d \
+	   FROM lrindx i, asinfo a \
+	   LEFT JOIN asname n ON n.aseqno = a.aseqno \
+	   LEFT JOIN asdata d ON d.aseqno = n.aseqno \
 	   WHERE 'A' || i.seqno = a.aseqno \
-	     AND a.aseqno = n.aseqno \
-	     AND n.aseqno = d.aseqno \
 	     AND a.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	     AND i.sigorder <= 32 \
 	   ORDER by 1" \

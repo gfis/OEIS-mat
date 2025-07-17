@@ -366,6 +366,23 @@ lingfcj4:
 	| perl -ne 'print if length($$_) < 1024;'\
 	> ../../joeis-lite/internal/fischer/aman/lingfcj3.man
 #----------------
+lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis
+lrlink1: # grep and reformat, with order 
+	cut -f1  lrlink.nak.man | sort | tr -d "\r" | tee lrlink.nak.tmp
+	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(CAT) \
+	| grep -P "^\%H" \
+	| grep -vf lrlink.nak.tmp \
+	| perl lrlink_nyi.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+lrlink2: # get 'order' initial terms
+	cat lrlink1.tmp | getinits -q \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/aman/lrlink.man
+#----------------
 lsm0: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
 #--
 lsm1: # prepare

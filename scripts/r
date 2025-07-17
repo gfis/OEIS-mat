@@ -6,3 +6,4 @@ ls -al $fname
 cd $GITS/OEIS-mat/contrib ; wget -q -r "https://oeis.org/b$seqno.txt" -O $fname
 head -n8 $fname
 ls -al $fname
+wc -l  $fname

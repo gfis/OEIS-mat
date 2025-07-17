@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# holminit - for seq4 records with CC=holos, generate UPDATEs of parm2 with the minimal list of initial terms for a list of A-numbers
+# @(#) $Id$
+# 2025-06-26, Georg Fischer
+# Usage: holminit list
+# echo GITS=$GITS
+cp $1   $GITS/joeis-lite/internal/fischer/holminit1.tmp 
+cd      $GITS/joeis-lite/internal/fischer ; make seq LIST=holminit1.tmp > /dev/null
+cd      $GITS/OEIS-mat/scripts ; dbat -f holminit.sql \
+| perl holminit.pl

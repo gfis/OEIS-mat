@@ -1,7 +1,8 @@
 #!perl
 
 # Extract linear recurrence signatures (and initial terms) from JSON grep
-# @(#) $Id$
+# @(#) $Id$ 
+# 2025-07-04: lorder BIGINT, longer fields in SQL
 # 2019-12-16: column aseqno; oo = 20
 # 2019-06-04: moved from ../linrec
 # 2019-03-29: revisited
@@ -266,9 +267,10 @@ if (0) { # switch for $mode
         s/\s+\Z//; # chompr
         $line = $_;
         if (0) {
-        } elsif ($mode =~ m{link}) {
-            if ($line =~ m{(A\d{6})\.json\:}) { # link
-                $aseqno    = $1;
+        } elsif ($mode =~ m{link}) {             
+            #              1        12       23     3
+            if ($line =~ m{(\A.H |\/)([A-Z]|€)(\d{6})}) { # link
+                $aseqno    = "A$3";
                 $initerm   = "";
                 $termno    = 0;
                 $signature = $void_sig;
@@ -454,21 +456,22 @@ sub create_sql {
 --
 DROP    TABLE  IF EXISTS $tabname;
 CREATE  TABLE            $tabname
-    ( lorder    INT         NOT NULL  -- order = number of right terms
+    ( lorder    BIGINT      NOT NULL  -- order = number of right terms
     , compsig   VARCHAR($trunc_len)   -- blank separated, truncated, without "( )"
     , seqno     VARCHAR(8)  NOT NULL  -- 322469 without 'A'
     , sigorder  INT                   -- number of signature elements
-    , signature VARCHAR(1020)         -- comma separated, without "[ ]"
+    , signature VARCHAR(4096)         -- comma separated, without "[ ]"
     , mode      VARCHAR(8)
     , spec      VARCHAR(16)
     , termno    INT                   -- number of initial terms
-    , initerms  VARCHAR(1024)         -- comma separated, without "[ ]"
+    , initerms  VARCHAR(4096)         -- comma separated, without "[ ]"
     , aseqno    VARCHAR(8)            -- A322469 with 'A'
     , PRIMARY KEY(lorder, compsig, seqno, sigorder, mode)
     );
 COMMIT;
 GFis
-#------------------
+#------------------    
+    # A380292 order 6615344776548816157229109892561942561580100000 !??
     } elsif ($tabname eq "lrindx") {
         print <<"GFis";
 --  OEIS-mat: $tabname - working table for index of linear recurrences
@@ -477,13 +480,13 @@ GFis
 --
 DROP    TABLE  IF EXISTS $tabname;
 CREATE  TABLE            $tabname
-    ( lorder    INT         NOT NULL  -- order = number of right terms
+    ( lorder    VARCHAR(128) NOT NULL -- order = number of right terms
     , compsig   VARCHAR($trunc_len)          -- blank separated, truncated, without "( )"
     , seqno     VARCHAR(8)  NOT NULL  -- 322469 without 'A'
     , sigorder  INT                   -- number of signature elements
-    , signature VARCHAR(1020)         -- comma separated, without "( )"
-    , comment   VARCHAR(1020)         -- behind signature, aseqno
-    , PRIMARY KEY(lorder, compsig, seqno, sigorder)
+    , signature VARCHAR(4096)         -- comma separated, without "( )"
+    , comment   VARCHAR( 512)         -- behind signature, aseqno
+    , PRIMARY KEY(lorder, compsig, seqno, sigorder, comment)
     );
 COMMIT;
 GFis

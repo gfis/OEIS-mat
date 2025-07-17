@@ -2,6 +2,7 @@
 
 # Generate a seq4 record with CC=poly* from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
+# 2025-07-14, enclose with egf(); .skip(), .prepend(); *CZ=73
 # 2025-06-03, Georg Fischer
 #
 #:# Usage:
@@ -53,16 +54,12 @@ if ($gftype ne "") {
     $cc =~ s{poly\Z}{polyx};
 }
 my @alist = ();
-if ($polys =~ s{((\, *A\d+\!?)+)}{}) { # move the A-numbers to instances at the end
-    my $list = substr($1, 1);  
-    if (1 or $list !~ m{\!}) { # always
-        my @anos = split(/\, */, $list);
-        $cc =~ s{a?\Z}{a};
-        @alist = join(", ", map { 
-                    m{(\d+)}; $_ = sprintf("A%06d", $1);
-                    ($_ =~ s{\!}{}) ? "egf(new $_())" : "new $_()"
-                    } @anos);
-    } # always
+#                    1     1
+if ($polys =~ s{\, *A(\d+.+)}{}) { # move the enhanced A-numbers to instances at the end
+    my $list = $1;  
+    my @snos = split(/\, *A/, $list);
+    $cc =~ s{a?\Z}{a};
+    @alist = join(", ", map { &aseqno_instance($_) } @snos);
 }
 $postfix = "\"$postfix\"";
 if ($cc =~ m{x}) {
@@ -82,6 +79,28 @@ open (AMAN, ">>", $file) || die "# cannot write to $file\n";
 print AMAN $record;
 close(AMAN);
 #----
+sub aseqno_instance { # convert the enhanced aseqno syntax into an instance of the sequence
+    # seqen may have less than 6 digits
+    # ".skip(i)" may be appended
+    # ".prepend(i1,i2...)" may be appended
+    # "!" may be appended for e.g.f.s
+    my ($seqenh) = @_;
+    $seqenh =~ m{(\d+)}; 
+    my  $nseqno = sprintf("new A%06d()", $1);
+    #                 1       (    )1
+    if ($seqenh  =~ m{(\.skip\(\d*\))}) {
+        $nseqno = "$nseqno$1";
+    }
+    #                          (1   2         2 1 )
+    if ($seqenh  =~ m{\.prepend\((\d+( *\, *\d+)*)\)}) {
+        $nseqno = "new PrependSequence(0, $nseqno, $1)"; # normalize to offset=0
+    }
+    if ($seqenh =~ m{\!}) {
+        $nseqno = "egf($nseqno)";
+    }
+    return $nseqno;
+} # aseqno_instance
+#----
 sub last_seqno { # get aseqno from history.txt
     map {   #        1   1
             if (m{\/A(\d+)}) { # take the 1st
@@ -90,7 +109,7 @@ sub last_seqno { # get aseqno from history.txt
         }
         split(/\n/, `make -f $makefile histoeis`);
     return "";
-} # last_seqno
+} # last_seqno 
 __DATA__
       A polyx 0 polys postfix 0 1
 A polyx 0 "polys" "postfix" 0 1

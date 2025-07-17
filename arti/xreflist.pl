@@ -47,7 +47,7 @@ while (<>) {
         $text =~ s{ *\= *}{\=}g;
         my ($prefix, $list) = split(/\t/, $text);
         if ($list =~ m{€}) {
-            print join("\t", $aseqno, $text) . "\n";
+            print join("\t", $aseqno, $list, $prefix) . "\n";
         }
     }
 } # while <>

@@ -27,7 +27,7 @@ refresh:
 	| xargs -innn make refresh1 S=nnn
 refresh1: # S=012345, read into ./oeis.org/ and copy to ../common/bfile
 	make SLEEP=0 wgeto
-	cp -v oeis.org/b$(S).txt                              $(COMMON)/bfile/
+	cp -v oeis.org/b$(S).txt $(COMMON)/bfile/
 #--
 refresh_atair:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
@@ -40,7 +40,8 @@ refresh_oeis:
 	| xargs -innn make refresh3 S=nnn
 refresh3: # S=012345, read from atair
 	make SLEEP=4 wgeto
-	cp -v oeis.org/b$(S).txt                              $(COMMON)/bfile/
+	cp -v oeis.org/b$(S).txt $(COMMON)/bfile/ 
+	wc -l $(COMMON)/bfile/b$(S).txt
 #--------
 wgeto: # S=012345, read into ./oeis.org/
 	#--------------------------------
@@ -250,6 +251,8 @@ jvplist:
 lelist:
 	make subdir DIR=le  NAME=Elemer
 	sort -k3 le/lelist.txt > le/lesort.txt
+mslist:
+	make subdir DIR=ms  NAME=Somos
 oglist:
 	make subdir DIR=og  NAME=Olivier
 oplist:                 
@@ -258,6 +261,8 @@ pblist:
 	make subdir DIR=pb  NAME=Bala
 phlist:                 
 	make subdir DIR=ph  NAME=Hanna
+pxlist:                 
+	make subdir DIR=px  NAME=Xausa
 rblist:                 
 	make subdir DIR=rb  NAME=Bagula
 rslist:                 

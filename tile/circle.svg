@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+    Written with Tiler2.java at 2020-05-16 18:18 - Georg Fischer. Do NOT edit here!
+-->
+<?xml-stylesheet type="text/css" href="tiling.css" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    width="192mm" height="192mm" viewBox="-2 -2 4 4" >
+<title>Uniform Tiling</title>
+<g id="tile">
+<rect x="-2" y="-2" width="4" height="4" />
+<text class="nota" x="-2" y="-1">&#xa0;</text>
+<line class="l0" x1="0.0" y1="0.0" x2="1.0000" y2="0.0000"></line>
+<line class="l1" x1="0.0" y1="0.0" x2="0.9659" y2="0.2588"></line>
+<line class="l2" x1="0.0" y1="0.0" x2="0.8660" y2="0.5000"></line>
+<line class="l3" x1="0.0" y1="0.0" x2="0.7071" y2="0.7071"></line>
+<line class="l0" x1="0.0" y1="0.0" x2="0.5000" y2="0.8660"></line>
+<line class="l1" x1="0.0" y1="0.0" x2="0.2588" y2="0.9659"></line>
+<line class="l2" x1="0.0" y1="0.0" x2="0.0000" y2="1.0000"></line>
+<line class="l3" x1="0.0" y1="0.0" x2="-0.2588" y2="0.9659"></line>
+<line class="l0" x1="0.0" y1="0.0" x2="-0.5000" y2="0.8660"></line>
+<line class="l1" x1="0.0" y1="0.0" x2="-0.7071" y2="0.7071"></line>
+<line class="l2" x1="0.0" y1="0.0" x2="-0.8660" y2="0.5000"></line>
+<line class="l3" x1="0.0" y1="0.0" x2="-0.9659" y2="0.2588"></line>
+<line class="l0" x1="0.0" y1="0.0" x2="-1.0000" y2="0.0000"></line>
+<line class="l1" x1="0.0" y1="0.0" x2="-0.9659" y2="-0.2588"></line>
+<line class="l2" x1="0.0" y1="0.0" x2="-0.8660" y2="-0.5000"></line>
+<line class="l3" x1="0.0" y1="0.0" x2="-0.7071" y2="-0.7071"></line>
+<line class="l0" x1="0.0" y1="0.0" x2="-0.5000" y2="-0.8660"></line>
+<line class="l1" x1="0.0" y1="0.0" x2="-0.2588" y2="-0.9659"></line>
+<line class="l2" x1="0.0" y1="0.0" x2="0.0000" y2="-1.0000"></line>
+<line class="l3" x1="0.0" y1="0.0" x2="0.2588" y2="-0.9659"></line>
+<line class="l0" x1="0.0" y1="0.0" x2="0.5000" y2="-0.8660"></line>
+<line class="l1" x1="0.0" y1="0.0" x2="0.7071" y2="-0.7071"></line>
+<line class="l2" x1="0.0" y1="0.0" x2="0.8660" y2="-0.5000"></line>
+<line class="l3" x1="0.0" y1="0.0" x2="0.9659" y2="-0.2588"></line>
+<line class="l0" x1="0.0" y1="0.0" x2="1.0000" y2="0.0000"></line>
+</g>
+</svg>

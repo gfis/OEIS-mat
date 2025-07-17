@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+    Written with Tiler2.java at 2020-05-17 10:01 - Georg Fischer. Do NOT edit here!
+-->
+<?xml-stylesheet type="text/css" href="tiling.css" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    width="192mm" height="192mm" viewBox="-3 -3 6 6" >
+<title>Uniform Tiling</title>
+<g id="tile">
+<rect x="-3" y="-3" width="6" height="6" />
+<text class="nota" x="-2.8499999999999996" y="-2.55" style="font-size: 0.15pt">Gal.1.4.1</text>
+<line class="l1" x1="0.0000" y1="0.0000" x2="1.0000" y2="0.0000"><title>0A->1a</title></line>
+<line class="l1" x1="0.0000" y1="0.0000" x2="-0.8660" y2="0.5000"><title>0A->2a</title></line>
+<line class="l1" x1="0.0000" y1="0.0000" x2="0.5000" y2="-0.8660"><title>0A->3a</title></line>
+<line class="l2" x1="1.0000" y1="0.0000" x2="0.5000" y2="-0.8660"><title>1a->3a</title></line>
+<line class="l2" x1="1.0000" y1="0.0000" x2="1.0000" y2="1.0000"><title>1a->4A</title></line>
+<line class="l2" x1="1.0000" y1="0.0000" x2="1.0000" y2="1.0000"><title>1a->4A</title></line>
+<line class="l2" x1="-0.8660" y1="0.5000" x2="-1.8660" y2="0.5000"><title>2a->5A</title></line>
+<line class="l2" x1="-0.8660" y1="0.5000" x2="0.0000" y2="1.0000"><title>2a->6A</title></line>
+<line class="l2" x1="-0.8660" y1="0.5000" x2="0.0000" y2="1.0000"><title>2a->6A</title></line>
+<line class="l2" x1="0.5000" y1="-0.8660" x2="0.0000" y2="0.0000"><title>3a->0A</title></line>
+<line class="l2" x1="0.5000" y1="-0.8660" x2="1.3660" y2="-1.3660"><title>3a->7A</title></line>
+<line class="l2" x1="0.5000" y1="-0.8660" x2="1.3660" y2="-1.3660"><title>3a->7A</title></line>
+<line class="l0" x1="1.0000" y1="1.0000" x2="0.5000" y2="1.8660"><title>4A->8a</title></line>
+<line class="l0" x1="1.0000" y1="1.0000" x2="1.0000" y2="0.0000"><title>4A->1a</title></line>
+<line class="l0" x1="1.0000" y1="1.0000" x2="1.5000" y2="1.8660"><title>4A->9a</title></line>
+<line class="l0" x1="-1.8660" y1="0.5000" x2="-1.3660" y2="-0.3660"><title>5A->10a</title></line>
+<line class="l0" x1="-1.8660" y1="0.5000" x2="-1.8660" y2="1.5000"><title>5A->11a</title></line>
+<line class="l0" x1="-1.8660" y1="0.5000" x2="-2.3660" y2="-0.3660"><title>5A->12a</title></line>
+<line class="l0" x1="0.0000" y1="1.0000" x2="0.5000" y2="1.8660"><title>6A->8a</title></line>
+<line class="l0" x1="0.0000" y1="1.0000" x2="-0.8660" y2="0.5000"><title>6A->2a</title></line>
+<line class="l0" x1="0.0000" y1="1.0000" x2="1.0000" y2="1.0000"><title>6A->4A</title></line>
+<line class="l0" x1="1.3660" y1="-1.3660" x2="2.3660" y2="-1.3660"><title>7A->13a</title></line>
+<line class="l0" x1="1.3660" y1="-1.3660" x2="0.5000" y2="-0.8660"><title>7A->3a</title></line>
+<line class="l0" x1="1.3660" y1="-1.3660" x2="1.8660" y2="-2.2321"><title>7A->14a</title></line>
+<g><circle class="c2" cx="-0.8660" cy="0.5000" r="0.3"></circle><text     class="t2" x="-0.8660" y="0.5000" dy="0.35em">a</text><title>2a180</title></g>
+<g><circle class="c2" cx="0.5000" cy="-0.8660" r="0.15"></circle><text     class="t2" x="0.5000" y="-0.8660" dy="0.35em">a</text><title>3a120</title></g>
+<g><circle class="c0" cx="1.0000" cy="1.0000" r="0.15"></circle><text     class="t0" x="1.0000" y="1.0000" dy="0.35em">A</text><title>4A120</title></g>
+<g><circle class="c0" cx="-1.8660" cy="0.5000" r="0.15"></circle><text     class="t0" x="-1.8660" y="0.5000" dy="0.35em">A</text><title>5A300</title></g>
+<g><circle class="c0" cx="0.0000" cy="1.0000" r="0.15"></circle><text     class="t0" x="0.0000" y="1.0000" dy="0.35em">A</text><title>6A60</title></g>
+<g><circle class="c0" cx="1.3660" cy="-1.3660" r="0.15"></circle><text     class="t0" x="1.3660" y="-1.3660" dy="0.35em">A</text><title>7A0</title></g>
+<g><circle class="c8" cx="0.5000" cy="1.8660" r="0.15"></circle><text     class="t8" x="0.5000" y="1.8660" dy="0.35em">a</text><title>8a0</title></g>
+<g><circle class="c8" cx="1.5000" cy="1.8660" r="0.15"></circle><text     class="t8" x="1.5000" y="1.8660" dy="0.35em">a</text><title>9a240</title></g>
+<g><circle class="c8" cx="-1.3660" cy="-0.3660" r="0.15"></circle><text     class="t8" x="-1.3660" y="-0.3660" dy="0.35em">a</text><title>10a180</title></g>
+<g><circle class="c8" cx="-1.8660" cy="1.5000" r="0.15"></circle><text     class="t8" x="-1.8660" y="1.5000" dy="0.35em">a</text><title>11a120</title></g>
+<g><circle class="c8" cx="-2.3660" cy="-0.3660" r="0.15"></circle><text     class="t8" x="-2.3660" y="-0.3660" dy="0.35em">a</text><title>12a60</title></g>
+<g><circle class="c8" cx="2.3660" cy="-1.3660" r="0.15"></circle><text     class="t8" x="2.3660" y="-1.3660" dy="0.35em">a</text><title>13a240</title></g>
+<g><circle class="c8" cx="1.8660" cy="-2.2321" r="0.15"></circle><text     class="t8" x="1.8660" y="-2.2321" dy="0.35em">a</text><title>14a120</title></g>
+</g>
+</svg>

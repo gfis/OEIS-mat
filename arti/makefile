@@ -91,8 +91,8 @@ maple_lines:
 	wc -l    $@.tmp
 #----
 xrefari: # get nyi from jcat25.#Y
-	grep -P "^#Y" $(COMMON)/jcat25.txt | grep -P "€\d{6} *\(\w+" \
-	| perl xrefari.pl \
+	grep -P "^\#Y" $(COMMON)/jcat25.txt | grep -P "€\d{6} *\(\w+" \
+	| perl   $@.pl \
 	| sort -k5 -k1 \
 	>        $@.tmp
 	wc -l    $@.tmp
@@ -101,11 +101,34 @@ xrefari: # get nyi from jcat25.#Y
 	cmd /c start $@.html
 xreflist: # get nyi lists from jcat25.#Y
 	grep -P "#Y A\d{6}" ../common/jcat25.txt | cut -b 4- | endirect | perl -pe 's/ /\t/;' \
-	| perl $@.pl \
+	| perl   $@.pl \
 	>        $@.tmp
 	wc -l    $@.tmp
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 755 $@.html
 	cmd /c start $@.html
-xx:
+#----
+xrefpair: # get nyi lists from jcat25.#Y
+	grep -P "#Y A\d{6}" ../common/jcat25.txt | cut -b 4- | endirect | perl -pe 's/ /\t/;' \
+	| perl   $@.pl \
+	| sort \
+	>        $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755 $@.html
+	cmd /c start $@.html
+xrefep2: # evaluate pairs
+	cut -f2  xrefpair.tmp \
+	| sort | uniq > $@.1.tmp
+	make seq   LIST=$@.1.tmp
+	$(DBAT) -x "SELECT aseqno, callcode, offset1, parms FROM gregen WHERE aseqno IN (SELECT aseqno FROM seq) ORDER BY 1" \
+	| perl -pe 's/\^\^/\t/g;' \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp 
+xrefep3: # remember the gregen records, and merge them into the list
+	perl     $@.pl -f xrefep2.tmp xrefpair.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp 
 #----

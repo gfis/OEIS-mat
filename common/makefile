@@ -389,7 +389,7 @@ joeis_dead: # not used
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	perl ue_script.pl -close
+	#	perl ue_script.pl -close
 	cmd /c attrib -R $@.txt
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
@@ -397,7 +397,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	  and a.aseqno = b.aseqno \
 	ORDER BY 1" \
 	| endirect \
-	| perl -pe "s{\'\'}{\'}g" > $@.txt
+	| perl -pe "s{\'\'}{\'}g" > $@.1.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
 	perl ue_script.pl -open
@@ -442,7 +442,7 @@ joeis_count: # percentage of sequences implemented in jOEIS
 	make -s joeis_stat
 joeis_analog:
 	# currently not; cd $(FISCHER); make analog
-ALAST=A072000
+ALAST=A079000
 joeis_progress:
 	$(DBAT) -x "SELECT current_date, current_time, a, ' Java classes = ', SUBSTR(CAST(a/b * 100 AS CHAR),1,9) \
 	    , '% out of ', b, ' OEIS sequences are implemented by jOEIS' FROM \
@@ -1112,8 +1112,24 @@ sumpari:
 	grep -P "^%o A38\d+ \(PARI" jcat25.txt | grep sum | tee sumpari.tmp
 essent:
 	grep -Pi "Essentially (the same as )?A\d+" jcat25.txt | grep -P "^%[NFCY]" | endirect | tee essent.tmp
+diffeq:
+	grep -P "differential eq" jcat25.txt | grep -P "^%[NFC]" | endirect | grep -viP "€|Prod|sum|row|column" \
+	| cut -b 4- | perl -pe 's/ /\t/;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755    $@.html
+	cmd /c start $@.html
 egf:
-	grep -P "([Ee]\.g\.f\. )" jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod|sum" | grep -P "[B-Z]\d{6}" \
+	grep -P "([Ee]\.g\.f\.)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€|Prod|sum|row|column" \
+	| cut -b 4- | perl -pe 's/ /\t/;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755    $@.html
+	cmd /c start $@.html
+lgf:
+	grep -P "([Ll]\.g\.f\.)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€|Prod|sum|row|column" \
 	| cut -b 4- | perl -pe 's/ /\t/;' \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -1122,6 +1138,22 @@ egf:
 	cmd /c start $@.html
 ogf:
 	grep -P "([O]\.g\.|G\.)f\. " jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod|sum" | grep -P "[B-Z]\d{6}" \
+	| cut -b 4- | perl -pe 's/ /\t/;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755    $@.html
+	cmd /c start $@.html 
+algdif:
+	grep -P "\bA\(x\)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -vPi "\bA\([^\)]{2}|sum|prod|[B-Z]\(|\.\.\.|\^\(n|\[x" \
+	| cut -b 4- | perl -pe 's/ /\t/;' \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 755    $@.html
+	cmd /c start $@.html 
+ratn:
+	grep -P "\br\(n\) *\=" jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€" \
 	| cut -b 4- | perl -pe 's/ /\t/;' \
 	| tee    $@.tmp
 	wc -l    $@.tmp
@@ -1143,3 +1175,33 @@ middle:
 section:
 	grep -Pi "section of \w\d{6}" jcat25.txt | grep -P "^%[NFCY]" | grep -v "€" | endirect \
 	| tee section.tmp
+
+bn:
+	grep -P "\bb\(n\) *\=" jcat25.txt | grep -P "\bb\(n *\- *1\)" | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+convol:
+	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" \
+	| grep -v € \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+	cmd /c start $@.html
+hologf1:
+	cat ../holrec/hologf1.tmp \
+	| endirect \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html

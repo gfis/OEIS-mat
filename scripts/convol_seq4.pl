@@ -1,13 +1,15 @@
 #!perl
 
-# Generate a seq4 record with CC=ratos|holos from the parameters and append it to today's aman/date.man file
+# Generate a seq4 record with CC=convprod from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
-# 2025-07-14, seqno with 6 digits; *CZ=73
-# 2025-06-13, Georg Fischer
+# 2025-07-17, Georg Fischer: copied from ratos_seq4.pl
 #
 #:# Usage:
-#:#   perl ratos_seq4.pl $1 $2 ...
-#:#       -h generate CC=holos instead
+#:#   perl convol_seq4.pl Q A $3 ...
+#:#       Q  power/root
+#:#       A  instances 
+#:#       -n number of terms  
+#:#       -t gftype (1 = exponential, 4/5=denominator)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -20,23 +22,18 @@ $lite_aman =~ s{\\}{\/}g;
 my $makefile = "$gits/OEIS-mat/scripts/makefile";
 $makefile =~ s{\\}{\/}g;
 
-my $debug   = 0;
-my $cc      = "ratos";
-my $matrix  = shift(@ARGV);
-my $init    = shift(@ARGV);
-my $options = join(" ", @ARGV);
-my $offset  = 0;
-my $dist    = 0;
-my $gftype  = 0;
+my $debug    = 0;
+my $cc       = "convprod";
+my $fraction = shift(@ARGV);
+my $aseqnos  = shift(@ARGV);
+my $options  = join(" ", @ARGV);
+my $offset   = 0;
+my $gftype   = 0;
 while (scalar(@ARGV) > 0) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt =~ m{-d}) {
         $debug    = shift(@ARGV);;
-    } elsif ($opt =~ m{-h}) {
-        $cc     = "holos";
-    } elsif ($opt =~ m{-i}) {
-        $dist   = shift(@ARGV);
     } elsif ($opt =~ m{-o}) {
         $offset = shift(@ARGV);
     } elsif ($opt =~ m{-t}) {
@@ -45,18 +42,18 @@ while (scalar(@ARGV) > 0) {
         shift(@ARGV);
     }
 }
-$matrix =~ s{\"}{}g;
-$init   =~ s{\"}{}g;
-my $seqno = sprintf("%06d", &last_seqno());
-my $record   = join("\t", "A$seqno", $cc, $offset, $matrix, $init, $dist, $gftype) . "\n";
-if ($cc !~ m{holos}) {
-    $record .= join("\t", "A" . ($seqno + 1), "conum", 0, "A$seqno")               . "\n"; 
-}
-if (0) {
-    open (PIPE, "| clip");
-    print PIPE $record;
-    close(PIPE);
-}
+$fraction =~ s{\"}{}g; 
+$aseqnos  =~ s{\"}{}g; 
+my @anos = map {
+        s{[A-Z](\d+)}{"A" . sprintf("%06d", $1)}eg;
+        my $ano = $_;
+        if ($ano !~ m{new}) {
+            $ano = "new $ano\(\)";
+        }
+        $ano;
+    } split(/\, */, $aseqnos);
+my $seqno    = sprintf("%06d", &last_seqno());
+my $record   = join("\t", "A$seqno", $cc, $offset, $fraction, join(", ", @anos), $gftype) . "\n";
 print      $record;
 my $file = "$lite_aman/$timestamp.man";
 open (AMAN, ">>", $file) || die "# cannot write to $file\n";

@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
+# 2025-07-14: polys, legendreP; *CZ=73
 # 2025-06-15: .* = dot product, hadamardMultiply; more parentheses
 # 2025-06-10: negative integers and shifts, pow
 # 2025-06-08: additional o.g.f.s referenced by B,C,D,E (preferred); *FP=11 
@@ -191,7 +192,7 @@ sub toInfix {
             }
             push(@mStack, "$powPrio${mSep}$op1" . ($op2 eq "1" ? "" : "$post$op2"));
 
-        } elsif ($post =~ m{\A(agm|besselI|pow)\Z}) { # function calls with 2 operands: agm, besselI, pow
+        } elsif ($post =~ m{\A(agm|besselI|legendreP|pow)\Z}) { # function calls with 2 operands: agm, besselI, pow
             $op2 = &popElem($mPrimPrio + 1);
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post($op1, $op2)");

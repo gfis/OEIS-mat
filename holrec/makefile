@@ -102,7 +102,7 @@ recogf2:
 	wc -l      $@.tmp
 #----
 findre:
-	grep -E "^A[0-9]" holalgeq.man | grep -v FAIL \
+	grep -E "^A[0-9]" hfre.log.tmp | grep -v FAIL \
 	| $(JPREP) -cc bva -f - \
 	>          $@.tmp
 	head -n4   $@.tmp

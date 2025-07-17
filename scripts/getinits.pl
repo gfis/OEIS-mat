@@ -1,19 +1,22 @@
 #!perl
 
-# @(#) $Id$
+# @(#) $Id$ 
+# 2025-07-06: with bfile if necessary, and over leading <= 1
 # 2024-07-02, Georg Fischer
 #
 #:# Filter seq4 records and replace a range "n>=17" by the initial terms
 #:# Usage:
 #:#   perl getinits.pl [-p parmno] infile.seq4 > outfile.seq4
 #:#       -p parameter number for the range (1..8, default = 2 = $(PARM2))
-#:#       -q no quotes around the constant ist
+#:#       -q no quotes around the constant inits (default: with quotes)
 #--------------------------------------------------------
 use strict;
 use integer;
 use warnings;
 
-my $stripped = "\$GITS/OEIS-mat/common/stripped";
+my $gits =  $ENV{'GITS'};
+my $stripped = "$gits/OEIS-mat/common/stripped";
+my $bfdir    = "$gits/OEIS-mat/common/bfile";
 my $iparm  = 2; # operate on this parameter
 my $nok    = 0;
 my $debug  = 0;
@@ -62,11 +65,43 @@ while (<>) {
 #----
 sub get_inits { # 
     my ($aseqno, $count) = @_;
-    my $line = `grep $aseqno $stripped`;
+    my $line = `grep $aseqno $stripped`; 
+    $line =~ s{\s+\Z}{}; # chompr
     # print "# from asinfo: $line";
     my ($dummy, $termlist) = split(/ /, $line);
     $termlist = substr($termlist, 1); # remove leading ","
     my @terms = split(/\,/, $termlist);
+    my $term;
+    my $len = scalar(@terms);
+    my $ix = 0;
+    while ($ix < $len && $terms[$ix] == 0) { # skip over leading abs(terms) <= 0
+        $ix ++;
+    }
+    $count += $ix;
+    if ($count >= $len) { # try to read a b-file 
+        my $bfname = "$bfdir/b" . substr($aseqno, 1) . ".txt";
+        if (open(BF, "<", $bfname) != 0) {  
+            @terms = ();
+            while (<BF>) {
+               s/\s+\Z//; # chompr
+               s/\#.*//;
+               #          1      1   2      2
+               if (m{\A\s*(\-?\d+)\s+(\-?\d+)}) {
+                   ($ix, $term) = ($1, $2);
+                   push(@terms, $term);
+               }
+               if ($ix >= $count) {
+                   last;
+               }
+            } # while BF
+            close(BF); 
+            if ($ix < $count) {
+                print STDERR "# b-file for $aseqno has $ix < $count terms\n";
+            }
+        } else {
+            print STDERR "# cannot read b-file $bfname\n;"
+        }
+    }
     return join(",", splice(@terms, 0, $count));
 } # get_inits
 __DATA__
