@@ -1176,8 +1176,17 @@ section:
 	grep -Pi "section of \w\d{6}" jcat25.txt | grep -P "^%[NFCY]" | grep -v "€" | endirect \
 	| tee section.tmp
 
+anexp:
+	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
 bn:
-	grep -P "\bb\(n\) *\=" jcat25.txt | grep -P "\bb\(n *\- *1\)" | grep -P "^%[NF]" \
+	grep -P "\b[bcr]\(n\) *\=" jcat25.txt | grep -P "\b[bcr]\(n *\- *1\)" | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	>        $@.tmp
 	head -n8 $@.tmp
@@ -1196,6 +1205,10 @@ convol:
 	chmod 775    $@.html
 	cmd /c start $@.html
 	cmd /c start $@.html
+equals:
+	grep "Equals " jcat25.txt | grep -P "^%[NFYC]" | grep -v € | grep -vPi "Sum|prod|column|integral|infinity|root of" | endirect | tee equals.tmp
+	wc -l $@.tmp
+	e $@.tmp
 hologf1:
 	cat ../holrec/hologf1.tmp \
 	| endirect \
@@ -1205,3 +1218,6 @@ hologf1:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
+
+cob:
+	find ../../oeisdata/files/A386 -name "b3861[01]?.txt" | xargs -innn cp -v nnn bfile

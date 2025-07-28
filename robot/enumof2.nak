@@ -1,0 +1,22 @@
+neg A243180	enumof2	0	0	0	(x, y) -> ZV(8*x*x+x*y-8*y*y)	Numbers of the form
+neg A243181	enumof2	0	0	0	(x, y) -> ZV(4*x*x+9*x*y-11*y*y)	Numbers of the form
+neg A243182	enumof2	0	0	0	(x, y) -> ZV(2*x*x+2*x*y+5*y*y)	Numbers of the form
+neg A243184	enumof2	0	0	0	(x, y) -> ZV(2*x*x+3*x*y-3*y*y)	NNmbers of the form
+neg A243185	enumof2	0	0	0	(x, y) -> ZV(-2*x*x+3*x*y+3*y*y)	NNmbers of the form
+neg A243188	enumof2	0	0	0	(x, y) -> ZV(x*x + 6*x*y - 6*y*y)	NNmbers of the form
+neg A243189	enumof2	0	0	0	(x, y) -> ZV(2*x*x + 6*x*y - 3*y*y)	NNmbers of the form
+neg A243190	enumof2	0	0	0	(x, y) -> ZV(-2*x*x+6*x*y+3*y*y)	NNmbers of the form
+neg A084916	enumof2	0	0	0	(x, y) -> ZV(x*x - 3*y*y)	Posbers of the form
+neg A084917	enumof2	0	0	0	(x, y) -> ZV(3*y*y - x*x)	Posbers of the form
+A228880	enumof2	0	0	1	(x, y) -> ZV(x*x*y*(2*x + y))	Numbers of the form
+A243175	enumof2	0	0	0	(x, y) -> ZV(x*x + x*y + 7*y*y)	Numbers of the form
+A243176	enumof2	0	0	0	(x, y) -> ZV(x*x+x*y+8*y*y)	Numbers of the form
+A243177	enumof2	0	0	0	(x, y) -> ZV(3*x*x+2*x*y+3*y*y)	Numbers of the form
+A243178	enumof2	0	0	0	(x, y) -> ZV(x*x+x*y+9*y*y)	Numbers of the form
+A243179	enumof2	0	0	0	(x, y) -> ZV(3*x*x+x*y+3*y*y)	Numbers of the form
+A332335	enumof2	0	0	0	(x, y) -> ZV(4*x*x + 2*x*y + 7*y*y)	Numbers of the form
+null A139538	enumof2	0	1	1	(x, y) -> { final Z r = ZV(x*x+5*y*y); return r.testBit(0) && r.mod(5) != 0 ? r : null; }	 not divisible by 5,with both x,y >== 1
+null A201544	enumof2	0	1	1	(x, y) -> { final Z r = ZV(x*x + 2*y*y); return !r.testBit(0) ? null : r; }	 with positive integers x,y
+null A216426	enumof2	0	2	2	(a, b) -> a == b ? null : ZV(a).^(2).*(ZV(b).^(3))	, where a != b and a, b > 1.
+null A229153	enumof2	0	4	1	(c, m) -> !PP(c) && Predicates.SQUARE_FREE.is(c) ? ZV(c * m*m) : null	,where m > 0 and c is composite and squarefree
+%heap A088915	enumof2	0	0	0	(m, n) -> ZV(m*n*(m + n))	 with integers m,n

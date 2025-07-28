@@ -561,6 +561,13 @@ dirtraf_eval:
 egfbin: # Seichii's e.g.f.s
 	grep -P "^\%o A3\d+ +\(PARI\) *a\(n\) *\= *" $(CAT) | cut -b4- | grep -viP "\{|my|for|vec|pol|subst|ser|mat|\Sa\(|lift|truncate|fromdigits"
 #----
+enumof2: # TwoParameterFormSequences
+	perl $@.pl $@.raw \
+	2>       $@.rest.tmp \
+	| sort > $@.man
+	head -n4 $@.man
+	wc -l    $@.*
+#----
 expr: expr_pari subst_list expr_trans expr_post expr_gen
 expr_pari: # A107995 (PARI) a(n) = sum(k=0, n, (2*n+2)^k*binomial(n+1+k, 2*k+1)); \\ Seiichi Manyama,
 	grep -P "^\%o" $(CAT) | cut -b4- \

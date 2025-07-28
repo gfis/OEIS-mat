@@ -2,6 +2,7 @@
 
 # Convert from postfix to infix notation
 # @(#) $Id$ 
+# 2025-07-26: /b
 # 2025-07-14: polys, legendreP; *CZ=73
 # 2025-06-15: .* = dot product, hadamardMultiply; more parentheses
 # 2025-06-10: negative integers and shifts, pow
@@ -96,7 +97,7 @@ sub setPrio {
 sub assignPriorities() {
     $mPrio = 0;
     &setPrio("+", "-");
-    &setPrio("*", "/", ".*", "./");
+    &setPrio("*", "/", ".*", "./", "*n", "/n", "^n");
     &setPrio("^", ".^");
     &setPrio("\'");
     &setPrio("~", "(", ")"); # unary minus
@@ -197,7 +198,7 @@ sub toInfix {
             $op1 = &popElem($mPrimPrio + 1);
             push(@mStack, "$mPrimPrio${mSep}$post($op1, $op2)");
 
-        } elsif ($post =~ m{\A([a-z][a-zA-Z]+|[\*\/]n\!)\Z}) {  # function calls exp, neg, int, rev, lambertW etc., *n!, /n!
+        } elsif ($post =~ m{\A([a-z][a-zA-Z]+|[\*\/]n\!|[\*\/\^]n)\Z}) {  # function calls exp, neg, int, rev, lambertW etc., *n!, /n!, ,*n, /n, ^n
             if (0) {
             } elsif ($post eq "rev") {
                 $post = "reverse";
