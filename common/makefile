@@ -1218,6 +1218,25 @@ hologf1:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
+xpown:
+	grep -iP "\[x\^n\]" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+
+xpow2n:
+	grep -iP "\[x\^\(" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
 
 cob:
 	find ../../oeisdata/files/A386 -name "b3861[01]?.txt" | xargs -innn cp -v nnn bfile
