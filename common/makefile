@@ -389,7 +389,7 @@ joeis_dead: # not used
 	$(DBAT) "INSERT INTO joeis (aseqno, superclass, status) SELECT aseqno, pattern, info FROM SEQ3"
 	$(DBAT) -n joeis
 joeis_names: # all A-numbers with their jOEIS superclass or null
-	#	perl ue_script.pl -close
+	perl ue_script.pl -close
 	cmd /c attrib -R $@.txt
 	$(DBAT) -x "SELECT n.aseqno, COALESCE(j.superclass, 'nyi ' || a.program), n.name, a.keyword, b.bfimin || '..' || b.bfimax, COALESCE(j.callcode, 'nyi'), a.author \
 	FROM  asinfo a, asname n, bfinfo b LEFT JOIN joeis j ON b.aseqno = j.aseqno \
@@ -398,6 +398,7 @@ joeis_names: # all A-numbers with their jOEIS superclass or null
 	ORDER BY 1" \
 	| endirect \
 	| perl -pe "s{\'\'}{\'}g" > $@.1.txt
+	cp -v $@.1.txt $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
 	perl ue_script.pl -open
