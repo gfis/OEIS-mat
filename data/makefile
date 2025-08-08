@@ -459,6 +459,7 @@ joeis_pull:	# update Sean's jOEIS repository
 	cd $(JOEIS) ; git pull | tee joeis_pull.`date +%Y-%m-%d.%H.%M`.txt
 #--
 joeis_list_untested: # version with SuperclassReflector
+	scp $(FISCHER)/reflect/makefile $(REM):~/work/gits/joeis-lite/internal/fischer/reflect/
 	cd $(FISCHER)/reflect ; make joeis_list
 # get the A-numbers and used superclasses of all implemented sequences
 joeis_list: joeis_list1 joeis_list2
@@ -553,7 +554,6 @@ tinfo_remote: # refresh generate db table content and download
 joeis_remote: # update jOEIS repository, produce lists and jcat28, pack them and download
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
 	scp makefile *.pl $(REM):~/work/gits/OEIS-mat/data/
-	scp $(FISCHER)/reflect/ makefile $(REM):~/work/gits/joeis-lite/internal/fischer/reflect/
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make joeis_down"
 	scp               $(REM):~/work/gits/OEIS-mat/data/joeis_pack.tgz .
 	tar -xzvf                                             joeis_pack.tgz
