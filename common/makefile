@@ -1177,7 +1177,7 @@ section:
 	| tee section.tmp
 
 anexp:
-	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
+	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | grep -v € \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	>        $@.tmp
 	head -n8 $@.tmp
@@ -1194,7 +1194,18 @@ bn:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
-convol:
+bintraf:
+	grep -Pi "Binomial transform (of|is)" jcat25.txt | grep -P "^%[NFCY]" \
+	| grep -v € \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+	cmd /c start $@.html
+equals:
 	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" \
 	| grep -v € \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
