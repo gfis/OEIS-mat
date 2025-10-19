@@ -181,8 +181,8 @@ binfos: bfdata bfinfo
 herlin: herscp aloads bloads checks
 herscp:
 	scp gfis@$(REMOTE):/home/gfis/work/gits/OEIS-mat/common/??????.txt .
-aloads: asdata_load asinfo_load asname_load \
-	# asprog_load asxref_load asinfo_loda asinfo_pari
+aloads: asdata_load asinfo_load asname_load asxref_load \
+	# asprog_load asinfo_loda asinfo_pari
 bloads: bfdata_load bfinfo_load bfdir_load
 #--------
 asdata: # parameter: DIR
@@ -233,7 +233,7 @@ asinfo_extract:
 	perl extract_info.pl -jr $(DIR)/ajson | grep -v "notexist" > asinfo.txt
 	# cp asinfo.txt asinfo.`date +%Y-%m-%d.%H_%M`.txt
 	wc -l asinfo.txt
-asinfo_load:
+asinfo_load: # Load table <em>asinfo</em>
 	perl extract_info.pl -jc | tee asinfo.create.sql
 	$(DBAT)                  -f asinfo.create.sql
 	cut -b1-256                 asinfo.txt \
@@ -266,13 +266,12 @@ asinfo_pari:
 	  WHERE i.aseqno IN (SELECT aseqno FROM poeis WHERE lang = 'pari') \
 	    AND i.program NOT LIKE '%G%';"
 #--------
-asxref: # parameter DIR: table for crossreferences
-	make asxref_extract DIR=.
-asxref_extract:
-	perl extract_info.pl -jxr $(DIR)/ajson > asxref.txt
-	wc -l asxref.txt
-asxref_load:
-	perl extract_info.pl -jxc -t asxref | tee asxref.create.sql
+asxref: # table for crossreferences
+	perl extract_xref.pl jcat25.txt > asxref.txt
+	head -n4 asxref.txt
+	wc -l    asxref.txt
+asxref_load: # Load table <em>asxref</em>
+	perl extract_xref.pl -c | tee asxref.create.sql
 	$(DBAT) -f asxref.create.sql
 	$(DBAT) -m csv -s "\t" -r   asxref  < asxref.txt
 	$(DBAT) -4                  asxref
@@ -365,7 +364,7 @@ joeis_jar2:
 	ssh gfis@$(REMOTE) 'cd ~/work/gits/joeis ; make joeis_list'
 	scp gfis@$(REMOTE):work/gits/joeis/joeis_list.txt .
 #--
-joeis_pullloc: # refresh local önly
+joeis_pullloc: # refresh local only
 	cd    $(JOEIS) ; git pull ; make joeis_list
 	cp -v $(JOEIS)/joeis_list.txt .
 	make joeis_reload
@@ -1103,10 +1102,6 @@ dgf: # Dirichlet g.f.s in jcat25 nyi
 	| perl -pe "s/g\.f\. /g\.f\.\: /" \
 	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
 
-mult: # Multiplicative in jcat25 nyi
-	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
-	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
-
 filprim:
 	grep -P "Numbers [nk] such that \(\d+\^[^i]+is prime" joeis_names.txt | grep nyi | tee filprim.tmp
 sumpari:
@@ -1178,7 +1173,7 @@ section:
 	| tee section.tmp
 
 anexp:
-	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | grep -v € \
+	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	>        $@.tmp
 	head -n8 $@.tmp
@@ -1195,18 +1190,7 @@ bn:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
-bintraf:
-	grep -Pi "Binomial transform (of|is)" jcat25.txt | grep -P "^%[NFCY]" \
-	| grep -v € \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-	cmd /c start $@.html
-equals:
+convol:
 	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" \
 	| grep -v € \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
@@ -1239,7 +1223,6 @@ xpown:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
-
 xpow2n:
 	grep -iP "\[x\^\(" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
@@ -1251,4 +1234,84 @@ xpow2n:
 	cmd /c start $@.html
 
 cob:
-	find ../../oeisdata/files/A386 -name "b3861[01]?.txt" | xargs -innn cp -v nnn bfile
+	find ../../oeisdata/files/A386 -name "b3861[01]?.txt" | xargs -innn cp -v nnn bfile   
+
+dfinit:
+	grep -P "^%[NF] A\d+ (D\-finite )?([Rr]ecurrence)? *\:? *[0-9an\+\-\*\(\)\^ \=]+(for n *\>\=? *\d+)?\." jcat25.txt \
+	| grep -vP " \(\d+[\.\)]| a\([\da]" \
+	| tee $@.tmp
+	e $@.tmp
+#----
+lamprot:
+	grep -P "^%[NF]" jcat25.txt \
+	| grep -P "[Pp]rod(uct)?(_{| *\() *[i-n] *\>\=? *[0-2]" \
+	| grep -viP "y[\*\^]|A\(x\)|Sum|Decimal|Equals|Continued|column|row|~" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+eisenstein:
+	grep -P "\WE\_\d+\W" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+even_odd:
+	grep -P "(even|odd) digits" jcat25.txt \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+parian:
+	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt \
+	| endirect | cut -b 4- \
+	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" \
+	| sort -k2 \
+	> $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html 
+eta:
+	grep -P "\Weta\(" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+
+qpowers:
+	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+
+mult: # Multiplicative in jcat25 nyi
+	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
+	| grep -vP "multiplicative (closure|digital|group|invers|order|persistence|root|subgroup|sum|Wiener|Zagreb)" \
+	| sort -k3,3 -k4,4 -k5,5 -k6,6 \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+
+niven: # 
+	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+

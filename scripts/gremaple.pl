@@ -35,6 +35,7 @@ my %maple_cc = qw(
     hfre 1
     );
 open(TMP, ">", $filename) || die "cannot write $filename";
+
 print TMP << "GFis";
 interface(prettyprint=0,ansi=false):
 with(gfun):
@@ -48,6 +49,7 @@ print TMP << 'GFis';
   , 0, egf, ae)):
 end:
 GFis
+
 print TMP << "GFis";
 hfre:=proc(aseqno, ae, egf:=0):
 timelimit($timeout
@@ -61,13 +63,24 @@ C     := proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end: # A000108 Catalan's g.f.
 Catlan:= proc(x) (1 - sqrt(1 - 4*x)) / (2*x) end:
 GFis
 
+print TMP << 'GFis';
+sumrec:=proc(aseqno, ae):
+  , printf("%a\tbva\t0\t%a\t\t%a\t%a\t%a\n", aseqno
+  , sumrecursion(ae,k,a(n))
+  )):
+end:
+GFis
+
 #while (<DATA>) {
 while (<>) {
     if (m{\AA\d+\s}) { # starts with A-number tab
-        s/\s+\Z//; # chompr
+        s/\s+\Z//; # chompr  
+        my $line = $_;
         my ($aseqno, $callcode, $offset1, @parms) = split(/\t/);
         if (defined($maple_cc{$callcode})) {
             print TMP "$callcode(" . join(", ", $aseqno, @parms) .");\n";
+    #   } else {
+    #       print "$line\n"; # copy unchanged
         }
     }
 } # while

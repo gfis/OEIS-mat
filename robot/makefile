@@ -179,18 +179,19 @@ funcrest: # count the remaining function occurrences
 	cut -f2 oeisfunc.ecn | sort | uniq -c | sort -rn > $@.ecn ; head -n32 $@.ecn
 	make next PROC=$@
 longwords: # remove those with elaborate wording
-	grep -vP "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ocn
-	grep -P  "\w{10}|(\w+ ){3}"                             chain.ocn > $@.ecn
+	grep -vP "\w{10}|(\w+ ){3}"                               chain.ocn > $@.ocn || :
+	grep -P  "\w{10}|(\w+ ){3}"                               chain.ocn > $@.ecn || :
 	make next PROC=$@
-shortend: # remove those with short expressions in n and \d
-	grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn
-	grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn
+shortend: # remove those with short expressions in n and \d 
+	sed -e "s/ //g" chain.ocn > $@.ocn
+	# grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn || :
+	# grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn || :
 	make next PROC=$@
 oeisprep: # egalize OEIS formula conventions
 	make -f makefile chain1 OPT=-all PROC=$@
 remajx: # remove those with A|X-numbers and J-numbers if not Jxxx(n)
-	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ocn
-	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"  chain.ocn > $@.ecn
+	grep -v -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"    chain.ocn > $@.ocn || :
+	grep    -P "[X]\d{6}|[A]\d{6}\(|J\d{6}\(([^n]|n[^\)])"    chain.ocn > $@.ecn || :
 	make next PROC=$@
 sortuniq: # sort by callcode, parm1, parm2, parm3, and uniq
 	sort chain.ocn | uniq | sort -k2,2 -k4,4 -k5,5 -k6,6 -k7,7 > $@.ocn 2> $@.ecn ; make next PROC=$@
@@ -205,8 +206,8 @@ remove: # remove superfluous records
 	grep -P "^A\d+\t" $(FISCHER)/aman/`date +%Y-%m-%d`.nak.man | sed -e "s/\^//" | cut -f1 >> $@.tmp
 	grep -P "\tn *\-\> *ZV\(\w?\)\t"    chain.ocn              | cut -f1 >> $@.tmp
 	sort $@.tmp | uniq | sed -e "s/^/\^/"                                >  $@.grep.tmp
-	grep  -f $@.grep.tmp chain.ocn                                       >  $@.ecn || :
-	grep -vf $@.grep.tmp chain.ocn                                       >  $@.ocn || :
+	grep  -f $@.grep.tmp                                     chain.ocn >  $@.ecn || :
+	grep -vf $@.grep.tmp                                     chain.ocn >  $@.ocn || :
 	wc -l $@.*
 	make next PROC=$@
 getinits: # get initial terms
@@ -1206,7 +1207,7 @@ recpos:
 	wc -l    $@.gen
 #----
 rowsums:
-	grep -E "^%" $(CAT) | grep -P "Row sums of [^A]* A\d{6}" \
+	grep -E "^%" $(CAT) | grep -P "Row sums of \D*(\d{6})" \
 	| perl ../common/nyi.pl -p | cut -b6- | grep -vE "#\?" \
 	| perl -ne 'my $$line = $$_; if ($$line =~ s{\A(A\d+) *}{}) { my $$an = $$1; '\
 	' if ($$line =~ m{of [^A]*(A\d+)}) { my $$rn = $$1; '\

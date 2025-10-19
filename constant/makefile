@@ -177,6 +177,7 @@ equa7:
 	grep -vE ";" equa6.tmp \
 	| grep -P "\.[a-zA-Z]" \
 	| perl -pe 's/(\tdecexpr?\t0\t)/$$1(\) \-\> /;' \
+	| grep -vP "A254327|A347430|A371941" \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 	cp -v    $@.tmp $(FISCHER)/aman/equa.man

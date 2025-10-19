@@ -2460,3 +2460,6 @@ MOBIUSi([1, 7, 28, 84, 210, 462, 924, 1716, 3003, 5005, 8008])
 binomial(6,6)
 sumdiv(binomial(6,6),d,d)
 quit
+{a(n) = my(A); if( n<0, 0, A = x * O(x^n); polcoeff( (eta(x + A)^3 / eta(x^3 + A))^3 - 81 * x * (eta(x^3 + A)^3 / eta(x + A))^3, n))};
+for(n=0,30,print1(",",a(n)))
+quit

@@ -7,7 +7,7 @@
 #
 #:# Usage:
 #:#   perl ramath.pl [options] in.seq4 > out.seq4
-#:#       -bva: process bva callcodes only
+#:#       -bva: process bva callcodes only, follow by | getinits -q
 #:#       -ogf: process ogf callcodes only
 #--------------------------------------------------------
 use strict;
