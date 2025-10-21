@@ -2,6 +2,7 @@
 
 # OEIS-mat/data - extraction from repositories
 # @(#) $Id$
+# 2025-10-21: no oeisdata pull
 # 2025-03-26: git reset --hard HEAD
 # 2023-06-17: compile-internal
 # 2023-05-02: Georg Fischer
@@ -63,7 +64,9 @@ oeisdata_fill: # SUB=
 	      git lfs fetch -X= -I=files/$(SUB)/b??????.txt  ; \
 	echo "git lfs checkout     files/$(SUB)/b??????.txt" ; \
 	      git lfs checkout     files/$(SUB)/b??????.txt  ;
-oeisdata_pull: odp3 odp2 odp1 odp0 # odp4
+oeisdata_pull: 
+	# cd $(OEISDATA) ; git pull
+	# odp3 odp2 odp1 odp0 # odp4
 odp4: 
 	make oeisdata_fill SUB=A49?
 	make oeisdata_fill SUB=A48?
