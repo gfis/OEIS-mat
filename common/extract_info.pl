@@ -167,161 +167,7 @@ sub read_file { # returns in global $access, $buffer, $filesize
     close(FIL);
 } # read_file
 #-------------------------------------------------
-sub extract_from_cat25 { # read CAT25 format of 1 sequence
-    my $result = "";
-    my ($filename) = @_;
-    &read_file($filename, $read_len_max); # sets $access, $buffer
-    $filename =~ m{(A\d{6})\.json}i; # extract seqno
-    my $aseqno   = $1;
-    my $name     = "";
-    my $data     = "";
-    my $offset1  = 1;
-    my $offset2  = 1;
-    my $terms    = "";
-    my $datalen  = 0;
-    my $termno   = 0;
-    my $keyword  = "nokeyword";
-    my $program  = "";
-    my $author   = "";
-    my $revision = 0;
-    my $created  = "1974-01-01 00:00:00";
-    $prog_buffer = "";
-    $access      = $created;
-#           "name": "Number of 0..n arrays x(0..4) of 5 elements with zero 3rd differences.",
-#           "number": 200083,
-#           "data": "2,3,8,17,26,43,64,89,122,163,208,269,334,407,496,597,702,831,968,1117,1286,1471,1664,1889,2122,2371,2648,2945,3250,3595,3952,4329,4738,5171,5616,6109,6614,7143,7712,8309,8918,9583,10264,10973,11726,12511,13312",
-#           "keyword": "nonn",
-#           "offset": "1,1",
-#           "author": "_R. H. Hardin_, Nov 13 2011",
-#           "references": 1,
-#           "revision": 13,
-#           "time": "2018-05-17T13:40:20-04:00",
-#           "created": "2011-11-13T12:40:47-05:00"
-    my $value;
-    my $synth = "synth";
-    my $seqno = 0;
-    %xhash = (); # bits 1: in xrefs, bit 0: elsewhere
-    foreach my $line (split(/\n/, $buffer)) {
-        if ($line !~ m{\A\s*\"}) { # ignore closing brackets ], ] }
-            if ($in_prog > 0 && $do_prog) { # accumulate records for asprog
-                # print STDERR "$aseqno $prog_buffer\n";
-            }
-            $in_prog = 0; # but terminate prog mode
-            $in_xref = 0; # but terminate xref mode
-        # now the JSON properties
-        } elsif ($line =~   m{\A\s*\"number\"\:\s*(\d+)}) {
-            $value = $1;
-            $seqno = sprintf("%06d", $value);
-            $aseqno = "A$seqno";
-            $filename =~ m{A(\d{6})\.json}i; # extract seqno
-            my $fseqno = "A$1";
-            if ($fseqno ne $aseqno) {
-                print STDERR "# filename \"$filename\": fseqno \"$fseqno\" ne aseqno \"$aseqno\"\n";
-            }
-            $aseqno = $fseqno;
-        } elsif ($line =~   m{\A\s*\"data\"\:\s*\"([^\"]*)\"}) {
-            $value = $1;
-            $data  = $value;
-            $datalen = length($data);
-            ($termno, $terms) = &terms8($value);
-        } elsif ($line =~   m{\A\s*\"name\"\:\s*\"(.*)}) {
-            $value = $1;
-            $value =~ s{\"\,\Z}{};
-            # $value =~ s{\\u003c}{\<}g;
-            # $value =~ s{\\u003e}{\>}g;
-            $name  = $value;
-            if ($do_xref == 1) {
-                &extract_aseqnos($aseqno, $line);
-            }
-        } elsif ($line =~   m{\A\s*\"keyword\"\:\s*\"([^\"]*)\"}) {
-            $keyword = $1;
-        } elsif ($line =~   m{\A\s*\"formula\"}) {
-            $program .= "F";
-        } elsif ($line =~   m{\A\s*\"maple\"\:}) {
-        	$in_prog  = 2;
-            $program .= "p";
-            $prog_buffer = "$prog_sep${prog_sep}Maple";
-        } elsif ($line =~   m{\A\s*\"mathematica\"\:}) {
-        	$in_prog  = 3;
-            $program .= "t";
-            $prog_buffer = "$prog_sep${prog_sep}Mathematica";
-        } elsif ($line =~   m{\A\s*\"program\"\:}) {
-        	$in_prog  = 1;
-            $program .= "o";
-            $prog_buffer = $prog_sep;
-        } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {
-            $value = $1;
-            ($offset1, $offset2) = split(/\,/, $value);
-            if (length($offset2) == 0) {
-                $offset2 = 1;
-            }
-        } elsif ($line =~   m{\A\s*\"author\"\:\s*\"([^\"]*)\"}) {
-            $author = $1;
-        } elsif ($line =~   m{\A\s*\"revision\"\:\s*(\d+)}) {
-            $revision = $1;
-        } elsif ($line =~   m{\A\s*\"time\"\:\s*\"([^\"]*)\"}) {
-            $value = $1;
-            $access  = &utc($value);
-        } elsif ($line =~   m{\A\s*\"created\"\:\s*\"([^\"]*)\"}) {
-            $value = $1;
-            $created = &utc($value);
-        } elsif ($line =~   m{\A\s*\"results\"\:\s*null}) {
-            $keyword = "notexist";
-        } elsif ($line =~   m{\A\s*\"xref\"\:}) {
-            $in_xref = 1; # start xref mode
-        } else {
-            if ($line =~    m{\/$aseqno\/b$seqno\.txt}) { # link to b-file
-                $synth = ""; # not synthesized
-            }
-            if ($do_prog == 1 && $in_prog > 0) {
-                $line =~ s{\A\s*\"}{}; # remove surrounding quotes
-                $line =~ s{\s*\"\,?\Z}{};
-                $line =~ s{\A \((PARI|MAGMA|Haskell*|Maxima)}{\($1}i; # remove space in " (PARI)"
-                $prog_buffer .= "$prog_sep$line"; # $prog_sep . &unquote($line);
-            }
-            if ($do_xref == 1) {
-                &extract_aseqnos($aseqno, $line);
-            }
-        }
-    } # foreach $line
-    $keyword .= length($keyword) > 0 ? ",$synth" : $synth;
-    if ($keyword =~ m{tabl}) {
-        if ($name =~ m{rray|antidiagonals|pper left|quare}) {
-            $keyword .= ",tar" . (($name =~ m{ascend|upward}) ? "a" : "d");
-        }
-    }
-    if (0) {
-    } elsif ($action =~ m{n}) {
-        print join("\t", ($aseqno
-            , $name         )) . "\n";
-    } elsif ($action =~ m{p}) {
-        print &accumulate_programs($aseqno, $prog_buffer);
-        $prog_buffer = "";
-        $in_prog = 0;
-    } elsif ($action =~ m{s}) {
-        print join("\t", ($aseqno
-            , $termno
-            , $data         )) . "\n";
-    } elsif ($action =~ m{x}) {
-        foreach my $key (keys(%xhash)) {
-        print join("\t", ($aseqno
-            , $key
-            , $xhash{$key}  )) . "\n";
-        } # foreach
-    } else {
-        print join("\t", ($aseqno
-            , $offset1, $offset2
-            , $terms
-            , $termno
-            , $datalen
-            , substr($keyword, 0, 64)
-            , substr($program, 0, 64)
-            , substr($author , 0, 64) # allow for apostrophes (up to 80)
-            , $revision
-            , $created
-            , $access       )) . "\n";
-    }
-} # extract_from_cat25
+# for extract from cat25 cf. ../data/catex_info.pl
 #-------------------------------------------------
 sub extract_from_json { # read JSON of 1 sequence
     my $result = "";
@@ -394,15 +240,15 @@ sub extract_from_json { # read JSON of 1 sequence
         } elsif ($line =~   m{\A\s*\"formula\"}) {
             $program .= "F";
         } elsif ($line =~   m{\A\s*\"maple\"\:}) {
-        	$in_prog  = 2;
+            $in_prog  = 2;
             $program .= "p";
             $prog_buffer = "$prog_sep${prog_sep}Maple";
         } elsif ($line =~   m{\A\s*\"mathematica\"\:}) {
-        	$in_prog  = 3;
+            $in_prog  = 3;
             $program .= "t";
             $prog_buffer = "$prog_sep${prog_sep}Mathematica";
         } elsif ($line =~   m{\A\s*\"program\"\:}) {
-        	$in_prog  = 1;
+            $in_prog  = 1;
             $program .= "o";
             $prog_buffer = $prog_sep;
         } elsif ($line =~   m{\A\s*\"offset\"\:\s*\"([^\"]*)\"}) {

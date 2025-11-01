@@ -237,7 +237,12 @@ remfailed: # remove those that failed (code 'fx' in previous man files
 	grep  -f getfailed chain.ocn > $@.ecn || :
 	wc -l $@*
 	make next PROC=$@
-#==== end of the chain ====
+#==== end of the chain ====                               
+parilast: # grep the PARI programs at the end of the OEIS queue
+	grep -P "^%o A3(89|9\d)\d+ +\(PARI\)" $(CAT) \
+	| tee $(FISCHER)/aman/$@.man
+	wc -l $(FISCHER)/aman/$@.man
+	e     $(FISCHER)/aman/$@.man
 parisums: parisum1 parisum2 # process (PARI) a(n) = sum(...)
 parisum1:
 	grep -P "^%o A\d+ +\(PARI\) +a\(n\) *\= *([^\*\+\-]+[\*\+\-]|)(sum|prod)" $(CAT) \
@@ -264,7 +269,7 @@ parisum2:
 	wc -l *gp.*
 	head          lsmtraf.gp.ocn
 enstest:
-	enstruct   -d $(D) enstest.man  2>&1 | tee enstest.ocn
+	enstruct   -d $(D)  enstest.man 2>&1 | tee enstest.ocn
 	struct -de  -d $(D) enstest.ocn 2>&1 | tee destest.ocn
 #========
 ddn2:

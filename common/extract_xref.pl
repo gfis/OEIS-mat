@@ -41,9 +41,9 @@ my $type;
 # while (<DATA>) {
 while (<>) {
     s/\s+\Z//;
-    $type     = substr($_, 1, 1);
-    $line     = substr($_,3);
-    my $nseqno   = 'A' . substr($line, 1, 7);
+    $type      = substr($_, 1, 1);
+    $line      = substr($_, 3);
+    my $nseqno = 'A' . substr($line, 1, 6);
     if (0) {
     } elsif ($type eq "I") { # new sequence
         &output_xref();
@@ -60,9 +60,7 @@ while (<>) {
 #----
 sub output_xref {
     foreach my $key (sort(keys(%xhash))) {
-    print join("\t", ($aseqno
-        , $key
-        , $xhash{$key}  )) . "\n";
+        print join("\t", ($aseqno, $key, $xhash{$key}  )) . "\n";
     } # foreach
     %xhash = (); # bits 1: in xrefs, bit 0: elsewhere
 } # output_xref

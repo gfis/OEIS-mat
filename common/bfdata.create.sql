@@ -1,5 +1,6 @@
 --  Table for OEIS - terms of sequences (from file 'stripped')
 --  @(#) $Id$
+--  2025-10-21: with timestamp in A000000
 --  2024-02-23: length(data) was 1024
 --  2020-03-22: index bfdatad
 --  2019-04-10: termno
@@ -15,4 +16,5 @@ CREATE  TABLE            bfdata
 CREATE  INDEX  bfdatad ON bfdata
     (data       ASC
     );
+INSERT INTO bfdata VALUES('A000000', 0, CURRENT_TIMESTAMP);
 COMMIT;

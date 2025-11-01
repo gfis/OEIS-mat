@@ -1,0 +1,225 @@
+#!perl
+
+# Extract foreign programs from jcat25.txt
+# @(#) $Id$
+# 2025-11-01: standalone, copied from extract_xref.pl
+# 2019-01-22, Georg Fischer
+#
+#:# usage:
+#:#   perl extract_prog.pl [-d mode] jcat25.txt > asprog.txt
+#:#   perl extract_prog.pl [-d mode] -c         > asprog.create.sql
+#:#       -d mode    debug mode: none(0), some(1), more(2)
+#---------------------------------
+use strict;
+use integer;
+my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday) = gmtime (time);
+my $utc_stamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d\z"
+        , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+
+# get options
+my $in_prog;         # whether in "program|maple|mathematica" property
+my $do_prog  = 0;    # whether in action -ap
+my $program  = "";
+my $prog_buffer;     # append program lines here
+my $prog_sep = "~~"; # separator for program lines
+my $debug    =  0;   # 0 (none), 1 (some), 2 (more)
+my %xhash;           # for &extract_programs
+my $aseqno;
+my $tabname  = "asprog";
+my $access   = "1971-01-01 00:00:00"; # modification timestamp from the file
+my $revision = 0;    # from I record
+my $author   = "";
+my $revision = 0;
+my $created  = $utc_stamp;
+my %month_names = qw(Jan 1 Feb 2 Mar 3 Apr 4 May 5 Jun 6 Jul 7 Aug 8 Sep 9 Oct 10 Nov 11 Dec 12);
+
+# get options
+while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
+    my $opt = shift(@ARGV);
+    if (0) {
+    } elsif ($opt =~ m{\-d}) {
+        $debug    = shift(@ARGV);
+    } elsif ($opt =~ m{\-c}) {
+        &print_create_asprog();
+        exit;
+    } else {
+        die "invalid option \"$opt\"\n";
+    }
+} # while ARGV
+#----
+my $line;
+my $type;
+while (<DATA>) {
+# while (<>) {
+    s/\s+\Z//;
+    $type      = substr($_, 1, 1);
+    $line      = substr($_, 3);
+    my $nseqno = 'A' . substr($line, 1, 6);
+    if (0) {
+    } elsif ($type eq "I") { # new sequence
+        &output_prog();
+        # %I A389847 #9 Oct 17 2025 09:57:54
+        $in_prog = 0; # but terminate prog mode
+        $aseqno  = $nseqno;
+        #               aseqno mseqnos? #rev   Mon   day   year  hour   min     sec
+        #                                1   1 2   2 3   3 4   4 5             5
+        if ($line =~ m{\A[A-Z]\d+[^\#]*\#(\d+) (\w+) (\d+) (\d+) (\d+\:\d+\:\d+)}) {
+            $revision = $1;
+            $year     = $3;
+            if ($year < 1970) {
+                # OEIS server sometimes sets "0000"
+                # MariaDB does not accept timestamps < "1970-01-01 01:01:01"
+                $year = 1971;
+            }
+            my $date  = sprintf("%04d-%02d-%02d", $4, $month_names{$2} || "01", $3);
+            my $time  = $5;
+            $created = "${date}T$time";
+        }
+    } elsif ($type eq "p") {
+        $in_prog  = 2;
+        $program .= "p";
+        $prog_buffer = "$prog_sep${prog_sep}Maple";
+    } elsif ($type eq "t") {
+        $in_prog  = 3;
+        $program .= "t";
+        $prog_buffer = "$prog_sep${prog_sep}Mathematica";
+    } elsif (type eq "o") {
+        $in_prog  = 1;
+        $program .= "o";
+        $prog_buffer = $prog_sep;
+    } else {
+        $in_prog = 0; # outside prog mode
+    }
+} # while <>
+&output_prog();
+#----
+sub output_prog {
+    print &accumulate_programs($aseqno, $prog_buffer);
+    $prog_buffer = "";
+    $in_prog     = 0;
+} # output_prog
+#-----------------------
+sub extract_programs { # for prog
+    my ($aseqno, $line) = @_;
+    $line =~ s{€}{A}g;
+    if (1) {
+        foreach my $aref ($line =~ m{(A\d{6})}g) { # get all referenced A-numbers
+            if ($aref eq $aseqno) { # ignore reference to own
+            } elsif (! defined($xhash{$aref})) {
+                $xhash{$aref}  = ($in_prog == 1 ? 2 : 1);
+            } else {
+                $xhash{$aref} |= ($in_prog == 1 ? 2 : 1);
+            }
+        } # foreach
+    }
+    if ($in_prog == 1) {
+      foreach my $pair ($line =~ m{A(\d{6}\-A\d{6})}g) { # get Ammmmmm-Annnnnn
+        my ($lo, $hi) = split(/\-A/, $pair);
+        if ($lo + 64 > $hi) {
+          for (my $seqno = $lo + 1; $seqno < $hi; $seqno ++) {
+            my $aref = sprintf("A%06d", $seqno);
+            if ($aref eq $aseqno) { # ignore reference to own
+            } elsif (! defined($xhash{$aref})) {
+                $xhash{$aref}  = ($in_prog == 1 ? 2 : 1);
+            } else {
+                $xhash{$aref} |= ($in_prog == 1 ? 2 : 1);
+            }
+          } # for $seqno
+        } # if limit
+      } # foreach
+    } # in_prog
+} # extract_programs
+#----
+sub accumulate_programs {
+    my ($aseqno, $prog_buffer) = @_;
+    my $buffer = "";
+    #                              1                           1
+    my @blocks = split(/($prog_sep\([A-Z][A-Za-z0-9]+[^\)]*\) *)/, $prog_buffer); # yields the separators: (~~(lang)) block (~~(lang)) block ...
+    my $iblk = 1;
+    my %curnos = (); # store the curno for some language
+    my $lang;
+    my $curno = 1;
+    for (my $iblk = 1; $iblk < scalar(@blocks); $iblk ++) {
+        my $block = $blocks[$iblk];
+        print "# $aseqno block: $block\n";
+        if (0) {
+        } elsif ($block =~ m{\(Maple\)}) {
+            $block =~ s{[\(\)]}{}g;
+            $lang = lc($block);
+        } elsif ($block =~ m{\(Mathematica\)}) {
+            $block =~ s{[\(\)]}{}g;
+            $lang = "mma";
+            #                           1         1
+        } elsif ($block =~ s{$prog_sep\(([A-Za-z]+)[^\)]*\)}{$prog_sep}) { # other language
+            $lang = lc($1);
+            if (0) {
+            } elsif ($lang =~ m{scheme}i) {
+                $lang = "scheme";
+                if ($iblk < scalar(@blocks) - 1) {
+                    $blocks[$iblk + 1] =~ s{\A\:}{}; # remove ":"
+                }
+            } elsif ($lang =~ m{gap}i) {
+                $lang = "gap";
+            }
+        } else { # rest of the block, containing "~~"
+            $curno = 1;
+            if (! defined($curnos{$lang})) {
+                $curnos{$lang} = $curno;
+            } else {
+                $curnos{$lang} ++;
+                $curno = $curnos{$lang};
+            }
+            $buffer .= join("\t", $aseqno, $lang, $curno, "type", "$prog_sep$prog_sep$block") . "\n";
+        } # rest pf block
+    } # for $iblk
+    return $buffer;
+} # accumulate_programs
+#----
+sub print_create_asprog {
+    print <<"GFis";
+--  Table for OEIS - programs in sequences with their metadata
+--  \@(#) \$Id\$
+--  $utc_stamp: Georg Fischer - generated by extract_prog.pl - do NOT edit here!
+--
+DROP    TABLE  IF EXISTS $tabname;
+CREATE  TABLE            $tabname;
+    ( aseqno    VARCHAR(10)    -- e.g. A322469
+    , lang      VARCHAR(16)    -- mma, maple, pari, gap etc.
+    , curno     INT            -- current number of program for this language: 1, 2, ...
+    , type      VARCHAR(16)    -- code for the wrapper pattern: "an" -> "a(n) = ..."
+    , program   VARCHAR(16384) -- code lines started and separated by "~~"
+    , author    VARCHAR(64)    -- author of the program or the sequence
+    , created   TIMESTAMP DEFAULT '1971-01-01 00:00:01' -- time when the program was edited, in UTC
+    , revision  INT            -- sequential version number in OEIS
+    , PRIMARY KEY(aseqno, lang, curno)
+    );
+COMMIT;
+GFis
+} # print_create_asprog
+#----
+__DATA__
+%I A389847 #9 Oct 17 2025 09:57:54
+%S A389847 1,0,0,6,72,720,8280,120960,2116800,41610240,903571200,21674822400,
+%T A389847 571548700800,16417540339200,509709674073600,17011056372710400,
+%U A389847 607616125788672000,23133198948507648000,935196923565557452800,40010432908461913497600,1806175046642174208000000
+%N A389847 E.g.f. A(x) satisfies A(x) = exp(x^3 * A(x) / (1-x)^3).
+%F A389847 E.g.f.: exp( -LambertW(-x^3 / (1-x)^3) ).
+%F A389847 a(n) = n! * Sum_{k=0..floor(n/3)} (k+1)^(k-1) * binomial(n-1,n-3*k)/k!.
+%o A389847 (PARI) a(n) = n!*sum(k=0, n\3, (k+1)^(k-1)*binomial(n-1, n-3*k)/k!);
+%Y A389847 Cf. A367789, €389844.
+%Y A389847 Cf. A361572, A387951.
+%K A389847 nonn,new
+%O A389847 0,4
+%A A389847 _Seiichi Manyama_, Oct 17 2025
+%I A389853 #12 Oct 18 2025 02:34:00
+%S A389853 14,29,47,53,71,73,179,277,311,349,353,599,613,643,1117,1123
+%N A389853 Numbers k such that both 2^k-1 and 2^k+1 are sphenic.
+%e A389853 14 is a term: 2^14-1 = 16383 = 3*43*127 and 2^14+1 = 16385 = 5*29*113.
+%p A389853 q:= n-> andmap(x-> ifactors(x)[2][.., 2]=[1$3], [2^n-1, 2^n+1]):
+%p A389853 select(q, [$1..200])[];  # _Alois P. Heinz_, Oct 17 2025
+%t A389853 Select[Range[180], AllTrue[2^# + {-1, 1}, And[SquareFreeQ[#], PrimeNu[#] == 3] &] &]
+%Y A389853 Cf. A000051, A000225, A007304, A092558 (both 2^k-1 and 2^k+1 are semiprimes).
+%Y A389853 Supersets: €262978, €389854.
+%K A389853 nonn,hard,more,new
+%O A389853 1,1
+%A A389853 _Michael De Vlieger_, Oct 17 2025

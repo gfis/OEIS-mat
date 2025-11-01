@@ -1181,6 +1181,15 @@ anexp:
 	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
 	chmod 775    $@.html
 	cmd /c start $@.html
+expsum:
+	grep -iP "Expansion of exp *\( *Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
 bn:
 	grep -P "\b[bcr]\(n\) *\=" jcat25.txt | grep -P "\b[bcr]\(n *\- *1\)" | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
