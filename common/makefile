@@ -215,9 +215,14 @@ asname_load: # Load table <em>asname</em>
 	$(DBAT) -4                  asname
 	$(DBAT) -n                  asname
 #--------
-asprog: # parameter: DIR
+asprog_old: # parameter: DIR
 	perl extract_info.pl -apr $(DIR)/ajson > $@.txt
 	wc -l $@.txt
+asprog: # parameter: DIR
+	perl extract_asprog.pl -n jcat25.txt \
+	>        $@.txt
+	tail -n2 $@.txt
+	wc -l    $@.txt
 asprog_load: # Load table <em>asprog</em>
 	$(DBAT) -f                  asprog.create.sql
 	grep -E "^A"                asprog.txt \
@@ -226,6 +231,12 @@ asprog_load: # Load table <em>asprog</em>
 	| $(DBAT) -m csv -s "\t" -r asprog
 	$(DBAT) -4                  asprog
 	$(DBAT) -n                  asprog
+asprog_potential: # how many could be realized by foreign producers
+	$(DBAT) -x "SELECT COUNT(*) FROM asprog \
+	  WHERE lang = 'pari' \
+	    AND aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND aseqno NOT IN (SELECT aseqno FROM poeis) \
+	  ;"
 #--------
 asinfo: # parameter DIR: table for basic sequence data from JSONs
 	make asinfo_extract DIR=.
