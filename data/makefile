@@ -65,7 +65,7 @@ oeisdata_fill: # SUB=
 	echo "git lfs checkout     files/$(SUB)/b??????.txt" ; \
 	      git lfs checkout     files/$(SUB)/b??????.txt  ;
 oeisdata_pull: 
-	cd $(OEISDATA) ; git pull
+	# cd $(OEISDATA) ; git pull
 	# odp3 odp2 odp1 odp0 # odp4
 odp4: 
 	make oeisdata_fill SUB=A49?
