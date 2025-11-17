@@ -498,7 +498,8 @@ tinfo: # extract ASINFO, ASNAME, BFINFO database tables
 	wc -l    ??????.txt
 	tail -n2 ??????.txt
 catex_pack:
-	tar -czvf $@.tgz asdata.txt asinfo.txt asname.txt bfinfo.txt
+	tar -czvf $@.tgz asdata.txt asinfo.txt asname.txt bfinfo.txt \
+	  asprog.txt asxref.txt
 	ls -al *.tgz
 #====
 joeis_down: joeis_pull joeis_list joeis_ofpre joeis_coral joeis_ofter jcat28 joeis_pack
@@ -566,7 +567,8 @@ joeis_pack:
 #
 remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
 load4:
-	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload
+	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload \
+	  pinfos asprog_load asxref_load
 reflect:
 	cd $(FISCHER)/reflect ; make -i ; make vector
 arti:

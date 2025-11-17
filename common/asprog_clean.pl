@@ -1,7 +1,8 @@
 #!perl
 
 # Normalize programming languages, keep important ones only, truncate fields
-# @(#) $Id$
+# @(#) $Id$ 
+# 2025-11-16: perl,scheme etc.
 # 2022-06-17, Georg Fischer
 #
 #:# usage:
@@ -37,12 +38,14 @@ while (<>) {
         next;
     }
     my $known_lang = 0
-        + ($lang =~ s{\Apari.*}     {pari}         )
         + ($lang =~ s{\Agap.*}      {gap}          )
-        + ($lang =~ s{\Asagemath.*} {sagemath}     )
         + ($lang =~ s{\Ahaskel.*}   {haskell}      )
         + ($lang =~ s{\Amaxima.*}   {maxima}       )
+        + ($lang =~ s{\Apari.*}     {pari}         )
+        + ($lang =~ s{\Aperl.*}     {perl}         )
         + ($lang =~ s{\Apython.*}   {python}       )
+        + ($lang =~ s{\Asagemath.*} {sagemath}     )
+        + ($lang =~ s{\Ascheme.*}   {scheme}       )
         ;
     if ($known_lang > 0) {
         print        join("\t", $aseqno, $lang, $curno, $type, $code, @rest) . "\n";

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+name=`perl $GITS/OEIS-mat/scripts/Anumber.pl -s $1`.gp
+fname=$GITS/OEIS-prog/prog/gp/$name
+cat    $fname
+ls -al $fname
+ano=`perl $GITS/OEIS-mat/scripts/Anumber.pl $1`
+echo $ano | clip 
+cmd /c start http://oeis.org/$ano
+e      $fname

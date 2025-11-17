@@ -11,7 +11,7 @@ use strict;
 use integer;
 use warnings;
 
-my $tardir = "../../OEIS-prog/prog/gp";
+my $tardir = "../../OEIS-prog/sandbox";
 my $type = "an";
 
 while (<>) {
@@ -22,7 +22,7 @@ while (<>) {
         my $adir = lc(substr($aseqno, 0, 4));
         mkdir "$tardir/$adir";
         my $target = "$tardir/$adir/$aseqno.gp";
-        open(TAR, ">", $target) || die "cannot write \"$target\"\n";
+        open (TAR, ">", $target) || die "cannot write \"$target\"\n";
         print TAR "\\\\ https://oeis.org/$aseqno type=$type offset=$offset curno=1\n";
         print TAR "$parms[1]\n";
         print "$target $type $offset written\n";

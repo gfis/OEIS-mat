@@ -231,12 +231,18 @@ asprog_load: # Load table <em>asprog</em>
 	| $(DBAT) -m csv -s "\t" -r asprog
 	$(DBAT) -4                  asprog
 	$(DBAT) -n                  asprog
-asprog_potential: # how many could be realized by foreign producers
-	$(DBAT) -x "SELECT COUNT(*) FROM asprog \
-	  WHERE lang = 'pari' \
+asprog_potential: # how many could still be realized by foreign producers 
+	$(DBAT) "\
+	(SELECT lang,    COUNT(lang) FROM asprog \
+	  WHERE lang   NOT IN ('maple','mma','magma') \
 	    AND aseqno NOT IN (SELECT aseqno FROM joeis) \
 	    AND aseqno NOT IN (SELECT aseqno FROM poeis) \
-	  ;"
+	   GROUP BY lang \
+	) UNION  (SELECT 'total', COUNT(*) FROM asprog \
+	  WHERE lang   NOT IN ('maple','mma','magma') \
+	    AND aseqno NOT IN (SELECT aseqno FROM joeis) \
+	    AND aseqno NOT IN (SELECT aseqno FROM poeis) \
+	);"
 #--------
 asinfo: # parameter DIR: table for basic sequence data from JSONs
 	make asinfo_extract DIR=.
@@ -1328,6 +1334,15 @@ mult: # Multiplicative in jcat25 nyi
 
 niven: # 
 	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	wc -l $@.tmp
+	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
+	chmod 775    $@.html
+	cmd /c start $@.html
+
+partn: # 
+	grep "Number of partitions of n into " jcat25.txt | grep -P "^%[NFCY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	wc -l $@.tmp

@@ -1,7 +1,8 @@
 #!perl
 
 # Extract foreign programs from jcat25.txt
-# @(#) $Id$
+# @(#) $Id$ 
+# 2025-11-15: with timestamp in A000000; *EFF=4
 # 2025-11-01: standalone, copied from extract_xref.pl
 # 2019-01-22, Georg Fischer
 #
@@ -50,15 +51,24 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
         die "invalid option \"$opt\"\n";
     }
 } # while ARGV
-#----
+#----  
+# $inprog = 0: outside pto
+# $inprog = 1:  inside o
+# $inprog = 2:  inside p
+# $inprog = 3:  inside t
+
 my $line;
 my $type;
 # while (<DATA>) {
 while (<>) {  
     next if ($nyi == 1 && substr($_, 0, 1) ne "%");
     s/\s+\Z//;
-    $type      = substr($_, 1, 1);
-    $line      = substr($_, 3);
+    $type = substr($_, 1, 1);
+    $line = substr($_, 3);
+    $line =~ s{€}{A}g; # replace unknown €seqnos
+    if ($debug >= 2) {
+        print "line=$line~~\n";
+    }
     my $nseqno = 'A' . substr($line, 1, 6);
     if (0) {
     } elsif ($type eq "I") { # new sequence
@@ -86,21 +96,31 @@ while (<>) {
         } else {
             print "# line? $line\n";
         }
-    } elsif ($type eq "p") {
+    } elsif ($type eq "p") { # Maple
+        $line =~ s{\A[A-Z]\d+ *}{}; # remove aseqno
+        if ($in_prog != 2) { 
+            $prog_buffer .= "$prog_sep${prog_sep}\(Maple\)$line";
+        } else {
+            $prog_buffer .= "$prog_sep$line";
+        }
         $in_prog  = 2;
-        $program .= "p";
-        $prog_buffer = "$prog_sep${prog_sep}Maple";
-    } elsif ($type eq "t") {
+        $program .= "p"; 
+    } elsif ($type eq "t") { # Mathematica
+        $line =~ s{\A[A-Z]\d+ *}{}; # remove aseqno
+        if ($in_prog != 3) {
+            $prog_buffer .= "$prog_sep${prog_sep}\(Mathematica\)$line";
+        } else {
+            $prog_buffer .= "$prog_sep$line";
+        }
         $in_prog  = 3;
         $program .= "t";
-        $prog_buffer = "$prog_sep${prog_sep}Mathematica";
-    } elsif ($type eq "o") {
+    } elsif ($type eq "o") { # PARI, Haskell, Scheme, Python, SageMath etc.
         $in_prog  = 1;
         $program .= "o";
         $line =~ s{\A[A-Z]\d+ *}{}; # remove aseqno
-        $line =~ s{\t}{  }g; # replace tabs?!
-        $line =~ s{€}{A}g; # replace unknown €seqnos
-        $prog_buffer .= "$prog_sep$line";
+        $line =~ s{\t}{  }g; # replace tabs?! 
+        $line =~ s{\\\\(.*)}{\/\*$1 \*\/};
+        $prog_buffer     .= "$prog_sep$line";
     } else {
         $in_prog = 0; # outside prog mode
     }
@@ -131,13 +151,13 @@ sub accumulate_programs {
             print "# $aseqno block: $block\n";
         }
         if (0) {
-        } elsif ($block =~ m{\(Maple\)}) {
-            $block =~ s{[\(\)]}{}g;
-            $lang = lc($block);
-        } elsif ($block =~ m{\(Mathematica\)}) {
-            $block =~ s{[\(\)]}{}g;
-            $lang = "mma";
-            #                           1         1
+#       } elsif ($block =~ m{\(Maple\)}) {
+#           $block =~ s{[\(\)]}{}g;
+#           $lang = lc($block);
+#       } elsif ($block =~ m{\(Mathematica\)}) {
+#           $block =~ s{[\(\)]}{}g;
+#           $lang = "mma";
+#           #                           1         1
         } elsif ($block =~ s{$prog_sep\(([A-Za-z]+)[^\)]*\)}{$prog_sep}) { # other language
             $lang = lc($1);
             if (0) {
@@ -146,6 +166,8 @@ sub accumulate_programs {
                 if ($iblk < scalar(@blocks) - 1) {
                     $blocks[$iblk + 1] =~ s{\A\:}{}; # remove ":"
                 }
+            } elsif ($lang =~ m{Mathematica}i) {
+                $lang = "mma";
             } elsif ($lang =~ m{gap}i) {
                 $lang = "gap";
             }
@@ -181,6 +203,7 @@ CREATE  TABLE            asprog;
     , revision  INT            -- sequential version number in OEIS
     , PRIMARY KEY(aseqno, lang, curno)
     );
+INSERT INTO asprog VALUES('A000000', 'system', 1, 'time', 'metadata', 'Gfis', CURRENT_TIMESTAMP, 0);
 COMMIT;
 GFis
 } # print_create_asprog
