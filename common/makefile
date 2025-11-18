@@ -224,6 +224,7 @@ asprog: # parameter: DIR
 	tail -n2 $@.txt
 	wc -l    $@.txt
 asprog_load: # Load table <em>asprog</em>
+	# perl extract_asprog.pl -c > asprog.create.sql
 	$(DBAT) -f                  asprog.create.sql
 	grep -E "^A"                asprog.txt \
 	| perl asprog_clean.pl \
