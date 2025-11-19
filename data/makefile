@@ -138,8 +138,8 @@ remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 refle
 pinfo: # generate asprog and asxref
 	cd $(COMMON) ; make asprog ; make asxref
 load4:
-	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload \
-	  pinfo asprog_load asxref_load
+	make pinfo
+	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload asprog_load asxref_load
 reflect:
 	cd $(FISCHER)/reflect ; make -i ; make vector
 arti:
