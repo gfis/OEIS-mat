@@ -135,9 +135,11 @@ joeis_pack:
 # to be used locally:
 #
 remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
+pinfo: # generate asprog and asxref
+	cd $(COMMON) ; make asprog ; make asxref
 load4:
 	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload \
-	  pinfos asprog_load asxref_load
+	  pinfo asprog_load asxref_load
 reflect:
 	cd $(FISCHER)/reflect ; make -i ; make vector
 arti:
@@ -288,7 +290,7 @@ oeisdata_fill: # SUB=
 	echo "git lfs checkout     files/$(SUB)/b??????.txt" ; \
 	      git lfs checkout     files/$(SUB)/b??????.txt  ;
 oeisdata_pull: 
-	# cd $(OEISDATA) ; git pull
+	cd $(OEISDATA) ; git pull
 	# odp3 odp2 odp1 odp0 # odp4
 odp4: 
 	make oeisdata_fill SUB=A49?
