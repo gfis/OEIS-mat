@@ -74,28 +74,27 @@ R       CV
 ); 
 my $ztype = "N";
 # Functions and their expected types
-my %ftypes = qw(
-ABS     NN
-BI      IIN
-CEIL    NN
-FA      IN
-FLOOR   NN
-GCD     NN,NN
-MAX     NN,NN
-PD      IILN
-PP      NB
-PR      IIILN
-QV      NQ
-RD      IILQ
-RQ      IIILQ
-RU      IIILQ
-S1      IIN
-S2      IIN
-SD      IILN
-SU      IIILN
-Z2      IN
-ZV      IN
-);
+my %ftypes = (
+'ABS','NN',
+'BI','IIN',
+'CEIL','NN',
+'FA','IN',
+'FLOOR','NN',
+'GCD','NN,NN',
+'MAX','NN,NN',
+'PD','IILN',
+'PP','NB',
+'PR','IIILN',
+'QV','NQ',
+'RD','IILQ',
+'RQ','IIILQ',
+'RU','IIILQ',
+'S1','IIN',
+'S2','IIN',
+'SD','IILN',
+'SU','IIILN',
+'Z2','IN',
+'ZV','IN');
 
 # while (<DATA>) {
 while (<>) {

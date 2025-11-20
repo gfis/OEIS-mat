@@ -1,0 +1,26 @@
+---- 2025-11-19 14:35:08
+A122131	filnum	0	0	k -> PP(ZV(k).^(12).+(ZV(488669)))	n^12 + 488669
+A265013	filnum	0	0	k -> PP(ZV(k).*(ZV(9).^(k)).+(ZV(1)))	n*9^n + 1
+A302132	filnum	0	0	k -> PP(ZV(3).*(ZV(k).^(k)).-(ZV(2)))	3*k^k - 2
+A302133	filnum	0	0	k -> PP(ZV(8).*(ZV(k).^(k)).-(ZV(7)))	8*k^k - 7
+A338412	filnum	0	0	k -> PP(ZV(k).*(ZV(20).^(k)).+(ZV(1)))	k * 20^k + 1
+A363491	filnum	0	7	k -> Predicates.SEMIPRIME.is(ZV(2).^(k).-(ZV(5)))	2^k - 5
+A365611	filnum	0	0	k -> PP(ZV(10).^(100000).+(ZV(k)))	10^100000+k
+A379429	filnum	0	0	k -> { final Q kq = new Q(ZV(31).^(k).+(ZV(2).^(k)), ZV(33)); return kq.isInteger() && PP(kq.num()); }	(31^k + 2^k)/33
+A379987	filnum	0	0	k -> { final Q kq = new Q(ZV(35).^(k).+(ZV(2).^(k)), ZV(37)); return kq.isInteger() && PP(kq.num()); }	(35^k + 2^k)/37
+A379988	filnum	0	0	k -> { final Q kq = new Q(ZV(27).^(k).+(ZV(2).^(k)), ZV(29)); return kq.isInteger() && PP(kq.num()); }	(27^k + 2^k)/29
+A386383	filnum	0	0	k -> { final Q kq = new Q(ZV(22).^(k).+(ZV(3).^(k)), ZV(25)); return kq.isInteger() && PP(kq.num()); }	(22^k + 3^k)/25
+A388039	filnum	0	0	k -> { final Q kq = new Q(ZV(37).^(k).+(ZV(3).^(k)), ZV(40)); return kq.isInteger() && PP(kq.num()); }	(37^k + 3^k)/40
+A389264	filnum	0	0	k -> { final Q kq = new Q(ZV(20).^(k).+(ZV(19).^(k)), ZV(37)); return kq.isInteger() && PP(kq.num()); }	(20^k + 19^k)/37
+A282400
+---- 2025-11-19 18:44:02
+A215433	filnum	0	0	k -> PP(ZV(k).^(512).+(ZV(k).+(1).^(512)))	n^512 + (n+1)^512
+A216375	filnum	0	0	k -> PP(ZV(11).^(k).+(ZV(k).^(11)).+(1))	11^k + k^11 + 1
+A216421	filnum	0	0	k -> PP(ZV(13).^(k).+(ZV(k).^(13)).+(1))	13^k + k^13 + 1
+A216591	filnum	0	0	k -> PP(ZV(8).^(k).+(ZV(k).^(8)).-(1))	8^k + k^8 - 1
+A216618	filnum	0	0	k -> PP(ZV(10).^(k).+(ZV(k).^(10)).+(1))	10^k + k^10 + 1
+A216619	filnum	0	0	k -> PP(ZV(10).^(k).+(ZV(k).^(10)).-(1))	10^k + k^10 - 1
+A274234	filnum	0	0	k -> PP(ZV(k).^(1024).+(ZV(k).+(1).^(1024)))	n^1024 + (n+1)^1024
+A274235	filnum	0	0	k -> PP(ZV(k).^(2048).+(ZV(k).+(1).^(2048)))	n^2048 + (n+1)^2048
+A274236	filnum	0	0	k -> PP(ZV(k).^(4096).+(ZV(k).+(1).^(4096)))	k^4096 + (k+1)^4096
+A274237	filnum	0	0	k -> PP(ZV(k).^(8192).+(ZV(k).+(1).^(8192)))	k^8192 + (k+1)^8192

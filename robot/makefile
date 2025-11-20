@@ -740,6 +740,23 @@ invtraf:
 	| tee    $@.gen
 	wc -l    $@.*
 #----
+isprime: 
+	grep -P "Numbers \w such that [\(\dnmk].* is (a )?(semi\-?)?prime\.\Z" $(CAT) | grep -P "^%" \
+	| cut -b4- \
+	| tee $@.1.tmp \
+	| perl isprime.pl -d $(D) \
+	2>       $@.2.tmp \
+	>        $@.3.tmp
+	grep -P "^A\d+" $@.slow | cut -f1 | sed -e "s/^x/\^/" | tr -d "\r"  > $@.grep.tmp
+	cut -f1 $(FISCHER)/today.txt      | cut -b2-8         | tr -d "\r" >> $@.grep.tmp
+	ls -al   $@*.tmp 
+	grep -vf $@.grep.tmp $@.3.tmp     > $@.tmp || :
+	sort -k2 -k5 $@.2.tmp > $@.rest.tmp
+	grep unknown $@.rest.tmp | cut -f5 | sort | uniq -c | sort -r | head -n16
+	tail -n4 $@.tmp
+	wc -l    $@*.tmp 
+	cp -v    $@.tmp $(FISCHER)/aman/$@.man
+#----
 # grep A-numbers of known functions
 knowna: knowna0 knowna1 knowna2 knowna3 knowna4
 knowna0: # grep "a(n) = [factor *] Annnnnn("
