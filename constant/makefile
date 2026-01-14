@@ -181,6 +181,7 @@ equa7:
 	| tee    $@.tmp
 	wc -l    $@.tmp
 	cp -v    $@.tmp $(FISCHER)/aman/equa.man
+	e               $(FISCHER)/aman/equa.man
 #--------
 exact: exact1 exact2 exact3
 exact1:

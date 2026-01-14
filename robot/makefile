@@ -1,7 +1,8 @@
 #!make
 
 # OEIS-mat/robot - automatic preparation of parameters for the generation of Java programs for jOEIS
-# @(#) $Id$
+# @(#) $Id$  
+# 2026-01-06: termof
 # 2025-05-06: insect & Co.
 # 2023-08-20: sumbin & Co.
 # 2023-05-01, Georg Fischer: start with ogf
@@ -267,7 +268,8 @@ parisum2:
 	| struct -de 2> destruct.gp.ecn \
 	| lsmtraf                     | tee lsmtraf.gp.ocn
 	wc -l *gp.*
-	head          lsmtraf.gp.ocn
+	cp -v lsmtraf.gp.ocn $(FISCHER)/aman/lsmtraf.man
+	e $(FISCHER)/aman/lsmtraf.man
 enstest:
 	enstruct   -d $(D)  enstest.man 2>&1 | tee enstest.ocn
 	struct -de  -d $(D) enstest.ocn 2>&1 | tee destest.ocn
@@ -1283,6 +1285,13 @@ sum_maple: # Maple
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+#-----
+termof:
+	grep -P "([A-Z][a-z\-]+ |The [a-z\-]+)[^t]*terms of [A-Z]\d{6}" $(CAT) | grep -P "^%[NFCY]" | endirect | grep -v € \
+	| cut -b4- | sort -k2 \
+	| tee $@.tmp
+	wc -l $@.tmp 
+	e     $@.tmp
 #-----
 tricolrow:
 	grep -iP "(Column|Row) [a-n^Sp-z0-9\= ]*of [A-Z]\d{6}" jcat25.txt | grep -P "^%[NFCY]" | endirect | grep -P "of [HSTU]\d+" \
