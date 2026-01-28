@@ -518,7 +518,7 @@ gftype:
 #-------------------------------
 hermite: # A158811 HolonomicRecurrence     Numerator of Hermite(n, 1/3).
 	grep -E "Numerator of Hermite" $(COMMON)/joeis_names.txt \
-	| perl gen_hermite.
+	| perl gen_hermite.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -1177,10 +1177,10 @@ hygsolve2:
 #----
 sumbinom: # grep: a(n) = sum ... binom...
 	grep -P "^\%[NF]" ../common/jcat25.txt \
-	| grep -i Sum | grep -iP "binom(ial)?\(|C\(" \
-	| grep -P "a\(n\) *\=" \
+	| grep -i Sum | grep -iP "binom(ial)?\(|C\(" | grep -P "a\(n\) *\=" \
 	| cut -b4- \
-	| grep -Pv ".A\d\d\d" \
+	| grep -Pv ".A\d\d\d|T\(" | grep -v "€" | grep -iP "integral|\[x|coefficient" \
+	| sed -e "s/ = /=/" -e "s/binomial/BI/ig" -e "s/C\(/BI\(/g" -e "s/sum\(/SU\(/g" -e s/Sum_\{/SU\(/ig-" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
@@ -1196,7 +1196,7 @@ A172062:
 #----
 ser_holo:
 	rm -f $@.txt
-	grep -Pi "series reversion" $(COMMON)/jnames.txt | grep Holono | tee $@.tmp
+	grep -P "Series reversion" $(COMMON)/jnames.txt | grep -P "^A" | tee $@.tmp
 	cut -f1 $@.tmp \
 	| xargs -innn make -s ser_holo1 A=nnn
 ser_holo1:

@@ -69,7 +69,7 @@ lrlink2:
 	perl extract_lrindex.pl -m link lrlink1.tmp \
 	| $(SORTALLN) \
 	| uniq \
-	| grep -vE "01174[05]" \
+	| grep -vP "01174[05]|14610[79]|14611[39]|1412\d\d|1461\d\d|3767\d\d|380929" \
 	> lrlink2.tmp
 	wc -l lrlink*.tmp
 lrlink3:
