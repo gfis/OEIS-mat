@@ -134,7 +134,9 @@ joeis_pack:
 #========
 # to be used locally:
 #
-remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
+remote: mat_pull joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
+mat_pull: # update OEIS-mat/*
+	git pull
 pinfo: # generate asprog and asxref
 	cd $(COMMON) ; make asprog ; make asxref
 load4:

@@ -232,7 +232,7 @@ asprog_load: # Load table <em>asprog</em>
 	| $(DBAT) -m csv -s "\t" -r asprog
 	$(DBAT) -4                  asprog
 	$(DBAT) -n                  asprog
-asprog_potential: # how many could still be realized by foreign producers 
+asprog_potential: # how many could still be realized by foreign producers
 	$(DBAT) "\
 	(SELECT lang,    COUNT(lang) FROM asprog \
 	  WHERE lang   NOT IN ('maple','mma','magma') \
@@ -1119,155 +1119,111 @@ dgf: # Dirichlet g.f.s in jcat25 nyi
 	grep -iP "Dirichlet g\.f\." jcat25.txt | grep -P "^%[NFC]" \
 	| perl -pe "s/g\.f\. /g\.f\.\: /" \
 	| sort -k3,3 -k4,4 -k5,5 -k6,6 | tee $@.tmp
-
+#--------
+hmize: # TARGET= htmlize the result of a grep
+	wc -l        $(TARGET).tmp
+	perl $(FISCHER)/htmlize.pl $(TARGET).tmp > $(TARGET).html
+	chmod 755    $(TARGET).html
+	cmd /c start $(TARGET).html
+	e            $(TARGET).tmp
+arydiv:
+	grep -P "(ary |anti)divisor" jcat25.txt | grep -P "^%[NFCY]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
+bern:
+	grep -P "Bernoulli" jcat25.txt | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 filprim:
-	grep -P "Numbers [nk] such that \(\d+\^[^i]+is prime" joeis_names.txt | grep nyi | tee filprim.tmp
+	grep -P "Numbers [nk] such that \(\d+\^[^i]+is prime" joeis_names.txt | grep nyi | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 sumpari:
-	grep -P "^%o A38\d+ \(PARI" jcat25.txt | grep sum | tee sumpari.tmp
+	grep -P "^%o A38\d+ \(PARI" jcat25.txt | grep sum | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 essent:
-	grep -Pi "Essentially (the same as )?A\d+" jcat25.txt | grep -P "^%[NFCY]" | endirect | tee essent.tmp
+	grep -Pi "Essentially (the same as )?A\d+" jcat25.txt | grep -P "^%[NFCY]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 diffeq:
 	grep -P "differential eq" jcat25.txt | grep -P "^%[NFC]" | endirect | grep -viP "€|Prod|sum|row|column" \
-	| cut -b 4- | perl -pe 's/ /\t/;' \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755    $@.html
-	cmd /c start $@.html
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 egf:
 	grep -P "([Ee]\.g\.f\.)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€|Prod|sum|row|column" \
-	| cut -b 4- | perl -pe 's/ /\t/;' \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755    $@.html
-	cmd /c start $@.html
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 lgf:
 	grep -P "([Ll]\.g\.f\.)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€|Prod|sum|row|column" \
-	| cut -b 4- | perl -pe 's/ /\t/;' \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755    $@.html
-	cmd /c start $@.html
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 ogf:
-	grep -P "([O]\.g\.|G\.)f\. " jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod|sum" | grep -P "[B-Z]\d{6}" \
-	| cut -b 4- | perl -pe 's/ /\t/;' \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755    $@.html
-	cmd /c start $@.html 
+	grep -P "([O]\.g\.|G\.)f\. " jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod" | grep -P "[B-Z]\d{6}" \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 algdif:
 	grep -P "\bA\(x\)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -vPi "\bA\([^\)]{2}|sum|prod|[B-Z]\(|\.\.\.|\^\(n|\[x" \
-	| cut -b 4- | perl -pe 's/ /\t/;' \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755    $@.html
-	cmd /c start $@.html 
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 ratn:
-	grep -P "\br\(n\) *\=" jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€" \
-	| cut -b 4- | perl -pe 's/ /\t/;' \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 755    $@.html
-	cmd /c start $@.html
+	grep -P "\br\(n\) *\=" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
+rators:
+	grep -P "ators of " jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 series:
 	grep -P "^%t" jcat25.txt | grep -Pi "CoefficientList\[Series" \
-	| cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	| cut -b 4- | sed -e "s/ /\t/"    >        $@.tmp
+	make hmize TARGET=$@
 middle:
-	grep -P "A\d{6} ([^\-\+\*\/\=\<\>\|\.\& a-zA-Z0-9]+) A\d{6}" jcat25.txt | grep -P "^%[NFCY]"  | tee middle.tmp
-
+	grep -P "A\d{6} ([^\-\+\*\/\=\<\>\|\.\& a-zA-Z0-9]+) A\d{6}" jcat25.txt | grep -P "^%[NFCY]"  | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 section:
 	grep -Pi "section of \w\d{6}" jcat25.txt | grep -P "^%[NFCY]" | grep -v "€" | endirect \
-	| tee section.tmp
-
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 anexp:
-	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 expsum:
-	grep -iP "Expansion of exp *\( *Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	grep -iP "Expansion of exp *\( *Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 bn:
-	grep -P "\b[bcr]\(n\) *\=" jcat25.txt | grep -P "\b[bcr]\(n *\- *1\)" | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	grep -P "\b[bcr]\(n\) *\=" jcat25.txt | grep -P "\b[bcr]\(n *\- *1\)" | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 convol:
-	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" \
-	| grep -v € \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-	cmd /c start $@.html
+	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 equals:
 	grep "Equals " jcat25.txt | grep -P "^%[NFYC]" | grep -v € | grep -vPi "Sum|prod|column|integral|infinity|root of" | endirect | tee equals.tmp
-	wc -l $@.tmp
-	e $@.tmp
+	make hmize TARGET=$@
 hologf1:
-	cat ../holrec/hologf1.tmp \
-	| endirect \
+	cat ../holrec/hologf1.tmp | endirect \
 	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	make hmize TARGET=$@
 xpown:
-	grep -iP "\[x\^n\]" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	grep -iP "\[x\^n\]" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 xpow2n:
-	grep -iP "\[x\^\(" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc -l    $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-
+	grep -iP "\[x\^\(" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 cob:
-	find ../../oeisdata/files/A386 -name "b3861[01]?.txt" | xargs -innn cp -v nnn bfile   
+	find ../../oeisdata/files/A386 -name "b3861[01]?.txt" | xargs -innn cp -v nnn bfile
 
 dfinit:
 	grep -P "^%[NF] A\d+ (D\-finite )?([Rr]ecurrence)? *\:? *[0-9an\+\-\*\(\)\^ \=]+(for n *\>\=? *\d+)?\." jcat25.txt \
 	| grep -vP " \(\d+[\.\)]| a\([\da]" \
 	| tee $@.tmp
-	e $@.tmp
+	make hmize TARGET=$@
 #----
 lamprot:
 	grep -P "^%[NF]" jcat25.txt \
@@ -1275,79 +1231,48 @@ lamprot:
 	| grep -viP "y[\*\^]|A\(x\)|Sum|Decimal|Equals|Continued|column|row|~" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	make hmize TARGET=$@
 eisenstein:
 	grep -P "\WE\_\d+\W" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	make hmize TARGET=$@
 even_odd:
 	grep -P "(even|odd) digits" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
+	make hmize TARGET=$@
 parian:
 	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt \
 	| endirect | cut -b 4- \
 	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" \
 	| sort -k2 \
 	> $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html 
+	make hmize TARGET=$@
 eta:
 	grep -P "\Weta\(" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-
+	make hmize TARGET=$@
 qpowers:
 	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-
+	make hmize TARGET=$@
 mult: # Multiplicative in jcat25 nyi
 	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
 	| grep -vP "multiplicative (closure|digital|group|invers|order|persistence|root|subgroup|sum|Wiener|Zagreb)" \
 	| sort -k3,3 -k4,4 -k5,5 -k6,6 \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-
-niven: # 
+	make hmize TARGET=$@
+niven: #
 	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-
-partn: # 
+	make hmize TARGET=$@
+partn: #
 	grep "Number of partitions of n into " jcat25.txt | grep -P "^%[NFCY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
-	wc -l $@.tmp
-	perl $(FISCHER)/htmlize.pl $@.tmp > $@.html
-	chmod 775    $@.html
-	cmd /c start $@.html
-
+	make hmize TARGET=$@
+#--------
