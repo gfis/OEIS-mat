@@ -62,13 +62,14 @@ while (<>) {
         $type25    = $1;
         $aseqno    = $2;
         $longord   = $3;
+        $signature = $4 || "?sig1";
+#       $signature = "\"$signature\"";
         $longord   =~ s{\A0+}{};
-        $signature = $4 || "?sig11";
         $wordord   = $longord;
         if ($line =~ m{\, order *(\d+)}) {
             $wordord = $1;
         } 
-        $keyword    .= ",match1";
+#       $keyword    .= ",match1";
     #                    1 1  2        2              3   3                 4   4
     } elsif ($line =~ m{^(.)H ([A-Z]\d+)[^\#]+\#order_(\d+)[^\,]+\, *order *(\d+)}) {
         $type25    = $1;
@@ -76,7 +77,7 @@ while (<>) {
         $longord   = $3;
         $longord   =~ s{\A0+}{};
         $wordord   = $longord;
-        $keyword  .= ",match2,nosig"
+        $keyword  .= ",nosig"
     #                    1 1  2                                3      3
     } elsif ($line =~ m{^(.)H ([A-Z]\d+)[^\,]+\, *signature *\(([^\)]+)\)}) {
         $type25    = $1;
@@ -84,7 +85,7 @@ while (<>) {
         $signature = $3 || "?sig3";
         $longord   = "0";
         $wordord   = $longord;
-        $keyword    .= ",match3";
+#       $keyword    .= ",match3";
     } else {
         $nok = "nomatch";
     }
@@ -104,7 +105,7 @@ while (<>) {
         } else {
             $sigord = $longord;
             if (($signature !~ m{\A\?}) && $elemord ne $sigord) {
-                $nok = "order " . scalar(@elems) . "<>$sigord, " . join(",", @elems);
+                $nok = "order " . scalar(@elems) . "<>$sigord"; # , " . join(",", @elems);
             }
             if ($wordord ne $sigord) {
                 $nok = "wordord $wordord<>$sigord";
