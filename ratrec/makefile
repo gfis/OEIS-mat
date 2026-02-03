@@ -29,7 +29,7 @@ REMDIR=~/work/gits/OEIS-mat/holrec
 REMOTE=$(SERVER):$(REMDIR)
 
 all:
-	grep -P "^\w[^\:]*\:" makefile | sort 
+	grep -P "^\w[^\:]*\:" makefile | sort
 # rectab recuf
 GENSEQ=('CoxeterSequence', 'GeneratingFunctionSequence', 'HolonomicRecurrence', 'LinearRecurrence')
 #===============================================
@@ -69,23 +69,36 @@ overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC
 	grep -vf $@.sa.tmp $(TAR) > $@.tn.tmp || :
 	sort $@.tn.tmp $(SRC) > $(TAR)
 	wc -l $(TAR)
-#===============================================
-signat: signat_grep signat_extract signat_load
+#=============================================== 
+# Create db table "signat" for the signatures of linear recurrences read from jcat25; 2026-02-03
+signat: signat_grep signat_extract signat_eval signat_load
 signat_grep: # read H records from jcat25.txt
 	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(COMMON)/jcat25.txt \
 	>        $@.tmp || :
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-signat_extract: # prepare database table contents
-	perl extract_signat.pl signat_grep.tmp \
-	2>       signat.rest.tmp \
-	>        signat.txt
-	tail -n4 signat.txt
-	wc   -l  signat*.t* 
-	cat      signat.rest.tmp
+signat_extract: # prepare from grep'ed records
+	perl signat_extract.pl signat_grep.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	tail -n4 $@.tmp
+	wc   -l  $@*.tmp
+	cat      $@.rest.tmp
+signat_eval: # evaluate the signatures: binomial, periodic etc.
+	perl signat_eval.pl signat_extract.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc   -l  $@*.tmp
+	cat      $@.rest.tmp
 signat_load:
-	perl extract_signat.pl -c > signat.create.sql
-	$(DBAT) -r signat < signat.txt
+	perl signat_extract.pl -c > signat.create.sql
+	$(DBAT) -f signat.create.sql
+	cut -f1-6 signat_eval.tmp \
+	| $(DBAT) -r signat
+	$(DBAT)  -4 signat
+	$(DBAT)  -n signat
 #===============================================
 # Old targets:
 #----
@@ -879,7 +892,7 @@ satis4:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 	grep -E "^A[0-9]*" $@.tmp | wc -l
-	
+
 holalg: # manual
 	cat $(FISCHER)/aman/holalg.man \
 	| sed -e "s/holalg/alghol/" \
@@ -1206,7 +1219,7 @@ sumbinom: # grep: a(n) = sum ... binom...
 	wc -l    $@.tmp
 #----
 A172062:
-	grep -P "^A\d+" $@.pl                > $@.tmp 
+	grep -P "^A\d+" $@.pl                > $@.tmp
 	cd ../common; make seq2 LIST=../holrec/$@.tmp
 	$(DBAT) -x "SELECT s.aseqno, s.info, g.parm1, g.parm2 \
 	  FROM seq2 s, seq4 g \

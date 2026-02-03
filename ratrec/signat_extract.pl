@@ -7,15 +7,15 @@
 # 2019-02-19, Georg Fischer
 #
 #:# Usage:
-#:#   perl extract_signat.pl -c > signat.create.sql
-#:#   perl extract_signat.pl [-d debug] lrlink1.tmp > signat.txt
+#:#   perl signat_extract.pl -c > signat.create.sql
+#:#   perl signat_extract.pl [-d debug] lrlink1.tmp > signat.txt
 #:#      -d  mode 0=none, 1=some, 2=more
 #--------------------------------------------------------
 use strict;
 use integer;
 use warnings;
 my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime (time);
-my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
+my $timestamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
 my $debug = 0;
@@ -27,7 +27,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{c}) {
-        &create_sql();
+        &create_sql("signat");
         exit(0);
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
@@ -38,16 +38,17 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 
 #----
 my ($line, $aseqno, $type25, $sigord, $longord, $wordord, $signature, $keyword);
+my @elems; # terms in the signature
 my $nok = "";
+
 # INSERT the creation time
 $aseqno  = "A000000";
 $type25  = "#";
 $sigord  = -1;
 $longord = "";
 $wordord = "";
-$signature = $timestamp;
+$signature = "$0:$timestamp";
 $keyword = "";
-my @elems; # terms in the signature
 &output();
 
 while (<>) {
@@ -125,7 +126,8 @@ sub output {
             , $sigord
             , $longord
             , $signature
-            , $keyword
+            , $keyword 
+            , ";"
 #           , $line
             ) . "\n";
     } else {
