@@ -69,9 +69,9 @@ overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC
 	grep -vf $@.sa.tmp $(TAR) > $@.tn.tmp || :
 	sort $@.tn.tmp $(SRC) > $(TAR)
 	wc -l $(TAR)
-#=============================================== 
+#===============================================
 # Create db table "signat" for the signatures of linear recurrences read from jcat25; 2026-02-03
-signat: signat_grep signat_extract signat_eval signat_load
+signat: signat_grep signat_extract signat_eval signat_binom signat_stat signat_load
 signat_grep: # read H records from jcat25.txt
 	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(COMMON)/jcat25.txt \
 	>        $@.tmp || :
@@ -98,11 +98,12 @@ signat_load:
 	cut -f1-6 signat_eval.tmp \
 	| $(DBAT) -r signat
 	$(DBAT)  -4 signat
-	$(DBAT)  -n signat  
+	$(DBAT)  -n signat
 signat_binom: # evaluate "binom" keyword
 	grep "binom" signat_eval.tmp | cut -f5 | sort -n | uniq -c | sort -rn | cut -b1-128 \
 	| tee    $@.tmp 
-	cut -f6 signat_eval.tmp | perl -pe "s/=\-?\d+//;" | sort | uniq -c 
+signat_stat: # statistics over the keywords
+	cut -f6 signat_eval.tmp | perl -pe "s/=\-?\d+//;" | sort | uniq -c
 #===============================================
 # Old targets:
 #----

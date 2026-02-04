@@ -48,7 +48,7 @@ $sigord  = -1;
 $longord = "";
 $wordord = "";
 $signature = "$0:$timestamp";
-$keyword = "";
+$keyword = "timestamp";
 &output();
 
 while (<>) {

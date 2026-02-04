@@ -57,11 +57,21 @@ while (<>) {
             } else {
                 $keyword .= ",pow=$signature";
             }
-        #                          12   2 1
-        } elsif ($signature =~ m{\A((0\,)+)1\Z}) {
+        #                          12   2 13    3
+        } elsif ($signature =~ m{\A((0\,)+)(\-?1)\Z}) { # (0,0,1) -> period=3, (0,0,-1) -> period=6
             my $zeros = $1;
+            my $none  = $3;
             my $perlen = length($zeros)/2 + 1;
+            if ($none < 0) { 
+               $perlen *= 2;
+            }
+            $keyword .= ",period=$perlen";    
+        #                             1     1
+        } elsif ($signature =~ m{\A\-1(\,\-1)+\Z}) { # (-1,-1,-1) -> period=4
+            my $perlen = length($1)/2 + 1;
             $keyword .= ",period=$perlen";
+        } elsif ($signature eq "1,1") { # like Fibonacci or Lucas 
+            $keyword .= ",fibon";
         } else {
             if ($signature =~ m{\A(\-?\d+)}) {
                 my $first = $1;
@@ -75,7 +85,10 @@ while (<>) {
             }
         }
     }
-  &output();
+    if (length($keyword)  == 0) {
+        $keyword = "other";
+    }
+    &output();
 } # while <>
 # end main
 #----------
