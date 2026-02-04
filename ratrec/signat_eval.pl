@@ -5,8 +5,9 @@
 # 2026-02-03: Georg Fischer, copied from signat_extract.pl
 #
 #:# Usage:
-#:#   perl signat_eval.pl [-d debug] input > output
-#:#      -d  mode 0=none, 1=some, 2=more
+#:#   perl signat_eval.pl [-d debug] [-m max_binom] input > output
+#:#      -d mode 0=none, 1=some, 2=more
+#:#      -m number of rows in Pascal's triangle (default 64)
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -16,6 +17,7 @@ my $timestamp = sprintf ("%04d-%02d-%02d %02d:%02d:%02d"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
 my $debug = 0;
+my $max_binom   = 64;
 if (scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
@@ -28,6 +30,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         exit(0);
     } elsif ($opt  =~ m{d}) {
         $debug     = shift(@ARGV);
+    } elsif ($opt  =~ m{m}) {
+        $max_binom = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -58,9 +62,20 @@ while (<>) {
             my $zeros = $1;
             my $perlen = length($zeros)/2 + 1;
             $keyword .= ",period=$perlen";
+        } else {
+            if ($signature =~ m{\A(\-?\d+)}) {
+                my $first = $1;
+                if ($first >= 2 && $first < $max_binom) {
+                    my $posign = $signature;
+                    $posign =~ s{\-}{}g;
+                    if ("1," . $posign eq $binarr[$first]) {
+                        $keyword .= ",binom=$first";
+                    }
+                }
+            }
         }
     }
-    &output();
+  &output();
 } # while <>
 # end main
 #----------
@@ -82,18 +97,19 @@ sub output {
 } # output 
 #----
 sub fill_binarr {
-    push(@binarr, "", "1", "2,1");
-    for (my $irow = 3; $irow < 32; $irow ++) {
-        my @orow = split(/\,/, "1," .$binarr[$irow - 1]);
-        my $nrow = "";
+    push(@binarr, "1");
+    print "[0]\t1\n" if $debug >= 1;
+    for (my $irow = 1; $irow < $max_binom; $irow ++) {
+        my @orow = split(/\,/, $binarr[$irow - 1]);
+        push(@orow, 0);
+        # print "\t\t" . join(";", @orow) . "\n";
+        my $nrow = "1";
         for (my $icol = 1; $icol < scalar(@orow); $icol ++) {
             $nrow .= "," . ($orow[$icol - 1] + $orow[$icol]); # Pascal's rule
         } # for $icol
-        $nrow .= ",1";
-        print substr($nrow, 1) . "\n";
+        print "[$irow]\t$nrow\n" if $debug >= 1;
         push(@binarr, $nrow);
     } # for $irow  
-    exit;
 } # fill_binarr
 #-------------------------------------------------
 __DATA__

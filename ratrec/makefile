@@ -98,7 +98,11 @@ signat_load:
 	cut -f1-6 signat_eval.tmp \
 	| $(DBAT) -r signat
 	$(DBAT)  -4 signat
-	$(DBAT)  -n signat
+	$(DBAT)  -n signat  
+signat_binom: # evaluate "binom" keyword
+	grep "binom" signat_eval.tmp | cut -f5 | sort -n | uniq -c | sort -rn | cut -b1-128 \
+	| tee    $@.tmp 
+	cut -f6 signat_eval.tmp | perl -pe "s/=\-?\d+//;" | sort | uniq -c 
 #===============================================
 # Old targets:
 #----
