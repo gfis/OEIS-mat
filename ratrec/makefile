@@ -103,7 +103,24 @@ signat_binom: # evaluate "binom" keyword
 	grep "binom" signat_eval.tmp | cut -f5 | sort -n | uniq -c | sort -rn | cut -b1-128 \
 	| tee    $@.tmp 
 signat_stat: # statistics over the keywords
-	cut -f6 signat_eval.tmp | perl -pe "s/=\-?\d+//;" | sort | uniq -c
+	cut -f6 signat_eval.tmp | perl -pe "s/=\-?\d+//;" | sort | uniq -c  
+signat_period_test: # check the periods from the OEIS index #Rec
+	grep period ../lrindex/lrindx.raw | cut -b1-360 | grep -vP "\(\)|\.\.\." \
+	| perl signat_period.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@*.tmp
+	grep -P "\=\d+\*\d" $@.tmp || :
+signat_period: # try all "other" signatures
+	grep other signat_eval.tmp | cut -f5 | grep -vP "\d\d\d" | sort | uniq \
+	>        $@.icn.tmp
+	perl signat_period.pl $@.icn.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	>        $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@*.tmp
 #===============================================
 # Old targets:
 #----
