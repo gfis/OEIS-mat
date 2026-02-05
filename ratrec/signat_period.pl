@@ -38,53 +38,61 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 #----
 
-my @sig;
-my @arr;
-my $firstnz;
-my $lastnz = -1; 
-my $siglen = 0;
-my $busy;
+my @sig;    # signature including -1 for a(n)
+my @arr;    # expanding coefficient list for successive differences
+my $ihead;  # > 0, first non-zero element in @arr
+my $itail;  # < scalar(@arr), last non-zero element; the last signature element is always != 0
+my $siglen; # length of the signature (including -1 for a(n))
+my $busy;   # as long as no period is found
 while (<>) {
-    s/\s+\Z//; # chompr 
+    s/\s+\Z//; # chompr
     next if !m{\A\:?\(?\-?\d+\,};
     my $line = $_;
-    my $orig_line = $line;
+    my $orig_line = $line; # may come from https://oeis.org/wiki/Index_to_OEIS:_Section_Rec
     $line =~ s{\A[^\d\-\,]+}{};
     $line =~ s{[^\d\-\,].*}{};
     @sig = split(/\,/, $line);
     @arr = split(/\,/, $line);
-    unshift(@sig, -1); # assume that the coefficient of a(n) is -1
+    unshift(@sig, -1); # prefix with the coefficient of a(n) = -1
+    $siglen = scalar(@sig); # including -1 for a(n)
     unshift(@arr, -1);
     if ($debug > 0) {
         print "# signature: " . join(",", @sig) . "\n";
     }
-    $siglen = scalar(@sig);
 
-    $firstnz = 1; # skip over $arr[0] == a(n)
-    &adjust_first(); # now on the first nonzero element
-    $busy = 1;
-    while ($busy > 0 && $firstnz < $max_order) { # subtract signature shifted by 1 to the right
-        my $factor = -$arr[$firstnz];
-        if ($debug > 0) {
-            print "before: nz1=$firstnz, nz9=$lastnz, " . join(",", @arr) . " -> factor=$factor\n";
-        }
-        for (my $isig = 0; $isig < $siglen; $isig ++) {
-            $arr[$firstnz + $isig] -= $factor * $sig[$isig];
-        } # for $isig 
-        $lastnz = scalar(@arr) - 1;
-        &adjust_last();
-        if ($debug > 0) {
-            print "after:  nz1=$firstnz, nz9=$lastnz, " . join(",", @arr) . "\n";
-        }
-        &adjust_first();
-        if ($firstnz == $lastnz) {
-            $busy = 0; 
-            
+    $ihead = 1; # behind [0] = -1 for a(n)
+    $itail = $siglen - 1; # at the end of the signature
+    $busy  = 1;
+    while ($busy > 0 && $ihead < $max_order) { # subtract signature shifted by 1 to the right
+        &adjust_ihead(); # now on the first nonzero element
+        &adjust_itail(); # now on the last  nonzero element
+        if ($ihead == $itail) { # only one non-zero element at the end of @arr -> period found
+            $busy = 0;
             print join("\t", join("\,", splice(@sig, 1))
-                , "period=$firstnz" . ($arr[0] == -$arr[$firstnz] ? "" : "*" . (-$arr[$firstnz]/$arr[0])) 
+                , "period=$ihead" . ($arr[0] == -$arr[$ihead] ? "" : "*" . (-$arr[$ihead]/$arr[0]))
                 , $orig_line) . "\n";
-        } 
-    } # while $istart 
+        } else { # still several nonzero elements
+            $itail = $ihead + $siglen - 1;
+            while (scalar(@arr) <= $itail) { # add sufficiently many @arr elements
+                push(@arr, 0);
+            }
+            my $factor = -$arr[$ihead];
+            if ($debug > 0) {
+                print "before: nz1=$ihead, nz9=$itail, " . join(",", @arr) . " -> factor=$factor\n";
+            }
+            for (my $isig = 0; $isig < $siglen; $isig ++) {
+                $arr[$ihead + $isig] -= $factor * $sig[$isig];
+            } # for $isig
+            # now $arr[$ihead] == 0
+            if ($debug > 0) {
+                print "after:  nz1=$ihead, nz9=$itail, " . join(",", @arr) . "\n";
+            }
+            $ihead ++; # try to remove next @arr element
+            if (abs($factor) > 16) { # factor is not plausible
+                $ihead = $max_order;
+            }
+        }
+    } # while $istart
     if ($busy > 0) {
         print STDERR "# noperiod\t$orig_line\n";
     }
@@ -94,21 +102,17 @@ while (<>) {
 } # while <>
 # end main
 #----
-sub adjust_first { 
-    while ($firstnz < scalar(@arr) && $arr[$firstnz] == 0) {
-        $firstnz ++;
-        push(@arr, 0); # ensure that there are $siglen following elements
-        if ($firstnz >= $max_order - $siglen) {
-            $busy = 0;
-        }
+sub adjust_ihead {
+    while ($arr[$ihead] == 0) {
+        $ihead ++;
     }
-} # adjust_first
+} # adjust_ihead
 #----
-sub adjust_last  {
-    while ($lastnz  > 0            && $arr[$lastnz ] == 0) {
-        $lastnz  --;
+sub adjust_itail  {
+    while ($itail  > $ihead && $arr[$itail] == 0) {
+        $itail --;
     }
-} # adjust_lastt
+} # adjust_itail
 #-------------------------------------------------
 __DATA__
 0,1
@@ -118,9 +122,9 @@ __DATA__
 0,0,1
 0,0,-1
 2,-2,1
--1,-1,-1  
+-1,-1,-1
 1,2,3
-0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,-1 
+0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,-1
 -1,0,1,1,0,-1,-1,0,1,1,0,-1,-1,0,1,1,1,0,-1,-1,0,1,1,0,-1,-1,0,1,1,0,-1,-1
 0,0,0,-1,0,0,0,-1,0,0,0,-1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1
 :(0,1,0,-1,0,1,0,-1,0,1), i.e., 12-periodic: A070422, A131711
