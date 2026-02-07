@@ -71,7 +71,15 @@ overwrite: # SRC= TAR= inserts or replaces all records in TAR by the ones in SRC
 	wc -l $(TAR)
 #===============================================
 # Create db table "signat" for the signatures of linear recurrences read from jcat25; 2026-02-03
-signat: signat_grep signat_extract signat_eval signat_binom signat_stat signat_load
+signat: \
+	signat_grep    \
+	signat_extract \
+	signat_eval    \
+	signat_binom   \
+	signat_period  \
+	signat_merge   \
+	signat_stat    \
+	signat_load
 signat_grep: # read H records from jcat25.txt
 	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(COMMON)/jcat25.txt \
 	>        $@.tmp || :
@@ -92,18 +100,9 @@ signat_eval: # evaluate the signatures: binomial, periodic etc.
 	tail -n4 $@.tmp
 	wc   -l  $@*.tmp
 	cat      $@.rest.tmp
-signat_load:
-	perl signat_extract.pl -c > signat.create.sql
-	$(DBAT) -f signat.create.sql
-	cut -f1-6 signat_eval.tmp \
-	| $(DBAT) -r signat
-	$(DBAT)  -4 signat
-	$(DBAT)  -n signat
 signat_binom: # evaluate "binom" keyword
 	grep "binom" signat_eval.tmp | cut -f5 | sort -n | uniq -c | sort -rn | cut -b1-128 \
-	| tee    $@.tmp 
-signat_stat: # statistics over the keywords
-	cut -f6 signat_eval.tmp | perl -pe "s/=\-?\d+//;" | sort | uniq -c  
+	| tee    $@.tmp
 signat_period1: # first test with DATA
 	perl signat_period.pl signat_period.pl
 signat_period_test: # check the periods from the OEIS index #Rec
@@ -115,7 +114,7 @@ signat_period_test: # check the periods from the OEIS index #Rec
 	wc -l    $@*.tmp
 	grep -P "\=\d+\*\d" $@.tmp || :
 signat_period: # try all "other" signatures
-	# grep -P "other|period" 
+	# grep -P "other|period"
 	cat signat_extract.tmp | cut -f5 | grep -vP "\d\d\d" | sort | uniq \
 	>        $@.icn.tmp
 	perl signat_period.pl $@.icn.tmp \
@@ -123,6 +122,20 @@ signat_period: # try all "other" signatures
 	>        $@.tmp
 	head -n8 $@.tmp
 	wc -l    $@.*tmp
+signat_merge: # merge the computed periods into the eval file
+	perl signat_merge.pl -f signat_period.tmp signat_eval.tmp \
+	>        signat.txt
+	head -n8 signat.txt
+	wc -l    signat.txt
+signat_stat: # statistics over the keywords
+	cut -f6  signat.txt | perl -pe "s/=[\*\-\d]+//;" | sort | uniq -c
+signat_load:
+	perl signat_extract.pl -c > signat.create.sql
+	$(DBAT) -f signat.create.sql
+	cut -f1-6    signat.txt \
+	| $(DBAT) -r signat
+	$(DBAT)  -4  signat
+	$(DBAT)  -n  signat
 #===============================================
 # Old targets:
 #----

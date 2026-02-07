@@ -70,7 +70,7 @@ while (<>) {
             $busy = 0;
             print join("\t", join("\,", splice(@sig, 1))
                 , "period=$ihead" . ($arr[0] == -$arr[$ihead] ? "" : "*" . (-$arr[$ihead]/$arr[0]))
-                , $orig_line) . "\n";
+                ) . "\n";
         } else { # still several nonzero elements
             $itail = $ihead + $siglen - 1;
             while (scalar(@arr) <= $itail) { # add sufficiently many @arr elements
