@@ -2,7 +2,7 @@
 
 # Merge computed periods into signat_eval.tmp
 # @(#) $Id$
-# 2026-02-05: Georg Fischer, copied from signat_eval.pl
+# 2026-02-07: Georg Fischer, copied from signat_eval.pl; *KFF=2
 #
 #:# Usage:
 #:#   perl signat_merge.pl [-d debug] [-f period-file] signat_eval.tmp > signat.txt

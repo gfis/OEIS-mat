@@ -77,7 +77,7 @@ signat: \
 	signat_eval    \
 	signat_binom   \
 	signat_period  \
-	signat_merge   \
+	sigper_merge   \
 	signat_stat    \
 	signat_load
 signat_grep: # read H records from jcat25.txt
@@ -93,7 +93,7 @@ signat_extract: # prepare from grep'ed records
 	tail -n4 $@.tmp
 	wc   -l  $@*.tmp
 	cat      $@.rest.tmp
-signat_eval: # evaluate the signatures: binomial, periodic etc.
+signat_eval: # evaluate the signatures: binomial, constant, other etc.
 	perl signat_eval.pl signat_extract.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
@@ -121,21 +121,40 @@ signat_period: # try all "other" signatures
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	head -n8 $@.tmp
-	wc -l    $@.*tmp
+	wc -l    $@.*tmp 
+sigper: # create and populate db table sigper
+	$(DBAT) -f sigper.create.sql
+	cat signat_period.tmp \
+	| $(DBAT) -r sigper
+	$(DBAT) -n   sigper 
+sigper_merge: # merge periods from table sigper into table signat
+	$(DBAT) -f signat.create.sql
+	cat signat_eval.tmp \
+	| $(DBAT) -r signat
+	$(DBAT) -x "SELECT s.aseqno, s.type25, s.sigord, s.longord, s.signature, COALESCE(p.keyword, s.keyword) \
+	    FROM signat s LEFT JOIN sigper p ON s.signature = p.signature \
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp 
 signat_merge: # merge the computed periods into the eval file
 	perl signat_merge.pl -f signat_period.tmp signat_eval.tmp \
 	>        signat.txt
 	head -n8 signat.txt
 	wc -l    signat.txt
 signat_stat: # statistics over the keywords
-	cut -f6  signat.txt | perl -pe "s/=[\*\-\d]+//;" | sort | uniq -c
+	cut -f6  sigper_merge.tmp | perl -pe "s/=[\*\-\d]+//;" | sort | uniq -c
 signat_load:
 	perl signat_extract.pl -c > signat.create.sql
 	$(DBAT) -f signat.create.sql
-	cut -f1-6    signat.txt \
+	cut -f1-6    sigper_merge.tmp \
 	| $(DBAT) -r signat
 	$(DBAT)  -4  signat
 	$(DBAT)  -n  signat
+signat_joeis: # compare to implemented sequences
+	$(DBAT) -x "SELECT s.aseqno, s.keyword, j.superclass FROM signat s, joeis j \
+	    WHERE s.aseqno = j.aseqno \
+	    ORDER BY 1"
 #===============================================
 # Old targets:
 #----
