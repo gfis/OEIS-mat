@@ -121,12 +121,12 @@ signat_period: # try all "other" signatures
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	head -n8 $@.tmp
-	wc -l    $@.*tmp 
+	wc -l    $@.*tmp
 sigper: # create and populate db table sigper
 	$(DBAT) -f sigper.create.sql
 	cat signat_period.tmp \
 	| $(DBAT) -r sigper
-	$(DBAT) -n   sigper 
+	$(DBAT) -n   sigper
 sigper_merge: # merge periods from table sigper into table signat
 	$(DBAT) -f signat.create.sql
 	cat signat_eval.tmp \
@@ -136,7 +136,7 @@ sigper_merge: # merge periods from table sigper into table signat
 	    ORDER BY 1" \
 	>        $@.tmp
 	head -n2 $@.tmp
-	wc -l    $@.tmp 
+	wc -l    $@.tmp
 signat_merge: # merge the computed periods into the eval file
 	perl signat_merge.pl -f signat_period.tmp signat_eval.tmp \
 	>        signat.txt
@@ -154,7 +154,20 @@ signat_load:
 signat_joeis: # compare to implemented sequences
 	$(DBAT) -x "SELECT s.aseqno, s.keyword, j.superclass FROM signat s, joeis j \
 	    WHERE s.aseqno = j.aseqno \
-	    ORDER BY 1"
+	    ORDER BY 1" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+signat_black: # generate black-starting recurrences, with initial terms "(0,)*1"
+	$(DBAT) -x "SELECT s.aseqno, 'holos', 0, s.signature, s.sigord, s.keyword, i.terms \
+	    FROM signat s, asinfo i \
+	    WHERE s.aseqno = i.aseqno \
+	    ORDER BY 1" \
+	| perl signat_gen.pl -m black \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp 
+	cp -v    $@.tmp $(FISCHER)/aman/signat_black.man
 #===============================================
 # Old targets:
 #----
