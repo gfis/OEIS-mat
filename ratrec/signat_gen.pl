@@ -58,12 +58,11 @@ while (<>) {
         my $ix = 0;
         while ($ix < scalar(@bterms) && $bterms[$ix] == 0) {
             $ix ++;
-        }
+        } # while $ix
         if ($ix < scalar(@bterms)) {
             @aterms = splice(@bterms, 0, $ix + 1);
         }
         &output();
-    #                          12   2 13    3
     } else {
         die "# $0: invalid mode $mode\n";
     }
