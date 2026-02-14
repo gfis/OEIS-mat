@@ -305,6 +305,57 @@ bfdata_load: # Load table <em>bfdata</em>
 	| $(DBAT) -m csv -s "\t" -r bfdata
 	$(DBAT) -4                  bfdata
 	$(DBAT) -n                  bfdata
+bfmiss: # get missing b-files (which contain "version" from git-lfs)
+	grep -P "^A\d+\s0" bfdata.txt | cut -f1 \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp ../contrib/refresh.list.man
+	ro 
+bfsave: # pack all b-files in 40 archives
+	tar -czf bf00.tgz bfile/b00????.txt
+	tar -czf bf01.tgz bfile/b01????.txt
+	tar -czf bf02.tgz bfile/b02????.txt
+	tar -czf bf03.tgz bfile/b03????.txt
+	tar -czf bf04.tgz bfile/b04????.txt
+	tar -czf bf05.tgz bfile/b05????.txt
+	tar -czf bf06.tgz bfile/b06????.txt
+	tar -czf bf07.tgz bfile/b07????.txt
+	tar -czf bf08.tgz bfile/b08????.txt
+	tar -czf bf09.tgz bfile/b09????.txt
+	#
+	tar -czf bf10.tgz bfile/b10????.txt
+	tar -czf bf11.tgz bfile/b11????.txt
+	tar -czf bf12.tgz bfile/b12????.txt
+	tar -czf bf13.tgz bfile/b13????.txt
+	tar -czf bf14.tgz bfile/b14????.txt
+	tar -czf bf15.tgz bfile/b15????.txt
+	tar -czf bf16.tgz bfile/b16????.txt
+	tar -czf bf17.tgz bfile/b17????.txt
+	tar -czf bf18.tgz bfile/b18????.txt
+	tar -czf bf19.tgz bfile/b19????.txt
+	#
+	tar -czf bf20.tgz bfile/b20????.txt
+	tar -czf bf21.tgz bfile/b21????.txt
+	tar -czf bf22.tgz bfile/b22????.txt
+	tar -czf bf23.tgz bfile/b23????.txt
+	tar -czf bf24.tgz bfile/b24????.txt
+	tar -czf bf25.tgz bfile/b25????.txt
+	tar -czf bf26.tgz bfile/b26????.txt
+	tar -czf bf27.tgz bfile/b27????.txt
+	tar -czf bf28.tgz bfile/b28????.txt
+	tar -czf bf29.tgz bfile/b29????.txt
+	#
+	tar -czf bf30.tgz bfile/b30????.txt
+	tar -czf bf31.tgz bfile/b31????.txt
+	tar -czf bf32.tgz bfile/b32????.txt
+	tar -czf bf33.tgz bfile/b33????.txt
+	tar -czf bf34.tgz bfile/b34????.txt
+	tar -czf bf35.tgz bfile/b35????.txt
+	tar -czf bf36.tgz bfile/b36????.txt
+	tar -czf bf37.tgz bfile/b37????.txt
+	tar -czf bf38.tgz bfile/b38????.txt
+	tar -czf bf39.tgz bfile/b39????.txt
 #----
 bfimer: # merge extract only
 	perl extract_info.pl -br bulk/bfile > $@.txt

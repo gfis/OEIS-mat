@@ -146,11 +146,12 @@ signat_stat: # statistics over the keywords
 	cut -f6  sigper_merge.tmp | perl -pe "s/=[\*\-\d]+//;" | sort | uniq -c
 signat_load:
 	perl signat_extract.pl -c > signat.create.sql
-	$(DBAT) -f signat.create.sql
+	$(DBAT) -f   signat.create.sql
 	cut -f1-6    sigper_merge.tmp \
 	| $(DBAT) -r signat
 	$(DBAT)  -4  signat
 	$(DBAT)  -n  signat
+#----
 signat_joeis: # compare to implemented sequences
 	$(DBAT) -x "SELECT s.aseqno, s.keyword, j.superclass FROM signat s, joeis j \
 	    WHERE s.aseqno = j.aseqno \
@@ -158,6 +159,7 @@ signat_joeis: # compare to implemented sequences
 	>        $@.tmp
 	head -n2 $@.tmp
 	wc -l    $@.tmp
+#----
 signat_black: # generate black-starting recurrences, with initial terms "(0,)*1"
 	$(DBAT) -x "SELECT s.aseqno, 'holos', 0, s.signature, s.sigord, s.keyword, i.terms \
 	    FROM signat s, asinfo i \
@@ -166,8 +168,27 @@ signat_black: # generate black-starting recurrences, with initial terms "(0,)*1"
 	| perl signat_gen.pl -m black \
 	>        $@.tmp
 	tail -n4 $@.tmp
-	wc -l    $@.tmp 
-	cp -v    $@.tmp $(FISCHER)/aman/signat_black.man
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/aman/$@.man
+signat_black_update: # update the keywords, append ",black"
+	cut -f1 $(FISCHER)/signat_black.pass.log \
+	>        $@.txt
+	wc -l    $@.txt
+	make seq LIST=$@.txt
+	$(DBAT) -v "UPDATE signat s SET s.keyword = s.keyword || ',black' \
+	    WHERE s.aseqno IN (SELECT aseqno FROM seq) \
+	      AND s.keyword NOT LIKE '%black%';"
+#--
+signat_ordin: # generate recurrences with 'sigord' initial terms
+	$(DBAT) -x "SELECT s.aseqno, 'holos', 0, s.signature, s.sigord, s.keyword, i.data \
+	    FROM signat s, asdata i \
+	    WHERE s.aseqno = i.aseqno \
+	    ORDER BY 1" \
+	| perl signat_gen.pl -m ordin \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/aman/$@.man
 #===============================================
 # Old targets:
 #----
@@ -175,7 +196,7 @@ finde: findegf findsqrt findbessel recegf
 findbessel: # convert function into recurrence with Maple's FindRE
 	perl $(COMMON)/callmap22.pl -t 4 -n 8 -p findrec.mpat  bessel.txt \
 	| sed -e "s/\tOGF/\tEGF/" \
-	| tee      $@.tmp
+	| tee      $@.tmp                                 
 	wc -l      $@.tmp
 findegf: # convert function into recurrence with Maple's FindRE
 	perl $(COMMON)/callmap22.pl -t 30 -n 8 -p findrec.mpat  egf.txt \

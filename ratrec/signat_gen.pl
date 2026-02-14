@@ -7,7 +7,8 @@
 #:# Usage:
 #:#   perl signat_gen.pl [-d debug] [-m mode] input > output
 #:#      -d 0=none, 1=some, 2=more
-#:#      -m mode black,binom ...
+#:#      -m black "black-start", initial terms (0,)*1
+#:#      -m ordin with 'sigord' initial terms
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -61,7 +62,11 @@ while (<>) {
         } # while $ix
         if ($ix < scalar(@bterms)) {
             @aterms = splice(@bterms, 0, $ix + 1);
+        } else {
         }
+        &output();
+    } elsif ($mode =~ m{\Aord}) { # sigord initial terms
+        @aterms = splice(@bterms, 0, $sigord);
         &output();
     } else {
         die "# $0: invalid mode $mode\n";
