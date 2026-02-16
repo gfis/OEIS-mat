@@ -45,7 +45,7 @@ while (<>) {
             $text   = $2;
             ($cc, $offset, $bfimin, $bfimax, $rowmin, $rowmax) = ("row", 0, "", "", "", "");
             if (0) {
-            #                                           1      12                       23      3
+            #                                           1      12                                    23      3
             } elsif ($text =~ m{Table *of [i-n][^\=]*\= *(\-?\d+)(\.\.|\,\.\.\.\, ?|\,| to | through )(\-?\d+)}) { 
                 ($bfimin, $bfimax) = ($1, $2);
                 $cc = "bfi";
@@ -55,8 +55,8 @@ while (<>) {
             #                                       1      1
             } elsif ($text =~ m{Table of [i-nr]\,\D+(\-?\d+) (rows|antidiagonals)}) { 
                 ($rowmin, $rowmax) = (1, $1);
-            #                   1                                                     1 2                2 3      34                                 45      5
-            } elsif ($text =~ m{(Antidiagonals|Layers|Rows?|Columns?|Antidiagonal rows) ([i-nr][^\=]*\= *)?(\-?\d+)(\.\.|\,\.\.\.\,|\,| to | through )(\-?\d+)}) { 
+            #                   1                                                                    1 2                 2 3      34                                 45      5
+            } elsif ($text =~ m{(Antidiagonals|Layers|[rR]ows?|Columns?|Antidiagonal rows|[Rr]ows for) ([i-nrd][^\=]*\= *)?(\-?\d+)(\.\.|\,\.\.\.\,|\,| to | through )(\-?\d+)}) { 
                 ($rowmin, $rowmax) = ($3, $5);
             #                   1               1                          2      2    3      3
             } elsif ($text =~ m{(Falling |First )?Antidiagonals n[^\=]*\= *(\-?\d+)\.\.(\-?\d+)}i) { 
@@ -66,12 +66,9 @@ while (<>) {
                 ($rowmin, $rowmax) = (1, $1);
             } else {
                 $cc =  "err";
-            }
-            if ($cc ne "err") {
-                print        join("\t", $aseqno, $cc, $offset, $bfimin, $bfimax, $rowmin, $rowmax, $text) . "\n";
-            } else {
                 print STDERR join("\t", $aseqno, $text) . "\n";
             }
+            print        join("\t", $aseqno, $cc, $offset, $bfimin, $bfimax, $rowmin, $rowmax, $text) . "\n";
         } elsif ($debug > 0) {
             print "? $line\n";
         }
