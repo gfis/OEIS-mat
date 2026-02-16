@@ -396,6 +396,19 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
+#----
+bflink:
+	grep -P "^.H" jcat25.txt | grep ".txt" \
+	| perl extract_bflink.pl -d $(D) \
+	2>         $@.rest.tmp \
+	>          $@.txt
+	tail -n2   $@.txt
+	wc -l      $@*
+bflink_load:
+	perl extract_bflink.pl -c > bflink.create.sql
+	$(DBAT) -f bflink.create.sql
+	$(DBAT) -m csv -s "\t" -r bflink < bflink.txt
+	$(DBAT) -n bflink
 #--------
 bfdata_uniq_old:
 	sort -k3,3 bfdata.txt \
