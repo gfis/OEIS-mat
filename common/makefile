@@ -396,6 +396,38 @@ bfdir_load: # Load <em>bfilelist</em> into table <em>bfdir</em>
 	$(DBAT) -4 bfdir
 	$(DBAT) -n bfdir
 	$(DBAT) "SELECT 'bfdir: ', MAX(created) FROM bfdir"
+#----
+bflink: # extract the linked b-files from %H records in a CAT25 file
+	grep -P "^.H" jcat25.txt | grep ".txt" \
+	| perl extract_bflink.pl -d $(D) \
+	2>         $@.rest.tmp \
+	>          $@.txt
+	tail -n2   $@.txt
+	wc -l      $@*
+bflink_load: # load the linked b-file parameters into table bflink
+	perl extract_bflink.pl -c > bflink.create.sql
+	$(DBAT) -f bflink.create.sql
+	$(DBAT) -m csv -s "\t" -r bflink < bflink.txt
+	$(DBAT) -n bflink
+bfoeis: bfoeis1 bfoeis2 # extract sizes and sha256sums of b-files from gits/oeisdata
+bfoeis1:
+	rm -f      $@.tmp
+	find ../../oeisdata/files -iname "b??????.txt" \
+	| xargs -l head -v \
+	>>         $@.tmp
+	head -n8   $@.tmp
+	wc -l      $@.tmp
+bfoeis2:
+	perl extract_bfoeis.pl bfoeis1.tmp \
+	| sort   > bfoeis.txt
+	cut -f4    bfoeis.txt | sort | uniq -c
+	tail -n2   bfoeis.txt
+	wc -l      bfoeis.txt 
+bfoeis_load:
+	perl extract_bfoeis.pl -c > bfoeis.create.sql
+	$(DBAT) -f bfoeis.create.sql
+	$(DBAT) -m csv -s "\t" -r bfoeis < bfoeis.txt
+	$(DBAT) -n bfoeis
 #--------
 bfdata_uniq_old:
 	sort -k3,3 bfdata.txt \
