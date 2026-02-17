@@ -2,6 +2,7 @@
 
 # Convert a tsv file *_check.txt into HTML
 # @(#) $Id$
+# 2026-02-17: allow for aseqno = [A-Z]\d{6}
 # 2020-08-14: links optionally with editing in internal format
 # 2020-03-23: links on all A-numbers
 # 2019-04-12, Georg Fischer: copied from ../bfcheck/tsv_html.pl
@@ -98,7 +99,8 @@ while (<INF>) {
     if (0) {
     } elsif ($mode =~ m{var}   ) {
         my @rest = map {
-            s{(A\d\d\d\d+)}{\<a href\=\"$oeis_url$1\" target\=\"_blank\"\>$1\<\/a\>}g;
+            # 1       12             2
+            s{([A-Z]|€)(\d\d\d\d\d\d+)}{\<a href\=\"${oeis_url}A$2\" target\=\"_blank\"\>$1$2\<\/a\>}g;
             $_
             } split(/\t/, $line);
         # my $aseqno = shift(@rest);

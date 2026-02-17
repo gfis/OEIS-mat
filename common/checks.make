@@ -76,8 +76,9 @@ eval_checks:
 html_checks:
 	perl html_checks.pl -init eval_checks.lst >  check_index.html
 	ls -1 *_check.txt | sed -e "s/.txt//" \
-	| xargs -l -i{} make -f checks.make -s html_check1 FILE={}
+	| xargs -i{} make -f checks.make -s html_check1 FILE={}
 	perl html_checks.pl -term eval_checks.lst >> check_index.html
+	chmod 755 check_index.html
 html_check1:
 	perl html_checks.pl $(EDIT) -m checks.make $(FILE).txt > $(FILE).html
 deploy_checks:
@@ -115,16 +116,26 @@ allocb_check: # Sequence is allocated and has a b-file
 	>     $@.txt
 	wc -l $@.txt
 asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
-	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t\stripped\t/" -e "s/,$$//"  \
 	> x.tmp
-	cut -f1,3 asdata.txt > asdata.tmp
-	echo -e "A-Number\tName" > $@.txt
-	sort x.tmp asdata.tmp | uniq -c | grep -vE "^  *2 " \
+	cut -f1,3 asdata.txt | sed -e "s/\t/\tasdata\t/" > asdata.tmp
+	echo -e "A-Number\tSource\tTerms" > $@.txt
+	sort stripped.tmp asdata.tmp | uniq -c -w7 | grep -vE "^  *2 " \
 	| grep -E "\," \
 	| cut -b 9- \
-	>> $@.txt || :
-	rm -f asd.?.tmp
-	wc -l $@.txt
+	>>       $@.txt || :
+	wc -l    $@.txt
+asdata_stripped_check: # Terms in sequence and entry in <em>stripped</em> file differ
+	head -n4 $(COMMON)/stripped | sed -e "s/# Last Modified: /A000000\tstripped\t/i" \
+	| grep -vP "^\#" > stripped.tmp
+	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t\stripped\t/" -e "s/,$$//" >> stripped.tmp
+	cut -f1,3 asdata.txt | sed -e "s/\t/\tasdata\t/" > asdata.tmp
+	echo -e "A-Number\tSource\tTerms" > $@.txt
+	sort stripped.tmp asdata.tmp \
+	| endirect \
+	| perl asdata_stripped.pl \
+	>>       $@.txt || :
+	wc -l    $@.txt
 #----
 asdir_check: # b-file is newer than sequence 
 	$(DBAT) "SELECT d.aseqno \

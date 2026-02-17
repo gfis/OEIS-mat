@@ -185,10 +185,22 @@ aloads: asdata_load asinfo_load asname_load asxref_load \
 	# asprog_load asinfo_loda asinfo_pari
 bloads: bfdata_load bfinfo_load bfdir_load
 #--------
+
 asdata: # parameter: DIR
+	perl extract_asdata.pl jcat25.txt \
+	>        $@.txt
+	head -n4 $@.txt
+	wc -l    $@.txt
+asdata_load: # Load table <em>asdata</em>
+	perl extract_asdata.pl -c > asdata.create.sql
+	$(DBAT) -f                  asdata.create.sql
+	$(DBAT) -m csv -s "\t" -r asdata < asdata.txt
+	$(DBAT) -4                  asdata
+	$(DBAT) -n                  asdata
+asdata2: # parameter: DIR
 	perl extract_info.pl -asr $(DIR)/ajson > $@.txt
 	wc -l $@.txt
-asdata_load: # Load table <em>asdata</em>
+asdata_load2: # Load table <em>asdata</em>
 	$(DBAT) -f                  asdata.create.sql
 	cat                         asdata.txt \
 	| $(DBAT) -m csv -s "\t" -r asdata
@@ -409,7 +421,8 @@ bflink_load: # load the linked b-file parameters into table bflink
 	$(DBAT) -f bflink.create.sql
 	$(DBAT) -m csv -s "\t" -r bflink < bflink.txt
 	$(DBAT) -n bflink
-bfoeis: bfoeis1 bfoeis2 # extract sizes and sha256sums of b-files from gits/oeisdata
+#--
+bfoeis: bfoeis1 bfoeis2 bfoeis_load bfoeis_check # extract sizes and sha256sums of b-files from gits/oeisdata
 bfoeis1:
 	rm -f      $@.tmp
 	find ../../oeisdata/files -iname "b??????.txt" \
@@ -427,7 +440,15 @@ bfoeis_load:
 	perl extract_bfoeis.pl -c > bfoeis.create.sql
 	$(DBAT) -f bfoeis.create.sql
 	$(DBAT) -m csv -s "\t" -r bfoeis < bfoeis.txt
-	$(DBAT) -n bfoeis
+	$(DBAT) -n bfoeis 
+bfoeis_check: 
+	$(DBAT) "SELECT o.aseqno, o.fsize, b.bfimin, b.bfimax, i.keyword FROM bfoeis o, asinfo i, bfinfo b \
+	  WHERE o.aseqno NOT IN (SELECT aseqno FROM bflink) \
+	    AND o.aseqno = i.aseqno and i.aseqno = b.aseqno \
+	  ORDER BY 1" \
+	| tr -d "\r" | tee $@.tmp
+	wc -l      $@.tmp 
+	make hmize TARGET=$@
 #--------
 bfdata_uniq_old:
 	sort -k3,3 bfdata.txt \

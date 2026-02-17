@@ -43,11 +43,11 @@ while (<>) {
         if ($line =~ m{\AA(\d+)[^\"]+\"\/[^\/]+\/b\1\.txt\"\>([^\<]+)}) {
             $aseqno = "A$1";
             $text   = $2;
-            ($cc, $offset, $bfimin, $bfimax, $rowmin, $rowmax) = ("row", 0, "", "", "", "");
+            ($cc, $offset, $bfimin, $bfimax, $rowmin, $rowmax) = ("row", 0, 0, 0, -1, 0, -1);
             if (0) {
             #                                           1      12                                    23      3
             } elsif ($text =~ m{Table *of [i-n][^\=]*\= *(\-?\d+)(\.\.|\,\.\.\.\, ?|\,| to | through )(\-?\d+)}) { 
-                ($bfimin, $bfimax) = ($1, $2);
+                ($bfimin, $bfimax) = ($1, $3);
                 $cc = "bfi";
             #                                                  1   1   2   2
             } elsif ($text =~ m{Table of [i-nr]\,[^f]+for rows (\d+)\D+(\d+)}) { 
