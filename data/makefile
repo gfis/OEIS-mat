@@ -134,7 +134,9 @@ joeis_pack:
 #========
 # to be used locally:
 #
-remote: joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
+remote: mat_pull joeis_pull jar_remote catex_remote oprep_remote joeis_remote load4 reflect arti
+mat_pull: # update OEIS-mat/*
+	git pull
 pinfo: # generate asprog and asxref
 	cd $(COMMON) ; make asprog ; make asxref
 load4:
@@ -146,6 +148,16 @@ arti:
 	cd ../arti ; make sortprep evalsame
 robots:
 	cd $(FISCHER) ; make robots
+#====
+titan_get:
+	scp gfis@atair:~/work/gits/OEIS-mat/data/*_pack.tgz .
+	ls -1 *.tgz | xargs -l tar -xzvf 
+	mv -v   stripped names bfilelist                                           ../common/
+	mv -v   asdata.txt asinfo.txt asname.txt bfinfo.txt                        ../common/
+	mv -v   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
+	mv -v   jcat28.txt                                                         ../common/jcat25.txt
+	git pull
+
 #====
 oprep_remote: # download stripped, names, bfilelist
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"

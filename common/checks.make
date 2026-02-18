@@ -76,8 +76,9 @@ eval_checks:
 html_checks:
 	perl html_checks.pl -init eval_checks.lst >  check_index.html
 	ls -1 *_check.txt | sed -e "s/.txt//" \
-	| xargs -l -i{} make -f checks.make -s html_check1 FILE={}
+	| xargs -i{} make -f checks.make -s html_check1 FILE={}
 	perl html_checks.pl -term eval_checks.lst >> check_index.html
+	chmod 755 check_index.html
 html_check1:
 	perl html_checks.pl $(EDIT) -m checks.make $(FILE).txt > $(FILE).html
 deploy_checks:
@@ -115,16 +116,26 @@ allocb_check: # Sequence is allocated and has a b-file
 	>     $@.txt
 	wc -l $@.txt
 asdata_check: # Terms in sequence and entry in <em>stripped</em> file differ
-	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t/" -e "s/,$$//"  \
+	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t\stripped\t/" -e "s/,$$//"  \
 	> x.tmp
-	cut -f1,3 asdata.txt > asdata.tmp
-	echo -e "A-Number\tName" > $@.txt
-	sort x.tmp asdata.tmp | uniq -c | grep -vE "^  *2 " \
+	cut -f1,3 asdata.txt | sed -e "s/\t/\tasdata\t/" > asdata.tmp
+	echo -e "A-Number\tSource\tTerms" > $@.txt
+	sort stripped.tmp asdata.tmp | uniq -c -w7 | grep -vE "^  *2 " \
 	| grep -E "\," \
 	| cut -b 9- \
-	>> $@.txt || :
-	rm -f asd.?.tmp
-	wc -l $@.txt
+	>>       $@.txt || :
+	wc -l    $@.txt
+asdata_stripped_check: # Terms in sequence and entry in <em>stripped</em> file differ
+	head -n4 $(COMMON)/stripped | sed -e "s/# Last Modified: /A000000\tstripped\t/i" \
+	| grep -vP "^\#" > stripped.tmp
+	grep -vE "^#" $(COMMON)/stripped | sed -e "s/ \,/\t\stripped\t/" -e "s/,$$//" >> stripped.tmp
+	cut -f1,3 asdata.txt | sed -e "s/\t/\tasdata\t/" > asdata.tmp
+	echo -e "A-Number\tSource\tTerms" > $@.txt
+	sort stripped.tmp asdata.tmp \
+	| endirect \
+	| perl asdata_stripped.pl \
+	>>       $@.txt || :
+	wc -l    $@.txt
 #----
 asdir_check: # b-file is newer than sequence 
 	$(DBAT) "SELECT d.aseqno \
@@ -388,9 +399,10 @@ keyword_check: # Forbidden combinations of keywords
 	      OR  (keyword     LIKE '%cons%' AND keyword     LIKE '%sign%') \
 	      OR  (keyword     LIKE '%full%' AND keyword NOT LIKE '%fini%') \
 	      OR  (keyword NOT LIKE '%nonn%' AND keyword NOT LIKE '%sign%'  \
-	       			AND keyword NOT LIKE 'allocat%' \
-	       			AND keyword NOT LIKE 'dead%' \
-	       			AND keyword NOT LIKE 'recycled%' \
+	                AND keyword NOT LIKE 'allocat%'  \
+	                AND keyword NOT LIKE 'dead%'     \
+	                AND keyword NOT LIKE 'recycled%' \
+	                AND keyword NOT LIKE 'system%'   \
 	          ) \
 	    ORDER BY 1" \
 	>     $@.txt
@@ -522,10 +534,11 @@ offset_check: # Sequence offset differs from first index in b-file and no draft
 	      AND a.offset1 <> b.bfimin \
 	      AND a.keyword NOT LIKE '%allocated%'  \
 	      AND a.keyword NOT LIKE '%recycled%'  \
-	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
+#
 #--------------------------------
 off_a0_check: # Sequence has offset > 0 and a(0)=...
 	grep -E "a\(0\)" asname.txt \
@@ -622,10 +635,10 @@ syntha_check: # Sequence (no draft) does not link to a b-file, but there is one 
 	    FROM asinfo a, bfdir d \
 	    WHERE a.aseqno = d.aseqno \
 	      AND a.keyword      LIKE '%synth%' \
-	      AND a.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#	      AND a.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 #--
 synthb_check: # Sequence links to a b-file which is not in <em>bfilelist</em>
 	$(DBAT) "SELECT a.aseqno \
@@ -659,10 +672,10 @@ synthd_check: # Local b-file is <em>synth</em>, but it is in <em>bfilelist</em>
 	    FROM bfdir d, bfinfo b \
 	    WHERE d.aseqno   = b.aseqno \
 	      AND b.message      LIKE '%synth%' \
-	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#	      AND d.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 #--
 synthe_check: # Sequence without local synthesized b-file and no entry in <em>bfilelist</em>
 	$(DBAT) "SELECT a.aseqno, a.offset1 \
@@ -672,10 +685,10 @@ synthe_check: # Sequence without local synthesized b-file and no entry in <em>bf
 	    WHERE a.keyword LIKE '%synth%' \
 	      AND a.aseqno   NOT IN (SELECT d.aseqno FROM bfdir  d) \
 	      AND a.aseqno   NOT IN (SELECT b.aseqno FROM bfinfo b) \
-	      AND a.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#	      AND a.aseqno NOT IN (SELECT aseqno FROM draft  ) \
 #--------
 synthf: synthf1 synthf2
 synthf1:
@@ -728,10 +741,10 @@ terms_check: # The first few terms differ from the b-file, and that is not synth
 	    WHERE a.aseqno = b.aseqno \
 	      AND a.terms <> b.terms \
 	      AND b.message NOT LIKE '%synth%' \
-	      AND a.aseqno  NOT in (SELECT aseqno FROM draft) \
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt
+#	      AND a.aseqno  NOT in (SELECT aseqno FROM draft) \
 #-----------------------------
 uncat_check: # Whether the cat25 file contains newer sequences
 	make -f makefile seq2 LIST=uncat_date1.tmp
