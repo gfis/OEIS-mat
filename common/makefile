@@ -1270,7 +1270,7 @@ algdif:
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
 ratn:
-	grep -P "\br\(n\) *\=" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
+	grep -P "\b[br]\(n\) *\=" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
 rators:
@@ -1312,6 +1312,11 @@ hologf1:
 	cat ../holrec/hologf1.tmp | endirect \
 	>        $@.tmp
 	make hmize TARGET=$@
+mmalr:
+	grep -P "LinearRecurrence" jcat25.txt | grep -P "^%t" | grep -v € | grep -vPi "Sum|prod|column|integral|infinity|root of" \
+	| endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 xpown:
 	grep -iP "\[x\^n\]" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
@@ -1329,36 +1334,24 @@ dfinit:
 	| tee $@.tmp
 	make hmize TARGET=$@
 #----
-lamprot:
-	grep -P "^%[NF]" jcat25.txt \
-	| grep -P "[Pp]rod(uct)?(_{| *\() *[i-n] *\>\=? *[0-2]" \
-	| grep -viP "y[\*\^]|A\(x\)|Sum|Decimal|Equals|Continued|column|row|~" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
-	make hmize TARGET=$@
-eisenstein:
-	grep -P "\WE\_\d+\W" jcat25.txt | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
-	make hmize TARGET=$@
-even_odd:
-	grep -P "(even|odd) digits" jcat25.txt \
-	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
-	make hmize TARGET=$@
-parian:
-	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt \
-	| endirect | cut -b 4- \
-	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" \
-	| sort -k2 \
-	> $@.tmp
-	make hmize TARGET=$@
-eta:
+eta: # calls of eta()
 	grep -P "\Weta\(" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
-qpowers:
-	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
+eisenstein: # Eisenstein functions E_n
+	grep -P "\WE\_\d+\W" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+even_odd: # even|odd digits
+	grep -P "(even|odd) digits" jcat25.txt \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+lamprot: # lambdas with products
+	grep -P "^%[NF]" jcat25.txt \
+	| grep -P "[Pp]rod(uct)?(_{| *\() *[i-n] *\>\=? *[0-2]" \
+	| grep -viP "y[\*\^]|A\(x\)|Sum|Decimal|Equals|Continued|column|row|~" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
@@ -1374,8 +1367,40 @@ niven: #
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
+parian:
+	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt \
+	| endirect | cut -b 4- \
+	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" \
+	| sort -k2 \
+	> $@.tmp
+	make hmize TARGET=$@
 partn: #
 	grep "Number of partitions of n into " jcat25.txt | grep -P "^%[NFCY]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+prodk1: # Product_{k>=1} 
+	grep -P "Prod(uct)?_{ *[i-n] *\> *\= *1\}" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+qpowers: # powers of q
+	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+xpowers: powers of x^1
+	grep -P "powers of x[^\^]" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+tpowers: # powers of t, z
+	grep -P "powers of [tz]([^\^hw])" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+trinkq: # Triangles T(n, k, q)
+	grep -P "[AT]\([a-z]\, *[a-z]\, *[a-z]\)" jcat25.txt | grep -P "^%[N]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
