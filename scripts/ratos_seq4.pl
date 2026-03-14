@@ -19,6 +19,7 @@ my $lite_aman =  "$gits/joeis-lite/internal/fischer/aman";
 $lite_aman =~ s{\\}{\/}g;
 my $makefile = "$gits/OEIS-mat/scripts/makefile";
 $makefile =~ s{\\}{\/}g;
+require "$gits/OEIS-mat/scripts/last_seqno.inc";
 
 my $debug   = 0;
 my $cc      = "ratos";
@@ -47,7 +48,7 @@ while (scalar(@ARGV) > 0) {
 }
 $matrix =~ s{\"}{}g;
 $init   =~ s{\"}{}g;
-my $seqno = sprintf("%06d", &last_seqno());
+my $seqno = sprintf("%06d", &last_seqno($makefile));
 my $record   = join("\t", "A$seqno", $cc, $offset, $matrix, $init, $dist, $gftype) . "\n";
 if ($cc !~ m{holos}) {
     $record .= join("\t", "A" . ($seqno + 1), "conum", 0, "A$seqno")               . "\n"; 
@@ -61,9 +62,13 @@ print      $record;
 my $file = "$lite_aman/$timestamp.man";
 open (AMAN, ">>", $file) || die "# cannot write to $file\n";
 print AMAN $record;
-close(AMAN);
+close(AMAN); 
+__DATA__
+
+#----
 #----
 sub last_seqno { # get aseqno from history.txt
+    my ($makefile) = @_;
     map {   #        1   1
             if (m{\/A(\d+)}) { # take the 1st
                 return $1;
@@ -72,4 +77,5 @@ sub last_seqno { # get aseqno from history.txt
         split(/\n/, `make -f $makefile histoeis`);
     return "";
 } # last_seqno
-__DATA__
+1;
+tasklist /FI "STATUS eq RUNNING" /FI "IMAGENAME eq chrome.exe" /nh /v | grep OEIS | perl -e "$_ = <>; my @f = split; print $f[9];"
