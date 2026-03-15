@@ -2,6 +2,7 @@
 
 # Generate a seq4 record with CC=convprod from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
+# 2026-03-14, last_seqno.inc
 # 2025-07-17, Georg Fischer: copied from ratos_seq4.pl
 #
 #:# Usage:
@@ -21,6 +22,7 @@ my $lite_aman =  "$gits/joeis-lite/internal/fischer/aman";
 $lite_aman =~ s{\\}{\/}g;
 my $makefile = "$gits/OEIS-mat/scripts/makefile";
 $makefile =~ s{\\}{\/}g;
+require "$gits/OEIS-mat/scripts/last_seqno.inc";
 
 my $debug    = 0;
 my $cc       = "convprod";
@@ -52,8 +54,8 @@ my @anos = map {
         }
         $ano;
     } split(/\, */, $aseqnos);
-my $seqno    = sprintf("%06d", &last_seqno());
-my $record   = join("\t", "A$seqno", $cc, $offset, $fraction, join(", ", @anos), $gftype) . "\n";
+my $seqno  = sprintf("%06d", &last_seqno($makefile));
+my $record = join("\t", "A$seqno", $cc, $offset, $fraction, join(", ", @anos), $gftype) . "\n";
 print      $record;
 my $file = "$lite_aman/$timestamp.man";
 open (AMAN, ">>", $file) || die "# cannot write to $file\n";
