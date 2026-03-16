@@ -2,6 +2,7 @@
 
 # Generate a seq4 record with CC=poly* from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
+# 2026-03-14, last_seqno.inc
 # 2025-07-14, enclose with egf(); .skip(), .prepend(); *CZ=73
 # 2025-06-03, Georg Fischer
 #
@@ -18,6 +19,7 @@ my $lite_aman =  "$gits/joeis-lite/internal/fischer/aman";
 $lite_aman =~ s{\\}{\/}g;
 my $makefile = "$gits/OEIS-mat/scripts/makefile";
 $makefile =~ s{\\}{\/}g;
+require "$gits/OEIS-mat/scripts/last_seqno.inc";
 
 my $cc = "poly";
 my $polys   = shift(@ARGV);
@@ -65,7 +67,7 @@ $postfix = "\"$postfix\"";
 if ($cc =~ m{x}) {
     $postfix .= "\t$dist\t$gftype";
 }
-my $seqno = &last_seqno();
+my $seqno  = sprintf("%06d", &last_seqno($makefile));
 my $record = join("\t", "A$seqno", $cc, $offset, "\"$polys\"", $postfix, @alist) . "\n";
 if (0) {
     open (PIPE, "| clip");
