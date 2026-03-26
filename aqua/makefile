@@ -31,13 +31,15 @@ hmize: # TARGET= htmlize the result of a grep
 #================
 # reconfirmed targets
 #--------------------------------
-offset_check: # Sequence offset in %O record differs from first index in b-file
+offset_check: # Sequence offset in %O record differs from first index in b-file 
+	cd $(COMMON) ; make seq2 LIST=$(HERE)/bfimin.tmp
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
 	    , substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
 	    , a.keyword, b.message, a.author \
-	    FROM asinfo a, bfinfo b \
+	    FROM asinfo a, bfinfo b, seq2 s \
 	    WHERE a.aseqno = b.aseqno \
-	      AND a.offset1 <> b.bfimin \
+	      AND b.aseqno = s.aseqno \
+	      AND a.offset1 <> s.info \
 	      AND a.keyword NOT LIKE '%allocated%'  \
 	      AND a.keyword NOT LIKE '%recycled%'  \
 	    ORDER BY 1" \
@@ -46,24 +48,6 @@ offset_check: # Sequence offset in %O record differs from first index in b-file
 	make hmize TARGET=$@
 #	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
 #
-#----
-bfimin: bfdir # get the minimal index for all non-synthesized b-files in ../common/bfile
-	find $(COMMON)/bfile -name "b*.txt" |\
-	perl bfimin.pl \
-	>        $@.tmp
-	tail -n2 $@.tmp
-	wc -l    $@.tmp
-bfdir: # get the list of non-synthesized b-files
-	grep -P "^.H" $(COMMON)/jcat25.txt \
-	| grep -P "\"/A\d{6}\/b\d{6}\.txt\"" \
-	>        $@.tmp
-	tail -n2 $@.tmp
-	wc -l    $@.tmp
-bfnewer: # REF= pack all b-files that are newer than $(REF)
-	cd $(COMMON) ; find bfile -iname "b*.txt" -newer $(REF)           | tee $(HERE)/$@.tmp
-	cd $(COMMON) ; tar -czf $(HERE)/$@.`date +%Y-%m-%d.%H`.tgz --files-from=$(HERE)/$@.tmp
-	tar               -tzvf $(HERE)/$@.`date +%Y-%m-%d.%H`.tgz
-	wc -l    $@.tmp
 #================
 # old targets
 

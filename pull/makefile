@@ -2,24 +2,51 @@
 
 # OEIS-mat/pull - fetch names.gz, stripped.gz, bfilelist.gz and drafts
 # @(#) $Id$
+# 2026-03-26: revived - new update process for joeis, OEIS-mat/common and joeis-lite/reflect
 # 2020-03-13: with de/encat25 
 # 2019-03-01: cleaned
 # 2019-02-21: Georg Fischer: extracted from ../common
 #---------------------------------
-DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb
+DBAT=java -jar ../../dbat/dist/dbat.jar -e UTF-8 -c worddb 
 SLEEP=16
-COMMON=../common
-CAT25=$(COMMON)/cat25.txt
-DUMPS=../dumps
+COMMON=$(GITS)/OEIS-mat/common
+HERE=$(GITS)/OEIS-mat/pull
+CAT=$(COMMON)/jcat25.txt
 DATE=`date +%Y-%m-%d`
 
-all:    prepare bfdir_load draft bfdir_check
+all: help # get a list of the possible targets
+xx:
+	prepare bfdir_load draft bfdir_check
 remote: prepare draft_get draft_prep
 bfdir:  prep3 bfdir_load bfdir_check
-help:
-	# targets: 
+help: # list all targets: 
 	grep -E "^[a-z]" makefile
 #================================
+#----
+bfimin: # get the minimal index for all b-files in ../common/bfile
+	find $(COMMON)/bfile -name "b*.txt" |\
+	perl bfimin.pl \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.tmp
+bfhrec: # get the list of non-synthesized b-files (linked in %H records)
+	grep -P "^.H" $(COMMON)/jcat25.txt \
+	| grep -P "\"/A\d{6}\/b\d{6}\.txt\"" \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.tmp
+bfolst: # get the list of non-synthesized b-files from oeisdata/files
+	find $(GITS)/oeisdata/files -name "b??????.txt" \
+	>        $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@.tmp
+bfnewer: # REF= pack all b-files that are newer than $(REF)
+	cd $(COMMON) ; find bfile -iname "b*.txt" -newer $(REF)           | tee $(HERE)/$@.tmp
+	cd $(COMMON) ; tar -czf $(HERE)/$@.`date +%Y-%m-%d.%H`.tgz --files-from=$(HERE)/$@.tmp
+	tar               -tzvf $(HERE)/$@.`date +%Y-%m-%d.%H`.tgz
+	wc -l    $@.tmp
+#================================
+# old targets
 newlog:
 	echo # Started 2019-02-21 > prepare.log
 prepare: prep1 prep2 prep3 # Download <code>bfilelist.gz</code>, <code>names.gz</code>, <code>stripped.gz</code>, 
