@@ -1238,5 +1238,29 @@ quotser: # series of quotients a(n)/a(n-1)
 	  ORDER BY 1" \
 	>        $@.2.tmp
 	sort -k1,1 -k2,2 $@.1.tmp $@.2.tmp | endirect > $@.txt
-
+#--------
+algeq: algeq1 algeq2 algeq3 # extract algebraic equations and run Maple 
+algeq1:
+	grep -P "^A394\d+" $(COMMON)/joeis_names.txt | grep -P "\tnyi" | grep -P "Nathan Fox" \
+	| cut -f1,3 | sed -e "s/ *G.f. A(x) satisfies /algeq\t0\t/" -e "s/=0.//" -e "s/(x)//g" \
+	| perl alg_holos.pl -t 8 \
+	2>         $@.rest.tmp \
+	| grep -P "^A" \
+	| tee      $@.tmp
+	wc -l      $@*
+algeq2:
+	cat        algeq1.tmp \
+	| $(JPREP) -cc bva -f - \
+	>          $@.tmp
+	head -n4   $@.tmp
+	wc -l      $@.tmp
+algeq3:
+	cat        algeq2.tmp \
+	| sed -e "s/\t4\t0\t0/\tn>=4\t0\t0/" -e "s/\talgeq\t/\tholos\t/" \
+	| getinits -q \
+	>          $@.tmp
+	head -n4   $@.tmp
+	wc -l      $@.tmp
+	cp -v      $@.tmp $(FISCHER)/aman/algeq.man
+	e          $(FISCHER)/aman/algeq.man
 

@@ -1334,6 +1334,12 @@ dfinit:
 	| tee $@.tmp
 	make hmize TARGET=$@
 #----
+#----
+axax: # A(x)^2 ... A(x)^3
+	grep -P "A\(x\)\^\d+[^A]+A\(x\)\^\d+" jcat25.txt | grep -vPi "\.\.\.|Sum|Prod|column|continued" | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
 eta: # calls of eta()
 	grep -P "\Weta\(" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \

@@ -1,6 +1,7 @@
 #!perl
 
 # @(#) $Id$
+# 2026-03-23: invalidate the Q logic!!
 # 2024-11-15: "/" -> D, division; *EFF=3
 # 2024-07-24, Georg Fischer
 #
@@ -377,6 +378,7 @@ sub build_tree {
         print "# add tree{$parent}=$elem\n" if ($debug >= 4);
     } # foreach $node
     $dtype = (length($has_ratdiv) > 0) ? "Q" : "$ztype";
+    $dtype = $ztype; # caution: invalidates the Q logic!!
     if ($debug >= 1) {
         print "# has_ratdiv=\"$has_ratdiv\", dtype=$dtype\n";
         &dump_tree($root);

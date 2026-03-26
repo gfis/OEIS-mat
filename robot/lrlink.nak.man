@@ -20,3 +20,5 @@ A371880	holos late  	0
 A374266	holos late53	1	[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1]	1,1,2,3,5,8,13,21,34,55,89,144,233,377,61,438,499,937,1436,2373,389,2762,1657,1368	0	0					Smallest number reachable by a Fibonacci-like iteration where one has the option to either omit or keep zero digits.
 A380660	holos tabl  	1	[0,1,-5,10,-10,5,-1]	5,16,27,48,65	0	0					Rectangular array pos(i,j,1,2) read by descending antidiagonals: pos( ) and neg() denote the positive part and negative part of a determinant; see Comments.
 A380661	holos tabl  	1	[0,1,-5,10,-10,5,-1]	6,20,30,56,72	0	0					Rectangular array neg(i,j,1,2) read by descending antidiagonals: pos() and neg() denote the positive part and negative part of a determinant; see Comments.
+A393925	holos	0	[0,1,-17,136,-680,2380,-6188,12376,-19448,24310,-24310,19448,-12376,6188,-2380,680,-136,17,-1]	0,0,0,0,429,25265,623790,9358566	0	0		
+A393974	holos	0	[0,1,-19,171,-969,3876,-11628,27132,-50388,75582,-92378,-92378,-75582,50388,-27132,11628,-3876,969,-171,19,-1]	0,0,0,1,220,24415,916090	0	0		

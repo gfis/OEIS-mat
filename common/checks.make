@@ -19,8 +19,7 @@ LIST=computed.log
 EDIT=
 #--------
 
-all:
-	# targets: 
+all: checks
 help:
 	grep -E "^[a-z]" checks.make
 #================
@@ -528,7 +527,7 @@ nydsdb_check:
 offset_check: # Sequence offset differs from first index in b-file and no draft
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
 	    , substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
-	    , a.keyword, b.message \
+	    , a.keyword, b.message, a.author \
 	    FROM asinfo a, bfinfo b \
 	    WHERE a.aseqno = b.aseqno \
 	      AND a.offset1 <> b.bfimin \
