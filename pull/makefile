@@ -30,16 +30,19 @@ bfimin: # get the minimal index for all b-files in ../common/bfile
 	tail -n2 $@.tmp
 	wc -l    $@.tmp
 bfhrec: # get the list of non-synthesized b-files (linked in %H records)
-	grep -P "^.H" $(COMMON)/jcat25.txt \
-	| grep -P "\"/A\d{6}\/b\d{6}\.txt\"" \
+	grep -P "^.H" $(CAT) \
+	| grep -P "\/b\d{6}\.txt\"" \
+	| perl -ne 'if (m{\/b(\d{6})\.txt\"}) { print "A$$1\n"; }' \
 	>        $@.tmp
 	tail -n2 $@.tmp
 	wc -l    $@.tmp
 bfolst: # get the list of non-synthesized b-files from oeisdata/files
 	find $(GITS)/oeisdata/files -name "b??????.txt" \
+	| perl -ne 'if (m{\/b(\d{6})\.txt}) { print "A$$1\n"; }' \
 	>        $@.tmp
 	tail -n2 $@.tmp
-	wc -l    $@.tmp
+	wc -l    $@.tmp 
+
 bfnewer: # REF= pack all b-files that are newer than $(REF)
 	cd $(COMMON) ; find bfile -iname "b*.txt" -newer $(REF)           | tee $(HERE)/$@.tmp
 	cd $(COMMON) ; tar -czf $(HERE)/$@.`date +%Y-%m-%d.%H`.tgz --files-from=$(HERE)/$@.tmp

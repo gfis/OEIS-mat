@@ -9,7 +9,9 @@ DBAT=java -jar $(GITS)/dbat/dist/dbat.jar -e UTF-8 -c worddb
 DUMPS=../dumps
 HEAD=4
 COMMON=$(GITS)/OEIS-mat/common
-HERE=$(GITS)/OEIS-mat/aqua
+HERE=$(GITS)/OEIS-mat/aqua 
+PULL=$(GITS)/OEIS-mat/pull
+CAT=$(COMMON)/jcat25.txt
 JOEIS=../$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
@@ -28,10 +30,23 @@ hmize: # TARGET= htmlize the result of a grep
 	perl $(FISCHER)/htmlize.pl $(TARGET).txt > $(TARGET).html
 	chmod 755    $(TARGET).html
 	cmd /c start $(TARGET).html
+upload: # TARGET= REM= copy the html file to teherba.org
+	scp $(TARGET).html $(REM):/var/www/html/teherba.org/OEIS-mat/aqua/
 #================
 # reconfirmed targets
+#----
+bfile_link_files: #= Compare the existing b-files in oeisdata/files with the links
+	echo "oeisdata H-record" | sed -e "s/  */\t\t/" > $@.txt
+	diff -w -y --width=24 --suppress-common-lines $(PULL)/bfolst.tmp $(PULL)/bfhrec.tmp \
+	>>      $@.txt || :
+	make hmize TARGET=$@
+#----
+bfile_names: #= List links to b-files that still contain underscores, or that have unconventional file extensions
+	grep -P "\"/[^\/]+\/b\d{6}\_" $(CAT)            | cut -b4- | sed -e "s/  */\t/" -e "s/<a href/xref/" | tee    $@.txt
+	grep -P "\"/[^\/]+\/b\d{6}\.txt[^\"]+\"" $(CAT) | cut -b4- | sed -e "s/  */\t/" -e "s/<a href/xref/" | tee -a $@.txt
+	make hmize TARGET=$@
 #--------------------------------
-offset_check: # Sequence offset in %O record differs from first index in b-file 
+bfile_offset: #= Offset in %O record differs from first index in b-file 
 	cd $(COMMON) ; make seq2 LIST=$(HERE)/bfimin.tmp
 	$(DBAT) "SELECT a.aseqno, a.offset1, b.bfimin \
 	    , substr(a.access, 1, 16) AS astime, substr(b.access, 1, 16) as bftime \
@@ -45,9 +60,10 @@ offset_check: # Sequence offset in %O record differs from first index in b-file
 	    ORDER BY 1" \
 	>     $@.txt
 	wc -l $@.txt 
-	make hmize TARGET=$@
-#	      AND a.aseqno NOT in (SELECT aseqno FROM draft) \
-#
+	make hmize  TARGET=$@
+	make upload TARGET=$@
+#----
+
 #================
 # old targets
 
