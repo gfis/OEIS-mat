@@ -66,8 +66,11 @@ while (<>) {
 sub get_inits { # 
     my ($aseqno, $count) = @_;
     my $line = `grep $aseqno $stripped`; 
-    $line =~ s{\s+\Z}{}; # chompr
-    # print "# from asinfo: $line";
+    $line =~ s{\s+\Z}{}; # chompr 
+    if ($debug >= 1) {
+        print "# count=$count, from asinfo: $line";
+    }
+    $count = 4;
     my ($dummy, $termlist) = split(/ /, $line);
     $termlist = substr($termlist, 1); # remove leading ","
     my @terms = split(/\,/, $termlist);
