@@ -1,6 +1,6 @@
 #!perl
 
-# Parse file 'bfilelsit', and generate .tsv or CREATE SQL
+# Parse file 'bfilelist', and generate .tsv or CREATE SQL
 # @(#) $Id$
 # 2019-01-29, Georg Fischer: copied from extract_info.pl
 #
