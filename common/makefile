@@ -1135,10 +1135,6 @@ dyck: # nyi tabf
 	>        $@.man
 	uedit64  $@.man
 #----
-lpf_gpf:
-	grep -P "(largest|least|smallest|greatest) prime factor|\b(lpf|spf|gpf|A020639|A009190)\b" jcat25.txt \
-	| grep -P "^%[NFC] A\d+ +a\(n\) *\=" | grep -v "€" \
-#----
 selecta: # LIST=; select formulas for a list of A-numbers
 	grep -P "$(LIST)" jcat25.txt | grep -P "^%[NF]" \
 	| perl -pe 's{€}{A}g' | endirect | cut -b 5- | grep -vP "A\d{6}" | perl -pe 's/^/A/; s/ /\t/;'\
@@ -1280,6 +1276,12 @@ rators:
 series:
 	grep -P "^%t" jcat25.txt | grep -Pi "CoefficientList\[Series" \
 	| cut -b 4- | sed -e "s/ /\t/"    >        $@.tmp
+	make hmize TARGET=$@
+#----
+lpf_gpf:
+	grep -P "(largest|least|smallest|greatest) prime factor|\b(lpf|spf|gpf|A020639|A006530|A119288)\b" jcat25.txt \
+	| grep -P "^%[NFC] A\d+ +a\(n\) *\=" | grep -v "€" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
 middle:
 	grep -P "A\d{6} ([^\-\+\*\/\=\<\>\|\.\& a-zA-Z0-9]+) A\d{6}" jcat25.txt | grep -P "^%[NFCY]"  | endirect \
