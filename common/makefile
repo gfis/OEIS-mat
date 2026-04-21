@@ -1397,7 +1397,17 @@ qpowers: # powers of q
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
-xpowers: powers of x^1
+xn: # [x^n]
+	grep -P "\[x\^n\]" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+x2n: # [x^2*n]
+	grep -P "\[x\^2\*?n\]" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+xpowers: # powers of x^1
 	grep -P "powers of x[^\^]" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
