@@ -23,7 +23,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     if (0) {
     } elsif ($opt  =~ m{a}) {
         $aseqno2   =  shift(@ARGV);
-        $aseqno2 = s{\D*(\d+)\D}{sprintf("A%06d", $1)}e;
+        #                  1   1 
+        $aseqno2 =~ s{\A\W*(\d+)}{sprintf("A%06d", $1)}e;
     } elsif ($opt  =~ m{d}) {
         $debug     =  shift(@ARGV);
     } else {
@@ -32,15 +33,15 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
 } # while $opt
 
 my $state = 0;
-my $aseqno1;
-while(<DATA>) {
-# while (<>) {
+my $aseqno1 = "";
+# while(<DATA>) {
+while (<>) {
     s/\s+\Z//; # chompr
     my $line = $_;
     if (0) {
     } elsif($state == 0 && ($line =~ m{package irvine\.oeis\.(a\d+)})) {
         my $adir2 = lc(substr($aseqno2, 0, 4));
-        $line =~ s{\.oeis\.(a\d+)}{oeis\.$adir2};
+        $line =~ s{\.oeis\.(a\d+)}{\.oeis\.$adir2};
         print "$line\n";
         $state = 1;
     } elsif($state == 1) {
@@ -70,7 +71,10 @@ while(<DATA>) {
             $line = " * $name";
             print "$line\n";
             $state = 3;
-        } else { # ignore
+        } elsif($line =~ m{\@author}) }) {
+            $line = " * \@author Georg Fischer";
+            print "$line\n";
+        } else {
             $line =~ s{$aseqno1}{$aseqno2}g;
             print "$line\n";
         }
