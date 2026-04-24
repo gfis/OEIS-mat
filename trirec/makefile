@@ -154,7 +154,7 @@ deleham:
 	grep DELTA $@.tmp | wc -l
 #--------------------
 fract2:
-	grep -vE "^#" $(LINREC)/catgf1.tmp \
+	grep -vE "^#" $(LINREC)/fract2.tmp \
 	| grep -E "fract2" \
 	| grep -vE "A134552" \
 	| sed -e "s/$$/\t0\t0/" \
@@ -243,8 +243,7 @@ rio2: # LIST=
 rio3:
 	cat rio2.tmp \
 	| sed -e "s/$$/\t0\t0\t0/" -e "s/rioarr/fract2/"\
-	| $(JPREP) -cc fract2 -f - \
-	| uniq -w7 \
+	| $(JPREP) -f - \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
