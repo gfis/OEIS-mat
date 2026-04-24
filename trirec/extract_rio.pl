@@ -7,7 +7,7 @@
 # 2019-06-07, Georg Fischer
 #
 #:# Usage:
-#:#   perl extract_rio.pl [-d debug] cat25.txt > outfile
+#:#   perl extract_rio.pl [-d debug] jcat25.txt > outfile
 #--------------------------------------------------------
 use strict;
 use integer;
@@ -43,7 +43,7 @@ my @dens;
 while (<>) {
     $line = $_;
     $line =~ s/\s+\Z//; # chompr
-    $line =~ m{^\%(\w) (A\d+)\s+(.*)};
+    $line =~ m{^[\%](\w) (A\d+)\s+(.*)};
     $code    = $1 || "";
     $aseqno  = $2 || "";
     $content = $3 || "";

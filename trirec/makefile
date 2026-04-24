@@ -243,7 +243,8 @@ rio2: # LIST=
 rio3:
 	cat rio2.tmp \
 	| sed -e "s/$$/\t0\t0\t0/" -e "s/rioarr/fract2/"\
-	| $(JPREP) -f - \
+	| $(JPREP) -cc fract2 -f - \
+	| uniq -w7 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
