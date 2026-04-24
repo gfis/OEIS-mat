@@ -39,7 +39,7 @@ refresh_oeis:
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -innn make refresh3 S=nnn
 refresh3: # S=012345, read from atair
-	make SLEEP=4 wgeto
+	make SLEEP=2 wgeto
 	cp -v oeis.org/b$(S).txt $(COMMON)/bfile/ 
 	wc -l $(COMMON)/bfile/b$(S).txt
 #--------

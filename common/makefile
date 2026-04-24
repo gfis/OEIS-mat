@@ -1403,7 +1403,17 @@ xn: # [x^n]
 	| tee $@.tmp
 	make hmize TARGET=$@
 x2n: # [x^2*n]
-	grep -P "\[x\^2\*?n\]" jcat25.txt | grep -P "^%[NF]" \
+	grep -P "\[x\^\([2-9]\*?n\)\]" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+x3n: # [x^3*n]
+	grep -P "\[x\^\([3-9]\*?n\)\]" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+fadn: # (\d*n)!
+	grep -P "\(\d\*?n\)\!" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
