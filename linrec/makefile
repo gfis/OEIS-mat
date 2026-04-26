@@ -319,14 +319,14 @@ njoeis: # LIST
 	    WHERE aseqno NOT IN (SELECT aseqno FROM joeis)"
 #--------------------
 # Unimplemented Generating functions from jcat25 file
-catgf: catgf0 catgf1 fract
+catgf: catgf1 fract
 # catgf1 catgf2 
 # %F A000032 G.f.: (2 - x)/(1 - x - x^2).
 # 1234567890123456789
 catgf0:
 catgf1:
 	grep -E "\%[SOFN]" $(COMMON)/jcat25.txt \
-	| perl extract_catgf.pl -d 0 catgf0.tmp \
+	| perl extract_catgf.pl -d 0  \
 	>       $@.tmp
 	head -4 $@.tmp
 	wc -l   $@.tmp
