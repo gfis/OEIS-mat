@@ -1,0 +1,4 @@
+A210001 null    Number of 2 X 2 matrices having all elements in {1,2,...,n} and determinant 3.  nonn,   10001
+A212151 null    Number of 2 X 2 matrices M of positive integers such that permanent(M) < n.     nonn,easy,      10001
+A212240 null    Number of 2 X 2 matrices M of with all terms in {1,...,n} and permanent(M) >= n.        nonn,synth      34
+A212241 null    Number of 2 X 2 matrices M of with terms in {1,...,n} such that permanent(M) > n.       nonn,synth      34
