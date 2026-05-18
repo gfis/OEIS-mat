@@ -1342,6 +1342,21 @@ axax: # A(x)^2 ... A(x)^3
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
+catgf1: # catgf1 generated in ../linrec
+	grep -P "^\#" ../linrec/catgf1.tmp | grep -v ellips | cut -b3- \
+	| endirect | sed -e "s/ /\t/; s/ /\t/; s/ /\t/;" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+diff1: 
+	grep -P "First differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+diff2: 
+	grep -P "(Second|Third|Fourth) differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
 eta: # calls of eta()
 	grep -P "\Weta\(" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
@@ -1356,10 +1371,19 @@ even_odd: # even|odd digits
 	grep -P "(even|odd) digits" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+gray_code: # 
+	grep -P " [A-Z]\w+ code " jcat25.txt | grep -P "^%[N]" | cut -b1-120 | endirect | grep Gray \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 lamprot: # lambdas with products
 	grep -P "^%[NF]" jcat25.txt \
 	| grep -P "[Pp]rod(uct)?(_{| *\() *[i-n] *\>\=? *[0-2]" \
 	| grep -viP "y[\*\^]|A\(x\)|Sum|Decimal|Equals|Continued|column|row|~" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+minn:
+	grep -Pi "a\(n\) *\= *min\{\w" jcat25.txt | grep -v "€" |  grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
@@ -1384,6 +1408,11 @@ parian:
 	make hmize TARGET=$@
 partn: #
 	grep "Number of partitions of n into " jcat25.txt | grep -P "^%[NFCY]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" \
+	| tee $@.tmp
+	make hmize TARGET=$@
+prisig: # A179698	nyi to	Numbers of the form p^4*q^3*r where p, q, and r are distinct primes.	nonn	1..1000	nyi	_Vladimir Joseph Stephan Orlovsky_
+	grep -P "p\^\d+\*q(\^\d+)?|prime signature \{|prime factorization" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@

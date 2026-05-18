@@ -122,6 +122,12 @@ A213500: # -a U
 	head -n4 ../$@.man
 	wc -l    ../$@.man
 #----
+leastk: 
+	grep -P "Least (number )?\w" $(COMMON)/joeis_names.txt | grep -P "\tnyi" | grep Kimberling \
+	| cut -f1,3 | perl -pe 's/Least (number )?k such that/lambmin\t0\t\(n\, k\) \-\>/; s/\. *\Z//;' \
+	| tee $@.tmp
+	wc -l $@.tmp
+#----
 morfck: # -a PQ
 	perl ck_guides.pl -a PQ \
 	| sort | uniq -w7 \

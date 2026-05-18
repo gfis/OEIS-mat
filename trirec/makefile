@@ -163,14 +163,14 @@ fract2:
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 fract2man:
-	grep -vE "^#" fract2.man \
+	cat $(LINREC)/fract2.man \
 	| grep -E "fract2" \
 	| grep -vE "A134552" \
 	| sed -e "s/$$/\t0\t0/" \
 	| $(JPREP) -f - \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
+	>        fract2.tmp
+	head -n4 fract2.tmp
+	wc -l    fract2.tmp
 #--------------------
 invbinom:
 	cat $(COMMON)/joeis_names.txt \

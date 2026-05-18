@@ -71,7 +71,7 @@ while (<>) {
             $line = " * $name";
             print "$line\n";
             $state = 3;
-        } elsif($line =~ m{\@author}) }) {
+        } elsif ($line =~ m{\@author}) {
             $line = " * \@author Georg Fischer";
             print "$line\n";
         } else {

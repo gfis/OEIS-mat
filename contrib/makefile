@@ -40,12 +40,12 @@ refresh_oeis:
 	| xargs -innn make refresh3 S=nnn
 refresh3: # S=012345, read from atair
 	make SLEEP=2 wgeto
-	cp -v oeis.org/b$(S).txt $(COMMON)/bfile/ 
+	cp -v oeis.org/b$(S).txt $(COMMON)/bfile/
 	wc -l $(COMMON)/bfile/b$(S).txt
 #--------
 wgeto: # S=012345, read into ./oeis.org/
 	#--------------------------------
-	wget -r "https://oeis.org/b$(S).txt" # do not include /A012345 
+	wget -r "https://oeis.org/b$(S).txt" # do not include /A012345
 	ls -al   oeis.org/b$(S).txt
 	wc -l    oeis.org/b$(S).txt
 	head -n4 oeis.org/b$(S).txt
@@ -156,7 +156,7 @@ b288479:
 	>        $@.txt
 	head -n8 $@.txt
 	wc -l    $@.txt
-	# 
+	#
 	diff --suppress-common-lines -wy $@.txt ../common/bfile/$@.txt | less
 	# --suppress-common-lines
 	# diff --suppress-common-lines -wy $@.txt $@.15.man | less
@@ -167,7 +167,7 @@ b285658:
 	>        $@.txt
 	head -n8 $@.txt
 	wc -l    $@.txt
-	# 
+	#
 	diff --suppress-common-lines -wy $@.txt ../common/bfile/$@.txt | less
 	# --suppress-common-lines
 	# diff --suppress-common-lines -wy $@.txt $@.15.man | less
@@ -180,7 +180,7 @@ b1:
 	>        b$(N).txt
 	head -n8 b$(N).txt
 	wc -l    b$(N).txt
-	# 
+	#
 	diff --suppress-common-lines -wy b$(N).txt ../common/bfile/b$(N).txt | less
 	# --suppress-common-lines
 	# diff --suppress-common-lines -wy $@.txt $@.10.man | less
@@ -234,18 +234,20 @@ ajlist:
 	make subdir DIR=aj  NAME=Jasinski
 aklist:
 	make subdir DIR=ak  NAME=Karttunen
-amlist:                 
+amlist:
 	make subdir DIR=am  NAME=Murthy
 czlist:
 	make subdir DIR=cz  NAME=Zizka
-edlist:                 
+edlist:
 	make subdir DIR=ed  NAME=Deutsch
-grlist:                 
+grlist:
 	make subdir DIR=gr  NAME=Resta
-galist:                 
+galist:
 	make subdir DIR=ga  NAME="Gary \S* Adamson" NYI="\#\#\#\#" # does not occur
-iglist:                 
+iglist:
 	make subdir DIR=ig  NAME="Gutkovskiy"
+jolist:
+	make subdir DIR=jo  NAME="Orlovsky"
 jvplist:
 	make subdir DIR=jvp NAME="Vos Post"
 lelist:
@@ -255,23 +257,23 @@ mslist:
 	make subdir DIR=ms  NAME=Somos
 oglist:
 	make subdir DIR=og  NAME=Olivier
-oplist:                 
+oplist:
 	make subdir DIR=op  NAME=Omar
-pblist:                 
+pblist:
 	make subdir DIR=pb  NAME=Bala
-phlist:                 
+phlist:
 	make subdir DIR=ph  NAME=Hanna
-pxlist:                 
+pxlist:
 	make subdir DIR=px  NAME=Xausa
-rblist:                 
+rblist:
 	make subdir DIR=rb  NAME=Bagula
-rslist:                 
+rslist:
 	make subdir DIR=rs  NAME=Sigrist
-rzlist:                 
+rzlist:
 	make subdir DIR=rz  NAME=Zumkeller
-smlist:                 
+smlist:
 	make subdir DIR=sm  NAME=Seiichi
-whlist:                 
+whlist:
 	make subdir DIR=wh  NAME=Wesley
 #--------
 khintchin: khin1 khin2 khin3 khin4 # Which continued fractions belong to the "Khintchin" set
