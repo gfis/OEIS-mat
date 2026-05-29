@@ -267,12 +267,16 @@ pxlist:
 	make subdir DIR=px  NAME=Xausa
 rblist:
 	make subdir DIR=rb  NAME=Bagula
+rplist:
+	make subdir DIR=rp  NAME=Price
 rslist:
 	make subdir DIR=rs  NAME=Sigrist
 rzlist:
 	make subdir DIR=rz  NAME=Zumkeller
 smlist:
 	make subdir DIR=sm  NAME=Seiichi
+zslist:
+	make subdir DIR=zs  NAME=Seidov
 whlist:
 	make subdir DIR=wh  NAME=Wesley
 #--------

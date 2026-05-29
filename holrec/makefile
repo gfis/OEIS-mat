@@ -1241,7 +1241,7 @@ quotser: # series of quotients a(n)/a(n-1)
 #--------
 algeq: algeq1 algeq2 algeq3 # extract algebraic equations and run Maple 
 algeq1:
-	grep -P "^A394\d+" $(COMMON)/joeis_names.txt | grep -P "\tnyi" | grep -P "Nathan Fox" \
+	grep -P "^A394\d+" $(COMMON)/joeis_names.txt | grep -P "\tnyi" | grep -P " " \
 	| cut -f1,3 | sed -e "s/ *G.f. A(x) satisfies /algeq\t0\t/" -e "s/=0.//" -e "s/(x)//g" \
 	| perl alg_holos.pl -t 8 \
 	2>         $@.rest.tmp \
