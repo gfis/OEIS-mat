@@ -1,6 +1,7 @@
 #!perl
 
-# @(#) $Id$ 
+# @(#) $Id$   
+# 2026-05-22: not only 4 terms; *TP=77
 # 2025-07-06: with bfile if necessary, and over leading <= 1
 # 2024-07-02, Georg Fischer
 #
@@ -70,7 +71,7 @@ sub get_inits { #
     if ($debug >= 1) {
         print "# count=$count, from asinfo: $line";
     }
-    $count = 4;
+    # $count = 4;
     my ($dummy, $termlist) = split(/ /, $line);
     $termlist = substr($termlist, 1); # remove leading ","
     my @terms = split(/\,/, $termlist);

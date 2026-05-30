@@ -374,7 +374,8 @@ lingfcj4:
 	| perl -ne 'print if length($$_) < 1024;'\
 	> ../../joeis-lite/internal/fischer/aman/lingfcj3.man
 #----------------
-lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis
+lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis 
+	e $(FISCHER)/aman/lrlink.man
 lrlink1: # grep and reformat, with order 
 	cut -f1  lrlink.nak.man | sort | tr -d "\r" | tee lrlink.nak.tmp
 	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(CAT) \
