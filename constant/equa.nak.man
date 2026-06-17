@@ -1,0 +1,45 @@
+A061642
+A085609
+A153386
+A191689
+A194160
+A195907
+A241291
+A254327
+A257871
+A265289
+A265291
+A296301	decexp	0	() -> CR.ONE
+A328723	decexp	0	() -> Zeta.zetaHurwitz(3, new Q(1, 5)).-(Zeta.zetaHurwitz(3, new Q(2, 5))).-(Zeta.zetaHurwitz(3, new Q(3, 5))).+(Zeta.zetaHurwitz(3, new Q(4, 5)))./(25)
+A337668
+A337669
+A338303
+A338858
+A338926	2	FAIL	,7,0,9,2,3,6,8,5...	,6,0,6,0,5,6,0,0
+A339097	0	FATAL	Exception...	,
+A339604	0	FATAL	Exception...	,
+A339605	0	FATAL	Exception...	,
+A339606	0	FATAL	Exception...	,
+A347430
+A363687	0	FATAL	Exception...	,
+A371941
+A373537 
+A374260
+A375066
+A388260
+A390282	possible acos(decsolv)
+A390426	possible acos(decsolv)
+A393120 
+A393143
+A194159	decexp	0	() -> CR.ONE.add(CR.FIVE.sqrt()).divide(CR.TWO)
+A238258	decexp	0	() -> CR.TWO.divide(X226775.multiply(CR.TWO.add(X226775)))
+A245254	decexp	0	() -> X085361.exp()
+A265295	decexp	0	() -> CR.SEVEN.subtract(CR.FOUR.multiply(CR.THREE.sqrt()))
+A265296	decexp	0	() -> CR.TWO.subtract(CR.THREE.sqrt())
+A290565	decexp	0	() -> CR.FIVE.sqrt().divide(CR.PHI.log())
+A290565	decexp	0	() -> CR.ONE.add(CR.FIVE.sqrt()).divide(CR.TWO)
+A332630	decexpr	0	() -> REALS.atanh(CR.ONE.add(CR.TWO.log().pow(2)).sqrt()).subtract(REALS.atanh(CR.ONE.add(CR.FOUR.multiply(CR.TWO.log().pow(2))).sqrt())).subtract(CR.ONE.add(CR.TWO.log().pow(2)).sqrt()).add(CR.ONE.add(CR.FOUR.multiply(CR.TWO.log().pow(2))).sqrt()).divide(CR.TWO.log())
+A333198	decexp	0	() -> CR.ONE.subtract(X357471)
+A387986	decexp	0	() -> CR.ZERO.subtract(CR.ONE.divide(CR.valueOf(3456))).multiply(Zeta.zetaHurwitz(3,CR.valueOf(11).divide(CR.valueOf(12))))
+A390263	decexp	0	() -> CR.ONE.divide(CR.valueOf(31457280)).multiply(Zeta.zetaHurwitz(6,CR.ONE.divide(CR.EIGHT)).add(Zeta.zetaHurwitz(6,CR.THREE.divide(CR.EIGHT))).subtract(Zeta.zetaHurwitz(6,CR.FIVE.divide(CR.EIGHT))).subtract(Zeta.zetaHurwitz(6,CR.SEVEN.divide(CR.EIGHT))))
+A396695	decexp	0	() -> CR.ONE

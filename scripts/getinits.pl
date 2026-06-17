@@ -1,6 +1,7 @@
 #!perl
 
-# @(#) $Id$   
+# @(#) $Id$ 
+# 2026-06-16: but not more than 32 terms; *HA=69
 # 2026-05-22: not only 4 terms; *TP=77
 # 2025-07-06: with bfile if necessary, and over leading <= 1
 # 2024-07-02, Georg Fischer
@@ -22,7 +23,8 @@ my $iparm  = 2; # operate on this parameter
 my $nok    = 0;
 my $debug  = 0;
 my $fatal  = 0; # no fatal error so far
-my $quoted = 1; # default
+my $quoted = 1; # default 
+my $MAX_COUNT = 32;
 
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
@@ -49,8 +51,12 @@ while (<>) {
         if (0) {
         } elsif ($parm =~ m{(\d+)\Z}) {
             my $count = $1;
-            $parm = get_inits($aseqno, $count);
-            $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
+            if ($count > $MAX_COUNT) {
+                $nok = "huge";
+            } else {
+                $parm = get_inits($aseqno, $count);
+                $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
+            }
         } elsif (length($parm) == 0) {
             $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
         }
@@ -64,10 +70,10 @@ while (<>) {
     }
 } # while
 #----
-sub get_inits { # 
+sub get_inits { #
     my ($aseqno, $count) = @_;
-    my $line = `grep $aseqno $stripped`; 
-    $line =~ s{\s+\Z}{}; # chompr 
+    my $line = `grep $aseqno $stripped`;
+    $line =~ s{\s+\Z}{}; # chompr
     if ($debug >= 1) {
         print "# count=$count, from asinfo: $line";
     }
@@ -82,9 +88,9 @@ sub get_inits { #
         $ix ++;
     }
     $count += $ix;
-    if ($count >= $len) { # try to read a b-file 
+    if ($count >= $len) { # try to read a b-file
         my $bfname = "$bfdir/b" . substr($aseqno, 1) . ".txt";
-        if (open(BF, "<", $bfname) != 0) {  
+        if (open(BF, "<", $bfname) != 0) {
             @terms = ();
             while (<BF>) {
                s/\s+\Z//; # chompr
@@ -98,7 +104,7 @@ sub get_inits { #
                    last;
                }
             } # while BF
-            close(BF); 
+            close(BF);
             if ($ix < $count) {
                 print STDERR "# b-file for $aseqno has $ix < $count terms\n";
             }

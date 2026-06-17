@@ -159,7 +159,7 @@ equa4:
 	wc -l    $@*.tmp
 equa5:
 	cat equa4.tmp \
-	| $(JPREP) -d 2 -cc infix -p $(FISCHER)/CR.xpat -f - \
+	| $(JPREP) -cc infix -p $(FISCHER)/CR.xpat -f - \
 	| sed -e "s/\r//" \
 	>        $@.tmp \
 	2>       $@.rest.tmp
@@ -174,10 +174,12 @@ equa6:
 	head -n8 $@.tmp
 	wc -l    $@.*
 equa7:
+	cut -b1-7 equa.nak.man | grep -P "^A" > $@.nak.tmp
 	grep -vE ";" equa6.tmp \
 	| grep -P "\.[a-zA-Z]" \
 	| perl -pe 's/(\tdecexpr?\t0\t)/$$1(\) \-\> /;' \
-	| grep -vP "A254327|A347430|A371941|gamma\(" \
+	| grep -vP "gamma\(" \
+	| grep -vf $@.nak.tmp \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 	cp -v    $@.tmp $(FISCHER)/aman/equa.man
