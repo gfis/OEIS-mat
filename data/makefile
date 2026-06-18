@@ -274,18 +274,18 @@ algol_jar: # get the freshly compiled joeis.jar
 	cd $(GITS)/joeis/build.tmp ; cp -vp $(RGITS)/joeis/build.tmp/joeis.jar .
 #
 algol_pack: # get and extract the packages
-	find $(RGITS)/OEIS-mat/data -maxdepth 1 -type f -ctime -4 -iname "*pack.tgz"| xargs -innn cp -vp nnn . 
+	find $(RGITS)/OEIS-mat/data                       -maxdepth 1 -type f -ctime -7 -iname "*pack.tgz"| xargs -innn cp -vp nnn . 
 	find . -maxdepth 1 -iname "*pack.tgz" | xargs -l tar -xzvf
 
 algol_common: # copy recent database content
 	cd $(GITS)/OEIS-mat/common ; perl ue_script.pl -close ; \
 	rm -vf joeis_names.txt ; \
-	find $(RGITS)/OEIS-mat/common                     -maxdepth 1 -type f -ctime -4 | xargs -innn cp -vp nnn .
+	find $(RGITS)/OEIS-mat/common                     -maxdepth 1 -type f -ctime -7 | xargs -innn cp -vp nnn .
 	cd $(GITS)/OEIS-mat/common ; perl ue_script.pl -open
 #
 algol_reflect: # copy recent from internal/fischer/reflect
 	cd $(GITS)/joeis-lite/internal/fischer/reflect; \
-	find $(RGITS)/joeis-lite/internal/fischer/reflect -maxdepth 1 -type f -ctime -4 | xargs -innn cp -vp nnn .
+	find $(RGITS)/joeis-lite/internal/fischer/reflect -maxdepth 1 -type f -ctime -7 | xargs -innn cp -vp nnn .
 #
 algol_load: # recreate database tables
 	cd $(GITS)/OEIS-mat/common; make aloads bloads joeis_load

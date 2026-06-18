@@ -130,3 +130,11 @@ etalists:
 acres martin moy williams2:
 	perl $@.pl | perl norm_epsig.pl - | tee -a etalists.lst
 #----
+getiet: getiet1 getiet2 # extract periods from sequences
+getiet1:
+	cd $(FISCHER) ; cut -f1 ../$(HERE)/getiet.man | xargs -innn make -s getiet A=nnn  \
+	| tee    $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+getiet2:
+	
