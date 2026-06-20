@@ -1375,6 +1375,10 @@ explicit:
 	grep -P "[Ee]xplicit" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+fsiter:
+	grep -Pi "prime factori[sz]ation" jcat25.txt \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 gray_code: # 
 	grep -P " [A-Z]\w+ code " jcat25.txt | grep -P "^%[N]" | cut -b1-120 | endirect | grep Gray \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
@@ -1452,8 +1456,16 @@ numrun:
 	grep -P "Number of runs of " jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+revorder: 
+	grep -Pi "in reverse order\." jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 rultraf:
 	grep -Pi "(Rr]uns? ?lengths?|RUNs?) transform of " jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+selfinv: 
+	grep -Pi "Self\-inverse permutation " jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 theta: # theta ^series
