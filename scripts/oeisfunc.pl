@@ -34,8 +34,8 @@ cat             F000108
 catalan         F000108
 catalannumber   F000108
 chowla          F048050
-ceil            CEIL
-ceiling         CEIL
+ceil            CEILQ
+ceiling         CEILQ
 core            F007913
 cototient       F051953
 delta           D055034
@@ -45,7 +45,7 @@ factorial       F000142
 fallfac         F008279
 fib             F000045
 fibonacci       F000045
-floor           FLOOR
+floor           FLOORQ
 gcd             GCD
 gpf             F006530
 hammingweight   F000120   
