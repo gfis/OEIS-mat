@@ -57,9 +57,10 @@ my %zfuncs = qw(
 ABS     abs
 SIGN    signum
 NEG     negate
-CEIL    ceiling
-FLOOR   floor
+CEILQ    CEILQ
+FLOORQ   FLOORQ
 );
+
 my %qiters = qw(
 SU      RU
 SD      RD
@@ -78,9 +79,9 @@ my $ztype = "N";
 my %ftypes = (
 'ABS','NN',
 'BI','IIN',
-'CEIL','NN',
+'CEILQ','IN', # was NN
 'FA','IN',
-'FLOOR','NN',
+'FLOORQ','IN', # was NN
 'GCD','NN,NN',
 'MAX','NN,NN',
 'PD','IILN',
@@ -441,10 +442,10 @@ sub generate { # expand a node (recursively), and generate code for it
             my $reflist = $2;
             if (defined($fzname)) {
                 if (0) {
-                } elsif ($funame eq "FLOOR") {
-                    $result .= "(";
-                } elsif ($funame eq "CEIL") {
-                    $result .= "(-(-(";
+                } elsif ($funame eq "FLOORQ") {
+                    $result .= "/* $funame */(";
+                } elsif ($funame eq "CEILQ") {
+                    $result .= "/* $funame */(";
                 } else { # append
                     $result .= "(";
                 }
@@ -477,10 +478,10 @@ sub generate { # expand a node (recursively), and generate code for it
             } # while $il
             if (defined($fzname)) {
                 if (0) {
-                } elsif ($funame eq "FLOOR") {
-                    $result .= "(";
-                } elsif ($funame eq "CEIL") {
-                    $result .= ")))";
+                } elsif ($funame eq "FLOORQ") {
+                    $result .= ")";
+                } elsif ($funame eq "CEILQ") {
+                    $result .= ")";
                 } else { # append
                      $result .= ").$fzname()";
                 }

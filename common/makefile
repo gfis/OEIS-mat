@@ -1347,6 +1347,11 @@ catgf1: # catgf1 generated in ../linrec
 	| endirect | sed -e "s/ /\t/; s/ /\t/; s/ /\t/;" \
 	| tee $@.tmp
 	make hmize TARGET=$@
+composit: # 
+	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
+	| cut -f1-5,7 | sed -e "s/nyi //" \
+	| endirect | tee $@.tmp
+	make hmize TARGET=$@
 diff1: 
 	grep -P "First differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
@@ -1423,6 +1428,10 @@ numpart: # Number of partitions of ...
 	grep -iP "Number of partitions" jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+numrun:
+	grep -P "Number of runs of " jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 parian:
 	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt \
 	| endirect | cut -b 4- \
@@ -1452,8 +1461,8 @@ qpowers: # powers of q
 	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
-numrun:
-	grep -P "Number of runs of " jcat25.txt | grep -P "^%[NFC]" \
+refactorable: # 
+	grep -Pi "Refactorable number|tau number| [A-Z]033950" jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 revorder: 
