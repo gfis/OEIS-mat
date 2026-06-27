@@ -1457,6 +1457,14 @@ prodk1p: # Product_{k>=1} ...(1 +
 	| grep -P "\(1 *\+" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \ | tee $@.tmp
 	make hmize TARGET=$@
+prodprime:
+	grep -Pi "(products of (exactly )?\d+) primes" jcat25.txt | grep -P "^.[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+almostprime:
+	grep -Pi "(\d+\-almost) primes" jcat25.txt | grep -P "^.[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 qpowers: # powers of q
 	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
