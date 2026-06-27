@@ -1469,6 +1469,10 @@ revorder:
 	grep -Pi "in reverse order\." jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+rotate: 
+	grep -Pi "rotate|rol\(|ror\(" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 rultraf:
 	grep -Pi "(Rr]uns? ?lengths?|RUNs?) transform of " jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp

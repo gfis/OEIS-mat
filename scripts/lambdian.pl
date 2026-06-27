@@ -1,7 +1,9 @@
 #!perl
 
-# Convert callcode "lambdin" to "lambdan": move initial terms to a conditional expression in n
+# Process callcode "lambdin"
+# Was: convert to "lambdan": move initial terms to a conditional expression in n
 # @(#) $Id$
+# 2026-06-24: disable most of the functionality, only remove quotes around inits
 # 2024-09-22, Georg Fischer
 #
 #:# Usage:
@@ -39,7 +41,11 @@ while (<>) { # read inputfile
     #                     1          1  2       2
     } elsif ($line =~ m{\A([A-Z]\d{6})\t(lambdin)\t}) { # our record: starts with "xseqno lambdin"
         ($xseqno, $callcode, @parms) = split(/\t/, $line); # split the seq4 record
-        $aseqno = "A" . substr($xseqno, 1);
+        $aseqno = "A" . substr($xseqno, 1); 
+        $parms[2] =~ s{\"}{}g; # remove quotes 
+        $parms[1] =~ s{\/\* CEILQ \*\/\(ZV\(n\)\.\/\(2\)\)}{\(n\/2 \+ \(\(n\&1\) \=\= 0 \? 0 \: 1\)\)}g;
+    #----
+    if (0) { # disabled code
         $callcode = "lambdan";
         my $offset1 = $parms[0];
         my $lambda = $parms[1];
@@ -86,6 +92,8 @@ while (<>) { # read inputfile
             $expr = "($expr)";
         }
         $parms[1] = "$var -> $prefix$expr";
+    } # disabled code
+    #----
         print join("\t", $aseqno, $callcode, @parms) ."\n";
     } else { # copy other records unchanged
         print "$line\n";

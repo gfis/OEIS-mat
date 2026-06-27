@@ -214,7 +214,7 @@ remove: # remove superfluous records
 getinits: # get initial terms
 	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 lambdian: # patch CC=lambdin -> lambdan with inits in a condition of n
-	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@ 
 chatest: # compile and run, no break
 	cp -v chain.ocn $(FISCHER)/aman/$@.man
 	cp -v chain.ocn $@.ocn
