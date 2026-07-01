@@ -1336,7 +1336,11 @@ dfinit:
 	| tee $@.tmp
 	make hmize TARGET=$@
 #----
-#----
+and_say: # Look and say variants
+	grep -Pi "and say" joeis_names.txt | grep -P "\tnyi" \
+	| cut -f1-5,7 | sed -e "s/nyi //" \
+	| endirect | tee $@.tmp
+	make hmize TARGET=$@
 axax: # A(x)^2 ... A(x)^3
 	grep -P "A\(x\)\^\d+[^A]+A\(x\)\^\d+" jcat25.txt | grep -vPi "\.\.\.|Sum|Prod|column|continued" | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
@@ -1352,7 +1356,7 @@ composit: #
 	| cut -f1-5,7 | sed -e "s/nyi //" \
 	| endirect | tee $@.tmp
 	make hmize TARGET=$@
-diff1: 
+diff1s: 
 	grep -P "First differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
@@ -1382,6 +1386,10 @@ explicit:
 	make hmize TARGET=$@
 fsiter:
 	grep -Pi "prime factori[sz]ation" jcat25.txt \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+fsiter2:
+	grep -Pi "p_[i-k]\^e_" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 gray_code: # 
