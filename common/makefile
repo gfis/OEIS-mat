@@ -1353,28 +1353,27 @@ catgf1: # catgf1 generated in ../linrec
 	make hmize TARGET=$@
 composit: # 
 	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
-	| cut -f1-5,7 | sed -e "s/nyi //" \
-	| endirect | tee $@.tmp
+	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | tee $@.tmp
 	make hmize TARGET=$@
 diff1s: 
 	grep -P "First differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 diff2: 
 	grep -P "(Second|Third|Fourth) differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+digits:
+	grep -P "\bd_\w\b" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 eta: # calls of eta()
 	grep -P "\Weta\(" jcat25.txt | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 eisenstein: # Eisenstein functions E_n
 	grep -P "\WE\_\d+\W" jcat25.txt | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 even_odd: # even|odd digits
 	grep -P "(even|odd) digits" jcat25.txt \
