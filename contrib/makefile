@@ -245,6 +245,8 @@ grlist:
 	make subdir DIR=gr  NAME=Resta
 galist:
 	make subdir DIR=ga  NAME="Gary \S* Adamson" NYI="\#\#\#\#" # does not occur
+hflist:
+	make subdir DIR=hf  NAME="Hieronymus F"
 iglist:
 	make subdir DIR=ig  NAME="Gutkovskiy"
 jolist:
