@@ -1496,6 +1496,11 @@ selfinv:
 	grep -Pi "Self\-inverse permutation " jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+sum: # [*/] Sum_{...
+	grep -Pi "[\/\*\+\-\^] *\(? *(Sum|Prod(uct)?)_\{[i-n] *\>" jcat25.txt | grep -P "^%[NF]" \
+	| grep -v -Pi "Equals|Radius|Decimal|\~|€|\WPi\W|[\+\-]oo|Triangle|satisfies" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 theta: # theta ^series
 	grep -P "[Tt]heta" jcat25.txt | grep -P "^%[NFC]" \
 	| grep -vi series \
