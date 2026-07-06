@@ -106,14 +106,14 @@ sub evaluate {
 } # evaluate
 #-----------
 sub table_head {
-	return "!" . join("!!"
-	, "Rank"
-	, "2^p-1 <br />A000043" 
-	, "OEIS<br />A-number"
-	, "# of digits <br />A028335"
-	, "First $head digits <br />A135613, A138862, A138864"
-	, "Last $head digits  <br />A080172, A080173, A138865"
-	) . "\n"; 
+    return "!" . join("!!"
+    , "Rank"
+    , "2^p-1 <br />A000043" 
+    , "OEIS<br />A-number"
+    , "# of digits <br />A028335"
+    , "First $head digits <br />A135613, A138862, A138864"
+    , "Last $head digits  <br />A080172, A080173, A138865"
+    ) . "\n"; 
 } # table_head
 #-----------
 __DATA__

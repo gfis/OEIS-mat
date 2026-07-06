@@ -1222,7 +1222,9 @@ dgf: # Dirichlet g.f.s in jcat25 nyi
 #--------
 hmize: # TARGET= htmlize the result of a grep
 	wc -l        $(TARGET).tmp
-	perl $(FISCHER)/htmlize.pl $(TARGET).tmp > $(TARGET).html
+	grep -A10 -P "\A$(TARGET)\:" makefile > hmize.tmp
+	perl $(FISCHER)/htmlize.pl $(TARGET).tmp \
+	| perl html_append.pl > $(TARGET).html
 	chmod 755    $(TARGET).html
 	cmd /c start $(TARGET).html
 	e            $(TARGET).tmp
@@ -1351,6 +1353,12 @@ catgf1: # catgf1 generated in ../linrec
 	| endirect | sed -e "s/ /\t/; s/ /\t/; s/ /\t/;" \
 	| tee $@.tmp
 	make hmize TARGET=$@
+charfun:
+	grep -P "^A\d{6} \,([01]\,)+\Z" stripped | endirect | grep -P "^A" > $@.tmp
+	make seq LIST=$@.tmp
+	$(DBAT) "SELECT aseqno, name FROM asname WHERE aseqno IN (SELECT aseqno from seq) ORDER BY 1;" \
+	| endirect | tee $@.tmp
+	make hmize TARGET=$@
 composit: # 
 	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
 	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | tee $@.tmp
@@ -1412,9 +1420,7 @@ lchi: # Dirichlet L(n, chik)
 	| endirect | cut -b 4- | sed -e "s/ /\t/"| tee $@.tmp
 	make hmize TARGET=$@
 mmaprot: # MMA with "Series[Product"
-	grep -P "^%[t]" jcat25.txt \
-	| grep -P "Series\[Product" \
-	| grep -viP "Sum" \
+	grep -P "^%[t]" jcat25.txt | grep -P "Series\[Product" | grep -viP "Sum" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 minn:
@@ -1422,10 +1428,8 @@ minn:
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 mult: # Multiplicative in jcat25 nyi
-	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" \
-	| grep -vP "multiplicative (closure|digital|group|invers|order|persistence|root|subgroup|sum|Wiener|Zagreb)" \
-	| sort -k3,3 -k4,4 -k5,5 -k6,6 \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" | grep -vP "multiplicative (closure|digital|group|invers|order|persistence|root|subgroup|sum|Wiener|Zagreb)" \
+	| sort -k3,3 -k4,4 -k5,5 -k6,6 | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 niven: #
 	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
@@ -1440,16 +1444,12 @@ numrun:
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 parian:
-	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt \
-	| endirect | cut -b 4- \
-	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" \
-	| sort -k2 \
-	> $@.tmp
+	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt | endirect | cut -b 4- 
+	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" | sort -k2 > $@.tmp
 	make hmize TARGET=$@
 partn: #
 	grep "Number of partitions of n into " jcat25.txt | grep -P "^%[NFCY]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" \
-	| tee $@.tmp
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 prisig: # A179698	nyi to	Numbers of the form p^4*q^3*r where p, q, and r are distinct primes.	nonn	1..1000	nyi	_Vladimir Joseph Stephan Orlovsky_
 	grep -P "p\^\d+\*q(\^\d+)?|prime signature \{|prime factorization" jcat25.txt | grep -P "^%[NF]" \
@@ -1495,6 +1495,10 @@ rultraf:
 selfinv: 
 	grep -Pi "Self\-inverse permutation " jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+slow_increase:
+	perl $@.pl stripped | endirect | grep -P "^A" > $@.tmp ; make seq LIST=$@.tmp
+	$(DBAT) "SELECT aseqno, name FROM asname WHERE aseqno IN (SELECT aseqno from seq) ORDER BY 1;" | endirect | tee $@.tmp
 	make hmize TARGET=$@
 sum: # [*/] Sum_{...
 	grep -Pi "[\/\*\+\-\^] *\(? *(Sum|Prod(uct)?)_\{[i-n] *\>" jcat25.txt | grep -P "^%[NF]" \
