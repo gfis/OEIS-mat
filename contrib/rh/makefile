@@ -3,6 +3,7 @@
 # makefile for OEIS-mat/contrib/rh (R. Hardin)
 # base k circular numbers ... difference at most d
 # @(#) $Id$
+# 2026-07-06: use recurrence-guess.gp from Kevin Ryde
 # 2021-04-08, Georg Fischer
 
 GITS=../../..
@@ -89,6 +90,19 @@ hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
 	| uniq -c | sort -rn > $@.tmp
 #----------------
+gp_guess: # guess lin.rec.s with Kevin's recurrence-guess.gp
+	mkdir -f guess
+	perl gp_guess.pl rhdata.tmp \
+	| tee    $@.tmp
+	grep -v "#" $@.tmp
+rhdata: # select from bfdata for Hardin's sequences
+	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
+	    FROM asinfo i, bfdata d \
+	    WHERE i.aseqno = d.aseqno \
+	      AND i.author LIKE '%Hardin%' ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
 rhlist: # select Hardin's sequences
 	$(DBAT) -x "SELECT i.aseqno, COALESCE(j.superclass, 'null ' || i.program), 0, b.bfimin || '..' || b.bfimax, n.name \
 	    FROM asinfo i, asname n, bfinfo b \
@@ -96,7 +110,6 @@ rhlist: # select Hardin's sequences
 	    WHERE i.aseqno = n.aseqno \
 	      AND n.aseqno = b.aseqno \
 	      AND i.author LIKE '%Hardin%' ORDER BY 1" \
-	| head -n644444 \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
