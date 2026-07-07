@@ -14,6 +14,7 @@ JOEIS=$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
+HERE=../contrib/rh
 #----------------
 all:
 	grep -E "^[a-z]" makefile
@@ -91,10 +92,24 @@ hardall4: # sort the signatures by descending frequency
 	| uniq -c | sort -rn > $@.tmp
 #----------------
 gp_guess: # guess lin.rec.s with Kevin's recurrence-guess.gp
-	mkdir -f guess
+	mkdir -p guess
 	perl gp_guess.pl rhdata.tmp \
 	| tee    $@.tmp
-	grep -v "#" $@.tmp
+	grep -v "#" $@.tmp | wc -l
+proven: proven1 proven2 proven3
+proven1: # load the guessed ones
+	grep -P "^A" gp_guess.tmp | sed -e "s/ /\t/" > $@.tmp
+	cd $(COMMON) ; make seq3 LIST=$(HERE)/$@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp 
+proven2: # load Israel's proofs
+	cd $(COMMON) ; make seq LIST=../contrib/ri/recurrence_proofs.man
+proven3: # match guessed with proven
+	$(DBAT) "SELECT s1.aseqno, s3.pattern, s3.info \
+	    FROM seq s1 LEFT JOIN seq3 s3 ON s1.aseqno = s3.aseqno \
+	    ORDER BY 1" \
+	| tee    $@.tmp
+	wc -l    $@.tmp
 rhdata: # select from bfdata for Hardin's sequences
 	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
 	    FROM asinfo i, bfdata d \

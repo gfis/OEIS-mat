@@ -14,18 +14,21 @@ my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday) = gmtime (time);
 my $utc_stamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\z"
         , $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
 
+my $timeout = 8;
 my $progname = "gp.tmp";
+print "aseqno\torder\tsignature\n";
 while(<>) {
     s/\s+\Z//; # chompr
     my ($aseqno, $termno, $data) = split(/\t/);
     open(GP, ">", $progname) or die "cannot write $progname";
-    print GP "recurrence_guess([" . $data . "]);\nquit;\n";
+    print GP "alarm($timeout, recurrence_guess([" . $data . "]));\nquit;\n";
     close(GP);
     # print "#---------------- $aseqno ----------------\n";
     my $result = `gp -q $progname`; 
-    if ($result =~ m{\ANo linear recurrence found}) {
+    if (0) {
+    } elsif ($result =~ m{\ANo linear recurrence found}) {
         print "# $aseqno no lin.rec.\n";
-    } else { # found
+    } elsif ($result =~ m{Recurrence length}m) { # found
         my $order = "?"; 
         #                        1   1
         if ($result =~ m{\#order_(\d+)}m) {
@@ -35,12 +38,15 @@ while(<>) {
         #                             1      1
         if ($result =~ m{signature *\(([^).]+)}m) {
             $signature = $1;
+            $signature =~ s{ }{}g;
         }
-        print "$aseqno\ $order\t$signature\n";
+        print "$aseqno\t$order\t$signature\n";
         open(RES, ">", "guess/$aseqno.txt") || die "cannot write guess/$aseqno.txt\n";
         print RES "\# $aseqno\t$termno\t" . substr($data, 0, 64) . "...\n";
         print RES $result;
         close(RES);
+    } else {
+    	  print "# $aseqno: timeout after $timeout s\n$result";
     } # found
 } # while <>
 
