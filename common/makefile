@@ -1484,6 +1484,10 @@ revorder:
 	grep -Pi "in reverse order\." jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+rhguess: 
+	perl -e 'print "aseqno\torder\tsignature\n";' > $@.tmp
+	grep -v "#" ../contrib/rh/gp_guess.tmp | sed -e "s/ /\t/" | endirect | tee -a $@.tmp
+	make hmize TARGET=$@
 rotate: 
 	grep -Pi "rotate|rol\(|ror\(" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
