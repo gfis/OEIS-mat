@@ -23,6 +23,14 @@ all:
 fischer: # move from fischer/internal
 	ls -al $(FISCHER)/circ*
 #----
+hmize: # TARGET= htmlize the result of a grep
+	wc -l        $(TARGET).tmp
+	grep -A10 -P "\A$(TARGET)\:" makefile > hmize.tmp
+	perl $(FISCHER)/htmlize.pl $(TARGET).tmp \
+	| perl $(COMMON)/html_append.pl > $(TARGET).html
+	chmod 755    $(TARGET).html
+	cmd /c start $(TARGET).html
+	e            $(TARGET).tmp
 circdiff5: # extract aseqno,k,d
 	cut -f1,4,5 $(FISCHER)/circdiff1.tmp \
 	| tee    $@.tmp
@@ -90,12 +98,14 @@ hardall3: # count the non-FAIL
 hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
 	| uniq -c | sort -rn > $@.tmp
-#----------------
-gp_guess: # guess lin.rec.s with Kevin's recurrence-guess.gp
+#---------------- 
+LIST=rhdata.tmp
+gp_guess: # LIST= ; guess lin.rec.s with Kevin's recurrence-guess.gp
 	mkdir -p guess
 	perl gp_guess.pl rhdata.tmp \
 	| tee    $@.tmp
 	grep -v "#" $@.tmp | wc -l
+#----
 proven: proven1 proven2 proven3
 proven1: # load the guessed ones
 	grep -P "^A" gp_guess.tmp | sed -e "s/ /\t/" > $@.tmp
@@ -109,12 +119,22 @@ proven3: # match guessed with proven
 	    FROM seq s1 LEFT JOIN seq3 s3 ON s1.aseqno = s3.aseqno \
 	    ORDER BY 1" \
 	| tee    $@.tmp
-	wc -l    $@.tmp
+	wc -l    $@.tmp 
+	make hmize TARGET=$@
 rhdata: # select from bfdata for Hardin's sequences
 	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
 	    FROM asinfo i, bfdata d \
 	    WHERE i.aseqno = d.aseqno \
 	      AND i.author LIKE '%Hardin%' ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+guessed_data: # select from bfdata for the ones that were previously guessed
+	cd ../../common ; make seq LIST=rhguess.tmp
+	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
+	    FROM seq i, bfdata d \
+	    WHERE i.aseqno = d.aseqno \
+	      ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp

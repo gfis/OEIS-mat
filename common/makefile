@@ -1480,6 +1480,10 @@ refactorable: #
 	grep -Pi "Refactorable number|tau number| [A-Z]033950" jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+rectoproc: 
+	grep -Pi "rectoproc|RecurrenceTable" jcat25.txt | grep -P "^%[pt]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 revorder: 
 	grep -Pi "in reverse order\." jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
