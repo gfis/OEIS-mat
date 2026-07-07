@@ -1,4 +1,5 @@
 #!/bin/sh
 
-cat /dev/clipboard | endirect
+endirect -c
+# cat /dev/clipboard | endirect
 echo -e "\n"
