@@ -6,17 +6,14 @@
 # 2024-05-14, Georg Fischer: copied from ../sortprep.pl
 #
 #:# Usage:
-#:#   perl endirect.pl [-f directfile] [-c] infile > outfile
+#:#   perl endirect.pl [-f directfile] [-c|infile] > outfile
 #:#       -c read from clipboard
 #--------------------------------------------------------
 use strict;
 use integer;
 use warnings;
-my $pwd = `pwd`;
-my $procname;
-$pwd =~ m{(/gits/)};
-my $gits = $`. "/gits"; # prematch
 
+my $gits    =  $ENV{'GITS'};
 my $debug   = 0;
 my $clip    = 0; # whether to read from clipboard instead from <>
 my $vector_file = "$gits/joeis-lite/internal/fischer/reflect/vector.txt";
@@ -40,18 +37,27 @@ close(VEC);
 my @vector = split(//, $line);
 my $veclen = scalar(@vector);
 
-while (<>) {
-    my $line = $_;
-    if ($debug >= 1) {
-        print "# line=$line";
-    }
+if ($clip) {
+    $line = (1 ? `powershell -command Get-Clipboard` : `xclip -o`);
+    &convert();
+} else {
+    while (<>) {
+        $line = $_;
+        if ($debug >= 1) {
+            print "# line=$line";
+        }      
+        &convert();
+    } # while <>  
+}
+#----
+sub convert {
     foreach my $aseqno ($line =~ m{\b([€AB-HJKSTUX]\d{6})}g) {
         my $seqno = substr($aseqno, 1);
         my $nseqno = ($seqno < $veclen) ? "$vector[$seqno]$seqno" : "A$seqno";
         $line =~ s{$aseqno}{$nseqno};
     } # foreach
     print $line;
-} # while <>
+} # convert
 __DATA__
 #	F	A339420	a(n)=Sum_{k=(\d+),n}Annn(k)*Annn(n-k)	0	A023358,A323633
 %	F	A073118	a(n)=Sum_{k=(\d+),n}Annn(k)*Annn(n-k)	1	A008472,A000041

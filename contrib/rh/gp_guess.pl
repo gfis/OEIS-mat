@@ -42,7 +42,8 @@ while(<>) {
         }
         print "$aseqno\t$order\t$signature\n";
         open(RES, ">", "guess/$aseqno.txt") || die "cannot write guess/$aseqno.txt\n";
-        print RES "\# $aseqno\t$termno\t" . substr($data, 0, 64) . "...\n";
+      # print RES "\# $aseqno\t$termno\t" . substr($data, 0, 64) . "...\n";
+        print RES "\# $aseqno\t$termno\t$data\n";
         print RES $result;
         close(RES);
     } else {
