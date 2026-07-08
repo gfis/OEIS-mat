@@ -13,8 +13,9 @@ BFILE=$(COMMON)/bfile
 JOEIS=$(GITS)/joeis
 LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
-RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar org.teherba.ramath
 HERE=../contrib/rh
+RAMATH=java -cp $(GITS)/ramath/dist/ramath.jar
+JPREP=$(RAMATH)  org.teherba.ramath.sequence.JoeisPreparer
 #----------------
 all:
 	grep -E "^[a-z]" makefile
@@ -98,11 +99,33 @@ hardall3: # count the non-FAIL
 hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
 	| uniq -c | sort -rn > $@.tmp
+#----
+empir: empir1 empir2 empir3 empir4 # Empirical: = conjectured recurrences
+empir1:
+	grep -P "Empirical\: *a\(n\) *\= [\-\+]?\d*\*?a\(n" $(COMMON)/jcat25.txt | endirect \
+	| grep -P "^...[A]" | cut -b4- \
+	| grep -vP "^(A191006|A191006)" \
+	| perl -pe 's/ *Empirical\: */\tbva\t0\t/; s/\..*//; s/ for/\tfor\t/; s/ with/\twith\t/; s/ *\[/\t\[/; s/[\, ]//g;' \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+empir2:
+	$(JPREP) -f empir1.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@*
+empir3:
+	holinits -a 2 empir2.tmp > $@.tmp
+	tail -n2 $@.tmp
+	wc -l    $@*
+empir4:
+	sed -e "s/\tholos/\tholoscj/" empir3.tmp > $(FISCHER)/aman/empir.man
 #---------------- 
 LIST=rhdata.tmp
 gp_guess: # LIST= ; guess lin.rec.s with Kevin's recurrence-guess.gp
 	mkdir -p guess
-	perl gp_guess.pl rhdata.tmp \
+	perl gp_guess.pl $(LIST) \
 	| tee    $@.tmp
 	grep -v "#" $@.tmp | wc -l
 #----
@@ -144,10 +167,33 @@ rhlist: # select Hardin's sequences
 	    LEFT JOIN joeis j ON b.aseqno = j.aseqno \
 	    WHERE i.aseqno = n.aseqno \
 	      AND n.aseqno = b.aseqno \
-	      AND i.author LIKE '%Hardin%' ORDER BY 1" \
+	      AND i.author LIKE '%Hardin%' \
+	      AND i.keyword NOT LIKE '%tab%' \
+	      AND i.aseqno >= 'A087000' \
+	      ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
+mma_guess: mma_guess1 mma_guess2 # needs rhlist; guess with wolfram FindGeneratingFunction, prepare script only
+mma_guess1:
+	endirect rhlist.tmp | grep -P "^A" > $@.tmp
+	head -n2 $@.tmp
+	wc -l    $@.tmp
+	cd $(COMMON) ; make seq LIST=$(HERE)/$@.tmp
+	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
+	    FROM seq i, bfdata d \
+	    WHERE i.aseqno = d.aseqno \
+	      ORDER BY 1" \
+	>        $@.tmp
+	head -n2 $@.tmp
+	wc   -l  $@.tmp
+MODE=linrec
+mma_guess2:
+	grep -P "^A(08[7-9]|09|[1-9])" mma_guess1.tmp \
+	| perl mma_guess.pl -m $(MODE) > mma_$(MODE).tmp
+	head -n2 mma_$(MODE).tmp
+	wc -l    mma_$(MODE).tmp
+	scp      mma_$(MODE).tmp  pi@bluepi:~
 stat:
 	wc -l rhlist.tmp
 	grep -vP "\tnull" rhlist.tmp | wc -l

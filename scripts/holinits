@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# holinits - for HolonomicRecurrence: polish the matrix bva, insert CC, and get initial terms
+# @(#) $Id$
+# 2026-07-08, Georg Fischer 
+# Usage: holinits input.seq4 > output.seq4
+perl $GITS/OEIS-mat/scripts/holinits.pl $1 $2 $3 $4 $5 $6
