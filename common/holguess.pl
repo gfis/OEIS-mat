@@ -31,7 +31,7 @@ while(<>) {
                 s/\s+\Z//; # chompr
                 my $line = $_;
                 if ($line =~ m{\A\# *(A\d+)}) {
-                	$line =~ s{\A\# *}{};
+                    $line =~ s{\A\# *}{};
                     ($bseqno, $termno, $termlist) = split(/\t/, $line);
                     if ($bseqno ne $aseqno) {
                         print STDERR "#** A-numbers do not match: $bseqno <> $aseqno\n"; 
@@ -71,23 +71,21 @@ while(<>) {
 } # while <>
 #----
 sub read_b_file {
-        my ($src_file) = @_;
-        my $buffer;
-        open(FIL, "<", $src_file) or die "cannot read $src_file\n";
-        read(FIL, $buffer, 100000000); # 100 MB
-        # print "# length of $src_file: " . length($buffer) . "\n";
-        close(FIL);
-        @terms = 
-            grep { m{\S} } # keep non-empty lines only
-                map { 
-                    s{\#.*}{};      # remove comments
-                    s{\A\s+}{};     # remove leading whitespace
-                    s{\s+\Z}{};     # remove trailing whitespace
-                    # s{\s\s+}{ };  # make single space
-                    s{\-?\d+\s+}{}; # remove index
-                    $_
-                } split(/\n/, $buffer);
-         
+    my ($src_file) = @_;
+    my $buffer;
+    open(FIL, "<", $src_file) or die "cannot read $src_file\n";
+    read(FIL, $buffer, 100000000); # 100 MB
+    # print "# length of $src_file: " . length($buffer) . "\n";
+    close(FIL);
+    @terms = grep { m{\S} } # keep non-empty lines only
+        map { 
+            s{\#.*}{};      # remove comments
+            s{\A\s+}{};     # remove leading whitespace
+            s{\s+\Z}{};     # remove trailing whitespace
+            # s{\s\s+}{ };  # make single space
+            s{\-?\d+\s+}{}; # remove index
+            $_
+        } split(/\n/, $buffer);
 } # read_b_file
 __DATA__
 A296683	49	4,43,210,1162,6959,39608,226599,1305725,7497482,43051551,247361324,14209...
