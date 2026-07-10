@@ -56,10 +56,10 @@ catex_down: oeisdata_pull cat28 tinfo catex_pack
 tinfo_down:                     tinfo catex_pack
 #--------
 cat28: # reassemble the cat25.txt file
-	cd $(OEISDATA) ; find seq -type f | sort > $(HERE)/$@.list.tmp
+	# cd $(OEISDATA) ; find seq -type f | sort > $(HERE)/$@.list.tmp
 	rm -f    $@.txt
 	cd $(OEISDATA) ; cat $(HERE)/$@.list.tmp | xargs -innn cat nnn >> $(HERE)/$@.txt
-	head -n2 $@.txt
+	head -n4 $@.txt
 	wc -l    $@.txt
 	ls -al   *$@.*
 tinfo: # extract ASINFO, ASNAME, BFINFO database tables

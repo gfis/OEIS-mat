@@ -22,8 +22,8 @@ my $gits     =  $ENV{'GITS'};
 my $debug    = 0;
 my $callcode = "holos";
 my $mode     = "";
-my $bf_dir   = "$gits/OEIS-mat/common/bfile";
-my $add      = 1; # more than order
+my $bfdir    = "$gits/OEIS-mat/common/bfile";
+my $add      = 0; # more than order
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
@@ -57,14 +57,19 @@ while(<>) {
         } else { # polynomial coefficients
             @coeffs = split(/\]\,\[/, $matrix);
         }
-        @terms = split(/\,/, $inits);
         $order = scalar(@coeffs) - 2 + $add; # without the 0 for constant and the -1 for a(n)
-        if ($order > scalar(@terms)) {
-            &read_b_file("$bf_dir/b" . substr($aseqno,1) . ".txt");
-        }
-        if ($order < scalar(@terms)) {
-            @coeffs = splice(@terms, 0, $order);
-            @terms = @coeffs;
+        my $termno = $order;
+        if ($inits =~ m{\A\s*\Z}) { # empty
+            # $termno == $order, ok
+            &read_b_file($aseqno, $order);
+        } elsif ($inits =~ m{\,}) { # comma already there, keep this termlist
+            @terms  = split(/\, */, $inits);
+        #                      1   1    2   2
+        } elsif ($inits =~ m{\[(\d+)\.\.(\d+)\]}) { # e.g. "[1..17] -> 18 terms
+        	my ($lo, $hi) = ($1, $2);
+            &read_b_file($aseqno, $hi - $lo + 1);
+        } elsif ($inits =~ m{\A(\d+)\Z}) { # exact number = order
+            &read_b_file($aseqno, $inits - $offset + 1);
         }
         my $termlist = join(",", @terms);
         if (length($termlist) > $MAX_LEN) {
@@ -76,21 +81,25 @@ while(<>) {
 } # while <>
 #----
 sub read_b_file {
-    my ($src_file) = @_;
+    my ($aseqno, $nterm) = @_;
+    my $src_file = "$bfdir/b" . substr($aseqno, 1) . ".txt";
     my $buffer;
-    open(FIL, "<", $src_file) or die "cannot read $src_file\n";
+    open(FIL, "<", "$src_file") or die "cannot read $src_file\n";
     read(FIL, $buffer, 100000000); # 100 MB
     # print "# length of $src_file: " . length($buffer) . "\n";
     close(FIL);
-    @terms = grep { m{\S} } # keep non-empty lines only
+    my $it = 0;
+    my @all = grep { m{\S} } # keep non-empty lines only
         map {
             s{\#.*}{};      # remove comments
             s{\A\s+}{};     # remove leading whitespace
             s{\s+\Z}{};     # remove trailing whitespace
             # s{\s\s+}{ };  # make single space
             s{\-?\d+\s+}{}; # remove index
+            # $it ++ if (m{\S});
             $_
         } split(/\n/, $buffer);
+    @terms = splice(@all, 0, $nterm);
 } # read_b_file
 __DATA__
 A174703	bva	0	[[0],[1],[1],[1],[0],[1],[-3],[-1],[-3],[-1],[-5],[5],[-1],[2],[-1],[6],[-4],[1],[-1],[1],[-2],[1]]	1	0	0				0
