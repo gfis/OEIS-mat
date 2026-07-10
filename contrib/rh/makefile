@@ -102,9 +102,9 @@ hardall4: # sort the signatures by descending frequency
 #----
 empir: empir1 empir2 empir3 empir4 empir5 # Empirical: = conjectured recurrences
 empir1: # prepare for seq3 format
-	grep -P "Empirical\: *a\(n\) *\= [\-\+]?\d*\*?a\(n" $(COMMON)/jcat25.txt | endirect \
+	grep -P "Empirical\: *a\(n\) *\= *[\-\+]?\d*\*?a\(n" $(COMMON)/jcat25.txt | endirect \
 	| grep -P "^.. [A]" | cut -b4- \
-	| grep -vP "^(A191006|A191006)" \
+	| grep -vP "^(A184123|A184132|A184140|A184141|A191006)" \
 	| perl empir_prep.pl \
 	2>       $@.rest.tmp \
 	>        $@.tmp
@@ -147,7 +147,6 @@ gp_guess: # LIST= ; guess lin.rec.s with Kevin's recurrence-guess.gp
 	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@.tmp   
-g2:
 	perl gp_guess.pl $@.tmp \
 	| tee    $@.log
 	grep -v "#" $@.log | wc -l

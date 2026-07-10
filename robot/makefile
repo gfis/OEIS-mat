@@ -314,6 +314,14 @@ ddn1:
 	| getinits -q \
 	| tee $@.tmp
 #----
+deldel: # Deleham's DELTA operator
+	grep -P "[\)\]] *DELTA *[\(\[]" jcat25.txt | grep -P "^%[NFC]" | cut -b4- | endirect \
+	| perl deldel.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@*tmp
+#----
 insect: insect1 insect_eval1 insect_eval2 insect_gen # seq0 = intersection of 2 seq1 and seq2
 insect1: # grep from jcat25 and preprocess
 	grep -iP "(Intersection of| intersect )" $(COMMON)/jcat25.txt \
