@@ -368,6 +368,10 @@ bfsave: # pack all b-files in 40 archives
 	tar -czf bf37.tgz bfile/b37????.txt
 	tar -czf bf38.tgz bfile/b38????.txt
 	tar -czf bf39.tgz bfile/b39????.txt
+REF=bf39
+bfontop:
+	find bfile -type f -cnewer $(REF).tgz | tee $@.tmp  
+	tar -czvf $@.`date +%Y-%m-%d`.tgz --files-from=$@.tmp
 #----
 bfimer: # merge extract only
 	perl extract_info.pl -br bulk/bfile > $@.txt

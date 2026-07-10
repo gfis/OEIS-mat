@@ -212,7 +212,7 @@ remove: # remove superfluous records
 	wc -l $@.*
 	make next PROC=$@
 getinits: # get initial terms
-	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+	getinits -q chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 lambdian: # patch CC=lambdin -> lambdan with inits in a condition of n
 	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@ 
 chatest: # compile and run, no break
@@ -300,18 +300,18 @@ join1: # continue with the overall chain
 xxddn2:
 	grep -P "\t[BDEFHIKMSTU]\d{6}\([n\+\-\*0-9]+\)\t" chain.ocn \
 	| grep -vP "\(n\-\d{2}" \
-	| getinits \
+	| getinits -q \
 	| tee - \
 	> $(FISCHER)/aman/$@.man
 	make jump PROC=$@ FOLLOW=join1
 
 ddn:
 	grep -P "\t[BDEFHIKMSTU]\d{6}\([BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9]+|term|[BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9]|term)+\))\)\)\t" sortuniq.ocn \
-	| getinits \
+	| getinits -q\
 	| tee $@.tmp
 ddn1:
 	grep -P "\t[BDEFHIKMSTU]\d{6}\([BDEFHIKMSTU]\d{6}\(([n\+\-\*0-9][n\+\-\*0-9]+|[BDEFHIKMSTU]\d{6}\([n\+\-\*0-9][n\+\-\*0-9]+\))\)\)\t" sortuniq.ocn \
-	| getinits \
+	| getinits -q \
 	| tee $@.tmp
 #----
 insect: insect1 insect_eval1 insect_eval2 insect_gen # seq0 = intersection of 2 seq1 and seq2
@@ -387,7 +387,7 @@ lrlink1: # grep and reformat, with order
 	head -n4 $@.tmp
 	wc -l    $@.tmp
 lrlink2: # get 'order' initial terms
-	cat lrlink1.tmp | getinits -q \
+	cat lrlink1.tmp | getinits \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 	cp -v    $@.tmp $(FISCHER)/aman/lrlink.man
@@ -432,7 +432,7 @@ lsm4:
 	wc -l    $@.tmp
 #--
 lsmDD: # lambdan Dnnnnnn(Dmmmmmm(n))
-	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\t" lsm1.tmp | getinits \
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\t" lsm1.tmp | getinits -q \
 	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
 	| tee $@.tmp
 	wc -l $@.tmp
@@ -445,7 +445,7 @@ lsmDJ: # sintrif Dnnnnnn(Jmmmmmm(n))
 	| tee $@.tmp
 	wc -l $@.tmp
 lsmDDD: # lambdan Dkkkkkk(Dnnnnnn(Dmmmmmm(n)))
-	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits \
+	grep -P "\t[BDEFM]\d{6}\([BDEFM]\d{6}\([BDEFM]\d{6}\(n\)\)\)\t" lsm1.tmp | getinits -q \
 	| sed -e "s/lsm\t0\t/lambdin\t0\tn \-\> /" \
 	| tee $@.tmp
 	wc -l $@.tmp

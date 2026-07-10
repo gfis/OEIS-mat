@@ -1,121 +1,130 @@
 #!perl
 
 # @(#) $Id$ 
+# 2026-07-10: with read_b_file in any case; *MB=69
 # 2026-06-16: but not more than 32 terms; *HA=69
 # 2026-05-22: not only 4 terms; *TP=77
 # 2025-07-06: with bfile if necessary, and over leading <= 1
 # 2024-07-02, Georg Fischer
 #
-#:# Filter seq4 records and replace a range "n>=17" by the initial terms
+#:# Filter seq4 records and in some column c, replace a range "n>=17" by the initial terms
 #:# Usage:
 #:#   perl getinits.pl [-p parmno] infile.seq4 > outfile.seq4
-#:#       -p parameter number for the range (1..8, default = 2 = $(PARM2))
-#:#       -q no quotes around the constant inits (default: with quotes)
+#:#       -c 4      column number behind $aseqno (default = 4 = $(PARM2))
+#:#       -m max    replace by at most max terms
+#:#       -q        quotes around the term list (default: without quotes)
+#:#
+#:# Cf. holinits.pl; Read b-files from $(COMMON)/bfile.
+#:# seq4 records are (aseqno, callcode, parms[0]=offset, parms[1..n]).
+#:# Initial terms ($(PARM2)) in input may be:
+#:#   (empty)   replace by <order> terms
+#:#   n>=17     replace by 17 terms
+#:#   [lo..hi]  replace by hi - lo + 1 terms
+#:#   1,3,4     with comma = keep that list
+#:#   17        a single number = replace by 17 terms
 #--------------------------------------------------------
 use strict;
 use integer;
 use warnings;
 
-my $gits =  $ENV{'GITS'};
-my $stripped = "$gits/OEIS-mat/common/stripped";
-my $bfdir    = "$gits/OEIS-mat/common/bfile";
-my $iparm  = 2; # operate on this parameter
-my $nok    = 0;
-my $debug  = 0;
-my $fatal  = 0; # no fatal error so far
-my $quoted = 1; # default 
-my $MAX_COUNT = 32;
+my $gits      =  $ENV{'GITS'};
+my $stripped  = "$gits/OEIS-mat/common/stripped";
+my $bfdir     = "$gits/OEIS-mat/common/bfile";
+my $col       = 4; # operate on this parameter
+my $nok       = 0;
+my $debug     = 0;
+my $quoted    = 0; # default 
+my $HIGH      = 19470629; # no b-file has so many terms
+my $max_count = $HIGH;
 
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt  =~ m{d}) {
         $debug     =  shift(@ARGV);
+    } elsif ($opt  =~ m{m}) {
+        $max_count =  shift(@ARGV);
     } elsif ($opt  =~ m{p}) {
-        $iparm     =  shift(@ARGV);
+        $col       =  shift(@ARGV);
     } elsif ($opt  =~ m{q}) {
-        $quoted    =  0;
+        $quoted    =  1;
     } else {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
 
+my @terms;
 #while (<DATA>) {
 while (<>) {
     if (m{\AA\d+\t}) { # assume seq4 format
         s/\s+\Z//;
         my $line = $_;
-        my ($aseqno, $callcode, @parms) = split(/\t/, "$line\t\t", -1);
-        my $parm = $parms[$iparm];
-        $nok = 0;
+        my (@parms) = split(/\t/, "$line\t\t", -1);
+        my $aseqno = $parms[0];
+        my $inits = $parms[$col];
         if (0) {
-        } elsif ($parm =~ m{(\d+)\Z}) {
-            my $count = $1;
-            if ($count > $MAX_COUNT) {
-                $nok = "huge";
-            } else {
-                $parm = get_inits($aseqno, $count);
-                $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
-            }
-        } elsif (length($parm) == 0) {
-            $parms[$iparm] = $quoted ? "\"$parm\"" : $parm;
+        } elsif ($inits =~ m{\A\s*\Z}) { # empty - read the whole b-file
+            &read_b_file($aseqno, $HIGH);
+        } elsif ($inits =~ m{\,}) { # comma already there, keep this termlist
+            @terms = split(/\, */, $inits);
+        #                      1   1    2   2
+        } elsif ($inits =~ m{\[(\d+)\.\.(\d+)\]}) { # e.g. "[1..17] -> 18 terms
+            my ($lo, $hi) = ($1, $2);
+            &read_b_file($aseqno, $hi - $lo + 1);
+        #                      1     1 2   2
+        } elsif ($inits =~ m{\A(n\>\=)?(\d+)\Z}) { # n>=17 or a single number 17
+            $inits = $2;
+            &read_b_file($aseqno, $inits);
         }
-        if ($nok eq "0") {
-            print        join("\t", $aseqno, $callcode        , @parms) . "\n";
-        } else {
-            print STDERR join("\t", $aseqno, "$callcode\#$nok", @parms) . "\n";
-        }
+        my $termlist = join(",", @terms);
+        $parms[$col] = $quoted ? "\"$termlist\"" : $termlist;
+        print join("\t", @parms) . "\n";
     } else { # no seq4
-        # print;
+        print;
     }
 } # while
 #----
-sub get_inits { #
-    my ($aseqno, $count) = @_;
-    my $line = `grep $aseqno $stripped`;
-    $line =~ s{\s+\Z}{}; # chompr
-    if ($debug >= 1) {
-        print "# count=$count, from asinfo: $line";
-    }
-    # $count = 4;
-    my ($dummy, $termlist) = split(/ /, $line);
-    $termlist = substr($termlist, 1); # remove leading ","
-    my @terms = split(/\,/, $termlist);
-    my $term;
-    my $len = scalar(@terms);
-    my $ix = 0;
-    while ($ix < $len && $terms[$ix] == 0) { # skip over leading abs(terms) <= 0
-        $ix ++;
-    }
-    $count += $ix;
-    if ($count >= $len) { # try to read a b-file
-        my $bfname = "$bfdir/b" . substr($aseqno, 1) . ".txt";
-        if (open(BF, "<", $bfname) != 0) {
-            @terms = ();
-            while (<BF>) {
-               s/\s+\Z//; # chompr
-               s/\#.*//;
-               #          1      1   2      2
-               if (m{\A\s*(\-?\d+)\s+(\-?\d+)}) {
-                   ($ix, $term) = ($1, $2);
-                   push(@terms, $term);
-               }
-               if ($ix >= $count) {
-                   last;
-               }
-            } # while BF
-            close(BF);
-            if ($ix < $count) {
-                print STDERR "# b-file for $aseqno has $ix < $count terms\n";
-            }
-        } else {
-            print STDERR "# cannot read b-file $bfname\n;"
+sub read_b_file {
+    my ($aseqno, $nterm) = @_;
+    my $src_file = "$bfdir/b" . substr($aseqno, 1) . ".txt";
+    my $buffer;
+    my @all; # all terms from b-file resp. stripped
+    if (open(FIL, "<", "$src_file")) { # b-file could be read
+        read(FIL, $buffer, 100000000); # 100 MB
+        # print "# length of $src_file: " . length($buffer) . "\n";
+        close(FIL);
+        my $it = 0;
+        my @all = grep { m{\S} } # keep non-empty lines only
+            map {
+                s{\#.*}{};      # remove comments
+                s{\A\s+}{};     # remove leading whitespace
+                s{\s+\Z}{};     # remove trailing whitespace
+                # s{\s\s+}{ };  # make single space
+                s{\-?\d+\s+}{}; # remove index
+                # $it ++ if (m{\S});
+                $_
+            } split(/\n/, $buffer);
+        @terms = splice(@all, 0, ($nterm < $max_count ? $nterm : $max_count));
+    } else { # fall back to $(COMMON)/stripped
+        # die "cannot read $src_file\n";
+        if ($debug >= 1) {
+            print "grep -P \"\^$aseqno\" $gits/OEIS-mat/common/stripped\n";
         }
+        $buffer = `grep -P \"\^$aseqno\" $gits/OEIS-mat/common/stripped`;
+        # 1234567890
+        # A000017 ,1,0,0,2,2,4,8,4,16,12,48,80,136,420,1240,2872,7652,18104,50184,
+        $buffer =~ s{\A\w+ \,}{};
+        $buffer =~ s{\,\Z}{};
+        my @all = split(/\,/, $buffer);
+        @terms = splice(@all, 0, ($nterm < $max_count ? $nterm : $max_count));
     }
-    return join(",", splice(@terms, 0, $count));
-} # get_inits
+} # read_b_file
 __DATA__
 # test data
-A079078	lsm	0	a(0) = 1, a(1) = 2; for n > 1, a(n) = prime(n)*a(n-2).	17
+A079078	lsm	0	a(0) = 1, a(1) = 2; for n > 1, a(n) = prime(n)*a(n-2).	7
+A079078	lsm	0	a(0) = 1, a(1) = 2; for n > 1, a(n) = prime(n)*a(n-2).	[2..5]
 A079121	lsm	0	a(n+1) = floor((1/n)*(Sum_{k=1..n} a(k)^((n+1)/k))), given a(0)=1, a(1)=3, a(2)=8.	n>=3
 A079271	lsm	0	a(n) = 4 * a(n-1) * (3^(2^(n-1))-a(n-1)) with a(0)=1.	2
+A033333	lsm	0	a(n) = 4 * a(n-1) * (3^(2^(n-1))-a(n-1)) with a(0)=1.	1,2,3,4
+A329069	lsm	0	dummy		x
+A397719	nyi	0	dummy		x
