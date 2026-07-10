@@ -37,7 +37,7 @@ circdiff5: # extract aseqno,k,d
 	| tee    $@.tmp
 	wc -l    $@.tmp
 #----
-prepbf: # generate b-files from originals 
+prepbf: # generate b-files from originals
 	perl circprep.pl -m bf circdiff5.tmp
 	ls -al b*.txt | wc
 movebf: # move b-files to local bfile directory
@@ -100,28 +100,43 @@ hardall4: # sort the signatures by descending frequency
 	grep -v FAIL hardall2.tmp | grep -E "^A" | cut -f5 | sort | sed -e "s/\,\[.*//" \
 	| uniq -c | sort -rn > $@.tmp
 #----
-empir: empir1 empir2 empir3 empir4 # Empirical: = conjectured recurrences
-empir1:
+empir: empir1 empir2 empir3 empir4 empir5 # Empirical: = conjectured recurrences
+empir1: # prepare for seq3 format
 	grep -P "Empirical\: *a\(n\) *\= [\-\+]?\d*\*?a\(n" $(COMMON)/jcat25.txt | endirect \
-	| grep -P "^...[A]" | cut -b4- \
+	| grep -P "^.. [A]" | cut -b4- \
 	| grep -vP "^(A191006|A191006)" \
-	| perl -pe 's/ *Empirical\: */\tbva\t0\t/; s/\..*//; s/ for/\tfor\t/; s/ with/\twith\t/; s/ *\[/\t\[/; s/[\, ]//g;' \
+	| perl empir_prep.pl \
+	2>       $@.rest.tmp \
 	>        $@.tmp
-	head -n2 $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@*tmp
+empir2: # select Hardin's, and make seq4 format
+	cd $(COMMON) ; make seq3 LIST=$(HERE)/empir1.tmp
+	$(DBAT) -x "SELECT i.aseqno, 'bva', i.offset1, s3.info, CASE WHEN s3.pattern LIKE '..%' THEN '[' || i.offset1 || s3.pattern || ']' ELSE s3.pattern END \
+	    , CASE WHEN length(i.program) > 0 THEN 'nyi=' || i.program ELSE '' END \
+	    FROM asinfo i, seq3 s3 \
+	    WHERE i.aseqno = s3.aseqno \
+	      AND i.author LIKE '%Hardin%' \
+	      ORDER BY 1" \
+	| head -n644444 \
+	>        $@.tmp
+	tail -n4 $@.tmp
 	wc -l    $@.tmp
-empir2:
-	$(JPREP) -f empir1.tmp \
+empir3:
+	$(JPREP) -f empir2.tmp \
 	2>       $@.rest.tmp \
 	>        $@.tmp
 	tail -n8 $@.tmp
 	wc -l    $@*
-empir3:
-	holinits -a 2 empir2.tmp > $@.tmp
+empir4:
+	holinits -a 0 empir3.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
 	tail -n2 $@.tmp
 	wc -l    $@*
-empir4:
-	sed -e "s/\tholos/\tholoscj/" empir3.tmp > $(FISCHER)/aman/empir.man
-#---------------- 
+empir5:
+	sed -e "s/\tholos/\tholoscj2/" empir4.tmp > $(FISCHER)/aman/empir.man
+#----------------
 LIST=rhdata.tmp
 gp_guess: # LIST= ; guess lin.rec.s with Kevin's recurrence-guess.gp
 	mkdir -p guess
@@ -134,7 +149,7 @@ proven1: # load the guessed ones
 	grep -P "^A" gp_guess.tmp | sed -e "s/ /\t/" > $@.tmp
 	cd $(COMMON) ; make seq3 LIST=$(HERE)/$@.tmp
 	head -n2 $@.tmp
-	wc -l    $@.tmp 
+	wc -l    $@.tmp
 proven2: # load Israel's proofs
 	cd $(COMMON) ; make seq LIST=../contrib/ri/recurrence_proofs.man
 proven3: # match guessed with proven
@@ -142,7 +157,7 @@ proven3: # match guessed with proven
 	    FROM seq s1 LEFT JOIN seq3 s3 ON s1.aseqno = s3.aseqno \
 	    ORDER BY 1" \
 	| tee    $@.tmp
-	wc -l    $@.tmp 
+	wc -l    $@.tmp
 	make hmize TARGET=$@
 rhdata: # select from bfdata for Hardin's sequences
 	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
@@ -201,7 +216,7 @@ stat:
 #----------------
 parts: parts1 parts2 # A159355 Number of n X n arrays of squares of integers summing to 4.
 	mv -v parts2.tmp $@.tmp
-parts1: # using partition4.pl 
+parts1: # using partition4.pl
 	cat hardname.tmp \
 	| grep -v "with" \
 	| perl -ne 'use strict; my $$line = $$_; $$line =~ s{\s+\Z}{}; '\
