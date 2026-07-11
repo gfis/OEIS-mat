@@ -5,11 +5,16 @@
 # 2026-07-08, Georg Fischer: copied from common/holguess.pl
 #
 #:# usage:
-#:#   perl holinits.pl input.seq4 > output.seq4
+#:#   perl holinits.pl (aseqno, cc, offset, matrix, inits, rest).seq4 > output.seq4
 #:#       -a  n          additional terms (more than order, default 0)
 #:#       -cc callcode   default: holos
 #:#
-#:# read b-files from $(COMMON)/bfile
+#:# Read b-files from $(COMMON)/bfile.
+#:# Initial terms ($(PARM2)) in input may be:
+#:# - (empty)   replace by <order> terms
+#:# - [lo..hi]  replace by hi - lo + 1 terms
+#:# - 1,3,4     with comma = keep that list
+#:# - 17        a single number = replace by so many
 #---------------------------------
 use strict;
 use integer;
@@ -59,14 +64,15 @@ while(<>) {
         }
         $order = scalar(@coeffs) - 2 + $add; # without the 0 for constant and the -1 for a(n)
         my $termno = $order;
-        if ($inits =~ m{\A\s*\Z}) { # empty
+        if (0) {
+        } elsif ($inits =~ m{\A\s*\Z}) { # empty
             # $termno == $order, ok
             &read_b_file($aseqno, $order);
         } elsif ($inits =~ m{\,}) { # comma already there, keep this termlist
             @terms  = split(/\, */, $inits);
         #                      1   1    2   2
         } elsif ($inits =~ m{\[(\d+)\.\.(\d+)\]}) { # e.g. "[1..17] -> 18 terms
-        	my ($lo, $hi) = ($1, $2);
+            my ($lo, $hi) = ($1, $2);
             &read_b_file($aseqno, $hi - $lo + 1);
         } elsif ($inits =~ m{\A(\d+)\Z}) { # exact number = order
             &read_b_file($aseqno, $inits - $offset + 1);

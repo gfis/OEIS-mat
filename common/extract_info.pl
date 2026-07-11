@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2026-07-10: obsolete, except for bfdata; uppercase constants; *ML=69
 # 2022-06-16: -p, prog
 # 2022-05-21: xref ranges
 # 2021-10-30: keywords tara,tard
@@ -55,9 +56,9 @@ my $action     = "br"; # generate TSV for Dbat -r
 my $debug      =  0; # 0 (none), 1 (some), 2 (more)
 my $imin       =  0;
 my $imax       = -1; # unknown
-my $lead       =  8; # so many initial terms are printed
-my $tail_width =  8; # length of last digits in last term
-my $terms_width= 64;
+my $LEAD       =  8; # so many initial terms are printed
+my $TAIL_WIDTH =  8; # length of last digits in last term
+my $TERMS_WIDTH= 64;
 my $tabname    = "";
 my %xhash;           # for &extract_aseqnos
 my $in_prog;         # whether in "program|maple|mathematica" property
@@ -66,8 +67,8 @@ my $prog_buffer;     # append program lines here
 my $prog_sep = "~~"; # separator for program lines
 my $in_xref;         # whether in "xref" property
 my $do_xref = 0;     # whether in action -ax
-my $read_len_max = 100000000; # 100 MB
-my $read_len_min =      8000; # stripped has about 960 max.
+my $READ_LEN_MAX = 100000000; # 100 MB
+my $READ_LEN_MIN =      8000; # stripped has about 960 max.
 if (scalar(@ARGV) == 0) {
     print `grep -E "^#:#" $0 | cut -b3-`;
     exit;
@@ -78,7 +79,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     } elsif ($opt =~ m{\-d}) {
         $debug    = shift(@ARGV);
     } elsif ($opt =~ m{\-l}) {
-        $lead     = shift(@ARGV);
+        $LEAD     = shift(@ARGV);
     } elsif ($opt =~ m{\-t}) {
         $tabname  = shift(@ARGV);
     } elsif ($opt =~ m{\-}) {
@@ -172,7 +173,7 @@ sub read_file { # returns in global $access, $buffer, $filesize
 sub extract_from_json { # read JSON of 1 sequence
     my $result = "";
     my ($filename) = @_;
-    &read_file($filename, $read_len_max); # sets $access, $buffer
+    &read_file($filename, $READ_LEN_MAX); # sets $access, $buffer
     $filename =~ m{(A\d{6})\.json}i; # extract seqno
     my $aseqno   = $1;
     my $name     = "";
@@ -440,7 +441,7 @@ CREATE  TABLE            $tabname
     ( aseqno    VARCHAR(10)   -- A322469
     , offset1   BIGINT        -- index of first term, cf. OEIS definition
     , offset2   BIGINT        -- sequential number of first term with abs() > 1, or 1
-    , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
+    , terms     VARCHAR($TERMS_WIDTH)   -- first $LEAD terms if length <= $TERMS_WIDTH
     , termno    INT           -- number of terms in DATA section
     , datalen   INT           -- length of DATA section
     , keyword   VARCHAR(64)   -- "hard,nice,more" etc.
@@ -486,13 +487,13 @@ sub terms8 { # keep in sync with code in extract_from_bfile !!!
     my $termno = scalar(@valarray);
     my $iterm = 0;
     my $terms = "";
-    my $state_lead = $lead;
-    while ($iterm < $state_lead and $iterm < scalar(@valarray)) {
+    my $in_leading = $LEAD;
+    while ($iterm < $in_leading and $iterm < scalar(@valarray)) {
         my $term = $valarray[$iterm];
-        if (length($terms) + length($term) < $terms_width) { # store the leading ones
+        if (length($terms) + length($term) < $TERMS_WIDTH) { # store the leading ones
            $terms .= ",$term";
         } else {
-            $state_lead = 0; # break loop
+            $in_leading = 0; # break loop
         }
         $iterm ++;
     } # while $iterm
@@ -566,15 +567,15 @@ sub feb_last {
 sub extract_from_bfile {
     my $result = "";
     my ($filename) = @_;
-    my $width      = $terms_width;
-    my $state_lead = $lead;
+    my $width      = $TERMS_WIDTH;
+    my $in_leading = $LEAD;
     my $long_width = 1024;
     if ($action =~ m{t}) { # bfdata
-        &read_file($filename, $read_len_min); # sets $access, $buffer, $filesize
+        &read_file($filename, $READ_LEN_MIN); # sets $access, $buffer, $filesize
         $width = $long_width; # wc -L stripped -> 970
-        $state_lead = 1024;
+        $in_leading = 1024;
     } else { # normal bfinfo
-        &read_file($filename, $read_len_max); # sets $access, $buffer, $filesize
+        &read_file($filename, $READ_LEN_MAX); # sets $access, $buffer, $filesize
     }
     my $terms   = "";
     my $termno  = 0;
@@ -592,7 +593,7 @@ sub extract_from_bfile {
     my $decindex = 0; # last index which was decreasing
     my $old_term = "";
     my $oldlen  = 29061947; # longer than any OEIS number
-    my $state   = 0;
+    # my $state   = 0;
     if (substr($buffer, -1) ne "\n") {
         $mess{"neof"} = ""; # ord(substr($buffer, -1));
     }
@@ -605,11 +606,11 @@ sub extract_from_bfile {
             } elsif ($index != $bfimax + 1) { # check for increasing index
                 $mess{"nxinc"} = ($iline + 1); # hard error - index not increasing
             }
-            if ($iline < $state_lead and length($terms) + length($term) < $width) { # store the leading ones
+            if ($iline < $in_leading and length($terms) + length($term) < $width) { # store the leading ones
                 $termno ++;
                 $terms .= ",$term";
             } else {
-                $state_lead = 0; # never try it again
+                $in_leading = 0; # never try it again
                 last if $width == $long_width;
             }
             if (substr($term, 0, 1) eq "-" and ! defined($mess{"sign"})) { # sign applies to terms only
@@ -704,7 +705,7 @@ sub extract_from_bfile {
         , $bfimax
         , $decindex # was offset2
         , substr($terms,   1) # remove 1st comma
-        , substr($term, -$tail_width)
+        , substr($term, -$TAIL_WIDTH)
         , $filesize
         , $maxlen
         , substr($message, 1) # remove 1st comma
@@ -726,8 +727,8 @@ CREATE  TABLE            $tabname
     , bfimax    BIGINT        -- index in last  data line
     , decindex  BIGINT        -- last index where terms were decreasing
 --  , offset2   BIGINT           line number of first term with abs(term) > 1, or 1
-    , terms     VARCHAR($terms_width)   -- first $lead terms if length <= $terms_width
-    , tail      VARCHAR(8)    -- last $tail_width digits of last term
+    , terms     VARCHAR($TERMS_WIDTH)   -- first $LEAD terms if length <= $TERMS_WIDTH
+    , tail      VARCHAR(8)    -- last $TAIL_WIDTH digits of last term
     , filesize  INT           -- size of the file in bytes, from the operating system
     , maxlen    INT           -- maximum length of terms
     , message   VARCHAR(128)  -- "bad<iline>,blank,comt,cr,ecomt,loose,lsp,msp,neof,rsp,sign,nxinc<iline>,synth,tcomt"

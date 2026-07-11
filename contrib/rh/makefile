@@ -102,9 +102,9 @@ hardall4: # sort the signatures by descending frequency
 #----
 empir: empir1 empir2 empir3 empir4 empir5 # Empirical: = conjectured recurrences
 empir1: # prepare for seq3 format
-	grep -P "Empirical\: *a\(n\) *\= [\-\+]?\d*\*?a\(n" $(COMMON)/jcat25.txt | endirect \
+	grep -P "Empirical\: *a\(n\) *\= *[\-\+]?\d*\*?a\(n" $(COMMON)/jcat25.txt | endirect \
 	| grep -P "^.. [A]" | cut -b4- \
-	| grep -vP "^(A191006|A191006)" \
+	| grep -vP "^(A184123|A184132|A184140|A184141|A191006)" \
 	| perl empir_prep.pl \
 	2>       $@.rest.tmp \
 	>        $@.tmp
@@ -138,11 +138,18 @@ empir5:
 	sed -e "s/\tholos/\tholoscj2/" empir4.tmp > $(FISCHER)/aman/empir.man
 #----------------
 LIST=rhdata.tmp
+SPLICE=16
 gp_guess: # LIST= ; guess lin.rec.s with Kevin's recurrence-guess.gp
 	mkdir -p guess
-	perl gp_guess.pl $(LIST) \
-	| tee    $@.tmp
-	grep -v "#" $@.tmp | wc -l
+	gawk -e '{ print $$1 "\t" $$2 "\t\tx" }' $(LIST) \
+	| getinits -p 2 $(LIST) \
+	| perl $(COMMON)/splice.pl -s $(SPLICE) \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp   
+	perl gp_guess.pl $@.tmp \
+	| tee    $@.log
+	grep -v "#" $@.log | wc -l
 #----
 proven: proven1 proven2 proven3
 proven1: # load the guessed ones
@@ -160,10 +167,14 @@ proven3: # match guessed with proven
 	wc -l    $@.tmp
 	make hmize TARGET=$@
 rhdata: # select from bfdata for Hardin's sequences
-	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
+	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data, '', 'x' \
 	    FROM asinfo i, bfdata d \
 	    WHERE i.aseqno = d.aseqno \
-	      AND i.author LIKE '%Hardin%' ORDER BY 1" \
+	      AND i.author LIKE '%Hardin%' \
+	      AND i.keyword NOT LIKE '%tab%' \
+	      AND d.termno >= 32 \
+	      AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
+	      ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
