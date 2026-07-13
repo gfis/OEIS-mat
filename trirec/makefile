@@ -58,6 +58,7 @@ tabl:
 	    AND i.keyword LIKE '%tabl%' \
 	  ORDER BY n.name, i.aseqno;" \
 	| perl $(COMMON)/nyi.pl -p \
+	| endirect \
 	>         $@.tmp
 	head -n 4 $@.tmp
 	wc -l     $@.tmp

@@ -34,6 +34,15 @@ napp: # CC=; remove FAILed ones
 	mv $(CC).tmp $(CC).gen
 	wc -l    $(CC).gen
 #----
+hmize: # TARGET= htmlize the result of a grep
+	wc -l        $(TARGET).tmp
+	grep -A10 -P "\A$(TARGET)\:" makefile > hmize.tmp
+	perl $(FISCHER)/htmlize.pl $(TARGET).tmp \
+	| perl $(COMMON)/html_append.pl > $(TARGET).html
+	chmod 755    $(TARGET).html
+	cmd /c start $(TARGET).html
+	e            $(TARGET).tmp
+#----
 # simple formula a(n) = Aqseqno(n...) op Arseqno(n...)
 anopan: anopan0 anopan1
 	grep -P "\tanopan\t" anopan1.tmp \
@@ -314,13 +323,40 @@ ddn1:
 	| getinits -q \
 	| tee $@.tmp
 #----
-deldel: # Deleham's DELTA operator
-	grep -P "[\)\]] *DELTA *[\(\[]" jcat25.txt | grep -P "^%[NFC]" | cut -b4- | endirect \
-	| perl deldel.pl \
-	2>       $@.rest.tmp \
+deldel: deldel1 deldel2 deldel3 deldel4 deldel5 # Deleham's DELTA operator
+deldel1:
+	grep -P "[\)\]] *DELTA *[\(\[]" $(COMMON)/jcat25.txt | grep -P "^%[NFC]" | cut -b4- | endirect \
+	| grep -vf $(FISCHER)/today.txt \
+	| tee    $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@*tmp
+deldel2:
+	perl deldel.pl deldel1.tmp \
+	>        $@.tmp \
+	2>       $@.liss.tmp
+	sort     $@.liss.tmp > $@.list.tmp
+	head -n4 $@.tmp
+	wc -l    $@*tmp
+deldel3:
+	grep -v Z000000 deldel2.tmp \
+	>        $@.tmp
+	wc       $@.tmp
+	cp -v    $@.tmp $(FISCHER)/aman/deldel.man 
+	make hmize TARGET=$@
+deldel4:
+	sort deldel2.list.tmp | uniq -c 
+	sort deldel2.list.tmp | uniq \
+	>        $@.grep.tmp
+	grep -f  $@.grep.tmp $(COMMON)/stripped \
+	| perl -pe 'print sprintf("%-40s    %s()\n", substr($$_, 9,39), substr($$_, 0, 7));' \
+	| sort \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@*tmp
+deldel5: # htmlize remaining from stripped 
+	echo -e "list\taseqno"         >  $@.tmp
+	sed -e "s/  */\t/" deldel4.tmp >> $@.tmp 
+	make hmize TARGET=$@
 #----
 insect: insect1 insect_eval1 insect_eval2 insect_gen # seq0 = intersection of 2 seq1 and seq2
 insect1: # grep from jcat25 and preprocess
