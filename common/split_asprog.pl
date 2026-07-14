@@ -36,7 +36,7 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
     }
 } # while ARGV
 #----  
-print "# " . `mkdir $subdir`;
+print `mkdir $subdir`;
 my $line;
 # while (<DATA>) {
 while (<>) {  
