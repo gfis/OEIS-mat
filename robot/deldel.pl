@@ -48,7 +48,8 @@ while (<>) {
         ($list1, $list2, $rest) = ($1, $2, $3);
         $seq1 = &find_seq($list1);
         $seq2 = &find_seq($list2);
-        print join("\t", $aseqno, "deldel", 0, "new $seq1", "new $seq2", "[$list1]", "[$list2]", $rest) . "\n";
+        $line = join("\t", $aseqno, "deldel", 0, "new $seq1", "new $seq2", "[$list1]", "[$list2]", $rest) . "\n";
+        print $line;
     } else {
         print "# ?? $line\n";
     }
@@ -60,7 +61,7 @@ sub find_seq {
     $list =~ s{\, *\.*\Z}{};
     my @keys = grep { m{\A$list} } keys(%known);
     my $keyno = scalar(@keys);
-    my $result = "Z000000";
+    my $result = "Z000000()";
     if (0) {
     } elsif ($keyno == 0) {
         print STDERR " ,$list\n";
