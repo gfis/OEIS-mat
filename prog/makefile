@@ -11,14 +11,14 @@ HERE=$(GITS)/OEIS-mat/prog
 CAT=$(COMMON)/jcat25.txt 
 XTRANS=java -jar $(GITS)/xtrans/dist/xtrans.jar
 DATE=`date +%Y-%m-%d`
-MANY=1024
+MANY=64
 #----
 all: help # get a list of the possible targets
 help: # list all targets: 
 	grep -E "^[a-z]" makefile
 #================================
 SUBDIR=pari
-split_asprog: # split an extract of asprog.txt into single files
+asprog_split: # split an extract of asprog.txt into single files
 	grep -P "\t$(SUBDIR)\t" $(COMMON)/asprog.txt \
 	| head -n $(MANY) \
 	>        $@.tmp 
@@ -26,7 +26,7 @@ split_asprog: # split an extract of asprog.txt into single files
 	wc -l    $@.tmp
 	rm -rf   $(SUBDIR)
 	cat $@.tmp \
-	| perl $(COMMON)/split_asprog.pl -s $(SUBDIR) 
+	| perl asprog_split.pl -s $(SUBDIR) 
 	du -b    $(SUBDIR)
 #----
 SRC=pari/A090869.1.pari
@@ -38,5 +38,14 @@ check_pari: # check whether pari -> SAX -> pari yields the identical source
 	rm -f gp1.log
 	find $(SUBDIR) -iname "*.$(SUBDIR)" \
 	| xargs -innn make -s gp1 SRC=nnn
-	
+#----
+asprog_opers: # extract the operators from asprog (sequences of non-word, non-bracket, non-space characters)
+	grep  -P "\tpari\t" $(COMMON)/asprog.txt \
+	| perl asprog_opers.pl \
+	| sort -k2,2n \
+	| tee    $@.tmp
+	wc -l    $@.tmp 
+	tail -n64 $@.tmp | cut -f1 | perl -pe "s/\s*\Z/ /" \
+	| tee    $@.txt
+#----
 
