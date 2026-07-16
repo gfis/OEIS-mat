@@ -33,30 +33,30 @@ help:
 oprep_down: oprep1 oprep2 oprep3 oprep_pack
 oprep1:
 	rm -f stripped*
-	wget https://oeis.org/stripped.gz
+	wget https://oeis.org/stripped.gz  2>&1 > null
 	gzip -df  stripped.gz
 	cp -pv    stripped  $(COMMON)
 	sleep $(SLEEP)
 oprep2:
 	rm -f names*
-	wget https://oeis.org/names.gz
+	wget https://oeis.org/names.gz     2>&1 > null
 	gzip -df  names.gz
 	cp -pv    names     $(COMMON)
 	sleep $(SLEEP)
 oprep3:
-	rm -f bfilelist*
-	wget https://oeis.org/bfilelist.gz
-	gzip -df  bfilelist.gz
-	cp -pv    bfilelist $(COMMON)
+	# rm -f bfilelist*
+	# wget https://oeis.org/bfilelist.gz
+	# gzip -df  bfilelist.gz
+	# cp -pv    bfilelist $(COMMON)
 oprep_pack:
-	tar -czvf $@.tgz stripped names bfilelist
+	tar -czvf $@.tgz stripped names # bfilelist
 	ls -al
 #----
 catex_down: oeisdata_pull cat28 tinfo catex_pack
 tinfo_down:                     tinfo catex_pack
 #--------
 cat28: # reassemble the cat25.txt file
-	# cd $(OEISDATA) ; find seq -type f | sort > $(HERE)/$@.list.tmp
+	cd $(OEISDATA) ; find seq -type f | sort > $(HERE)/$@.list.tmp
 	rm -f    $@.txt
 	cd $(OEISDATA) ; cat $(HERE)/$@.list.tmp | xargs -innn cat nnn >> $(HERE)/$@.txt
 	head -n4 $@.txt
@@ -152,7 +152,7 @@ robots:
 titan_get:
 	scp gfis@atair:~/work/gits/OEIS-mat/data/*_pack.tgz .
 	ls -1 *.tgz | xargs -l tar -xzvf 
-	mv -v   stripped names bfilelist                                           ../common/
+	mv -v   stripped names                                                     ../common/
 	mv -v   asdata.txt asinfo.txt asname.txt bfinfo.txt                        ../common/
 	mv -v   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
 	mv -v   jcat28.txt                                                         ../common/jcat25.txt
@@ -163,9 +163,9 @@ oprep_remote: # download stripped, names, bfilelist
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make oprep_down"
 	scp               $(REM):~/work/gits/OEIS-mat/data/oprep_pack.tgz .
 	tar -xzvf                                             oprep_pack.tgz
-	ls -al
-	tail -n2 stripped names bfilelist
-	mv -v    stripped names bfilelist ../common/
+	# ls -al
+	tail -n2 stripped names  
+	mv -v    stripped names   ../common/
 #====
 catex_remote: # refresh oeisdata, generate cat28 and db table content and download
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; git stash ; git pull"
@@ -173,7 +173,7 @@ catex_remote: # refresh oeisdata, generate cat28 and db table content and downlo
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make catex_down"
 	scp               $(REM):~/work/gits/OEIS-mat/data/catex_pack.tgz .
 	tar -xzvf                                          catex_pack.tgz
-	ls -al
+	# ls -al
 	tail -n2 asdata.txt asinfo.txt asname.txt bfinfo.txt
 	mv -v    asdata.txt asinfo.txt asname.txt bfinfo.txt ../common/
 tinfo_remote: # refresh generate db table content and download
@@ -182,7 +182,7 @@ tinfo_remote: # refresh generate db table content and download
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make tinfo_down"
 	scp               $(REM):~/work/gits/OEIS-mat/data/catex_pack.tgz .
 	tar -xzvf                                             catex_pack.tgz
-	ls -al
+	# ls -al
 	tail -n2 asdata.txt asinfo.txt asname.txt bfinfo.txt
 	mv -v    asdata.txt asinfo.txt asname.txt bfinfo.txt ../common/
 #====
@@ -192,7 +192,7 @@ joeis_remote: # update jOEIS repository, produce lists and jcat28, pack them and
 	ssh $(REM)           "cd ~/work/gits/OEIS-mat/data ; make joeis_down"
 	scp               $(REM):~/work/gits/OEIS-mat/data/joeis_pack.tgz .
 	tar -xzvf                                             joeis_pack.tgz
-	ls -al
+	# ls -al
 	tail -n2 jcat28.txt joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt
 	cp -pv   jcat28.txt ../common/jcat25.txt
 	cp -pv   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
