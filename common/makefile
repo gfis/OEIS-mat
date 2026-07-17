@@ -1270,6 +1270,10 @@ bn:
 	grep -P "\b[bcr]\(n\) *\=" jcat25.txt | grep -P "\b[bcr]\(n *\- *1\)" | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
+carmichael_lambda: 
+	grep -P "[A-Z]002322" jcat25.txt | grep -v € | grep -P "^%[NFo]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 catgf1: # catgf1 generated in ../linrec
 	grep -P "^\#" ../linrec/catgf1.tmp | grep -v ellips | cut -b3- \
 	| endirect | sed -e "s/ /\t/; s/ /\t/; s/ /\t/;" \
@@ -1522,6 +1526,10 @@ theta: # theta ^series
 	| grep -vi series \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+valuation:
+	grep -P "valuation\(|IntegerExponent\[|[A-Z]007814" jcat25.txt | grep -P "^%[NFot]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 xn: # [x^n]
 	grep -P "\[x\^n\]" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
@@ -1552,6 +1560,10 @@ tpowers: # powers of t, z
 	make hmize TARGET=$@
 trinkq: # Triangles T(n, k, q)
 	grep -P "[AT]\([a-z]\, *[a-z]\, *[a-z]\)" jcat25.txt | grep -P "^%[N]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+znorder:
+	grep -P "znorder|[Mm]ulitplicative order" jcat25.txt | grep -P "^%[NFo]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 #--------
