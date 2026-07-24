@@ -16,7 +16,7 @@ my $utc_stamp = sprintf ("%04d-%02d-%02dT%02d:%02d:%02d\z", $year + 1900, $mon +
 print "# processed by $0 at $utc_stamp\n";
 
 my $MAX_LEN    = 3900; # cf. $(COMMON)/seq3.create.sql
-my $gits       =  $ENV{'GITS'};
+my $GITS       =  $ENV{'GITS'};
 my $debug      = 0;
 my $col        = 3;
 my $skip       = 0;

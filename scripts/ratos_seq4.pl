@@ -2,7 +2,8 @@
 
 # Generate a seq4 record with CC=ratos|holos from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
-# 2025-07-14, seqno with 6 digits; *CZ=73
+# 2026-07-18: -dist also
+# 2025-07-14: seqno with 6 digits; *CZ=73
 # 2025-06-13, Georg Fischer
 #
 #:# Usage:
@@ -32,6 +33,8 @@ my $gftype  = 0;
 while (scalar(@ARGV) > 0) {
     my $opt = shift(@ARGV);
     if (0) {
+    } elsif ($opt =~ m{-dist}) {
+        $dist     = shift(@ARGV);;
     } elsif ($opt =~ m{-d}) {
         $debug    = shift(@ARGV);;
     } elsif ($opt =~ m{-h}) {

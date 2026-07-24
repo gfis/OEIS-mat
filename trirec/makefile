@@ -308,6 +308,28 @@ factabl2:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@.tmp
+#================
+hmize: # TARGET= htmlize the result of a grep
+	wc -l        $(TARGET).tmp
+	perl $(FISCHER)/htmlize.pl $(TARGET).tmp \
+	> $(TARGET).html
+	chmod 755    $(TARGET).html
+	cmd /c start $(TARGET).html
+	e            $(TARGET).tmp
+#----
+colrow: colrow1 colrow2 # identify rows and columns
+colrow1:
+	grep -P "(Row|Column) \d+ of .\d{6}\." $(COMMON)/jcat25.txt \
+	| endirect \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+colrow2:
+	echo -e "aseqno\tcol/row" > $@.tmp
+	grep -P "^[%\?]" colrow1.tmp \
+	| cut -b4- | sed -e "s/ /\t/" \
+	| tee -a $@.tmp
+	make hmize TARGET=$@
+	wc -l    $@.tmp
 #----
 trecolk: # (column|diagonal|row) of"
 	cat $(COMMON)/joeis_names.txt \

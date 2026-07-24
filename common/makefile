@@ -1253,6 +1253,10 @@ anexp:
 	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
+apowx: # A^3(x)
+	grep -P "A\d+\(x\)" jcat25.txt | grep -vPi "\.\.\.|Sum|Prod|column|continued" | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 arydiv:
 	grep -P "(ary |anti)divisor" jcat25.txt | grep -P "^%[NFCY]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
