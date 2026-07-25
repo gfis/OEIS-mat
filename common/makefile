@@ -1283,6 +1283,10 @@ catgf1: # catgf1 generated in ../linrec
 	| endirect | sed -e "s/ /\t/; s/ /\t/; s/ /\t/;" \
 	| tee $@.tmp
 	make hmize TARGET=$@
+centrin:
+	grep -Pi "002426|central trinomial" ../common/jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 charfun:
 	grep -P "^A\d{6} \,([01]\,)+\Z" stripped | endirect | grep -P "^A" > $@.tmp
 	make seq LIST=$@.tmp

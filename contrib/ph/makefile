@@ -59,12 +59,23 @@ gfun_guess1:
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
 gfun_guess2:
-	cp -v ../../holrec/guf.mp \
+	cp -v ../../holrec/listtorec.mp \
 	         $@.tmp
-	grep -h -P "^A[1-9]" gfun_guess1.tmp \
+	grep -h -P "^A[1-9]" phdata.tmp \
 	| head -n$(MANY) \
 	| gawk -e '{ print "guf(" $$1 ", [" $$3 "]);" }' \
 	>>       $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(GFUN)
+	# cmaple -q $@.tmp | tee $@.log
+gfun_guess3:
+	cp -v ../../holrec/listtoalgeq.mp \
+	         $@.tmp
+	grep -h -P "^A[1-9]" phdata.tmp \
+	| head -n$(MANY) \
+	| gawk -e '{ print "guf(" $$1 ", [" $$3 "]);" }' \
+	>>       $@.tmp
+	wc -l    $@.tmp
 	cp -v    $@.tmp $(GFUN)
 	# cmaple -q $@.tmp | tee $@.log
 gfun_eval:
@@ -93,27 +104,7 @@ gp_guess: # LIST= ; guess lin.rec.s with Kevin's recurrence-guess.gp
 	perl gp_guess.pl $@.tmp \
 	| tee    $@.log
 	grep -v "#" $@.log | wc -l
-phdata: # select from bfdata for Hardin's sequences
-	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data, '', 'x' \
-	    FROM asinfo i, bfdata d \
-	    WHERE i.aseqno = d.aseqno \
-	      AND i.author LIKE '%Hanna%' \
-	      AND i.keyword NOT LIKE '%tab%' \
-	      AND d.termno >= 32 \
-	      AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
-	      ORDER BY 1" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc   -l  $@.tmp
-guessed_data: # select from bfdata for the ones that were previously guessed
-	cd ../../common ; make seq LIST=rhguess.tmp
-	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
-	    FROM seq i, bfdata d \
-	    WHERE i.aseqno = d.aseqno \
-	      ORDER BY 1" \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc   -l  $@.tmp
+#----
 phlist: # select Hanna's sequences
 	$(DBAT) -x "SELECT i.aseqno, COALESCE(j.superclass, 'null ' || i.program), 0, b.bfimin || '..' || b.bfimax, n.name \
 	    FROM asinfo i, asname n, bfinfo b \
@@ -127,55 +118,21 @@ phlist: # select Hanna's sequences
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-mma_guess: mma_guess1 mma_guess2 # needs rhlist; guess with wolfram FindGeneratingFunction, prepare script only
-mma_guess1:
-	endirect rhlist.tmp | grep -P "^A" > $@.tmp
-	head -n2 $@.tmp
-	wc -l    $@.tmp
-	cd $(COMMON) ; make seq LIST=$(HERE)/$@.tmp
-	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data \
-	    FROM seq i, bfdata d \
+phdata: # select from bfdata for Hardin's sequences
+	$(DBAT) -x "SELECT i.aseqno, d.termno, d.data, '', 'x' \
+	    FROM asinfo i, bfdata d \
 	    WHERE i.aseqno = d.aseqno \
+	      AND i.author LIKE '%Hanna%' \
+	      AND i.keyword NOT LIKE '%tab%' \
+	      AND d.termno >= 32 \
+	      AND i.aseqno NOT IN (SELECT aseqno FROM joeis) \
 	      ORDER BY 1" \
-	>        $@.tmp
-	head -n2 $@.tmp
-	wc   -l  $@.tmp
-MODE=linrec
-mma_guess2:
-	grep -P "^A(08[7-9]|09|[1-9])" mma_guess1.tmp \
-	| perl mma_guess.pl -m $(MODE) > mma_$(MODE).tmp
-	head -n2 mma_$(MODE).tmp
-	wc -l    mma_$(MODE).tmp
-	scp      mma_$(MODE).tmp  pi@bluepi:~
-stat:
-	wc -l rhlist.tmp
-	grep -vP "\tnull" rhlist.tmp | wc -l
-	grep  -P "\tnull" rhlist.tmp | wc -l
-#----------------
-parts: parts1 parts2 # A159355 Number of n X n arrays of squares of integers summing to 4.
-	mv -v parts2.tmp $@.tmp
-parts1: # using partition4.pl
-	cat hardname.tmp \
-	| grep -v "with" \
-	| perl -ne 'use strict; my $$line = $$_; $$line =~ s{\s+\Z}{}; '\
-	' if ($$line =~ s{Number of n X n arrays of squares of integers summing to (\d+)}{$$1}) {'\
-	' $$line =~ s{\d+\.\.\d+\t}{}; $$line =~ s{\t\w+\t0}{\tbinom\t0}; $$line =~ s{\.}{}g; print "$$line\n"; }'\
-	| perl partition4.pl \
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-parts2:
-	perl parts_binom.pl parts1.tmp \
-	>        $@.tmp
-	head -n8 $@.tmp
-	wc   -l  $@.tmp
-#--------------------------------
-# A151633	Sequence	0	1..200	Number of permutations of 3 indistinguishable copies of 1..n with exactly 3 adjacent element pairs in decreasing order.
-A151633:
-	grep -P "permutations of \d+ indist" rhlist.tmp | grep decreasing | grep -vP "circle|Holon" \
-	| perl -ne 'use strict; my $$line = $$_; my $$aseqno = substr($$line, 0, 7); '\
-	' if (m{(\d+) indistinguishable copies of 1\.\.n with exactly (\d+)}) {'\
-	' my ($$copies, $$pairs) = ($$1, $$2); print join("\t", $$aseqno, "parmof3", 0, "A151633", $$copies, $$pairs) . "\n"; }'\
-	| tee $@.tmp
-	wc -l $@.tmp
+#----------------
+stat:
+	wc -l             phlist.tmp
+	grep -vP "\tnull" phlist.tmp | wc -l
+	grep  -P "\tnull" phlist.tmp | wc -l
 #--------------------------------
