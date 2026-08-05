@@ -61,8 +61,8 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 my $line;
 my $type;
 my $sep = $SEP2;
-while (<DATA>) {
-# while (<>) {  
+# while (<DATA>) {
+while (<>) {  
     next if ($nyi == 1 && substr($_, 0, 1) ne "%");
     s/\s+\Z//;
     $type = substr($_, 1, 1);
