@@ -1,7 +1,8 @@
 #!perl
 
 # Extract foreign programs from jcat25.txt
-# @(#) $Id$ 
+# @(#) $Id$
+# 2026-08-05: split on "Alternative:"; *MW=23 
 # 2025-11-15: with timestamp in A000000; *EFF=4
 # 2025-11-01: standalone, copied from extract_xref.pl
 # 2019-01-22, Georg Fischer
@@ -24,7 +25,7 @@ my $in_prog;         # whether in "program|maple|mathematica" property
 my $do_prog  = 0;    # whether in action -ap
 my $program  = "";
 my $prog_buffer;     # append program lines here
-my $prog_sep = "~~"; # separator for program lines
+my $SEP2 = "~~";     # separator for program lines
 my $debug    =  0;   # 0 (none), 1 (some), 2 (more)
 my %xhash;           # for &extract_programs
 my $aseqno;
@@ -59,8 +60,9 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A\-})) {
 
 my $line;
 my $type;
-# while (<DATA>) {
-while (<>) {  
+my $sep = $SEP2;
+while (<DATA>) {
+# while (<>) {  
     next if ($nyi == 1 && substr($_, 0, 1) ne "%");
     s/\s+\Z//;
     $type = substr($_, 1, 1);
@@ -98,19 +100,29 @@ while (<>) {
         }
     } elsif ($type eq "p") { # Maple
         $line =~ s{\A[A-Z]\d+ *}{}; # remove aseqno
-        if ($in_prog != 2) { 
-            $prog_buffer .= "$prog_sep${prog_sep}\(Maple\)$line";
+        if (0) {
+        } elsif ($in_prog != 2) { 
+            $prog_buffer .= "$SEP2${SEP2}\(Maple\)$line";
+        } elsif ($line =~ m{\# *Alternative\:?}) { 
+            $prog_buffer .= "$SEP2${SEP2}\(Maple\)";
+            $sep = "";
         } else {
-            $prog_buffer .= "$prog_sep$line";
+            $prog_buffer .= "$sep$line";
+            $sep = $SEP2;
         }
         $in_prog  = 2;
         $program .= "p"; 
     } elsif ($type eq "t") { # Mathematica
         $line =~ s{\A[A-Z]\d+ *}{}; # remove aseqno
-        if ($in_prog != 3) {
-            $prog_buffer .= "$prog_sep${prog_sep}\(Mathematica\)$line";
+        if (0) {
+        } elsif ($in_prog != 3) {
+            $prog_buffer .= "$SEP2${SEP2}\(Mathematica\)$line";
+        } elsif ($line =~ m{\(\* *Alternative\:? *\*\)}) { 
+            $prog_buffer .= "$SEP2${SEP2}\(Mathematica\)";
+            $sep = "";
         } else {
-            $prog_buffer .= "$prog_sep$line";
+            $prog_buffer .= "$sep$line";
+            $sep = $SEP2;
         }
         $in_prog  = 3;
         $program .= "t";
@@ -119,8 +131,8 @@ while (<>) {
         $program .= "o";
         $line =~ s{\A[A-Z]\d+ *}{}; # remove aseqno
         $line =~ s{\t}{  }g; # replace tabs?! 
-        $line =~ s{\\\\(.*)}{\/\*$1 \*\/};
-        $prog_buffer     .= "$prog_sep$line";
+        $line =~ s{\\\\(.*)}{\/\*$1 \*\/}; # convert PARI comments 
+        $prog_buffer     .= "$SEP2$line";
     } else {
         $in_prog = 0; # outside prog mode
     }
@@ -140,7 +152,7 @@ sub accumulate_programs {
     my ($aseqno, $prog_buffer) = @_;
     my $buffer = "";
     #                              1                           1
-    my @blocks = split(/($prog_sep\([A-Z][A-Za-z0-9]+[^\)]*\) *)/, $prog_buffer); # yields the separators: (~~(lang)) block (~~(lang)) block ...
+    my @blocks = split(/($SEP2\([A-Z][A-Za-z0-9]+[^\)]*\) *)/, $prog_buffer); # yields the separators also: (~~(lang)) block (~~(lang)) block ...
     my $iblk = 1;
     my %curnos = (); # store the curno for some language
     my $lang;
@@ -151,14 +163,12 @@ sub accumulate_programs {
             print "# $aseqno block: $block\n";
         }
         if (0) {
-#       } elsif ($block =~ m{\(Maple\)}) {
-#           $block =~ s{[\(\)]}{}g;
-#           $lang = lc($block);
-#       } elsif ($block =~ m{\(Mathematica\)}) {
-#           $block =~ s{[\(\)]}{}g;
-#           $lang = "mma";
-#           #                           1         1
-        } elsif ($block =~ s{$prog_sep\(([A-Za-z]+)[^\)]*\)}{$prog_sep}) { # other language
+        } elsif ($block =~ s{\(Maple\)}{}) {
+            $lang = "maple";
+        } elsif ($block =~ s{\(Mathematica\)}{}) {
+            $lang = "mma";
+            #                           1         1
+        } elsif ($block =~ s{$SEP2\(([A-Za-z]+)[^\)]*\)}{$SEP2}) { # other language
             $lang = lc($1);
             if (0) {
             } elsif ($lang =~ m{scheme}i) {
@@ -179,7 +189,7 @@ sub accumulate_programs {
                 $curnos{$lang} ++;
                 $curno = $curnos{$lang};
             }
-            $buffer .= join("\t", $aseqno, $lang, $curno, "type", "$prog_sep$prog_sep$block") . "\n";
+            $buffer .= join("\t", $aseqno, $lang, $curno, "type", "$SEP2$SEP2$block") . "\n";
         } # rest pf block
     } # for $iblk
     return $buffer;
@@ -293,3 +303,46 @@ __DATA__
 %K A389853 nonn,hard,more,new
 %O A389853 1,1
 %A A389853 _Michael De Vlieger_, Oct 17 2025
+%I A089333 #18 Mar 13 2026 19:44:57
+%S A089333 1,1,1,1,2,2,3,4,6,8,11,14,19,24,31,39,51,63,80,99,124,153,190,233,
+%T A089333 288,353,432,527,643,780,947,1145,1383,1665,2002,2399,2874,3431,4090,
+%U A089333 4865,5779,6847,8103,9568,11283,13280,15610,18313,21462,25108,29337,34227
+%N A089333 Number of partitions into a square number of parts.
+%C A089333 Also number of partitions of n such that the largest part is a square. Example: a(7)=4 because we have [4,3], [4,2,1], [4,1,1,1] and [1,1,1,1,1,1,1]. - _Emeric Deutsch_, Apr 04 2006
+%H A089333 Alois P. Heinz, <a href="/€089333/b089333.txt">Table of n, a(n) for n = 0..10000</a>
+%F A089333 G.f.: Sum(x^(n^2)/Product(1-x^i, i = 1 .. n^2), n = 1 .. infinity).
+%e A089333 a(7)=4 because we have [7], [4,1,1,1], [3,2,1,1] and [2,2,2,1].
+%p A089333 g:=sum(x^(k^2)/product(1-x^i,i=1..k^2),k=1..7): gser:=series(g,x=0,55): seq(coeff(gser,x,n),n=1..51); # _Emeric Deutsch_, Apr 04 2006
+%p A089333 # Alternative:
+%p A089333 b:= proc(n, i) option remember; `if`(n<0, 0,
+%p A089333       `if`(n=0 or i=1, 1, `if`(i<1, 0, b(n, i-1)+
+%p A089333       `if`(i>n, 0, b(n-i, i)))))
+%p A089333     end:
+%p A089333 a:= n-> add(b(n-i^2, i^2), i=0..isqrt(n)):
+%p A089333 seq(a(n), n=0..60);  # _Alois P. Heinz_, Sep 24 2015
+%t A089333 b[n_, i_] := b[n, i] = If[n < 0, 0, If[n == 0 || i == 1, 1, If[i < 1, 0, b[n, i - 1] + If[i > n, 0, b[n - i, i]]]]]; a[n_] := Sum[b[n - i^2, i^2], {i, 0, Sqrt[n]}]; Table[a[n], {n, 0, 60}] (* _Jean-François Alcover_, Jan 10 2016, after _Alois P. Heinz_*)
+%K A089333 easy,nonn
+%O A089333 0,5
+%A A089333 _Vladeta Jovovic_, Dec 25 2003
+%E A089333 a(0)=1 from _Alois P. Heinz_, Sep 24 2015
+%I A090968 #58 Jul 08 2026 04:59:28
+%S A090968 3,7,13,43,137,63061489
+%N A090968 Primes p such that p^2 divides 19^(p-1) - 1.
+%C A090968 Primes p such that p divides the Fermat quotient of p (with base 19). The Fermat quotient of p with base a denotes the integer q_p(a) = ( a^(p-1) - 1) / p, where p is a prime which does not divide the integer a. - C. Ronaldo (aga_new_ac(AT)hotmail.com), Jan 20 2005
+%C A090968 Among generalized Wieferich pairs (p, b) satisfying b^(p-1) == 1 (mod p^2) with 1 < b < p, ordered by increasing p, the base b = 19 is the second base that appears for two different primes, namely p = 43 and p = 137 (i.e., b = 19 is the first base to appear twice in G. Helms's table). The first base is b = 53. - _William Hu_, Jul 01 2026
+%C A090968 No further terms up to 3.127*10^13.
+%C A090968 Primes p such that binomial(19*p^k,p^k) == 19^p mod p^2 for some (or equivalently all) nonnegative integer k. - _Chai Wah Wu_, Jul 01 2026
+%D A090968 Roozbeh Hazrat, Mathematica: A Problem-Centered Approach, Springer 2010, pp. 39, 171.
+%D A090968 J.-M. De Koninck, Ces nombres qui nous fascinent, Entry 43, p. 17, Ellipses, Paris 2008.
+%D A090968 Paulo Ribenboim, The Little Book Of Big Primes, Springer-Verlag, NY 1991, page 170.
+%H A090968 Amir Akbary and Sahar Siavashi, <a href="http://math.colgate.edu/~integers/s3/s3.Abstract.html">The Largest Known Wieferich Numbers</a>, INTEGERS, 18(2018), A3. See Table 1 p. 5.
+%H A090968 C. Caldwell, <a href="https://t5k.org/glossary/page.php?sort=FermatQuotient">Fermat quotient</a>
+%H A090968 G. Helms, <a href="https://go.helms-net.de/math/expdioph/fermatquot_ge2_table1.htm">Tables of generalized Wieferich primes</a>
+%H A090968 W. Keller and J. Richstein, <a href="http://www1.uni-hamburg.de/RRZ/W.Keller/FermatQuotient.html">Fermat quotients q_p(a) that are divisible by p</a>
+%t A090968 NextPrim[n_] := Block[{k = n + 1}, While[ !PrimeQ[k], k++ ]; k]; p = 1; Do[ p = NextPrim[p]; If[PowerMod[19, p - 1, p^2] == 1, Print[p]], {n, 1, 2*10^8}]
+%t A090968 (* Alternative: *)
+%t A090968 Select[Prime[Range[4*10^6]],PowerMod[19,#-1,#^2]==1&] (* _Harvey P. Dale_, Nov 08 2017 *)
+%Y A090968 Cf. A001220, A014127, A123692, A123693, A128667, €128668, €128669, A039951, €096082, €280150.
+%K A090968 nonn,hard,more
+%O A090968 1,1
+%A A090968 _Robert G. Wilson v_, Feb 27 2004
