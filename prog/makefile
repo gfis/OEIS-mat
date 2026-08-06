@@ -48,4 +48,13 @@ asprog_opers: # extract the operators from asprog (sequences of non-word, non-br
 	tail -n64 $@.tmp | cut -f1 | perl -pe "s/\s*\Z/ /" \
 	| tee    $@.txt
 #----
-
+maplesort: # sorted Maple programs
+	grep -P "\tmaple\t" $(COMMON)/asprog.txt \
+	| sort -k5,5 -k1,1 \
+	>        $@.tmp
+	wc -l    $@.tmp
+#----
+heinzrec:
+	grep Alois maplesort.tmp | grep -P "~~~~a *\:\= *proc\(n\) option remember" | grep -vP "with\(" | grep -P "a\(n\-\d+\)" | grep -vP "local" \
+	| tee    $@.tmp
+	wc -l $@.tmp

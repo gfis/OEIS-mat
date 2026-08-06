@@ -91,7 +91,7 @@ while (<>) {
             }
             my $date  = sprintf("%04d-%02d-%02d", $4, $month_names{$2} || "01", $3);
             my $time  = $5;
-            $created = "${date}T$time"; 
+            $created = "${date} $time"; 
             if ($debug >= 1) {
                 print "# created=$created, line=$line\n";
             }
@@ -189,7 +189,7 @@ sub accumulate_programs {
                 $curnos{$lang} ++;
                 $curno = $curnos{$lang};
             }
-            $buffer .= join("\t", $aseqno, $lang, $curno, "type", "$SEP2$SEP2$block") . "\n";
+            $buffer .= join("\t", $aseqno, $lang, $curno, "type", "$SEP2$SEP2$block", "", $created, $revision) . "\n";
         } # rest pf block
     } # for $iblk
     return $buffer;
