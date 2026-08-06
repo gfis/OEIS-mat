@@ -1302,9 +1302,8 @@ convol:
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
 dfinit:
-	grep -P "^%[NF] A\d+ (D\-finite )?([Rr]ecurrence)? *\:? *[0-9an\+\-\*\(\)\^ \=]+(for n *\>\=? *\d+)?\." jcat25.txt \
-	| grep -vP " \(\d+[\.\)]| a\([\da]" \
-	| tee $@.tmp
+	grep -P "(D\-finite )([Rr]ecurrence)?" jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 diff1s: 
 	grep -P "First differences of " jcat25.txt | grep -v € | grep -P "^%[NFCY]" \
@@ -1532,6 +1531,10 @@ sum: # [*/] Sum_{...
 theta: # theta ^series
 	grep -P "[Tt]heta" jcat25.txt | grep -P "^%[NFC]" \
 	| grep -vi series \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+trinv:
+	grep -iP "(matrix )?inverse of" jcat25.txt | grep -P "^%[NFCY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 valuation:
