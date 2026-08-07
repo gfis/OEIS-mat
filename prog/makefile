@@ -33,11 +33,12 @@ SRC=pari/A090869.1.pari
 gp1:
 	$(XTRANS) -pari $(SRC) -gp x.tmp 
 	echo  $(SRC)                | tee -a $@.log
-	diff  x.tmp     $(SRC) 2>&1 | tee -a $@.log
+	diff  $(SRC) x.tmp     2>&1 | tee -a $@.log
 check_pari: # check whether pari -> SAX -> pari yields the identical source
 	rm -f gp1.log
 	find $(SUBDIR) -iname "*.$(SUBDIR)" \
-	| xargs -innn make -s gp1 SRC=nnn
+	| head -n $(MANY) \
+	| xargs -innn make -s gp1 SRC=nnn 2>&1
 #----
 asprog_opers: # extract the operators from asprog (sequences of non-word, non-bracket, non-space characters)
 	grep  -P "\tpari\t" $(COMMON)/asprog.txt \
@@ -48,4 +49,13 @@ asprog_opers: # extract the operators from asprog (sequences of non-word, non-br
 	tail -n64 $@.tmp | cut -f1 | perl -pe "s/\s*\Z/ /" \
 	| tee    $@.txt
 #----
-
+maplesort: # sorted Maple programs
+	grep -P "\tmaple\t" $(COMMON)/asprog.txt \
+	| sort -k5,5 -k1,1 \
+	>        $@.tmp
+	wc -l    $@.tmp
+#----
+heinzrec:
+	grep Alois maplesort.tmp | grep -P "~~~~a *\:\= *proc\(n\) option remember" | grep -vP "with\(" | grep -P "a\(n\-\d+\)" | grep -vP "local" \
+	| tee    $@.tmp
+	wc -l $@.tmp

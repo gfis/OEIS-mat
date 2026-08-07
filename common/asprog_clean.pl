@@ -2,6 +2,7 @@
 
 # Normalize programming languages, keep important ones only, truncate fields
 # @(#) $Id$ 
+# 2026-08-05: STDERR <- too long; *MW=23
 # 2025-11-16: perl,scheme etc.
 # 2022-06-17, Georg Fischer
 #
@@ -34,7 +35,7 @@ while (<>) {
     s/\s+\Z//; # chompr
     my ($aseqno, $lang, $curno, $type, $code, @rest) = split(/\t/);
     if (length($code) >= 16384) {
-        print STDERR join("\t", $aseqno, $lang, $curno, $type, $code, @rest) . "\n";
+        print STDERR join("\t", "#** asprog_clean, too long: ", $aseqno, $lang, $curno, $type, substr($code, 0, 64) . " ...", @rest) . "\n";
         next;
     }
     my $known_lang = 0
