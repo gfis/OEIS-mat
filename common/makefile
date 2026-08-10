@@ -1302,6 +1302,10 @@ convol:
 	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
+determ:
+	grep -P "is the determinant|Determinant|Matrix determinant" joeis_names.txt | grep -P "\tnyi" \
+	| endirect | cut -f1,3,5,7 | tee $@.tmp
+	make hmize TARGET=$@
 dfinit:
 	grep -P "(D\-finite )([Rr]ecurrence)?" jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
