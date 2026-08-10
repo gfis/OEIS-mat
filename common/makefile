@@ -2,7 +2,8 @@
 
 # OEIS-mat/common - scripts and data common to all OEIS-mat subprojects
 # @(#) $Id$
-# [^\w\s\.\,\;\:\(\)\[\]\{\}\<\>\!\"\$\%\&\/\+\^\-\*\=\'\#\\\?\|\~\`öńáőωŁéü°øå≀è\@…\´ä\’∈î]
+# [^\w\s\.\,\;\:\(\)\[\]\{\}\<\>\!\"\$\%\&\/\+\^\-\*\=\'\#\\\?\|\~\`öńáőωŁéü°øå≀è\@…\´ä\’∈î] 
+# 2026-08-09: *VF=45
 # 2022-07-05: asinfo_{loda|pari}
 # 2022-06-21: old poeis -> noeis, new poeis for OEIS-prog
 # 2022-06-16: asprog
