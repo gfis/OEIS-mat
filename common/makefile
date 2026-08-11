@@ -1458,6 +1458,10 @@ partn: #
 	grep "Number of partitions of n into " jcat25.txt | grep -P "^%[NFCY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+perman:
+	grep -iP "permanent " joeis_names.txt | grep -P "\tnyi" \
+	| endirect | cut -f1,3,5,7 | tee $@.tmp
+	make hmize TARGET=$@
 prisig: # A179698	nyi to	Numbers of the form p^4*q^3*r where p, q, and r are distinct primes.	nonn	1..1000	nyi	_Vladimir Joseph Stephan Orlovsky_
 	grep -P "p\^\d+\*q(\^\d+)?|prime signature \{|prime factorization" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
