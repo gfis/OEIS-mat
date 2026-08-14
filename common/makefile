@@ -1499,6 +1499,10 @@ rectoproc:
 	grep -Pi "rectoproc|RecurrenceTable" jcat25.txt | grep -P "^%[pt]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+remember:
+	grep -iP "option remember" asprog.txt | sort -k5 | cut -f1,5 \
+	| endirect                                | tee $@.tmp
+	make hmize TARGET=$@
 revorder: 
 	grep -Pi "in reverse order\." jcat25.txt  | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
