@@ -1499,7 +1499,7 @@ rectoproc:
 	grep -Pi "rectoproc|RecurrenceTable" jcat25.txt | grep -P "^%[pt]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
-remember:
+remember: # Maple programs with "option remember"
 	grep -iP "option remember" asprog.txt | sort -k5 | cut -f1,5 \
 	| endirect                                | tee $@.tmp
 	make hmize TARGET=$@
