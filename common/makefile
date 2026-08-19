@@ -1294,6 +1294,10 @@ charfun:
 	$(DBAT) "SELECT aseqno, name FROM asname WHERE aseqno IN (SELECT aseqno from seq) ORDER BY 1;" \
 	| endirect | tee $@.tmp
 	make hmize TARGET=$@
+columns:
+	grep -P "Columns|Rows|Main diagonal [^o]" jcat25.txt | grep -P "^#[CY]" | grep € | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 composit: # 
 	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
 	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | tee $@.tmp
@@ -1518,6 +1522,10 @@ rotate:
 	make hmize TARGET=$@
 rultraf:
 	grep -Pi "(Rr]uns? ?lengths?|RUNs?) transform of " jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+satrecur:
+	grep -P "satisfies .*recurrence " jcat25.txt | grep -P "^%" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 section: # Bi-, Tri- ... sections
