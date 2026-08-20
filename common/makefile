@@ -1298,6 +1298,10 @@ composit: #
 	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
 	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | tee $@.tmp
 	make hmize TARGET=$@
+columns:
+	grep -P "Columns|Rows|Main diagonal [^o]" jcat25.txt | grep -P "^#[CY]" | grep € | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 convol:
 	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
@@ -1545,6 +1549,10 @@ theta: # theta ^series
 	grep -P "[Tt]heta" jcat25.txt | grep -P "^%[NFC]" \
 	| grep -vi series \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
+this_seq:
+	grep -P ", this sequence" jcat25.txt | grep -P "^#[CY]" | grep € | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
 trinv:
 	grep -iP "(matrix )?inverse of" jcat25.txt | grep -P "^%[NFCY]" \
