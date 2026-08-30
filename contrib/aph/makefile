@@ -56,4 +56,12 @@ stat:
 #----
 binom2:
 	grep 'add(binomial(b((i-1)$$2, k$$2' procb.tmp
-#----
+#---- 
+aph_joeis0: # select joeis/src/irvine/oeis/*/A*.java with "Alois" on the server
+	find $(GITS)/joeis/src/irvine/oeis -iname "A*.java" | xargs -l grep -H "Alois" | tee $@.raw
+aph_joeis:
+	cat aph_joeis.raw \
+	| perl -ne 'm{\/(A\d+)\.java}; print "$$1\n";' \
+	| sort > $@.tmp
+	head -n8 $@.tmp
+	wc -l    $@.tmp

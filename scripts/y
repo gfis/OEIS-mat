@@ -1,0 +1,8 @@
+#!/bin/sh
+
+ano=`perl $GITS/OEIS-mat/scripts/Anumber.pl $1`
+echo $ano | clip 
+grep -P "^\#Y $ano" $GITS/OEIS-mat/common/jcat25.txt                      | endirect
+echo ----
+grep -P "$ano"      $GITS/OEIS-mat/common/jcat25.txt | grep -P "^%[NFCY]" | endirect
+# cmd /c start http://oeis.org/$ano

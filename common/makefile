@@ -232,7 +232,7 @@ asprog_old: # parameter: DIR
 	perl extract_info.pl -apr $(DIR)/ajson > $@.txt
 	wc -l $@.txt
 asprog: # parameter: DIR
-	perl extract_asprog.pl -n jcat25.txt \
+	perl extract_asprog.pl jcat25.txt \
 	>        $@.txt
 	tail -n2 $@.txt
 	wc -l    $@.txt
