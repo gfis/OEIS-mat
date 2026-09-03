@@ -1381,6 +1381,10 @@ gray_code: #
 	grep -P " [A-Z]\w+ code " jcat25.txt | grep -P "^%[N]" | cut -b1-120 | endirect | grep Gray \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+half:
+	grep -P "Half of " jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 hofstadt: 
 	grep -P "\Wa\([\( n\-\+\*0-9]{0,8}a\(|Hofsta" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
@@ -1535,6 +1539,10 @@ selfinv:
 series: # MMA CoefficientList[Series
 	grep -P "^%t" jcat25.txt | grep -Pi "CoefficientList\[Series" \
 	| cut -b 4- | sed -e "s/ /\t/" | endirect | tee $@.tmp
+	make hmize TARGET=$@
+signs:
+	grep -P "Signs of " jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 slow_increase:
 	perl $@.pl stripped | endirect | grep -P "^A" > $@.tmp ; make seq LIST=$@.tmp
