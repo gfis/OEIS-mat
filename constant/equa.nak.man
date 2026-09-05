@@ -46,3 +46,4 @@ A390426	possible acos(decsolv)
 A393120 
 A393143
 A396695	decexp	0	() -> CR.ONE
+A093540	error @418
