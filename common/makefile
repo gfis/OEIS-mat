@@ -1509,7 +1509,7 @@ rectoproc:
 	make hmize TARGET=$@
 remember: # Maple programs with "option remember"
 	grep -iP "option remember" asprog.txt | sort -k5 | cut -f1,5 \
-	| endirect                                | tee $@.tmp
+	| endirect | grep -P "^A" | grep -P "seq\(seq"    | tee $@.tmp
 	make hmize TARGET=$@
 revorder: 
 	grep -Pi "in reverse order\." jcat25.txt  | grep -P "^%[NF]" \
