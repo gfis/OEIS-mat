@@ -284,7 +284,7 @@ algol_pack_common: # pack recent file in $(COMMON) - to be used on dubhe
 algol_common: # copy recent database content
 	cd $(GITS)/OEIS-mat/common ; perl ue_script.pl -close ; \
 	rm -vf joeis_names.txt ; \
-	cp -v $(RGITS)/OEIS-mat/common/algol_pack_common.tgz . \
+	cp -v $(RGITS)/OEIS-mat/common/algol_pack_common.tgz . ;\
 	tar -xzvf algol_pack_commmon.tgz
 	cd $(GITS)/OEIS-mat/common ; perl ue_script.pl -open
 	# find $(RGITS)/OEIS-mat/common                     -maxdepth 1 -type f -ctime -7 | xargs -innn cp -vp nnn .
