@@ -653,7 +653,7 @@ jcat25_old:
 	cut -b1 $@.txt | sort | uniq -c
 #----------------
 corenice: core nice
-core:
+core:	# determine core sequences
 	make core1 KEYW=core
 nice:
 	make core1 KEYW=nice
