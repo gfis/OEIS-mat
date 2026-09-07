@@ -1267,8 +1267,8 @@ axax: # A(x)^2 ... A(x)^3
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
-bern:
-	grep -P "Bernoulli" jcat25.txt | grep -P "^%[NF]" | endirect \
+bern_harm:
+	grep -Pi "Bernoulli|Harmonic" jcat25.txt | grep -P "Numerator|Denominator" | grep -v "armonic mean" | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
 	make hmize TARGET=$@
 bn:
@@ -1491,6 +1491,10 @@ qpowers: # powers of q
 	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+ratio: 
+	grep -P "A\d{6}\([^\/]+\/ *A\d{6}\(" jcat25.txt | grep -P "^%[NF]" | grep -v "Decimal" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 ratn:
 	grep -P "\b[br]\(n\) *\=" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
@@ -1602,7 +1606,11 @@ trinkq: # Triangles T(n, k, q)
 	grep -P "[AT]\([a-z]\, *[a-z]\, *[a-z]\)" jcat25.txt | grep -P "^%[N]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
-#--------
+ydirect: # crossreferences of DirectArrays with unimplemented subsequences
+	grep -P "^#Y" jcat25.txt | endirect | grep -v "Cf. " | grep -P "^#Y [HSTU]" \
+	| grep -P "(A|€)\d{6}" \
+	| cut -b 4- | sed -e "s/ /\t/" | sort -k2 | tee $@.tmp
+	make hmize TARGET=$@
 znorder:
 	grep -P "znorder|[Mm]ulitplicative order" jcat25.txt | grep -P "^%[NFo]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
