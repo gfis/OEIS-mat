@@ -1267,6 +1267,10 @@ axax: # A(x)^2 ... A(x)^3
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| tee $@.tmp
 	make hmize TARGET=$@
+bernfrac:
+	grep -Pi "bernfrac" jcat25.txt | grep -P "^%o" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
+	make hmize TARGET=$@
 bern_harm:
 	grep -Pi "Bernoulli|Harmonic" jcat25.txt | grep -P "Numerator|Denominator" | grep -v "armonic mean" | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp

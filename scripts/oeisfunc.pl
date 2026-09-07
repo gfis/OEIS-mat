@@ -27,6 +27,7 @@ abs             ABS
 antisigma       D024816
 ard             F003415
 bell            F000110
+bernfrac        Functions.BERNOULLI.q
 bigomega        F001222
 binom           BI
 binomial        BI
@@ -34,8 +35,8 @@ cat             F000108
 catalan         F000108
 catalannumber   F000108
 chowla          F048050
-ceil            CEILQ
-ceiling         CEILQ
+ceil            CEIL.z
+ceiling         CEIL.z
 core            F007913
 cototient       F051953
 delta           D055034
@@ -45,10 +46,11 @@ factorial       F000142
 fallfac         F008279
 fib             F000045
 fibonacci       F000045
-floor           FLOORQ
+floor           FLOOR.z
 gcd             GCD
 gpf             F006530
 hammingweight   F000120   
+harmonic        Functions.HARMONIC.q
 jacobi          Functions.JACOBI.z
 kronecker       Functions.KRONECKER.z
 lah             F008297
