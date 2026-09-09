@@ -139,10 +139,10 @@ mat_pull: # update OEIS-mat/*
 	git pull
 pinfo: # generate asprog and asxref
 	cd $(COMMON) ; make asprog ; make asxref
-	make algol_pack_common
 load4:
 	make pinfo
 	cd ../common ; make asdata_load asinfo_load asname_load bfinfo_load joeis_reload asprog_load asxref_load
+	make algol_pack_common
 reflect:
 	cd $(FISCHER)/reflect ; make -i ; make vector
 arti:
