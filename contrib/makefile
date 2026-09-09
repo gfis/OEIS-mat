@@ -14,7 +14,7 @@ LITE=$(GITS)/joeis-lite
 FISCHER=$(LITE)/internal/fischer
 SHIFT=+1
 WIDTH=64
-SLEEP=4
+SLEEP=2
 HEAD=16
 OFFSET=0
 #----------------

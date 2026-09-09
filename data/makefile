@@ -68,7 +68,7 @@ tinfo: # extract ASINFO, ASNAME, BFINFO database tables
 	wc -l    ??????.txt
 	tail -n2 ??????.txt
 catex_pack:
-	tar -czvf $@.tgz asdata.txt asinfo.txt asname.txt bfinfo.txt 
+	tar -czvf $@.tgz asdata.txt asinfo.txt asname.txt bfinfo.txt
 	ls -al *.tgz
 #====
 joeis_down: joeis_pull joeis_list joeis_ofpre joeis_coral joeis_ofter jcat28 joeis_pack
@@ -138,7 +138,7 @@ remote: mat_pull joeis_pull jar_remote catex_remote oprep_remote joeis_remote lo
 mat_pull: # update OEIS-mat/*
 	git pull
 pinfo: # generate asprog and asxref
-	cd $(COMMON) ; make asprog ; make asxref 
+	cd $(COMMON) ; make asprog ; make asxref
 	make algol_pack_common
 load4:
 	make pinfo
@@ -152,7 +152,7 @@ robots:
 #====
 titan_get:
 	scp gfis@atair:~/work/gits/OEIS-mat/data/*_pack.tgz .
-	ls -1 *.tgz | xargs -l tar -xzvf 
+	ls -1 *.tgz | xargs -l tar -xzvf
 	mv -v   stripped names                                                     ../common/
 	mv -v   asdata.txt asinfo.txt asname.txt bfinfo.txt                        ../common/
 	mv -v   joeis_list1.all.tmp joeis_list.txt joeis_ofter.txt joeis_coral.txt ../common/
@@ -165,7 +165,7 @@ oprep_remote: # download stripped, names, bfilelist
 	scp               $(REM):~/work/gits/OEIS-mat/data/oprep_pack.tgz .
 	tar -xzvf                                             oprep_pack.tgz
 	# ls -al
-	tail -n2 stripped names  
+	tail -n2 stripped names
 	mv -v    stripped names   ../common/
 #====
 catex_remote: # refresh oeisdata, generate cat28 and db table content and download
@@ -239,7 +239,7 @@ bf_cath0: # grep them
 	| perl -ne 'if(m{\/b(\d+)\.txt}) { print "A$$1\n"; }' \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp  
+	wc -l    $@.tmp
 bf_cath1: # determine the other ones - to be synthesized
 	cd $(COMMON) ; make seq LIST=../data/bf_cath0.tmp
 	$(DBAT) -x "SELECT aseqno FROM asinfo \
@@ -247,7 +247,7 @@ bf_cath1: # determine the other ones - to be synthesized
 	  ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp  
+	wc -l    $@.tmp
 bf_cath2: bfsynth0 # determine the ones to be synthesized and non-existing
 	cd $(COMMON) ; make seq2 LIST=../data/bfsynth0.tmp
 	$(DBAT) -x "SELECT aseqno FROM asinfo \
@@ -256,7 +256,7 @@ bf_cath2: bfsynth0 # determine the ones to be synthesized and non-existing
 	    ORDER BY 1" \
 	>        $@.tmp
 	head -n4 $@.tmp
-	wc -l    $@.tmp  
+	wc -l    $@.tmp
 #================
 # update of the algol system (Windows); requires X: -> remote ; check with dir x:\users\user\work
 RGITS=x:/users/user/work/gits
@@ -275,7 +275,7 @@ algol_jar: # get the freshly compiled joeis.jar
 	cd $(GITS)/joeis/build.tmp ; cp -vp $(RGITS)/joeis/build.tmp/joeis.jar .
 #
 algol_pack: # get and extract the packages
-	find $(RGITS)/OEIS-mat/data                       -maxdepth 1 -type f -ctime -7 -iname "*pack.tgz"| xargs -innn cp -vp nnn . 
+	find $(RGITS)/OEIS-mat/data                       -maxdepth 1 -type f -ctime -7 -iname "*pack.tgz"| xargs -innn cp -vp nnn .
 	find . -maxdepth 1 -iname "*pack.tgz" | xargs -l tar -xzvf
 algol_pack_common: # pack recent file in $(COMMON) - to be used on dubhe
 	cd $(GITS)/OEIS-mat/common ; tar -czvf $@.tgz \
@@ -305,10 +305,10 @@ oeisdata_fill: # SUB=
 	      git lfs fetch -X= -I=files/$(SUB)/b??????.txt  ; \
 	echo "git lfs checkout     files/$(SUB)/b??????.txt" ; \
 	      git lfs checkout     files/$(SUB)/b??????.txt  ;
-oeisdata_pull: 
+oeisdata_pull:
 	cd $(OEISDATA) ; git pull
 	# odp3 odp2 odp1 odp0 # odp4
-odp4: 
+odp4:
 	make oeisdata_fill SUB=A49?
 	make oeisdata_fill SUB=A48?
 	make oeisdata_fill SUB=A47?

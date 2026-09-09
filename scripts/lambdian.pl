@@ -3,6 +3,7 @@
 # Process callcode "lambdin"
 # Was: convert to "lambdan": move initial terms to a conditional expression in n
 # @(#) $Id$
+# 2026-09-07: print only if not too long
 # 2026-06-24: disable most of the functionality, only remove quotes around inits
 # 2024-09-22, Georg Fischer
 #
@@ -94,8 +95,9 @@ while (<>) { # read inputfile
         $parms[1] = "$var -> $prefix$expr";
     } # disabled code
     #----
-        print join("\t", $aseqno, $callcode, @parms) ."\n";
-    } else { # copy other records unchanged
+        $line = join("\t", $aseqno, $callcode, @parms) ."\n";
+    }
+    if (length($line) <= 2048) {
         print "$line\n";
     }
 } # while <>

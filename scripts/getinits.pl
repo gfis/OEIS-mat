@@ -77,7 +77,7 @@ while (<>) {
             &read_b_file($aseqno, $inits);
         }
         my $termlist = join(",", @terms);
-        $parms[$col] = $quoted ? "\"$termlist\"" : $termlist;
+        $parms[$col] = ($quoted || length($termlist) == 0) ? "\"$termlist\"" : $termlist;
         print join("\t", @parms) . "\n";
     } else { # no seq4
         print;

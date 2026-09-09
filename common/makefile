@@ -1334,6 +1334,10 @@ digits:
 	grep -P "\bd_\w\b" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+deincreasing:
+	grep -P "decreasing|increasing" jcat25.txt | grep -Pi "digits" | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 egf:
 	grep -P "([Ee]\.g\.f\.)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€|Prod|sum|row|column" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | tee    $@.tmp
@@ -1450,6 +1454,10 @@ niven: #
 	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+numden: # 
+	grep -P "Numerators|Denominators" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
+	make hmize TARGET=$@
 numpart: # Number of partitions of ...
 	grep -iP "Number of partitions" jcat25.txt | grep -P "^%[NFC]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
@@ -1486,6 +1494,10 @@ prodk1p: # Product_{k>=1} ...(1 +
 	grep -P "Prod(uct)?_{ *[i-n] *\> *\= *1\}" jcat25.txt | grep -P "^%[NF]" \
 	| grep -P "\(1 *\+" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \ | tee $@.tmp
+	make hmize TARGET=$@
+prodlog: 
+	grep -P "ProductLog" jcat25.txt | grep -P "^%t" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
 prodprime:
 	grep -Pi "(products of (exactly )?\d+) primes" jcat25.txt | grep -P "^.[NFC]" \

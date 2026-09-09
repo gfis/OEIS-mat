@@ -221,11 +221,11 @@ remove: # remove superfluous records
 	wc -l $@.*
 	make next PROC=$@
 getinits: # get initial terms
-	getinits -q chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
+	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 lambdian: # patch CC=lambdin -> lambdan with inits in a condition of n
 	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@ 
 chatest: # compile and run, no break
-	cp -v chain.ocn $(FISCHER)/aman/$@.man
+	grep -vP "A182209|A194768|A243067|A285699|A297895" chain.ocn > $(FISCHER)/aman/$@.man
 	cp -v chain.ocn $@.ocn
 	wc -l    $(FISCHER)/aman/$@.man
 	cd $(FISCHER) ; make -i CC=chatest pegel

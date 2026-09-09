@@ -2,6 +2,7 @@
 
 # Map OEIS function names to Fnnnnn sequence numbers of jOEIS Functions.*.z
 # @(#) $Id$
+# 2026-09-07: CEIL.i, FLOOR.i, BERN, HARM
 # 2024-07-20, Georg Fischer
 #
 #:# Usage:
@@ -27,7 +28,7 @@ abs             ABS
 antisigma       D024816
 ard             F003415
 bell            F000110
-bernfrac        Functions.BERNOULLI.q
+bernfrac        BERN
 bigomega        F001222
 binom           BI
 binomial        BI
@@ -35,8 +36,8 @@ cat             F000108
 catalan         F000108
 catalannumber   F000108
 chowla          F048050
-ceil            CEIL.z
-ceiling         CEIL.z
+ceil            CEIL.i
+ceiling         CEIL.i
 core            F007913
 cototient       F051953
 delta           D055034
@@ -46,11 +47,11 @@ factorial       F000142
 fallfac         F008279
 fib             F000045
 fibonacci       F000045
-floor           FLOOR.z
+floor           FLOOR.i
 gcd             GCD
 gpf             F006530
 hammingweight   F000120   
-harmonic        Functions.HARMONIC.q
+harmonic        HARM
 jacobi          Functions.JACOBI.z
 kronecker       Functions.KRONECKER.z
 lah             F008297
