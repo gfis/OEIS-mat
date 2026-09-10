@@ -1454,7 +1454,7 @@ net:
 	grep -iP "number of (earlier|previous) terms" joeis_names.txt | cut -f 1,3 \
 	| endirect \
 	| perl ../contrib/lq/earlier.pl \
-	| sort -k3 | tee $@.tmp
+	| sort -k3 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 niven: #
 	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
