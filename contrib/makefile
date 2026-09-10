@@ -256,6 +256,8 @@ jvplist:
 lelist:
 	make subdir DIR=le  NAME=Elemer
 	sort -k3 le/lelist.txt > le/lesort.txt
+lqlist:
+	make subdir DIR=lq  NAME="Leroy Quet"
 mslist:
 	make subdir DIR=ms  NAME=Somos
 oglist:

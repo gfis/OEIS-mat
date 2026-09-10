@@ -1450,6 +1450,12 @@ mult: # Multiplicative in jcat25 nyi
 	grep -iP "multiplicative" jcat25.txt | grep -P "^%[NFC]" | grep -vP "multiplicative (closure|digital|group|invers|order|persistence|root|subgroup|sum|Wiener|Zagreb)" \
 	| sort -k3,3 -k4,4 -k5,5 -k6,6 | endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
 	make hmize TARGET=$@
+net:
+	grep -iP "number of (earlier|previous) terms" joeis_names.txt | cut -f 1,3 \
+	| endirect \
+	| perl ../contrib/lq/earlier.pl \
+	| sort -k3 | tee $@.tmp
+	make hmize TARGET=$@
 niven: #
 	grep -iP "Niven|Harshad|[AJ]005349" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | tee $@.tmp
