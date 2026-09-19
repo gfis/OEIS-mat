@@ -126,7 +126,13 @@ cent_old:
 	2>       $@.rest.tmp \
 	| tee    $@.gen
 	wc -l    $@.*
-
+#----------------
+auto: # run automated targets
+	                 make lrlink
+	cd $(FISCHER)  ; make CC=lrlink pegel ; ro ; make CC=lrlink tel ap
+	cd ../constant ; make equa
+	cd $(FISCHER)  ; make CC=equa   pegel ; ro ; make CC=equa   tel ap
+	cd $(FISCHER)  ; make as
 #----------------
 MANY=16
 OPT=

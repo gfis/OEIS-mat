@@ -1361,6 +1361,10 @@ even_odd: # even|odd digits
 	grep -P "(even|odd) digits" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
+expan:
+	grep -P "Expansion of " joeis_names.txt | grep -P "^A" | cut -f1,3,5 | endirect \
+	| grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
 explicit:
 	grep -P "[Ee]xplicit" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1519,6 +1523,10 @@ prodxn:
 	make hmize TARGET=$@
 	qpowers: # powers of q
 	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+quadres:
+	grep -Pi "quadratic (non\-?)?residue" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 ratio: 
