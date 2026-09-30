@@ -640,7 +640,7 @@ joeis_update:
 	$(DBAT) "UPDATE joeis j SET j.callcode = COALESCE((SELECT SUBSTR(s.info,1,16) FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
 	sort joeis_ccan.an.tmp | uniq -w7 | grep -vE "A096550|A173930|A361897" > joeis_ccan.a1.tmp
 	make seq2 LIST=joeis_ccan.a1.tmp
-	$(DBAT) "UPDATE joeis j SET j.author   = COALESCE((SELECT s.info FROm seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
+	$(DBAT) "UPDATE joeis j SET j.author   = COALESCE((SELECT s.info FROM seq2 s WHERE j.aseqno = s.aseqno), 'unkn');"
 joeis_eval:
 	cut -f2 joeis_ccan.an.tmp | sort | uniq -c >  $@.tmp
 	cut -f2 joeis_ccan.cc.tmp | sort | uniq -c >> $@.tmp
@@ -1298,18 +1298,28 @@ charfun:
 	$(DBAT) "SELECT aseqno, name FROM asname WHERE aseqno IN (SELECT aseqno from seq) ORDER BY 1;" \
 	| endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
-composit: # 
-	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
-	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
-	make hmize TARGET=$@
 columns:
 	grep -P "Columns|Rows|Main diagonal [^o]" jcat25.txt | grep -P "^#[CY]" | grep € | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+composit: # 
+	grep -Pi "composition" joeis_names.txt | grep -P "\tnyi" \
+	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 convol:
 	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
+count2:
+	grep -Pi "less than (\d)\^n" jcat25.txt | grep -P "^%[NFCY]" | grep -v € | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+	
+count10:
+	grep -Pi "less than 10\^n" jcat25.txt | grep -P "^%[NFCY]" | grep -v € | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+	
 determ:
 	grep -P "is the determinant|Determinant|Matrix determinant" joeis_names.txt | grep -P "\tnyi" \
 	| endirect | cut -f1,3,5,7 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1389,6 +1399,23 @@ fsiter2:
 	grep -Pi "p_[i-k]\^e_" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
+gf_cf_sai:
+	grep -Pi "G\.f\." jcat25.txt | grep -iP "continued fraction" | grep -P "^\#" | cut -b4- | sed -e "s/ /\t/" | tee $@.tmp 
+	make seq  LIST=$@.tmp
+	make seq2 LIST=joeis_ccan.a1.tmp
+	$(DBAT) "SELECT s.aseqno, j.superclass FROM seq s, joeis j, seq2 s2 \
+	  WHERE s.aseqno = j.aseqno \
+	    AND j.aseqno = s2.aseqno \
+	    AND s2.info = 'Sean' \
+	    AND j.superclass NOT IN ('LinearRecurrence', 'ConvolutionSequence', 'DifferenceSequence', 'MemorySequence', 'PartialSumSequence') \
+	    AND j.superclass NOT LIKE 'A______' \
+	  ORDER BY 1" > $@.txt
+	endirect $@.tmp > gf_cf2.tmp
+	make hmize TARGET=gf_cf2
+gf_cf:
+	grep -Pi "G\.f\." jcat25.txt | grep -iP "continued fraction" | grep -P "^\%" | cut -b4- | sed -e "s/ /\t/" \
+	| grep -vf $(FISCHER)/today.txt | endirect | tee $@.tmp 
+	make hmize TARGET=$@
 gray_code: # 
 	grep -P " [A-Z]\w+ code " jcat25.txt | grep -P "^%[N]" | cut -b1-120 | endirect | grep Gray \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1403,6 +1430,10 @@ hofstadt:
 	make hmize TARGET=$@
 hologf1:
 	cat ../holrec/hologf1.tmp | endirect > $@.tmp
+	make hmize TARGET=$@
+kronecker: 
+	grep -Pi "(Kronecker|Jacobi|Legendre)[_\- ]?(Symbol)?\(" jcat25.txt \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 lamprot: # lambdas with products
 	grep -P "^%[NF]" jcat25.txt \
@@ -1484,6 +1515,10 @@ ogf:
 	grep -P "([O]\.g\.|G\.)f\. " jcat25.txt | grep -P "^%[NF]" | endirect |grep -viP "€|Prod" | grep -P "[B-Z]\d{6}" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
+palin:
+	grep -Pi "palindrom(e|ic)[^i]+in base" jcat25.txt | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | sort -k2 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
 parian:
 	grep -P "^%o A\d+ +\(PARI\) +a\(n\) +\=" jcat25.txt | endirect | cut -b 4- 
 	| sed -e "s/  */\t/" -e "s/(PARI) *a(n) *= */a(n) = /" | sort -k2 > $@.tmp
@@ -1495,6 +1530,10 @@ partn: #
 perman:
 	grep -iP "permanent " joeis_names.txt | grep -P "\tnyi" \
 	| endirect | cut -f1,3,5,7 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+ppowp:
+	grep -P "p\^p|[A-Z](100716|048103)" jcat25.txt | grep -P "^%[NFY]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 prisig: # A179698	nyi to	Numbers of the form p^4*q^3*r where p, q, and r are distinct primes.	nonn	1..1000	nyi	_Vladimir Joseph Stephan Orlovsky_
 	grep -P "p\^\d+\*q(\^\d+)?|prime signature \{|prime factorization" jcat25.txt | grep -P "^%[NF]" \
@@ -1623,6 +1662,10 @@ x2n: # [x^2*n]
 x3n: # [x^3*n]
 	grep -P "\[x\^\([3-9]\*?n\)\]" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+xoetraf:
+	grep -iP "Xor[\-| ]Moe?bius transform|sum_?xor" jcat25.txt | grep -P "^%[NF]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 xpown:
 	grep -iP "\[x\^n\]" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
