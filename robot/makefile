@@ -1,7 +1,7 @@
 #!make
 
 # OEIS-mat/robot - automatic preparation of parameters for the generation of Java programs for jOEIS
-# @(#) $Id$  
+# @(#) $Id$
 # 2026-01-06: termof
 # 2025-05-06: insect & Co.
 # 2023-08-20: sumbin & Co.
@@ -128,11 +128,36 @@ cent_old:
 	wc -l    $@.*
 #----------------
 auto: # run automated targets
-	                 make lrlink
-	cd $(FISCHER)  ; make CC=lrlink pegel ; ro ; make CC=lrlink tel ap
+pjotr: # a robot
+	cd $(FISCHER)/aman  ; echo -- > $@.man
+	make lrlink
+	cd $(FISCHER)/aman  ; cat lrlink.man >> $@.man
 	cd ../constant ; make equa
-	cd $(FISCHER)  ; make CC=equa   pegel ; ro ; make CC=equa   tel ap
-	cd $(FISCHER)  ; make as
+	cd $(FISCHER)/aman  ; cat   equa.man >> $@.man
+	cd $(FISCHER)  ; make CC=$@ pegel ; ro ; make CC=$@ tel ap
+#	cd $(FISCHER)  ; make as
+#----
+roban0: # grep, normalize, sort all "a(n) = ..."
+	grep -P "^%[NF] A\d{6} +a\(n\) *\=" $(COMMON)/jcat25.txt \
+	| grep -v € | grep -vP "n *\<\=? *\d" \
+	| perl -pe 's/^\%\w //; s/ +a\(n\) *\= */\t/;' \
+	| grep -vf $(FISCHER)/today.txt \
+	| sort -k2 | uniq | endirect \
+	| perl roban0.pl \
+	>        $@.tmp
+	tail -n4 $@.tmp
+	wc -l    $@.tmp
+	make hmize TARGET=$@
+roban1: # further preprocessing 
+	perl roban1.pl roban0.tmp \
+	2>       $@.rest.tmp \
+	| grep -vf $(FISCHER)/today.txt \
+	| sort -k2 | uniq \
+	>        $@.tmp 
+	tail -n4 $@.tmp
+	wc -l    $@*.tmp
+	make hmize TARGET=$@ 
+	cp -v    $@.tmp $(FISCHER)/aman/$@.man
 #----------------
 MANY=16
 OPT=
@@ -198,7 +223,7 @@ longwords: # remove those with elaborate wording
 	grep -vP "\w{10}|(\w+ ){3}"                               chain.ocn > $@.ocn || :
 	grep -P  "\w{10}|(\w+ ){3}"                               chain.ocn > $@.ecn || :
 	make next PROC=$@
-shortend: # remove those with short expressions in n and \d 
+shortend: # remove those with short expressions in n and \d
 	sed -e "s/ //g" chain.ocn > $@.ocn
 	# grep -vP "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ocn || :
 	# grep  -P "^A\d+\t\w+\t\d+\t[n0-9\+\-\*\/\^ \(\)]{1,}\t"   chain.ocn > $@.ecn || :
@@ -229,7 +254,7 @@ remove: # remove superfluous records
 getinits: # get initial terms
 	getinits chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 lambdian: # patch CC=lambdin -> lambdan with inits in a condition of n
-	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@ 
+	lambdian chain.ocn > $@.ocn 2> $@.err ; make next PROC=$@
 chatest: # compile and run, no break
 	grep -vP "A182209|A194768|A243067|A285699|A297895" chain.ocn > $(FISCHER)/aman/$@.man
 	cp -v chain.ocn $@.ocn
@@ -253,7 +278,7 @@ remfailed: # remove those that failed (code 'fx' in previous man files
 	grep  -f getfailed chain.ocn > $@.ecn || :
 	wc -l $@*
 	make next PROC=$@
-#==== end of the chain ====                               
+#==== end of the chain ====
 parilast: # grep the PARI programs at the end of the OEIS queue
 	grep -P "^%o A3(89|9\d)\d+ +\(PARI\)" $(CAT) \
 	| tee $(FISCHER)/aman/$@.man
@@ -347,10 +372,10 @@ deldel3:
 	grep -v Z000000 deldel2.tmp \
 	>        $@.tmp
 	wc       $@.tmp
-	cp -v    $@.tmp $(FISCHER)/aman/deldel.man 
+	cp -v    $@.tmp $(FISCHER)/aman/deldel.man
 	make hmize TARGET=$@
 deldel4:
-	sort deldel2.list.tmp | uniq -c 
+	sort deldel2.list.tmp | uniq -c
 	sort deldel2.list.tmp | uniq \
 	>        $@.grep.tmp
 	grep -f  $@.grep.tmp $(COMMON)/stripped \
@@ -359,9 +384,9 @@ deldel4:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc -l    $@*tmp
-deldel5: # htmlize remaining from stripped 
+deldel5: # htmlize remaining from stripped
 	echo -e "list\taseqno"         >  $@.tmp
-	sed -e "s/  */\t/" deldel4.tmp >> $@.tmp 
+	sed -e "s/  */\t/" deldel4.tmp >> $@.tmp
 	make hmize TARGET=$@
 #----
 insect: insect1 insect_eval1 insect_eval2 insect_gen # seq0 = intersection of 2 seq1 and seq2
@@ -424,9 +449,9 @@ lingfcj4:
 	| perl -ne 'print if length($$_) < 1024;'\
 	> ../../joeis-lite/internal/fischer/aman/lingfcj3.man
 #----------------
-lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis 
+lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis
 	e $(FISCHER)/aman/lrlink.man
-lrlink1: # grep and reformat, with order 
+lrlink1: # grep and reformat, with order
 	cut -f1  lrlink.nak.man | sort | tr -d "\r" | tee lrlink.nak.tmp
 	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(CAT) \
 	| grep -P "^\%H" \
@@ -793,7 +818,7 @@ invtraf:
 	| tee    $@.gen
 	wc -l    $@.*
 #----
-isprime: 
+isprime:
 	grep -P "Numbers \w such that [\(\dnmk].* is (a )?(semi\-?)?prime\.\Z" $(CAT) | grep -P "^%" \
 	| cut -b4- \
 	| tee $@.1.tmp \
@@ -802,12 +827,12 @@ isprime:
 	>        $@.3.tmp
 	grep -P "^A\d+" $@.slow | cut -f1 | sed -e "s/^x/\^/" | tr -d "\r"  > $@.grep.tmp
 	cut -f1 $(FISCHER)/today.txt      | cut -b2-8         | tr -d "\r" >> $@.grep.tmp
-	ls -al   $@*.tmp 
+	ls -al   $@*.tmp
 	grep -vf $@.grep.tmp $@.3.tmp     > $@.tmp || :
 	sort -k2 -k5 $@.2.tmp > $@.rest.tmp
 	grep unknown $@.rest.tmp | cut -f5 | sort | uniq -c | sort -r | head -n16
 	tail -n4 $@.tmp
-	wc -l    $@*.tmp 
+	wc -l    $@*.tmp
 	cp -v    $@.tmp $(FISCHER)/aman/$@.man
 #----
 # grep A-numbers of known functions
@@ -1341,7 +1366,7 @@ termof:
 	grep -P "([A-Z][a-z\-]+ |The [a-z\-]+)[^t]*terms of [A-Z]\d{6}" $(CAT) | grep -P "^%[NFCY]" | endirect | grep -v € \
 	| cut -b4- | sort -k2 \
 	| tee $@.tmp
-	wc -l $@.tmp 
+	wc -l $@.tmp
 	e     $@.tmp
 #-----
 tricolrow:

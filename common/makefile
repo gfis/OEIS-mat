@@ -1251,7 +1251,7 @@ and_say: # Look and say variants
 	| endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 anexp:
-	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -P "^%[NF]" | endirect \
+	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -v € | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 apowx: # A^3(x)
@@ -1266,6 +1266,10 @@ axax: # A(x)^2 ... A(x)^3
 	grep -P "A\(x\)\^\d+[^A]+A\(x\)\^\d+" jcat25.txt | grep -vPi "\.\.\.|Sum|Prod|column|continued" | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" \
 	| grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+barnesg:
+	grep -Pi "Barnes[ \-\_]?G" jcat25.txt | grep -P "^%[NFC]" | grep -vP "Decimal expansion |Equals |Glaisher" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 bernfrac:
 	grep -Pi "bernfrac" jcat25.txt | grep -P "^%o" | endirect \
@@ -1307,7 +1311,7 @@ composit: #
 	| cut -f1-5,7 | sed -e "s/nyi //" | endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 convol:
-	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | endirect \
+	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | grep -vi triangle | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 count2:
