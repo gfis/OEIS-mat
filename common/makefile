@@ -551,10 +551,9 @@ joeis_ofter: # A-numbers in jOEIS with offset1 and first ~7 reliable terms
 	>        $@.txt
 	head -n4 $@.txt
 	wc -l    $@.txt
-joeis_ofdec: # same, but for constants only
+joeis_oftea: # same, but all in asinfo
 	$(DBAT) -x "SELECT i.aseqno, i.offset1, i.terms \
-	FROM  asinfo i INNER JOIN joeis j ON i.aseqno = j.aseqno \
-	WHERE i.keyword LIKE '%cons%' \
+	FROM  asinfo i \
 	ORDER BY 1" \
 	| perl -pe "s{\,\-?\d+\r?\Z}{};" \
 	| sed -e "s/\r//" \
@@ -1312,6 +1311,10 @@ composit: #
 	make hmize TARGET=$@
 convol:
 	grep -Pi "convol" jcat25.txt | grep -Pi "convol" | grep -P "^%[NFCY]" | grep -v € | grep -vi triangle | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+convprod:
+	grep -P "[A-Z]\d{6}\(\w\) *\* *[A-Z]\d{6}\(n *\- *\w\)" jcat25.txt | grep "^%[NFC]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 count2:

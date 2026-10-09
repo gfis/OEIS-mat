@@ -50,8 +50,10 @@ while (<>) {
         $cond = "for $1";
     }
     $name =~ s{[\,\.]? *\Z}{};
-    $cond =~ s{[\,\.]? *\Z}{};
-    print join("\t", $aseqno, $name, $cond) ."\n";
+    $cond =~ s{[\,\.]? *\Z}{}; 
+    if (length($name) > 4) {
+        print join("\t", $aseqno, $name, $cond) ."\n"; 
+    }
 } # while
 #----------------
 __DATA__

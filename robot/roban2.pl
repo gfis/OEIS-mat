@@ -183,6 +183,23 @@ sub adjust {
     return $inx;
 } # adjust
 #----------------
-A163563	J001462(n + 1) - 1
-A385515	J002277(n - 12) for n >= 18
-A166460	J002808(n-1)-1 for n>2
+        priorities      = new String[] { "()" 
+        // the following defaults are the Java priorities from https://introcs.cs.princeton.edu/java/11precedence/
+        /* 01 */ , "->"
+        /* 02 */ , "= += -= *= %= /= &= ^= |= <<= >>= >>>="
+        /* 03 */ , "? :"          // ternary (???)
+        /* 04 */ , "||"
+        /* 05 */ , "&&"
+        /* 06 */ , "|"
+        /* 07 */ , "^"
+        /* 08 */ , "&"
+        /* 09 */ , "!= =="
+        /* 10 */ , "< <= >= >"    // instanceof (???)
+        /* 11 */ , "<< >> >>>"
+        /* 12 */ , "+ -"          // infix
+        /* 13 */ , "* / %"
+        /* 14 */ , "( )"          // cast (???)
+        /* 15 */ , "! ~ ++ --"    // and unary +, unary -, but post-in/decrement (???)
+        /* 16 */ , "++ --"        // post-in/decrement (???)
+        /* 17 */ , ". :: [ ] ( )" // and new
+        };

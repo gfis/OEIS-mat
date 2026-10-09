@@ -1,0 +1,9 @@
+#!/bin/sh
+
+name=`perl $GITS/OEIS-mat/scripts/Anumber.pl -s $1`.java
+fname=$GITS/joeis/src/irvine/oeis/$name
+# cat    $fname
+# ls -al $fname
+ano=`perl $GITS/OEIS-mat/scripts/Anumber.pl $1`
+echo $ano | clip 
+dbat "SELECT aseqno, offset1, termno, terms, keyword, program, author FROM asinfo WHERE aseqno LIKE '%$1%';"

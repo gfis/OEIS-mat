@@ -126,6 +126,42 @@ cent_old:
 	2>       $@.rest.tmp \
 	| tee    $@.gen
 	wc -l    $@.*
+#--------------------------------
+dex: dex1 dex2 dex3 dex4
+	cp dex4.tmp $(FISCHER)/aman/dex.man
+dex1: # names: Annnnnn Decimal expansion of ... and notn jOEIS
+	$(DBAT) "UPDATE asname SET name = 'Decimal expansion of 2*(5-3*exp(1/2))/(2*exp(1/2)-3).' WHERE aseqno = 'A108813'"
+	$(DBAT) -x "SELECT a.aseqno, 'dex', a.offset1, n.name, a.keyword \
+		FROM asinfo a, bfinfo b, asname n\
+		WHERE a.aseqno = n.aseqno \
+		  AND b.aseqno = n.aseqno \
+		  AND n.aseqno NOT IN (SELECT aseqno FROM joeis) \
+		  AND a.keyword    LIKE '%cons%' \
+		  AND b.maxlen <= 2 \
+		ORDER BY 1" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+dex2:
+	perl $(FISCHER)/extract_dex.pl dex1.tmp \
+	| sed -e "s/pi log/pi\*log/" \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+dex3:
+	$(JPREP) -f dex2.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
+dex4:
+	perl $(FISCHER)/cr_infix.pl -d $(D) dex3.tmp \
+	| grep -vE "^(A114054|A147777|A117853|A202955|A248622)" \
+	| perl -pe 's{\(\(CR\.([A-Z]+)\)\)}{\(CR\.$$1\)}g; ' \
+	| grep -vP "^#" \
+	| grep -vP "\tdexcr\t" | grep CR \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc   -l  $@.tmp
 #----------------
 auto: # run automated targets
 pjotr: # a robot
@@ -148,16 +184,34 @@ roban0: # grep, normalize, sort all "a(n) = ..."
 	tail -n4 $@.tmp
 	wc -l    $@.tmp
 	make hmize TARGET=$@
-roban1: # further preprocessing 
+roban1: # further preprocessing
 	perl roban1.pl roban0.tmp \
 	2>       $@.rest.tmp \
 	| grep -vf $(FISCHER)/today.txt \
 	| sort -k2 | uniq \
-	>        $@.tmp 
+	>        $@.tmp
 	tail -n4 $@.tmp
 	wc -l    $@*.tmp
-	make hmize TARGET=$@ 
-	cp -v    $@.tmp $(FISCHER)/aman/$@.man
+	make hmize TARGET=$@
+	sort     $@.tmp > $(FISCHER)/aman/$@.man
+ropost: ropost1 ropost2
+ropost1:
+	cat roban0.tmp \
+	| perl -ne 's/\s+\Z//; my ($$aseqno, $$f1, @f) = split(/\t/); print join("\t", $$aseqno, "adjext", "0", ";$$f1", $$f1, @f) . "\n";' \
+	| $(JPREP) -cc post  -f - | sed -e "s/\r//" \
+	2>       $@.rest.tmp \
+	| grep -vP "\<\?" \
+	| perl -pe 's/\t\;\;/\t/;' \
+	| sort \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@*.tmp
+ropost2:
+	perl ropost_clean.pl ropost1.tmp \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	tail -n8 $@.tmp
+	wc -l    $@*.tmp
 #----------------
 MANY=16
 OPT=

@@ -7,21 +7,25 @@
 #
 #:# Usage:
 #:#     grep ... jcat25.txt ... \
-#:#     | perl roban1.pl [-d debug] > $@.tmp 2> $@.rest.tmp
+#:#     | perl roban1.pl [-d debug] [-f ofter_file] > $@.tmp 2> $@.rest.tmp
 #:#     -d  debugging level (0=none (default), 1=some, 2=more)
-#:#     -f  file with aseqno, offset1, terms (default $(COMMON)/joeis_ofter.txt)
+#:#     -f  file with aseqno, offset1, terms (default $(COMMON)/joeis_oftea.txt)
 #:# Reads ofter_file for implemented jOEIS sequences with their offsets and first terms
 #--------------------------------------------------------
 use strict;
 use integer;
 use warnings;
 
+my $COMMON = "../common";
+my $ofter_file = "$COMMON/joeis_oftea.txt";
 my $debug = 0;
 while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     my $opt = shift(@ARGV);
     if (0) {
     } elsif ($opt   =~ m{\-d}  ) {
         $debug      = shift(@ARGV);
+    } elsif ($opt   =~ m{\-f}  ) {
+        $ofter_file = shift(@ARGV);
     } else {
         die "invalid option \"$opt\"\n";
     }
@@ -33,8 +37,23 @@ my $line;
 my $name;
 my $cond; 
 my $callcode = "adjext";
-my $parm1;
-my $parm2;
+my @parms;
+#----
+my $terms;
+my %ofters = ();
+open (OFT, "<", $ofter_file) || die "cannot read $ofter_file\n";
+while (<OFT>) {
+    s{\s+\Z}{};
+    ($aseqno, $offset, $terms) = split(/\t/);
+    $terms = $terms || "";
+    if ($offset < -1) { # offsets -2, -3: strange, skip these
+    } else {
+        $ofters{$aseqno} = "$offset\t$terms";
+    }
+} # while <OFT>
+close(OFT);
+print STDERR "# $0: " . scalar(%ofters) . " jOEIS offsets and some terms read from $ofter_file\n";
+#----
 # while (<DATA>) {
 while (<>) {
     $line = $_;
@@ -48,10 +67,17 @@ while (<>) {
     if ($name =~ m{\A(\-?\d*[\+\-\*\/]?)?([A-Z]\d{6})\((\d+\*?)?n([\-\+]\d+)?\)([\+\-\*\/])([n0-9\+\-\*\/\(\)]*)\Z}) {
         my (         $pref,              $jseqno,     $ifact,    $index,       $oper,      $postf) 
             =       ($1 || "",           $2 || "",    $3 || "",  $4 || "",     $5,         $6 || "");
-        $parm1 = "new A" . substr($jseqno, 1) . "()";
-        $parm2 = "() -> mSeq.next().$oper($postf)";
+        @parms = ($offset);
+        my $rseqno = "A" . substr($jseqno, 1);
+        push(@parms, "new $rseqno()");
+        push(@parms, "() -> mSeq.next()" 
+            . (($pref =~ s{(\d+)\*?\Z}{$1}) > 0 ? ".*($pref)" : "") 
+            . ".$oper($postf)"); 
+        push(@parms, $ofters{$aseqno});
+        push(@parms, $ofters{$rseqno});
         if (length($postf) > 8) {
-            $nok = "postf>8";
+            $nok = "postf>8"; 
+            $postf = substr($postf, 0, 24) . " ...";
         }
         if (0) {
         #                               1  1   2   2
@@ -64,14 +90,15 @@ while (<>) {
         } elsif ($cond =~ m{\A\s*\Z}) { 
             $cond = "";
         }
+        $name = substr($name, 0, 16); 
+        if ($nok eq "") { 
+            print join("\t", $aseqno, $callcode, @parms, $name, $cond) ."\n";
+        } else { 
+            print STDERR join("\t", $aseqno, $name, $cond, $nok) ."\n";
+        }
     } else { 
         $nok = "nomatch";
     } 
-    if ($nok eq "") { 
-        print join("\t", $aseqno, $callcode, $offset, $parm1, $parm2, $name, $cond) ."\n";
-    } else { 
-        print STDERR join("\t", $aseqno, $name, $cond, $nok) ."\n";
-    }
 } # while
 #----------------
 __DATA__

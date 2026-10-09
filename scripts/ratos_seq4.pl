@@ -2,6 +2,7 @@
 
 # Generate a seq4 record with CC=ratos|holos from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
+# 2026-10078: seqno in conum
 # 2026-07-18: -dist also
 # 2025-07-14: seqno with 6 digits; *CZ=73
 # 2025-06-13, Georg Fischer
@@ -52,9 +53,9 @@ while (scalar(@ARGV) > 0) {
 $matrix =~ s{\"}{}g;
 $init   =~ s{\"}{}g;
 my $seqno = sprintf("%06d", &last_seqno($makefile));
-my $record   = join("\t", "A$seqno", $cc, $offset, $matrix, $init, $dist, $gftype) . "\n";
+my $record   = join("\t", "A$seqno", $cc, $offset, $matrix, $init, $dist, $gftype)  . "\n";
 if ($cc !~ m{holos}) {
-    $record .= join("\t", "A" . ($seqno + 1), "conum", 0, "A$seqno")               . "\n"; 
+    $record .= join("\t", "A" . sprintf("%06d", $seqno + 1), "conum", 0, "A$seqno") . "\n"; 
 }
 if (0) {
     open (PIPE, "| clip");
