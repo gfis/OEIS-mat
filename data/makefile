@@ -1,7 +1,8 @@
 #!make
 
 # OEIS-mat/data - extraction from repositories
-# @(#) $Id$
+# @(#) $Id$ 
+# 2026-10-09: joeis_list2 handling of <type> 
 # 2025-11-18: asprog problem
 # 2025-10-21: no oeisdata pull
 # 2025-03-26: git reset --hard HEAD
@@ -89,14 +90,19 @@ joeis_list1:
 	>        $@.all.tmp || :
 	head -n2 $@.all.tmp
 	wc -l    $@.all.tmp
-joeis_list2:
+joeis_list2: # replace <type> three times
 	grep -E  "public class *A" joeis_list1.all.tmp \
-	| sed -e "s/[a-zA0-9\.\/]*://" \
-	| sed -e "s/public class *A/A/" \
-	      -e "s/ extends / /" \
-	      -e "s/ implements / /" \
-	      -e "s/ *[^A-Za-z0-9 ].*//" \
-	      -e "s/ /\t/" \
+	| perl -pe \
+	's/\/\/.*//;'\
+	's/[a-zA0-9\.\/]*://;'\
+	's/public class *A/A/;'\
+	's/ extends / /;'\
+	's/\<(\w|[ \,\[\]])+\>//;'\
+	's/\<(\w|[ \,\[\]])+\>//;'\
+	's/\<(\w|[ \,\[\]])+\>//;'\
+	's/ implements / /;'\
+	's/ +{ *//;'\
+	's/ /\t/;'\
 	| sort \
 	| grep -E "^A" \
 	>        joeis_list.txt
