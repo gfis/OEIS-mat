@@ -285,7 +285,7 @@ algol_pack: # get and extract the packages
 	find . -maxdepth 1 -iname "*pack.tgz" | xargs -l tar -xzvf
 algol_pack_common: # pack recent file in $(COMMON) - to be used on dubhe
 	cd $(GITS)/OEIS-mat/common ; tar -czvf $@.tgz \
-	stripped names jcat25.txt joeis_list.txt joeis_coral.txt joeis_ofter.txt joeis_ofdec.txt joeis_names.txt joeis_progress.txt \
+	stripped names jcat25.txt joeis_list.txt joeis_coral.txt joeis_ofter.txt joeis_oftea.txt joeis_names.txt joeis_progress.txt \
 	asdata.txt asinfo.txt asname.txt asprog.txt asxref.txt bfinfo.txt ;\
 	ls -al $@.tgz
 algol_common: # copy recent database content
