@@ -497,7 +497,7 @@ joeis_pullloc: # refresh local only
 	make joeis_reload
 #--
 tinfo_reload: asinfo_load asname_load bfinfo_load
-joeis_reload: joeis_load joeis_ofter joeis_ofdec joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
+joeis_reload: joeis_load joeis_ofter joeis_oftea joeis_stamp joeis_ccan joeis_update joeis_eval joeis_count joeis_rest
 # joeis_rest: joeis_names jcat25 joeis_analog joeis_progress joeis_50pc
 joeis_rest: joeis_names joeis_progress
 joeis_load: # populate a table with A-numbers and superclass names of implemented sequences
