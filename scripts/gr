@@ -1,0 +1,6 @@
+#!/bin/sh
+
+sno=`perl $GITS/OEIS-mat/scripts/Anumber.pl -a $1` 
+echo $sno
+grep -P "[A-Z]$sno" $GITS/OEIS-mat/common/jcat25.txt | grep -P "^%[NF]" | endirect | tee x.tmp 
+wc -l x.tmp

@@ -162,17 +162,75 @@ dex4:
 	>        $@.tmp
 	head -n4 $@.tmp
 	wc   -l  $@.tmp
-#----------------
+#========
 auto: # run automated targets
 pjotr: # a robot
-	cd $(FISCHER)/aman  ; echo -- > $@.man
-	make lrlink
-	cd $(FISCHER)/aman  ; cat lrlink.man >> $@.man
-	cd ../constant ; make equa
-	cd $(FISCHER)/aman  ; cat   equa.man >> $@.man
-	cd $(FISCHER)  ; make CC=$@ pegel ; ro ; make CC=$@ tel ap
+	cd $(FISCHER)/aman  ; echo -- $@ `date +%Y-%m-%d.%H` > $@.man
+	cd ../constant ; make     equa
+	cd $(FISCHER)/aman  ; cat equa.man     >> $@.man
+	make                      lrlink
+	cd $(FISCHER)/aman  ; cat lrlink.man   >> $@.man
+	make                      pricesub # A082192
+	cd $(FISCHER)/aman  ; cat pricesub.man >> $@.man
+	cd $(FISCHER)  ; make CC=$@ pegel ; make ro ; make CC=$@ tel ap
 #	cd $(FISCHER)  ; make as
+#========
+lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis
+	e $(FISCHER)/aman/lrlink.man
+lrlink1: # grep and reformat, with order
+	cut -f1  lrlink.nak.man | sort | tr -d "\r" | tee lrlink.nak.tmp
+	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(CAT) \
+	| grep -P "^\%H" \
+	| grep -vf lrlink.nak.tmp \
+	| perl lrlink_nyi.pl \
+	2>       $@.rest.tmp \
+	>        $@.tmp
+	head -n4 $@.tmp
+	wc -l    $@.tmp
+lrlink2: # get 'order' initial terms
+	cat lrlink1.tmp | getinits \
+	| tee    $@.tmp
+	wc -l    $@.tmp
+	cp -v    $@.tmp $(FISCHER)/aman/lrlink.man
 #----
+pricesub: pricesub1 pricesub2
+	grep -P "^A" pricesub2.tmp | tee $(FISCHER)/aman/$@.man
+pricesub1:
+	grep -E "(Numbers|Integers)" $(COMMON)/joeis_names.txt \
+	| grep -E 'ers [a-z] (such that|for which) ' \
+	| grep -E 'is (a )?prime' \
+	>        $@.tmp
+# J390751	FilterNu	Numbers k such that (47^k + 3^k)/50 is prime.	nonn,hard,more	1..4	2025-11-21.ack/f	_Robert Price_
+# J390757	FilterNu	Numbers k such that (23^k - 4^k)/19 is prime.	nonn,hard,more	1..7	2025-11-21.ack/f	_Robert Price_
+pricesub2:
+	grep -P " \(\d+\^[i-n] *[\+\-] *\d+\^[i-n]\)\/\d+ is" pricesub1.tmp \
+	| perl -ne \
+	' my $$line = $$_; $$line =~ m{^[A-Z](\d+)}; my $$seqno = $$1; $$line =~ m{\((\d+)\^[i-n] *([\+\-]) *(\d+)\^[i-n]\)\/(\d+)}; '\
+	' my ($$a, $$b, $$c) = ($$1, "$$2$$3", $$4); '\
+	' print join("\t", "A$$seqno", "parmof4", 0, "A082182", $$a, $$b, $$c) . "\n";' \
+	| endirect \
+	| sed -e "s/J082182/A082182/g" \
+	>        $@.tmp
+	wc -l    $@.tmp
+#========
+an1: 
+	grep -P "^%[NF] A\d+ +a\(n\) *\=" $(COMMON)/jcat25.txt | grep -v € | endirect \
+	| grep -P "a\(n( *\- *1)\)" | grep -vP "a\(n *\- *2\)" \
+	| perl -pe 's/a\(n\) *\= *//;' \
+	| cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt \
+	| sort -k2 \
+	| tee $@.tmp
+	make hmize TARGET=$@  
+#	perl bnbn1.pl $@.tmp > $(FISCHER)/aman/$@.man
+	e $(FISCHER)/aman/$@.man
+#----
+bnbn1: 
+	grep -P "^%[NF] A\d+ +a\(n\) *\=" $(COMMON)/jcat25.txt | endirect | grep -v € \
+	| grep -P "([B-Z]\d+)\(n( *[\+\-] *1)?\) *([\+\-\*\/]|mod) *\1\(n( *[\+\-] *1)?\)" \
+	| cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@  
+	perl bnbn1.pl $@.tmp > $(FISCHER)/aman/$@.man
+	e $(FISCHER)/aman/$@.man
 roban0: # grep, normalize, sort all "a(n) = ..."
 	grep -P "^%[NF] A\d{6} +a\(n\) *\=" $(COMMON)/jcat25.txt \
 	| grep -v € | grep -vP "n *\<\=? *\d" \
@@ -502,24 +560,6 @@ lingfcj4:
 	cat lingfcj3.ocn \
 	| perl -ne 'print if length($$_) < 1024;'\
 	> ../../joeis-lite/internal/fischer/aman/lingfcj3.man
-#----------------
-lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis
-	e $(FISCHER)/aman/lrlink.man
-lrlink1: # grep and reformat, with order
-	cut -f1  lrlink.nak.man | sort | tr -d "\r" | tee lrlink.nak.tmp
-	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(CAT) \
-	| grep -P "^\%H" \
-	| grep -vf lrlink.nak.tmp \
-	| perl lrlink_nyi.pl \
-	2>       $@.rest.tmp \
-	>        $@.tmp
-	head -n4 $@.tmp
-	wc -l    $@.tmp
-lrlink2: # get 'order' initial terms
-	cat lrlink1.tmp | getinits \
-	| tee    $@.tmp
-	wc -l    $@.tmp
-	cp -v    $@.tmp $(FISCHER)/aman/lrlink.man
 #----------------
 lsm0: lsm1 lsm2 lsm3 # lambdan/sintraf/multraf
 #--

@@ -2,6 +2,7 @@
 
 # makefile for Gfis's OEIS contributions
 # @(#) $Id$
+# 2026-10-16: refresh_split
 # 2020-06-23: check, distrib
 # 2019-10-27, Georg Fischer
 
@@ -35,7 +36,20 @@ refresh_atair:
 refresh2: # S=012345, read from atair
 	scp gfis@atair:~/work/gits/OEIS-mat/common/bfile/b$(S).txt $(COMMON)/bfile/
 #--
-refresh_oeis:
+refresh_split: # split into wget and bfsynth.pl candidates
+	cd $(COMMON) ; make seq LIST=../contrib/refresh.list.man
+	$(DBAT) -x "SELECT s.aseqno, i.offset1, b.message \
+	  FROM seq s, asinfo i, bfinfo b \
+	  WHERE s.aseqno = i.aseqno \
+	    AND i.aseqno = b.aseqno \
+	    AND b.message LIKE '%synth%' \
+	  ORDER BY 1" \
+	| tee refresh.synth.tmp
+	wc -l refresh.synth.tmp                                    
+refresh_synth:
+	cd $(COMMON) ; perl bfsynth.pl ../contrib/refresh.synth.tmp  
+
+refresh_oeis: # fetch them with wget
 	grep -E "^A[0-9]" refresh.list.man | cut -b2-7 \
 	| xargs -innn make refresh3 S=nnn
 refresh3: # S=012345, read from atair

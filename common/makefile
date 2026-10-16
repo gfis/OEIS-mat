@@ -1236,6 +1236,10 @@ hmize: # TARGET= htmlize the result of a grep
 	cmd /c start $(TARGET).html
 	e            $(TARGET).tmp
 #----
+addr: # completely additive
+	grep -Pi "additive with" jcat25.txt | grep -P "^%[NFCY]" | endirect \
+	| cut -b 4- | perl -pe 's/ /\t/; s/\.\Z//; ' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
 algdif:
 	grep -P "\bA\(x\)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -vPi "\bA\([^\)]{2}|sum|prod|[B-Z]\(|\.\.\.|\^\(n|\[x" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1252,10 +1256,6 @@ and_say: # Look and say variants
 anexp:
 	grep -iP "^%[NF] A\d+\s+([LED]\.)?g\.f\.\:? *A\(x\) *\= [^S]+Sum" jcat25.txt | grep -vP "\.\.\." | grep -v € | grep -P "^%[NF]" | endirect \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
-	make hmize TARGET=$@
-apowx: # A^3(x)
-	grep -P "A\d+\(x\)" jcat25.txt | grep -vPi "\.\.\.|Sum|Prod|column|continued" | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 arydiv:
 	grep -P "(ary |anti)divisor" jcat25.txt | grep -P "^%[NFCY]" | endirect \
@@ -1438,6 +1438,11 @@ hofstadt:
 hologf1:
 	cat ../holrec/hologf1.tmp | endirect > $@.tmp
 	make hmize TARGET=$@
+ispow:
+	grep -P "is a power of \w+" jcat25.txt | grep -P "^%[NF]" \
+	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+hologf1:
 kronecker: 
 	grep -Pi "(Kronecker|Jacobi|Legendre)[_\- ]?(Symbol)?\(" jcat25.txt \
 	| grep -P "^%[NF]" | endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1538,7 +1543,7 @@ perman:
 	grep -iP "permanent " joeis_names.txt | grep -P "\tnyi" \
 	| endirect | cut -f1,3,5,7 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
-ppowp:
+ppowp: # p^p 
 	grep -P "p\^p|[A-Z](100716|048103)" jcat25.txt | grep -P "^%[NFY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@

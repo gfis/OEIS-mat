@@ -30,6 +30,7 @@ my $stripped  = "../common/stripped";
 my $asdata    = "asdata.txt";
 my %terms     = (); # key is aseqno
 my $outdir    = "./temp";
+print `mkdir $outdir`;
 my $plen      = 3;
 
 if (scalar(@ARGV) == 0) {
@@ -41,9 +42,6 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
     if (0) {
     } elsif ($opt  =~ m{o}) {
         $outdir    = shift(@ARGV);
-        if (substr($outdir, -1) ne "/") {
-            $outdir .= "/";
-        }
     } elsif ($opt  =~ m{p}) {
         $plen      = shift(@ARGV);
     } elsif ($opt  =~ m{s}) {
@@ -52,6 +50,9 @@ while (scalar(@ARGV) > 0 and ($ARGV[0] =~ m{\A[\-\+]})) {
         die "invalid option \"$opt\"\n";
     }
 } # while $opt
+if ($outdir !~ m{\/\Z}) {
+    $outdir .= "/";
+}
 
 open(STR, "<", $stripped) || die "cannot read \"$stripped\"\n";
 my $count = 0;

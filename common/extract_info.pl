@@ -2,6 +2,7 @@
 
 # Extract information from a JSON or b-file, and generate .tsv or SQL
 # @(#) $Id$
+# 2026-10-16: almost replaced by ../data/catex_info.pl
 # 2026-07-10: obsolete, except for bfdata; uppercase constants; *ML=69
 # 2022-06-16: -p, prog
 # 2022-05-21: xref ranges

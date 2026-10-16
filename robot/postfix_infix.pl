@@ -11,9 +11,9 @@
 # 2025-05-11: additional o.g.f.s referenced by S, T, U, V
 # 2025-05-03: additional o.g.f.s referenced by s0, s1 ... 
 # 2025-03-07: operand n
-# 2025-02-15: /(op2); *BirgitW=80
+# 2025-02-15: /(op2); *BW=80
 # 2025-02-06: remove leading unary "+"
-# 2025-02-02, Georg Fischer: copied from ../gits/joeis-lite/internal/fischercr_infix.pl
+# 2025-02-02, Georg Fischer: copied from ../gits/joeis-lite/internal/fischer/cr_infix.pl
 #
 #:# Usage:
 #:#   perl postfix_infix.pl [-d debug] postfix_string

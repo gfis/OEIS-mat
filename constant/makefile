@@ -119,6 +119,7 @@ equals_polish: # CC=decexpr when m{REALS}
 #--------
 # Formulas with "Equals ..."
 equa: equa1 equa2 equa3 equa4 equa5 equa6 equa7
+	cp -v    equa7.tmp $(FISCHER)/aman/$@.man
 equa0:
 	grep -P "Decimal expansion of " $(COMMON)/jcat25.txt | grep -P "^%[NF]" \
 	| perl -pe 's/\.(\Z|\s+.*)//; s/ *Decimal expansion of  */\t/; $$_ = substr($$_, 3); s/ //g;' \
@@ -182,8 +183,7 @@ equa7:
 	| grep -vf $@.nak.tmp \
 	| tee    $@.tmp
 	wc -l    $@.tmp
-	cp -v    $@.tmp $(FISCHER)/aman/equa.man
-	e               $(FISCHER)/aman/equa.man
+	# e             $(FISCHER)/aman/equa.man
 #--------
 exact: exact1 exact2 exact3
 exact1:
