@@ -1,0 +1,56 @@
+A080761	enumof2	0	1	1	(x, y) -> ZV(y).*(y).-(ZV(x).^(3)	,x,y >= 1	y*y - x^3	noZV
+A083909	enumof2	0	0	0	(k, m) -> ZV(10^(m).-(k).*((10^(m).+(k).+(1)).-(ZV(10).^(k)))	,m,k >= 0	10^(m-k)*(10^(m+k+1)-10^k)	noZV
+A093193	enumof2	0	0	0	(x, y) -> ZV(x).^(3).+(2).*(ZV(y).^(3))	Posbers of the form	x^3 + 2*y^3	noZV
+A095810	enumof2	0	0	1	(j, k) -> ZV(2).^(j)(ZV(mod10).^(k)	,where j >= 0 and ,with leading zeros suppressed	2^j (mod 10^k)	noZV
+A099225	enumof2	0	0	0	(k, m) -> ZV(m).^(k).+(k)	,with m,k > 1	m^k+k	noZV
+A103543	enumof2	0	1	0	(j, k) -> ZV(j).*(2^(4).*(k).-(2).-(k)	 for k >=2 and 	j*2^(4*k-2) - k	noZV
+A111260	enumof2	0	0	0	(m, n) -> ZV((ZV(m).^(n)/(ZV(n).^(m))	 with m > 0 and n>1	(m^n)/(n^m)	noZV
+A111925	enumof2	0	0	0	(a, b) -> ZV(a).*(a).+(ZV(b).^(4)	,with a,b > 0	a*a + b^4	noZV
+A126032	enumof2	0	0	0	(b, m) -> ZV(b).^(m)/2	 for even b and odd m > 2	b^m/2	noZV
+A135781	enumof2	0	1	1	(x, y) -> ZV(x).^(3).-(3).*(x).*(y).*(y)	 (where x,y are positive integers)	x^3-3*x*y*y	noZV
+A135782	enumof2	0	1	1	(x, y) -> ZV(3).*(x).*(y).*(y).-(ZV(x).^(3)	 (where x,y are positive integers)	3*x*y*y - x^3	noZV
+A135783	enumof2	0	1	1	(x, y) -> ZV(3).*(xy).*(y).+(ZV(x).^(3)	 (where x,y are positive integers)	3*x y*y+x^3	noZV
+A135789	enumof2	0	0	0	(x, y) -> ZV(x).^(4).-(6).*(x).*(x).*(y).*(y).+(ZV(y).^(4))	 (where x,y are integers)	x^4 - 6 * x*x * y*y + y^4	noZV
+A135793	enumof2	0	0	0	(x, y) -> ZV(x).^(5).-(10).*(ZV(x).^(3)).*(y).*(y).+(5).*(x).*(ZV(y).^(4))	 (where x,y are integers)	x^5-10*x^3*y*y+5*x*y^4	noZV
+A135794	enumof2	0	0	0	(x, y) -> ZV(x).^(5).+(10).*(ZV(x).^(3)).*(y).*(y).+(5).*(x).*(ZV(y).^(4))	 (where x,y are integers)	x^5 + 10*x^3*y*y + 5*x*y^4	noZV
+A135796	enumof2	0	1	1	(x, y) -> ZV(4).*(ZV(x).^(3).*(y).+(4).*(y).*(ZV(x).^(3))	 (where x,y are positive integers)	4*x^3*y+4*y*x^3	noZV
+A135797	enumof2	0	1	1	(x, y) -> ZV(x).^(4).+(6).*(x).*(xy).*(y).+(ZV(y).^(4))	 (where x,y are positive integers)	x^4 + 6*x*x y*y + y^4	noZV
+A146748	enumof2	0	0	0	(k, n) -> ZV(n).^(k).*(ZV(k).^(n))	,where n,k > 1	n^k * k^n	noZV
+A152412	enumof2	0	0	0	(m, s) -> ZV(s).*(s).-(ZV(m).^(5)	,m>=1	s*s-m^5	noZV
+A155473	enumof2	0	0	0	(x, y) -> ZV(x).^(3).+(ZV(y).^(5))	,with x,y>0 and x < >y	x^3+y^5	noZV
+A169694	enumof2	0	0	0	(i, j) -> ZV(FI(i).).+((FI(j))	,where i,j have opposite parity and |i-j| > 1	FI(i).+(FI(j))	noZV
+A177763	enumof2	0	0	0	(m, s) -> ZV(m).^(5).-(s).*(s)	,m>=1,s >= 0	m^5-s*s	noZV
+A188633	enumof2	0	0	0	(k, m) -> ZV(2).^(k).*(m)	,with k > 1 and m an odd composite number	2^k * m	noZV
+A227855	enumof2	0	0	0	(x, y) -> ZV(x).^(4).+(4).*(ZV(y).^(4))	Numbers of the form	x^4 + 4*y^4	noZV
+A240974	enumof2	0	0	0	(x, y) -> ZV(x).^(y).-(x).*(y)	 for x > 1 and y > 1	x^y - x*y	noZV
+A241662	enumof2	0	0	0	(k, m) -> ZV(m).*(ZV(10).^(k)	 where gcd(10,m) = 1 and k >= 0 and m > 0	m * 10^k	noZV
+A246445	enumof2	0	1	1	(x, y) -> ZV((ZV(x).^(y).-(x)/y)	 for positive x,y	(x^y - x)/y	noZV
+A247336	enumof2	0	0	0	(k, m) -> ZV(m).^(k).-(k).-(1)	 with k > 0 and m > 1	m^k - k - 1	noZV
+A250482	enumof2	0	0	0	(x, y) -> ZV(2).^(x).+(y).*(y)	,with x,y >=0	2^x + y*y	noZV
+A250483	enumof2	0	0	0	(x, y) -> ZV(3).^(x).+(ZV(y).^(3))	  with x,y >= 0	3^x + y^3	noZV
+A250545	enumof2	0	0	0	(x, y) -> ZV(4).^(x).+(ZV(y).^(4))	 with x,y >= 0	4^x + y^4	noZV
+A250546	enumof2	0	0	0	(x, y) -> ZV(5).^(x).+(ZV(y).^(5))	 with x,y >= 0	5^x + y^5	noZV
+A250547	enumof2	0	0	0	(x, y) -> ZV(6).^(x).+(ZV(y).^(6))	 with x,y >= 0	6^x + y^6	noZV
+A250715	enumof2	0	0	0	(x, y) -> ZV(7).^(x).+(ZV(y).^(7))	 with x,y >= 0	7^x + y^7	noZV
+A253913	enumof2	0	0	0	(k, m) -> ZV(m).^(k).+(m)	,with m >= 0 and k > 1	m^k + m	noZV
+A259263	enumof2	0	0	0	(k, m) -> ZV((m).*(k)^2/(m).*(m).-(k).*(k)	 for distinct integers m,k	(m*k)^2/(m*m-k*k)	noZV
+A260488	enumof2	0	0	0	(k, m) -> ZV(2).^(m).*((6).*(k).+(1))	 for m,k >= 0,and 0	2^m * (6*k + 1)	noZV
+A276281	enumof2	0	0	0	(i, j) -> ZV(Bell(i).*(Bell(j))	Numbers of the form	Bell(i)*Bell(j)	noZV
+A276828	enumof2	0	0	0	(i, j) -> ZV(Bell(i).*(Fibonacci(j))	Numbers of the form	Bell(i)*Fibonacci(j)	noZV
+A281980	enumof2	0	0	0	(x, y) -> ZV(x).^(4).+(y).*(y)	 with x*x + 24*y a square,where x,y are nonnegative integers	x^4 + y*y	noZV
+A299505	enumof2	0	1	1	(x, y) -> ZV(x).^(4).+(y).*(ZV(x).^(3)).+(y).*(y).*(x).*(x).+(ZV(y).^(3)).*(x).+(ZV(y).^(4))	,where x,y are positive integers	x^4 + y*x^3 + y*y*x*x + y^3*x + y^4	noZV
+A300381	enumof2	0	0	0	(x, y) -> ZV(x).^(3).+(x).*(y).+(ZV(y).^(3))	 where x,y>0	x^3+x*y+y^3	noZV
+A303234	enumof2	0	0	0	(x, y) -> ZV(x).*((x).+(1)/2).+(ZV(2).^(y)	 with x,y nonnegative integers	x*(x+1)/2 + 2^y	noZV
+A303393	enumof2	0	0	0	(x, y) -> ZV(x).*((x).+(1)/2).+(ZV(5).^(y)	 with x,y nonnegative integers	x*(x+1)/2 + 5^y	noZV
+A303434	enumof2	0	0	0	(x, y) -> ZV(x).*((3).*(x).-(1)/2).+(ZV(3).^(y)	 with x,y nonnegative integers	x*(3*x-1)/2 + 3^y	noZV
+A303541	enumof2	0	0	0	(k, m) -> ZV(k).*(k).+(BI(2).*(m,m)	 with k,m nonnegative integers	k*k + BI(2*m, m)	noZV
+A319281	enumof2	0	0	0	(i, j) -> ZV(16).^(i).*((16).*(j).+(1))	Numbers of the form	16^i*(16*j + 1)	noZV
+A319282	enumof2	0	0	0	(i, j) -> ZV(16).^(i).*((16).*(j).+(15))	Numbers of the form	16^i*(16*j + 15)	noZV
+A326917	enumof2	0	0	0	(x, y) -> ZV(4).*(x).*((x).+(1).-(y).*((y).+(1)/2)	T(y) with 0 <= x,0 <= y,where T() denotes a triangular number	4*x*(x+1) - y*(y+1)/2	noZV
+A331531	enumof2	0	0	0	(x, y) -> ZV((x).*(x)|(y).*(y)	 with x,y >= 0 (where OR denotes the bitwise OR operator)	(x*x) | (y*y)	noZV
+A336192	enumof2	0	0	0	(a, b) -> ZV(absuchthatphi(ab)=a).*(b).-(1whereabistheconcatenationofaandb)	Numbers of the form	ab such that phi(ab) = a*b - 1 where ab is the concatenation of a and b	noZV
+A336237	enumof2	0	0	0	(a, b) -> ZV(absuchthatphi(ab)=a).*(bwhereabistheconcatenationofaandb)	Numbers of the form	ab such that phi(ab) = a*b where ab is the concatenation of a and b	noZV
+A336607	enumof2	0	1	1	(x, y) -> ZV(x).^(3).+(x).*(x).*(y).+(x).*(y).*(y).+(ZV(y).^(3))	,where x,y are positive integers	x^3 + x*x*y + x*y*y + y^3	noZV
+A337523	enumof2	0	0	0	(a, b) -> ZV(absuchthatuphi(ab)=a).*(bwhereabistheconcatenationofaandb)	Numbers of the form	ab such that uphi(ab) = a*b where ab is the concatenation of a and b	noZV
+A363999	enumof2	0	1	1	(i, j) -> ZV(|ZV(2).^(i).-(ZV(3).^(j)|)	,for ,	|2^i - 3^j|	noZV
+A364000	enumof2	0	1	1	(i, j) -> ZV(|ZV(2).^(i).-(ZV(3).^(j)).-(1|/2)	,,	|2^i - 3^j - 1|/2	noZV

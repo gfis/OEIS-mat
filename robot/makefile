@@ -168,6 +168,8 @@ pjotr: # a robot
 	cd $(FISCHER)/aman  ; echo -- $@ `date +%Y-%m-%d.%H` > $@.man
 	cd ../constant ; make     equa
 	cd $(FISCHER)/aman  ; cat equa.man     >> $@.man
+	make                      filfix
+	cd $(FISCHER)/aman  ; cat filfix.man   >> $@.man
 	make                      lrlink
 	cd $(FISCHER)/aman  ; cat lrlink.man   >> $@.man
 	make                      pricesub # A082192
@@ -175,8 +177,18 @@ pjotr: # a robot
 	cd $(FISCHER)  ; make CC=$@ pegel ; make ro ; make CC=$@ tel ap
 #	cd $(FISCHER)  ; make as
 #========
+filfix: # fixed points of seq
+	perl -pe 's/^(A\d{6}).*/\^$$1/; ' $@.nak.man | sort | tee $@.nak.tmp
+	grep -Pi "fixed points of [A-Z]\d{6}" $(COMMON)/jcat25.txt | grep -P "^%[NFCY]" \
+	| endirect | cut -b 4- \
+	| grep -vf $@.nak.tmp \
+	| perl -ne 'if (m{\Wfixed points of [A-Z](\d{6})}) { my $$seqno = $$1; s{ }{\tnew A$$seqno\(\)\t}; print; } '\
+	| grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	perl -pe 's{\t}{\tfilfix\t0\t};' $@.tmp > $(FISCHER)/aman/$@.man
+	# make hmize TARGET=$@
+#----
 lrlink: lrlink1 lrlink2 # linear recurrences that are not yet in joeis
-	e $(FISCHER)/aman/lrlink.man
+	# e $(FISCHER)/aman/lrlink.man
 lrlink1: # grep and reformat, with order
 	cut -f1  lrlink.nak.man | sort | tr -d "\r" | tee lrlink.nak.tmp
 	grep -P "\>Index entries for linear recurrences with constant coefficients\<" $(CAT) \
@@ -189,6 +201,7 @@ lrlink1: # grep and reformat, with order
 	wc -l    $@.tmp
 lrlink2: # get 'order' initial terms
 	cat lrlink1.tmp | getinits \
+	| grep -vf $(FISCHER)/today.txt \
 	| tee    $@.tmp
 	wc -l    $@.tmp
 	cp -v    $@.tmp $(FISCHER)/aman/lrlink.man
@@ -199,6 +212,8 @@ pricesub1:
 	grep -E "(Numbers|Integers)" $(COMMON)/joeis_names.txt \
 	| grep -E 'ers [a-z] (such that|for which) ' \
 	| grep -E 'is (a )?prime' \
+	| grep -vf $(FISCHER)/today.txt \
+	| grep -vP "^.082182" \
 	>        $@.tmp
 # J390751	FilterNu	Numbers k such that (47^k + 3^k)/50 is prime.	nonn,hard,more	1..4	2025-11-21.ack/f	_Robert Price_
 # J390757	FilterNu	Numbers k such that (23^k - 4^k)/19 is prime.	nonn,hard,more	1..7	2025-11-21.ack/f	_Robert Price_
