@@ -1547,6 +1547,10 @@ ppowp: # p^p
 	grep -P "p\^p|[A-Z](100716|048103)" jcat25.txt | grep -P "^%[NFY]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
+primof:
+	grep -P "Primes of (the )?form " joeis_names.txt | grep -P "\tnyi" \
+	| endirect | cut -f1,3,5,7 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
 prisig: # A179698	nyi to	Numbers of the form p^4*q^3*r where p, q, and r are distinct primes.	nonn	1..1000	nyi	_Vladimir Joseph Stephan Orlovsky_
 	grep -P "p\^\d+\*q(\^\d+)?|prime signature \{|prime factorization" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1576,6 +1580,10 @@ prodxn:
 	grep -P "powers of q" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
+qpowers:
+	grep -Pi "in powers of q[\. ]" jcat25.txt | grep -P "^%[NFC]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
 quadres:
 	grep -Pi "quadratic (non\-?)?residue" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1589,7 +1597,7 @@ ratn:
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 rators:
-	grep -P "ators of " jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
+	grep -P "ators? of " jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 refactorable: # 

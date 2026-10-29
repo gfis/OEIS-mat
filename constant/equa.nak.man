@@ -47,3 +47,5 @@ A393120
 A393143
 A396695	decexp	0	() -> CR.ONE
 A093540	error @418
+A401349	decexp	0	() -> CR.ZERO.subtract(CR.ONE).sqrt()
+A401335	decexp	0		2026-10-29
