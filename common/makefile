@@ -1549,7 +1549,9 @@ ppowp: # p^p
 	make hmize TARGET=$@
 primof:
 	grep -P "Primes of (the )?form " joeis_names.txt | grep -P "\tnyi" \
-	| endirect | cut -f1,3,5,7 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	| endirect | cut -f1,3,5,7 | sed -e "s/Primes of form //" -e "s/Primes of the form //" \
+	| sort -k2 \
+	| grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 prisig: # A179698	nyi to	Numbers of the form p^4*q^3*r where p, q, and r are distinct primes.	nonn	1..1000	nyi	_Vladimir Joseph Stephan Orlovsky_
 	grep -P "p\^\d+\*q(\^\d+)?|prime signature \{|prime factorization" jcat25.txt | grep -P "^%[NF]" \
@@ -1640,6 +1642,10 @@ selfinv:
 series: # MMA CoefficientList[Series
 	grep -P "^%t" jcat25.txt | grep -Pi "CoefficientList\[Series" \
 	| cut -b 4- | sed -e "s/ /\t/" | endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+setpart:
+	grep -P "Number of set partitions of" joeis_names.txt | grep -P "\tnyi" \
+	| cut -f1,3,5,7 | endirect | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 signs:
 	grep -P "Signs of " jcat25.txt | grep -P "^%[NFC]" \

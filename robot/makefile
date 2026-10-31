@@ -387,6 +387,7 @@ chatest: # compile and run, no break
 	cp -v chain.ocn $@.ocn
 	wc -l    $(FISCHER)/aman/$@.man
 	cd $(FISCHER) ; make -i CC=chatest pegel
+stop_here:
 	make next PROC=$@
 prune1: # prune and compile again, no break
 	cd $(FISCHER) ; make -i CC=chatest prune gener dist               ; cut -f1 $(CC).javer.tmp >> aman/`date +%Y-%m-%d`.nak.man
