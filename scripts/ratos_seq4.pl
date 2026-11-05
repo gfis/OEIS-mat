@@ -2,7 +2,7 @@
 
 # Generate a seq4 record with CC=ratos|holos from the parameters and append it to today's aman/date.man file
 # @(#) $Id$
-# 2026-10078: seqno in conum
+# 2026-10-07: seqno in conum
 # 2026-07-18: -dist also
 # 2025-07-14: seqno with 6 digits; *CZ=73
 # 2025-06-13, Georg Fischer

@@ -1327,6 +1327,14 @@ count10:
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 	
+decfrac:
+	grep -P "Decimal expansion of \d+\/\d+\." joeis_names.txt \
+	| cut -f1,3,5,6,7 > $@.tmp
+	make hmize TARGET=$@
+deincreasing:
+	grep -P "decreasing|increasing" jcat25.txt | grep -Pi "digits" | grep -P "^%[NF]" \
+	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
 determ:
 	grep -P "is the determinant|Determinant|Matrix determinant" joeis_names.txt | grep -P "\tnyi" \
 	| endirect | cut -f1,3,5,7 | grep -vf $(FISCHER)/today.txt | tee $@.tmp
@@ -1349,10 +1357,6 @@ diffeq:
 	make hmize TARGET=$@
 digits:
 	grep -P "\bd_\w\b" jcat25.txt | grep -P "^%[NF]" \
-	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
-	make hmize TARGET=$@
-deincreasing:
-	grep -P "decreasing|increasing" jcat25.txt | grep -Pi "digits" | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 egf:
@@ -1466,6 +1470,10 @@ lchi: # Dirichlet L(n, chik)
 lgf:
 	grep -P "([Ll]\.g\.f\.)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -viP "€|Prod|sum|row|column" \
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
+	make hmize TARGET=$@
+log2:
+	grep -Pi "(floor|ceil|ceiling)\(log_?2\(|[A-Z](000523|029837)" jcat25.txt | grep -P "^%[NF]" | endirect | grep -v "€" \
+	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | sort -k2 | tee $@.tmp
 	make hmize TARGET=$@
 lpf_gpf:
 	grep -P "(largest|least|smallest|greatest) prime factor|\b(lpf|spf|gpf|A020639|A006530|A119288)\b" jcat25.txt \
@@ -1603,7 +1611,7 @@ rators:
 	| cut -b 4- | perl -pe 's/ /\t/;' | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 refactorable: # 
-	grep -Pi "Refactorable number|tau number| [A-Z]033950" jcat25.txt | grep -P "^%[NFC]" \
+	grep -Pi "Refactorable number|tau number|[A-Z](033950|336040|046642)" jcat25.txt | grep -P "^%[NF]" \
 	| endirect | cut -b 4- | sed -e "s/ /\t/" | grep -vf $(FISCHER)/today.txt | tee $@.tmp
 	make hmize TARGET=$@
 rectoproc: 
